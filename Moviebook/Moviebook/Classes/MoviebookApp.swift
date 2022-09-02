@@ -9,12 +9,12 @@ import SwiftUI
 
 @main
 struct MoviebookApp: App {
-    let persistenceController = PersistenceController.shared
+
+    let user = User.shared
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
+            FeedView().environmentObject(user)
         }
     }
 }
