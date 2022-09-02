@@ -13,7 +13,6 @@ struct PopularWebService {
         let url = try TheMovieDbRequestFactory.makeURL(path: "movie/popular")
         let (data, _) = try await URLSession.shared.data(from: url)
         let parsedResponse = try JSONDecoder().decode(TheMovieDbResponseWithResults<MoviePreview>.self, from: data)
-
         return parsedResponse.results
     }
 }
