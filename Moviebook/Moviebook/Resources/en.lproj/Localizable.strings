@@ -1,0 +1,12 @@
+/* 
+  Localizable.strings
+  Moviebook
+
+  Created by Luca Strazzullo on 02/09/2022.
+  
+*/
+
+// MARK: Movie
+
+"MOVIE.POPULAR" = "Popular";
+"MOVIE.UPCOMING" = "Upcoming";

@@ -22,9 +22,9 @@ import SwiftUI
         var name: String {
             switch self {
             case .upcoming:
-                return "Upcoming"
+                return NSLocalizedString("MOVIE.UPCOMING", comment: "")
             case .popular:
-                return "Popular"
+                return NSLocalizedString("MOVIE.POPULAR", comment: "")
             }
         }
     }
