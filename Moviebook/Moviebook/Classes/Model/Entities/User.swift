@@ -17,11 +17,3 @@ final class User {
         self.watchlist = watchlist
     }
 }
-
-extension User: ObservableObject {}
-
-#if DEBUG
-extension User {
-    static let mock: User = User(watchlist: Watchlist())
-}
-#endif

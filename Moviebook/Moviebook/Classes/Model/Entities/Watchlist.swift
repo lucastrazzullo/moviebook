@@ -9,16 +9,46 @@ import Foundation
 
 final class Watchlist {
 
-    var isEmpty: Bool {
-        return toWatch.isEmpty && watched.isEmpty
+    enum WatchlistItem: Hashable {
+        case movie(id: Movie.ID)
     }
 
-    private(set) var toWatch: [Movie.ID]
-    private(set) var watched: [Movie.ID]
+    enum WatchlistItemState {
+        case none
+        case toWatch
+        case watched
+    }
+
+    @Published private(set) var toWatch: Set<WatchlistItem>
+    @Published private(set) var watched: Set<WatchlistItem>
 
     init() {
         toWatch = []
         watched = []
+    }
+
+    func itemState(item: WatchlistItem) -> WatchlistItemState {
+        if toWatch.contains(item) {
+            return .toWatch
+        } else if watched.contains(item) {
+            return .watched
+        } else {
+            return .none
+        }
+    }
+
+    func update(state: WatchlistItemState, for item: WatchlistItem) {
+        switch state {
+        case .none:
+            toWatch.remove(item)
+            watched.remove(item)
+        case .toWatch:
+            toWatch.insert(item)
+            watched.remove(item)
+        case .watched:
+            toWatch.remove(item)
+            watched.insert(item)
+        }
     }
 }
 

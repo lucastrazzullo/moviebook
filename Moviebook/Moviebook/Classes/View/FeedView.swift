@@ -9,19 +9,17 @@ import SwiftUI
 
 struct FeedView: View {
 
-    @EnvironmentObject private var user: User
+    @EnvironmentObject private var watchlist: Watchlist
     
     var body: some View {
-        if user.watchlist.isEmpty {
-            DiscoverView()
-        } else {
-            WatchlistView(watchlist: user.watchlist)
-        }
+        DiscoverView()
     }
 }
 
 struct FeedView_Previews: PreviewProvider {
     static var previews: some View {
-        FeedView().environmentObject(User.mock)
+        FeedView()
+            .environment(\.requestManager, MockRequestManager())
+            .environmentObject(Watchlist())
     }
 }

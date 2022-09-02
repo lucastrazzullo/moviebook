@@ -17,7 +17,7 @@ struct MoviebookApp: App {
         WindowGroup {
             FeedView()
                 .environment(\.requestManager, requestManager)
-                .environmentObject(user)
+                .environmentObject(user.watchlist)
         }
     }
 }

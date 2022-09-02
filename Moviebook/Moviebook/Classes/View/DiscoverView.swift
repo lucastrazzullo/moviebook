@@ -52,6 +52,7 @@ import SwiftUI
 struct DiscoverView: View {
 
     @Environment(\.requestManager) var requestManager
+    @EnvironmentObject var watchlist: Watchlist
     @StateObject private var content: Content = Content()
 
     var body: some View {
@@ -59,7 +60,30 @@ struct DiscoverView: View {
             ForEach(content.sections) { section in
                 SwiftUI.Section(header: Text(section.name)) {
                     ForEach(content.movies[section.id] ?? []) { movie in
-                        Text(movie.title)
+                        let watchlistItem = Watchlist.WatchlistItem.movie(id: movie.id)
+                        HStack {
+                            Text(movie.title)
+                            Spacer()
+
+                            switch watchlist.itemState(item: watchlistItem) {
+                            case .toWatch:
+                                Image(systemName: "star")
+                            case .watched:
+                                Image(systemName: "eye")
+                            case .none:
+                                Image(systemName: "plus")
+                            }
+                        }
+                        .onTapGesture {
+                            switch watchlist.itemState(item: watchlistItem) {
+                            case .toWatch:
+                                watchlist.update(state: .watched, for: watchlistItem)
+                            case .watched:
+                                watchlist.update(state: .none, for: watchlistItem)
+                            case .none:
+                                watchlist.update(state: .toWatch, for: watchlistItem)
+                            }
+                        }
                     }
                 }
             }
@@ -72,6 +96,8 @@ struct DiscoverView: View {
 
 struct DiscoverView_Previews: PreviewProvider {
     static var previews: some View {
-        DiscoverView().environment(\.requestManager, MockRequestManager())
+        DiscoverView()
+            .environment(\.requestManager, MockRequestManager())
+            .environmentObject(Watchlist())
     }
 }
