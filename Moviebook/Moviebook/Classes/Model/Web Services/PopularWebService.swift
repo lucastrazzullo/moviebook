@@ -10,9 +10,10 @@ import Foundation
 struct PopularWebService {
 
     func fetch() async throws -> [MoviePreview] {
-        return [
-            MoviePreview(id: 1, title: "Movie 1"),
-            MoviePreview(id: 2, title: "Movie 2")
-        ]
+        let url = try TheMovieDbRequestFactory.makeURL(path: "movie/popular")
+        let (data, _) = try await URLSession.shared.data(from: url)
+        let parsedResponse = try JSONDecoder().decode(TheMovieDbResponseWithResults<MoviePreview>.self, from: data)
+
+        return parsedResponse.results
     }
 }

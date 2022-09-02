@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - Response with results
 
-struct ResponseWithResults<ItemType: Decodable>: Decodable {
+struct TheMovieDbResponseWithResults<ItemType: Decodable>: Decodable {
     let results: [ItemType]
 }
 
