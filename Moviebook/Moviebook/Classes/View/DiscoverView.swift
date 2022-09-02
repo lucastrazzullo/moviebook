@@ -47,7 +47,7 @@ import SwiftUI
             movies[Section.upcoming.id] = try await upcomingWebService.fetch()
             movies[Section.popular.id] = try await popularWebService.fetch()
         } catch {
-            print(error)
+            assertionFailure(error.localizedDescription)
         }
     }
 }
