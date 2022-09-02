@@ -11,7 +11,7 @@ struct Movie: Identifiable {
     let id: Int
 }
 
-struct MoviePreview: Identifiable {
+struct MovieDetails: Identifiable {
     let id: Movie.ID
     let title: String
 }

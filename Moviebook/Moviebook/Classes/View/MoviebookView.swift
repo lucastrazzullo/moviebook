@@ -20,7 +20,7 @@ struct MoviebookView: View {
         @ViewBuilder func label() -> some View {
             switch self {
             case .watchlist:
-                Label(NSLocalizedString("SCREEN.WATCHLIST.TITLE", comment: ""), systemImage: "star")
+                Label(NSLocalizedString("WATCHLIST.TITLE", comment: ""), systemImage: "star")
             case .explore:
                 Label(NSLocalizedString("SCREEN.EXPLORE.TITLE", comment: ""), systemImage: "rectangle.and.text.magnifyingglass")
             }

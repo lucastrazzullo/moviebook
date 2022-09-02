@@ -15,7 +15,7 @@ struct TheMovieDbResponseWithResults<ItemType: Decodable>: Decodable {
 
 // MARK: - Entities Decoding Extensions
 
-extension MoviePreview: Decodable {
+extension MovieDetails: Decodable {
 
     enum CodingKeys: String, CodingKey {
         case id = "id"
@@ -25,7 +25,7 @@ extension MoviePreview: Decodable {
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
 
-        id = try values.decode(MoviePreview.ID.self, forKey: .id)
+        id = try values.decode(MovieDetails.ID.self, forKey: .id)
         title = try values.decode(String.self, forKey: .title)
     }
 }

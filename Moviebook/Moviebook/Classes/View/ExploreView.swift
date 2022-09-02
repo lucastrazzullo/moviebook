@@ -31,15 +31,15 @@ import SwiftUI
 
     // MARK: Instance Properties
 
+    @Published var movies: [Section.ID: [MovieDetails]] = [:]
+
     var sections: [Section] {
         return Section.allCases
     }
 
-    @Published var movies: [Section.ID: [MoviePreview]] = [:]
-
     // MARK: Instance methods
 
-    func refresh(requestManager: RequestManager) async {
+    func start(requestManager: RequestManager) async {
         do {
             movies[Section.upcoming.id] = try await UpcomingWebService(requestManager: requestManager).fetch()
             movies[Section.popular.id] = try await PopularWebService(requestManager: requestManager).fetch()
@@ -89,7 +89,7 @@ struct ExploreView: View {
             }
         }
         .task {
-            await content.refresh(requestManager: requestManager)
+            await content.start(requestManager: requestManager)
         }
     }
 }

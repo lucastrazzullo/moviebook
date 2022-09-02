@@ -8,10 +8,15 @@
 
 // MARK: Screens
 
-"SCREEN.WATCHLIST.TITLE" = "Watchlist";
 "SCREEN.EXPLORE.TITLE" = "Esplora";
 
 // MARK: Movie
 
 "MOVIE.POPULAR" = "I più visti";
 "MOVIE.UPCOMING" = "Coming soon";
+
+// MARK: Watchlist
+
+"WATCHLIST.TITLE" = "Watchlist";
+"WATCHLIST.TO_WATCH.TITLE" = "Da vedere";
+"WATCHLIST.WATCHED.TITLE" = "Visti";

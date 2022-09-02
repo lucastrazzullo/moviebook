@@ -7,7 +7,7 @@
 
 import Foundation
 
-final class Watchlist {
+final class Watchlist: ObservableObject {
 
     enum WatchlistItem: Hashable {
         case movie(id: Movie.ID)
@@ -55,5 +55,3 @@ final class Watchlist {
         }
     }
 }
-
-extension Watchlist: ObservableObject {}
