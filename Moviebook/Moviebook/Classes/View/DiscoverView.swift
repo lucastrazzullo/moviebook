@@ -37,15 +37,12 @@ import SwiftUI
 
     @Published var movies: [Section.ID: [MoviePreview]] = [:]
 
-    private let upcomingWebService = UpcomingWebService()
-    private let popularWebService = PopularWebService()
-
     // MARK: Instance methods
 
-    func refresh() async {
+    func refresh(requestManager: RequestManager) async {
         do {
-            movies[Section.upcoming.id] = try await upcomingWebService.fetch()
-            movies[Section.popular.id] = try await popularWebService.fetch()
+            movies[Section.upcoming.id] = try await UpcomingWebService(requestManager: requestManager).fetch()
+            movies[Section.popular.id] = try await PopularWebService(requestManager: requestManager).fetch()
         } catch {
             assertionFailure(error.localizedDescription)
         }
@@ -54,7 +51,8 @@ import SwiftUI
 
 struct DiscoverView: View {
 
-    @StateObject private var content = Content()
+    @Environment(\.requestManager) var requestManager
+    @StateObject private var content: Content = Content()
 
     var body: some View {
         List {
@@ -67,13 +65,13 @@ struct DiscoverView: View {
             }
         }
         .task {
-            await content.refresh()
+            await content.refresh(requestManager: requestManager)
         }
     }
 }
 
 struct DiscoverView_Previews: PreviewProvider {
     static var previews: some View {
-        DiscoverView()
+        DiscoverView().environment(\.requestManager, MockRequestManager())
     }
 }

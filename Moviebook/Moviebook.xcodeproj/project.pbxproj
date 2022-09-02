@@ -10,6 +10,10 @@
 		814D46D028C2224A000D7ABD /* Response.swift in Sources */ = {isa = PBXBuildFile; fileRef = 814D46CF28C2224A000D7ABD /* Response.swift */; };
 		814D46D228C22347000D7ABD /* Request.swift in Sources */ = {isa = PBXBuildFile; fileRef = 814D46D128C22347000D7ABD /* Request.swift */; };
 		814D46D928C22772000D7ABD /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 814D46DB28C22772000D7ABD /* Localizable.strings */; };
+		814D46DF28C23062000D7ABD /* RequestManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 814D46DE28C23062000D7ABD /* RequestManager.swift */; };
+		814D46E128C2391D000D7ABD /* MockServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 814D46E028C2391D000D7ABD /* MockServer.swift */; };
+		814D46E528C23999000D7ABD /* MockRequestManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 814D46E428C23999000D7ABD /* MockRequestManager.swift */; };
+		814D46E928C23CED000D7ABD /* Mocks in Resources */ = {isa = PBXBuildFile; fileRef = 814D46E828C23CED000D7ABD /* Mocks */; };
 		8169FB1D28C204450054BCE6 /* MoviebookApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8169FB1C28C204450054BCE6 /* MoviebookApp.swift */; };
 		8169FB1F28C204450054BCE6 /* WatchlistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8169FB1E28C204450054BCE6 /* WatchlistView.swift */; };
 		8169FB2128C204450054BCE6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8169FB2028C204450054BCE6 /* Assets.xcassets */; };
@@ -49,6 +53,10 @@
 		814D46D128C22347000D7ABD /* Request.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Request.swift; sourceTree = "<group>"; };
 		814D46DA28C22772000D7ABD /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		814D46DC28C22774000D7ABD /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/Localizable.strings; sourceTree = "<group>"; };
+		814D46DE28C23062000D7ABD /* RequestManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestManager.swift; sourceTree = "<group>"; };
+		814D46E028C2391D000D7ABD /* MockServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockServer.swift; sourceTree = "<group>"; };
+		814D46E428C23999000D7ABD /* MockRequestManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockRequestManager.swift; sourceTree = "<group>"; };
+		814D46E828C23CED000D7ABD /* Mocks */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Mocks; sourceTree = "<group>"; };
 		8169FB1928C204450054BCE6 /* Moviebook.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Moviebook.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8169FB1C28C204450054BCE6 /* MoviebookApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviebookApp.swift; sourceTree = "<group>"; };
 		8169FB1E28C204450054BCE6 /* WatchlistView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistView.swift; sourceTree = "<group>"; };
@@ -101,8 +109,19 @@
 			children = (
 				814D46CF28C2224A000D7ABD /* Response.swift */,
 				814D46D128C22347000D7ABD /* Request.swift */,
+				8169FB6128C2107D0054BCE6 /* UpcomingWebService.swift */,
+				8169FB6528C215AB0054BCE6 /* PopularWebService.swift */,
 			);
 			path = "The Movie DB";
+			sourceTree = "<group>";
+		};
+		814D46E328C23989000D7ABD /* Mocks */ = {
+			isa = PBXGroup;
+			children = (
+				814D46E428C23999000D7ABD /* MockRequestManager.swift */,
+				814D46E028C2391D000D7ABD /* MockServer.swift */,
+			);
+			path = Mocks;
 			sourceTree = "<group>";
 		};
 		8169FB1028C204450054BCE6 = {
@@ -194,6 +213,7 @@
 			isa = PBXGroup;
 			children = (
 				8169FB2728C204450054BCE6 /* Moviebook.xcdatamodeld */,
+				814D46E828C23CED000D7ABD /* Mocks */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -212,7 +232,7 @@
 			isa = PBXGroup;
 			children = (
 				8169FB6328C210820054BCE6 /* Entities */,
-				8169FB6428C2108A0054BCE6 /* Web Services */,
+				8169FB6428C2108A0054BCE6 /* Network */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -227,14 +247,14 @@
 			path = Entities;
 			sourceTree = "<group>";
 		};
-		8169FB6428C2108A0054BCE6 /* Web Services */ = {
+		8169FB6428C2108A0054BCE6 /* Network */ = {
 			isa = PBXGroup;
 			children = (
+				814D46DE28C23062000D7ABD /* RequestManager.swift */,
+				814D46E328C23989000D7ABD /* Mocks */,
 				814D46CE28C2221B000D7ABD /* The Movie DB */,
-				8169FB6128C2107D0054BCE6 /* UpcomingWebService.swift */,
-				8169FB6528C215AB0054BCE6 /* PopularWebService.swift */,
 			);
-			path = "Web Services";
+			path = Network;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -344,6 +364,7 @@
 			files = (
 				8169FB2428C204450054BCE6 /* Preview Assets.xcassets in Resources */,
 				814D46D928C22772000D7ABD /* Localizable.strings in Resources */,
+				814D46E928C23CED000D7ABD /* Mocks in Resources */,
 				8169FB2128C204450054BCE6 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -371,15 +392,18 @@
 			files = (
 				8169FB6228C2107D0054BCE6 /* UpcomingWebService.swift in Sources */,
 				814D46D228C22347000D7ABD /* Request.swift in Sources */,
+				814D46DF28C23062000D7ABD /* RequestManager.swift in Sources */,
 				8169FB5428C207590054BCE6 /* FeedView.swift in Sources */,
 				8169FB2928C204450054BCE6 /* Moviebook.xcdatamodeld in Sources */,
 				8169FB5B28C207A40054BCE6 /* Movie.swift in Sources */,
 				8169FB1F28C204450054BCE6 /* WatchlistView.swift in Sources */,
+				814D46E128C2391D000D7ABD /* MockServer.swift in Sources */,
 				8169FB5928C207870054BCE6 /* User.swift in Sources */,
 				8169FB6628C215AB0054BCE6 /* PopularWebService.swift in Sources */,
 				814D46D028C2224A000D7ABD /* Response.swift in Sources */,
 				8169FB1D28C204450054BCE6 /* MoviebookApp.swift in Sources */,
 				8169FB5D28C207ED0054BCE6 /* Watchlist.swift in Sources */,
+				814D46E528C23999000D7ABD /* MockRequestManager.swift in Sources */,
 				8169FB5F28C20C420054BCE6 /* DiscoverView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
