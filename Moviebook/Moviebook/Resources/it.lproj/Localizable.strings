@@ -6,6 +6,11 @@
   
 */
 
+// MARK: Screens
+
+"SCREEN.WATCHLIST.TITLE" = "Watchlist";
+"SCREEN.EXPLORE.TITLE" = "Esplora";
+
 // MARK: Movie
 
 "MOVIE.POPULAR" = "I più visti";

@@ -19,6 +19,10 @@ final class Watchlist {
         case watched
     }
 
+    var isEmpty: Bool {
+        return toWatch.isEmpty && watched.isEmpty
+    }
+
     @Published private(set) var toWatch: Set<WatchlistItem>
     @Published private(set) var watched: Set<WatchlistItem>
 

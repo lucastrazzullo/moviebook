@@ -10,12 +10,34 @@ import CoreData
 
 struct WatchlistView: View {
 
-    @ObservedObject var watchlist: Watchlist
+    @Environment(\.requestManager) var requestManager
+    @EnvironmentObject var watchlist: Watchlist
+
+    var onStartDiscoverySelected: () -> Void = {}
 
     var body: some View {
         NavigationView {
-            List {
-                Text("There are no movies in your watchlist")
+            Group {
+                if watchlist.isEmpty {
+                    VStack {
+                        Text("Your watchlist is empty")
+                            .font(.headline)
+
+                        Button(action: onStartDiscoverySelected) {
+                            Label("Start your discovery", systemImage: "rectangle.and.text.magnifyingglass")
+                        }.buttonStyle(.borderedProminent)
+                    }
+                } else {
+                    List {
+                        Section(header: Text("To Watch")) {
+                            Text("Movie")
+                        }
+
+                        Section(header: Text("Watched")) {
+                            Text("Movie")
+                        }
+                    }
+                }
             }
             .navigationTitle("Watchlist")
         }
@@ -24,6 +46,8 @@ struct WatchlistView: View {
 
 struct WatchlistView_Previews: PreviewProvider {
     static var previews: some View {
-        WatchlistView(watchlist: Watchlist())
+        WatchlistView()
+            .environment(\.requestManager, MockRequestManager())
+            .environmentObject(Watchlist())
     }
 }

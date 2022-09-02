@@ -1,5 +1,5 @@
 //
-//  DiscoverView.swift
+//  ExploreView.swift
 //  Moviebook
 //
 //  Created by Luca Strazzullo on 02/09/2022.
@@ -49,7 +49,7 @@ import SwiftUI
     }
 }
 
-struct DiscoverView: View {
+struct ExploreView: View {
 
     @Environment(\.requestManager) var requestManager
     @EnvironmentObject var watchlist: Watchlist
@@ -94,9 +94,9 @@ struct DiscoverView: View {
     }
 }
 
-struct DiscoverView_Previews: PreviewProvider {
+struct ExploreView_Previews: PreviewProvider {
     static var previews: some View {
-        DiscoverView()
+        ExploreView()
             .environment(\.requestManager, MockRequestManager())
             .environmentObject(Watchlist())
     }
