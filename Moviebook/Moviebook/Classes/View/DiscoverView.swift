@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-private final class Content: ObservableObject {
+@MainActor private final class Content: ObservableObject {
 
     // MARK: Types
 
@@ -43,8 +43,12 @@ private final class Content: ObservableObject {
     // MARK: Instance methods
 
     func refresh() async {
-        movies[Section.upcoming.id] = try? await upcomingWebService.fetch()
-        movies[Section.popular.id] = try? await popularWebService.fetch()
+        do {
+            movies[Section.upcoming.id] = try await upcomingWebService.fetch()
+            movies[Section.popular.id] = try await popularWebService.fetch()
+        } catch {
+            print(error)
+        }
     }
 }
 
