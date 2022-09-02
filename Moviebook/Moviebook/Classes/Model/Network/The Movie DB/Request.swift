@@ -36,7 +36,7 @@ enum TheMovieDbRequestFactory {
     }
 
     private static func defaultURLComponents() -> URLComponents {
-        let language = NSLocalizedString("API.LANGUAGE", comment: "")
+        let language = Locale.current.identifier
 
         var components = URLComponents()
         components.scheme = "https"
