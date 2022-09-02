@@ -48,6 +48,8 @@
 		8169FB3828C204450054BCE6 /* MoviebookUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MoviebookUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8169FB3C28C204450054BCE6 /* MoviebookUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviebookUITests.swift; sourceTree = "<group>"; };
 		8169FB3E28C204450054BCE6 /* MoviebookUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviebookUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		8169FB4C28C2051E0054BCE6 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
+		8169FB4D28C2051E0054BCE6 /* LICENSE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = LICENSE.md; path = ../LICENSE.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,6 +80,7 @@
 		8169FB1028C204450054BCE6 = {
 			isa = PBXGroup;
 			children = (
+				8169FB4B28C205040054BCE6 /* Metadata */,
 				8169FB1B28C204450054BCE6 /* Moviebook */,
 				8169FB3128C204450054BCE6 /* MoviebookTests */,
 				8169FB3B28C204450054BCE6 /* MoviebookUITests */,
@@ -131,6 +134,15 @@
 				8169FB3E28C204450054BCE6 /* MoviebookUITestsLaunchTests.swift */,
 			);
 			path = MoviebookUITests;
+			sourceTree = "<group>";
+		};
+		8169FB4B28C205040054BCE6 /* Metadata */ = {
+			isa = PBXGroup;
+			children = (
+				8169FB4C28C2051E0054BCE6 /* README.md */,
+				8169FB4D28C2051E0054BCE6 /* LICENSE.md */,
+			);
+			name = Metadata;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
