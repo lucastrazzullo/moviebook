@@ -6,10 +6,6 @@
   
 */
 
-// MARK: Screens
-
-"SCREEN.EXPLORE.TITLE" = "Esplora";
-
 // MARK: Movie
 
 "MOVIE.POPULAR" = "I più visti";
@@ -20,3 +16,7 @@
 "WATCHLIST.TITLE" = "Watchlist";
 "WATCHLIST.TO_WATCH.TITLE" = "Da vedere";
 "WATCHLIST.WATCHED.TITLE" = "Visti";
+
+// MARK: Explore
+
+"EXPLORE.TITLE" = "Esplora";

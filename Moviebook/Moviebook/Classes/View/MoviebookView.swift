@@ -22,7 +22,7 @@ struct MoviebookView: View {
             case .watchlist:
                 Label(NSLocalizedString("WATCHLIST.TITLE", comment: ""), systemImage: "star")
             case .explore:
-                Label(NSLocalizedString("SCREEN.EXPLORE.TITLE", comment: ""), systemImage: "rectangle.and.text.magnifyingglass")
+                Label(NSLocalizedString("EXPLORE.TITLE", comment: ""), systemImage: "rectangle.and.text.magnifyingglass")
             }
         }
 

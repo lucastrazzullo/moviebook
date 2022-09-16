@@ -56,40 +56,34 @@ struct ExploreView: View {
     @StateObject private var content: Content = Content()
 
     var body: some View {
-        List {
-            ForEach(content.sections) { section in
-                SwiftUI.Section(header: Text(section.name)) {
-                    ForEach(content.movies[section.id] ?? []) { movie in
-                        let watchlistItem = Watchlist.WatchlistItem.movie(id: movie.id)
-                        HStack {
-                            Text(movie.title)
-                            Spacer()
-
-                            switch watchlist.itemState(item: watchlistItem) {
-                            case .toWatch:
-                                Image(systemName: "star")
-                            case .watched:
-                                Image(systemName: "eye")
-                            case .none:
-                                Image(systemName: "plus")
-                            }
-                        }
-                        .onTapGesture {
-                            switch watchlist.itemState(item: watchlistItem) {
-                            case .toWatch:
-                                watchlist.update(state: .watched, for: watchlistItem)
-                            case .watched:
-                                watchlist.update(state: .none, for: watchlistItem)
-                            case .none:
-                                watchlist.update(state: .toWatch, for: watchlistItem)
-                            }
+        NavigationView {
+            List {
+                ForEach(content.sections) { section in
+                    SwiftUI.Section(header: Text(section.name)) {
+                        ForEach(content.movies[section.id] ?? []) { movie in
+                            MoviePreview(details: movie)
+                                .onTapGesture {
+                                    let watchlistItem = Watchlist.WatchlistItem.movie(id: movie.id)
+                                    switch watchlist.itemState(item: watchlistItem) {
+                                    case .toWatch:
+                                        watchlist.update(state: .watched, for: watchlistItem)
+                                    case .watched:
+                                        watchlist.update(state: .none, for: watchlistItem)
+                                    case .none:
+                                        watchlist.update(state: .toWatch, for: watchlistItem)
+                                    }
+                                }
                         }
                     }
                 }
+                .listRowSeparator(.hidden)
+                .listSectionSeparator(.hidden)
             }
-        }
-        .task {
-            await content.start(requestManager: requestManager)
+            .listStyle(.inset)
+            .navigationTitle(NSLocalizedString("EXPLORE.TITLE", comment: ""))
+            .task {
+                await content.start(requestManager: requestManager)
+            }
         }
     }
 }
@@ -99,5 +93,77 @@ struct ExploreView_Previews: PreviewProvider {
         ExploreView()
             .environment(\.requestManager, MockRequestManager())
             .environmentObject(Watchlist())
+    }
+}
+
+// MARK: - Private Views
+
+private struct MoviePreview: View {
+
+    @EnvironmentObject var watchlist: Watchlist
+
+    let details: MovieDetails
+
+    var body: some View {
+        HStack(alignment: .center) {
+            HStack(alignment: .center) {
+                ZStack(alignment: .bottomTrailing) {
+                    RoundedRectangle(cornerRadius: 6)
+                        .foregroundColor(.gray.opacity(0.2))
+                        .frame(width: 80, height: 120)
+                        .padding(.trailing, 4)
+                        .padding(.bottom, 4)
+
+                    Button(action: {}) {
+                        HStack {
+                            let watchlistItem = Watchlist.WatchlistItem.movie(id: details.id)
+                            switch watchlist.itemState(item: watchlistItem) {
+                            case .toWatch:
+                                Image(systemName: "star")
+                            case .watched:
+                                Image(systemName: "eye")
+                            case .none:
+                                Image(systemName: "plus")
+                            }
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .font(.caption)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(details.title)
+                        .lineLimit(3)
+                        .font(.subheadline)
+                        .frame(maxWidth: 140, alignment: .leading)
+
+                    Text("10.10.2018")
+                        .font(.caption)
+
+                    HStack(spacing: 2) {
+                        ForEach(1...5, id: \.self) { rating in
+                            Image(systemName: "star.fill")
+                                .font(.caption2)
+                        }
+                    }
+
+                    if let _ = details.collection {
+                        Button(action: {}) {
+                            Text("show series")
+                            Image(systemName: "chevron.down")
+                        }
+                        .font(.caption2)
+                        .buttonStyle(.borderless)
+                        .padding(2)
+                        .background(.thinMaterial)
+                        .cornerRadius(4)
+                        .tint(.primary)
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+
+            Spacer()
+        }
     }
 }

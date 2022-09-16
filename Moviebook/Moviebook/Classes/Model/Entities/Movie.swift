@@ -14,4 +14,10 @@ struct Movie: Identifiable {
 struct MovieDetails: Identifiable {
     let id: Movie.ID
     let title: String
+    let collection: MovieCollection?
+}
+
+struct MovieCollection: Identifiable {
+    let id: Int
+    let name: String
 }
