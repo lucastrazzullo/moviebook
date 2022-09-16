@@ -9,15 +9,6 @@ import Foundation
 
 struct Movie: Identifiable {
     let id: Int
-}
-
-struct MovieDetails: Identifiable {
-    let id: Movie.ID
-    let title: String
-    let collection: MovieCollection?
-}
-
-struct MovieCollection: Identifiable {
-    let id: Int
-    let name: String
+    let details: MovieDetails
+    let collection: MovieCollection
 }

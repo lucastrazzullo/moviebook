@@ -12,7 +12,7 @@ struct MovieDetailsWebService {
     let requestManager: RequestManager
 
     func fetch(with movieIdentifier: Movie.ID) async throws -> MovieDetails {
-        let url = try TheMovieDbRequestFactory.makeURL(path: "movie/\(movieIdentifier)")
+        let url = try TheMovieDbDataRequestFactory.makeURL(path: "movie/\(movieIdentifier)")
         let data = try await requestManager.request(from: url)
         let parsedResponse = try JSONDecoder().decode(MovieDetails.self, from: data)
         return parsedResponse

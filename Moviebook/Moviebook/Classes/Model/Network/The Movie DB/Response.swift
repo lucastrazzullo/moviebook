@@ -20,7 +20,8 @@ extension MovieDetails: Decodable {
     enum CodingKeys: String, CodingKey {
         case id = "id"
         case title = "title"
-        case collection = "belongs_to_collection"
+        case posterPath = "poster_path"
+        case backdropPath = "backdrop_path"
     }
 
     init(from decoder: Decoder) throws {
@@ -28,21 +29,16 @@ extension MovieDetails: Decodable {
 
         id = try values.decode(MovieDetails.ID.self, forKey: .id)
         title = try values.decode(String.self, forKey: .title)
-        collection = try values.decodeIfPresent(MovieCollection.self, forKey: .collection)
-    }
-}
 
-extension MovieCollection: Decodable {
-
-    enum CodingKeys: String, CodingKey {
-        case id = "id"
-        case name = "name"
-    }
-
-    init(from decoder: Decoder) throws {
-        let values = try decoder.container(keyedBy: CodingKeys.self)
-
-        id = try values.decode(MovieCollection.ID.self, forKey: .id)
-        name = try values.decode(String.self, forKey: .name)
+        if let posterPath = try values.decodeIfPresent(String.self, forKey: .posterPath) {
+            posterURL = try? TheMovieDbImageRequestFactory.makeURL(path: posterPath, format: .poster(size: .thumb))
+        } else {
+            posterURL = nil
+        }
+        if let backdropPath = try values.decodeIfPresent(String.self, forKey: .backdropPath) {
+            backdropURL = try? TheMovieDbImageRequestFactory.makeURL(path: backdropPath, format: .backdrop(size: .thumb))
+        } else {
+            backdropURL = nil
+        }
     }
 }

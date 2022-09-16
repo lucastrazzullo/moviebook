@@ -108,11 +108,20 @@ private struct MoviePreview: View {
         HStack(alignment: .center) {
             HStack(alignment: .center) {
                 ZStack(alignment: .bottomTrailing) {
-                    RoundedRectangle(cornerRadius: 6)
-                        .foregroundColor(.gray.opacity(0.2))
-                        .frame(width: 80, height: 120)
-                        .padding(.trailing, 4)
-                        .padding(.bottom, 4)
+
+                    AsyncImage(url: details.posterURL, content: { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                    }, placeholder: {
+                        Color
+                            .gray
+                            .opacity(0.2)
+                    })
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                    .frame(width: 80, height: 120)
+                    .padding(.trailing, 4)
+                    .padding(.bottom, 4)
 
                     Button(action: {}) {
                         HStack {
@@ -145,19 +154,6 @@ private struct MoviePreview: View {
                             Image(systemName: "star.fill")
                                 .font(.caption2)
                         }
-                    }
-
-                    if let _ = details.collection {
-                        Button(action: {}) {
-                            Text("show series")
-                            Image(systemName: "chevron.down")
-                        }
-                        .font(.caption2)
-                        .buttonStyle(.borderless)
-                        .padding(2)
-                        .background(.thinMaterial)
-                        .cornerRadius(4)
-                        .tint(.primary)
                     }
                 }
                 .padding(.vertical, 4)
