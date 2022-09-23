@@ -32,7 +32,6 @@ import SwiftUI
 
 struct MovieView: View {
 
-    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     @Environment(\.requestManager) var requestManager
 
     @StateObject private var content: Content
@@ -48,16 +47,10 @@ struct MovieView: View {
             }
 
             if isNavigationBarHidden {
-                Button(action: { presentationMode.wrappedValue.dismiss() }) {
-                    Image(systemName: "chevron.left")
-                        .font(.subheadline.bold())
-                        .padding()
-                        .background(Circle().fill(.ultraThickMaterial))
-                }
-                .padding(.leading)
-                .transition(.opacity.combined(with: .move(edge: .top)))
+                MovieHeaderView()
             }
         }
+        .background(.black)
         .task {
             await content.start(requestManager: requestManager)
         }
@@ -70,12 +63,30 @@ struct MovieView: View {
     }
 }
 
+private struct MovieHeaderView: View {
+
+    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
+
+    var body: some View {
+        Button(action: { presentationMode.wrappedValue.dismiss() }) {
+            Image(systemName: "chevron.left")
+                .font(.subheadline.bold())
+                .padding()
+                .background(Circle().fill(.ultraThickMaterial))
+        }
+        .padding(.leading)
+        .transition(.opacity.combined(with: .move(edge: .top)))
+    }
+}
+
 private struct MovieContentView: View {
 
     @State private var contentOffset: CGFloat = 0
     @State private var contentInset: CGFloat = 480
+    @State private var isImageLoaded: Bool = false
 
     @Binding var isNavigationBarHidden: Bool
+
     let movie: Movie
 
     var body: some View {
@@ -86,21 +97,23 @@ private struct MovieContentView: View {
                     content: { image in
                         image
                             .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: UIScreen.main.bounds.width, height: max(0, geometry.frame(in: .global).minY + contentInset - contentOffset))
                             .background(GeometryReader { proxy in Color.clear.onAppear {
                                 contentInset = proxy.size.height
+                                isImageLoaded = true
                             }})
+                            .aspectRatio(contentMode: .fill)
                     },
                     placeholder: { Color.clear }
                 )
+                .frame(width: UIScreen.main.bounds.width, height: max(0, geometry.frame(in: .global).minY + contentInset - contentOffset))
                 .ignoresSafeArea(.all, edges: .top)
             }
             .frame(height: max(0, contentOffset))
 
             ObservableScrollView(scrollOffset: $contentOffset, showsIndicators: false) { scrollViewProxy in
                 VStack {
-                    Spacer().frame(height: contentInset - 24)
+                    Spacer()
+                        .frame(height: isImageLoaded ? contentInset - 24 : UIScreen.main.bounds.height)
 
                     VStack(alignment: .leading, spacing: 24) {
                         Text(movie.details.title)
@@ -118,12 +131,20 @@ private struct MovieContentView: View {
                     .background(.thickMaterial)
                     .cornerRadius(12)
                 }
+                .animation(.default, value: isImageLoaded)
             }
-            .edgesIgnoringSafeArea(.bottom)
+        }
+        .overlay {
+            Rectangle()
+                .background(.thickMaterial)
+                .ignoresSafeArea()
+                .opacity(isImageLoaded ? 0 : 1)
+                .animation(.easeIn(duration: 0.6), value: isImageLoaded)
         }
         .navigationBarHidden(isNavigationBarHidden)
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle(movie.details.title)
+        .toolbar(.hidden, for: .tabBar)
         .onChange(of: contentOffset) { offset in
             if offset < contentInset - 80 {
                 isNavigationBarHidden = true

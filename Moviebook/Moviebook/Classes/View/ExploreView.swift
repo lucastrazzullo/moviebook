@@ -12,8 +12,8 @@ import SwiftUI
     // MARK: Types
 
     enum Section: Identifiable, CaseIterable {
-        case upcoming
         case popular
+        case upcoming
 
         var id: String {
             return self.name
