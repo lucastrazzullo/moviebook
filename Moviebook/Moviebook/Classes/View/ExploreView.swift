@@ -62,17 +62,6 @@ struct ExploreView: View {
                     SwiftUI.Section(header: Text(section.name)) {
                         ForEach(content.movies[section.id] ?? []) { movie in
                             MoviePreview(details: movie)
-                                .onTapGesture {
-                                    let watchlistItem = Watchlist.WatchlistItem.movie(id: movie.id)
-                                    switch watchlist.itemState(item: watchlistItem) {
-                                    case .toWatch:
-                                        watchlist.update(state: .watched, for: watchlistItem)
-                                    case .watched:
-                                        watchlist.update(state: .none, for: watchlistItem)
-                                    case .none:
-                                        watchlist.update(state: .toWatch, for: watchlistItem)
-                                    }
-                                }
                         }
                     }
                 }
@@ -123,19 +112,33 @@ private struct MoviePreview: View {
                     .padding(.trailing, 4)
                     .padding(.bottom, 4)
 
-                    Button(action: {}) {
-                        HStack {
+                    Button(
+                        action: {
                             let watchlistItem = Watchlist.WatchlistItem.movie(id: details.id)
                             switch watchlist.itemState(item: watchlistItem) {
                             case .toWatch:
-                                Image(systemName: "star")
+                                watchlist.update(state: .watched, for: watchlistItem)
                             case .watched:
-                                Image(systemName: "eye")
+                                watchlist.update(state: .none, for: watchlistItem)
                             case .none:
-                                Image(systemName: "plus")
+                                watchlist.update(state: .toWatch, for: watchlistItem)
                             }
+                        },
+                        label: {
+                            HStack {
+                                let watchlistItem = Watchlist.WatchlistItem.movie(id: details.id)
+                                switch watchlist.itemState(item: watchlistItem) {
+                                case .toWatch:
+                                    Image(systemName: "star")
+                                case .watched:
+                                    Image(systemName: "eye")
+                                case .none:
+                                    Image(systemName: "plus")
+                                }
+                            }
+                            .frame(width: 12, height: 12)
                         }
-                    }
+                    )
                     .buttonStyle(.borderedProminent)
                     .font(.caption)
                 }
