@@ -32,15 +32,30 @@ import SwiftUI
 
 struct MovieView: View {
 
+    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
     @Environment(\.requestManager) var requestManager
+
     @StateObject private var content: Content
 
+    @State private var isNavigationBarHidden: Bool = true
+
     var body: some View {
-        Group {
+        ZStack(alignment: .topLeading) {
             if let movie = content.movie {
-                MovieHeader(movie: movie)
+                MovieContentView(isNavigationBarHidden: $isNavigationBarHidden, movie: movie)
             } else {
                 ProgressView()
+            }
+
+            if isNavigationBarHidden {
+                Button(action: { presentationMode.wrappedValue.dismiss() }) {
+                    Image(systemName: "chevron.left")
+                        .font(.subheadline.bold())
+                        .padding()
+                        .background(Circle().fill(.ultraThickMaterial))
+                }
+                .padding(.leading)
+                .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
         .task {
@@ -55,16 +70,16 @@ struct MovieView: View {
     }
 }
 
-private struct MovieHeader: View {
+private struct MovieContentView: View {
 
-    @State private var isNavigationBarHidden: Bool = true
     @State private var contentOffset: CGFloat = 0
     @State private var contentInset: CGFloat = 480
 
+    @Binding var isNavigationBarHidden: Bool
     let movie: Movie
 
     var body: some View {
-        ZStack(alignment: .topLeading) {
+        ZStack(alignment: .top) {
             GeometryReader { geometry in
                 AsyncImage(
                     url: imageUrl,
@@ -100,9 +115,8 @@ private struct MovieHeader: View {
                     }
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(.regularMaterial)
+                    .background(.thickMaterial)
                     .cornerRadius(12)
-                    .animation(.default, value: isNavigationBarHidden)
                 }
             }
             .edgesIgnoringSafeArea(.bottom)
@@ -111,7 +125,7 @@ private struct MovieHeader: View {
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle(movie.details.title)
         .onChange(of: contentOffset) { offset in
-            if offset < contentInset - 40 {
+            if offset < contentInset - 80 {
                 isNavigationBarHidden = true
             } else {
                 isNavigationBarHidden = false

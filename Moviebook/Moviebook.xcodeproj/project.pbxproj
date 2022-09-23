@@ -134,12 +134,13 @@
 			path = Mocks;
 			sourceTree = "<group>";
 		};
-		814D46EC28C27EB3000D7ABD /* Extensions */ = {
+		814D46EC28C27EB3000D7ABD /* Kit */ = {
 			isa = PBXGroup;
 			children = (
 				814D46ED28C27EC0000D7ABD /* SequenceExtensions.swift */,
+				81828ACB28DDC7A4006D696C /* ObservableScrollView.swift */,
 			);
-			path = Extensions;
+			path = Kit;
 			sourceTree = "<group>";
 		};
 		8169FB1028C204450054BCE6 = {
@@ -212,7 +213,7 @@
 			isa = PBXGroup;
 			children = (
 				8169FB1C28C204450054BCE6 /* MoviebookApp.swift */,
-				814D46EC28C27EB3000D7ABD /* Extensions */,
+				814D46EC28C27EB3000D7ABD /* Kit */,
 				8169FB5728C207750054BCE6 /* Model */,
 				8169FB5528C207680054BCE6 /* View */,
 			);
@@ -244,7 +245,6 @@
 				8169FB1E28C204450054BCE6 /* WatchlistView.swift */,
 				8169FB5E28C20C420054BCE6 /* ExploreView.swift */,
 				81828AC928DDB736006D696C /* MovieView.swift */,
-				81828ACB28DDC7A4006D696C /* ObservableScrollView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";

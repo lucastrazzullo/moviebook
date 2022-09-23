@@ -56,12 +56,12 @@ struct ExploreView: View {
     @StateObject private var content: Content = Content()
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 ForEach(content.sections) { section in
                     SwiftUI.Section(header: Text(section.name)) {
                         ForEach(content.movies[section.id] ?? []) { movie in
-                            NavigationLink(destination: MovieView(movieId: movie.id)) {
+                            NavigationLink(value: movie.id) {
                                 MoviePreview(details: movie)
                             }
                         }
@@ -72,6 +72,9 @@ struct ExploreView: View {
             }
             .listStyle(.inset)
             .navigationTitle(NSLocalizedString("EXPLORE.TITLE", comment: ""))
+            .navigationDestination(for: Movie.ID.self) { movieId in
+                MovieView(movieId: movieId)
+            }
             .task {
                 await content.start(requestManager: requestManager)
             }
