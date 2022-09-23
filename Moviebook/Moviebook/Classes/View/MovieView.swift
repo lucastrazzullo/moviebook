@@ -57,8 +57,7 @@ struct MovieView: View {
 
 private struct MovieHeader: View {
 
-    @State private var animation: Float = 1.0
-
+    @State private var isNavigationBarHidden: Bool = true
     @State private var contentOffset: CGFloat = 0
     @State private var contentInset: CGFloat = 480
 
@@ -73,7 +72,7 @@ private struct MovieHeader: View {
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
-                            .frame(width: UIScreen.main.bounds.width, height: geometry.frame(in: .global).minY + contentInset - contentOffset)
+                            .frame(width: UIScreen.main.bounds.width, height: max(0, geometry.frame(in: .global).minY + contentInset - contentOffset))
                             .background(GeometryReader { proxy in Color.clear.onAppear {
                                 contentInset = proxy.size.height
                             }})
@@ -101,8 +100,9 @@ private struct MovieHeader: View {
                     }
                     .padding()
                     .frame(maxWidth: .infinity)
-                    .background(isNavigationBarHidden ? .thinMaterial : .thick)
-                    .cornerRadius(isNavigationBarHidden ? 12 : 0)
+                    .background(.regularMaterial)
+                    .cornerRadius(12)
+                    .animation(.default, value: isNavigationBarHidden)
                 }
             }
             .edgesIgnoringSafeArea(.bottom)
@@ -110,7 +110,14 @@ private struct MovieHeader: View {
         .navigationBarHidden(isNavigationBarHidden)
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle(movie.details.title)
-        .animation(.default, value: animation)
+        .onChange(of: contentOffset) { offset in
+            if offset < contentInset - 40 {
+                isNavigationBarHidden = true
+            } else {
+                isNavigationBarHidden = false
+            }
+        }
+        .animation(.default, value: isNavigationBarHidden)
     }
 
     var imageUrl: URL? {
@@ -118,10 +125,6 @@ private struct MovieHeader: View {
             return nil
         }
         return try? TheMovieDbImageRequestFactory.makeURL(path: path, format: .poster(size: .original))
-    }
-
-    var isNavigationBarHidden: Bool {
-        return contentOffset < contentInset - 40
     }
 }
 
