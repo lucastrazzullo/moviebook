@@ -10,6 +10,6 @@ import Foundation
 struct MovieDetails: Identifiable {
     let id: Movie.ID
     let title: String
-    let posterURL: URL?
-    let backdropURL: URL?
+    let posterPath: String?
+    let backdropPath: String?
 }

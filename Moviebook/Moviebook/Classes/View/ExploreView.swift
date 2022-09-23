@@ -61,7 +61,9 @@ struct ExploreView: View {
                 ForEach(content.sections) { section in
                     SwiftUI.Section(header: Text(section.name)) {
                         ForEach(content.movies[section.id] ?? []) { movie in
-                            MoviePreview(details: movie)
+                            NavigationLink(destination: MovieView(movieId: movie.id)) {
+                                MoviePreview(details: movie)
+                            }
                         }
                     }
                 }
@@ -97,8 +99,7 @@ private struct MoviePreview: View {
         HStack(alignment: .center) {
             HStack(alignment: .center) {
                 ZStack(alignment: .bottomTrailing) {
-
-                    AsyncImage(url: details.posterURL, content: { image in
+                    AsyncImage(url: makePosterUrl(path: details.posterPath), content: { image in
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
@@ -164,5 +165,13 @@ private struct MoviePreview: View {
 
             Spacer()
         }
+    }
+
+    private func makePosterUrl(path: String?) -> URL? {
+        guard let path = path else {
+            return nil
+        }
+
+        return try? TheMovieDbImageRequestFactory.makeURL(path: path, format: .poster(size: .thumb))
     }
 }
