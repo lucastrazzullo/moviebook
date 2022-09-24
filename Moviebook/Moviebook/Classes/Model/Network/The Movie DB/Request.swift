@@ -67,22 +67,31 @@ enum TheMovieDbImageRequestFactory {
     }
 
     enum Format {
-        case poster(size: PosterSize)
-        case backdrop(size: BackdropSize)
+        case poster(path: String, size: PosterSize)
+        case backdrop(path: String, size: BackdropSize)
 
         var size: String {
             switch self {
-            case .poster(let size):
+            case .poster(_, let size):
                 return size.rawValue
-            case .backdrop(let size):
+            case .backdrop(_, let size):
                 return size.rawValue
+            }
+        }
+
+        var path: String {
+            switch self {
+            case .poster(let path, _):
+                return path
+            case .backdrop(let path, _):
+                return path
             }
         }
     }
 
-    static func makeURL(path: String, format: Format) throws -> URL {
+    static func makeURL(format: Format) throws -> URL {
         var components = defaultURLComponents()
-        components.path = "/t/p/\(format.size)\(path)"
+        components.path = "/t/p/\(format.size)\(format.path)"
 
         guard let url = components.url else {
             throw Error.cannotCreateURL

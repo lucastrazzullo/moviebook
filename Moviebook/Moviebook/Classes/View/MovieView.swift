@@ -165,7 +165,7 @@ private struct MovieContentView: View {
         guard let path = movie.details.posterPath else {
             return nil
         }
-        return try? TheMovieDbImageRequestFactory.makeURL(path: path, format: .poster(size: .large))
+        return try? TheMovieDbImageRequestFactory.makeURL(format: .poster(path: path, size: .large))
     }
 }
 

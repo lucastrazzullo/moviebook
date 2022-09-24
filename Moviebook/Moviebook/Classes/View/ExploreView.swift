@@ -94,15 +94,13 @@ struct ExploreView_Previews: PreviewProvider {
 
 private struct MoviePreview: View {
 
-    @EnvironmentObject var watchlist: Watchlist
-
     let details: MovieDetails
 
     var body: some View {
         HStack(alignment: .center) {
-            HStack(alignment: .center) {
+            HStack(alignment: .center, spacing: 8) {
                 ZStack(alignment: .bottomTrailing) {
-                    AsyncImage(url: makePosterUrl(path: details.posterPath), content: { image in
+                    AsyncImage(url: imageUrl, content: { image in
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
@@ -111,40 +109,10 @@ private struct MoviePreview: View {
                             .gray
                             .opacity(0.2)
                     })
+                    .frame(width: 160, height: 90)
                     .clipShape(RoundedRectangle(cornerRadius: 6))
-                    .frame(width: 80, height: 120)
                     .padding(.trailing, 4)
                     .padding(.bottom, 4)
-
-                    Button(
-                        action: {
-                            let watchlistItem = Watchlist.WatchlistItem.movie(id: details.id)
-                            switch watchlist.itemState(item: watchlistItem) {
-                            case .toWatch:
-                                watchlist.update(state: .watched, for: watchlistItem)
-                            case .watched:
-                                watchlist.update(state: .none, for: watchlistItem)
-                            case .none:
-                                watchlist.update(state: .toWatch, for: watchlistItem)
-                            }
-                        },
-                        label: {
-                            HStack {
-                                let watchlistItem = Watchlist.WatchlistItem.movie(id: details.id)
-                                switch watchlist.itemState(item: watchlistItem) {
-                                case .toWatch:
-                                    Image(systemName: "star")
-                                case .watched:
-                                    Image(systemName: "eye")
-                                case .none:
-                                    Image(systemName: "plus")
-                                }
-                            }
-                            .frame(width: 12, height: 12)
-                        }
-                    )
-                    .buttonStyle(.borderedProminent)
-                    .font(.caption)
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
@@ -166,15 +134,83 @@ private struct MoviePreview: View {
                 .padding(.vertical, 4)
             }
 
-            Spacer()
+            WatchlistButton(watchlistItem: Watchlist.WatchlistItem.movie(id: details.id))
+                .font(.caption)
+        }
+        .contextMenu {
+            WatchlistMenu(watchlistItem: Watchlist.WatchlistItem.movie(id: details.id))
         }
     }
 
-    private func makePosterUrl(path: String?) -> URL? {
-        guard let path = path else {
+    var imageUrl: URL? {
+        guard let path = details.backdropPath else {
             return nil
         }
+        return try? TheMovieDbImageRequestFactory.makeURL(format: .backdrop(path: path, size: .thumb))
+    }
+}
 
-        return try? TheMovieDbImageRequestFactory.makeURL(path: path, format: .poster(size: .thumb))
+private struct WatchlistMenu: View {
+
+    @EnvironmentObject var watchlist: Watchlist
+
+    let watchlistItem: Watchlist.WatchlistItem
+
+    var body: some View {
+        switch watchlist.itemState(item: watchlistItem) {
+        case .toWatch:
+            Button { watchlist.update(state: .none, for: watchlistItem) } label: {
+                Label("Remove from watchlist", systemImage: "minus")
+            }
+            Button { watchlist.update(state: .watched, for: watchlistItem) } label: {
+                Label("Mark as watched", systemImage: "eye")
+            }
+        case .watched:
+            Button { watchlist.update(state: .toWatch, for: watchlistItem) } label: {
+                Label("Move to watchlist", systemImage: "star")
+            }
+            Button { watchlist.update(state: .none, for: watchlistItem) } label: {
+                Label("Remove from watchlist", systemImage: "minus")
+            }
+        case .none:
+            Button { watchlist.update(state: .toWatch, for: watchlistItem) } label: {
+                Label("Add to watchlist", systemImage: "plus")
+            }
+            Button { watchlist.update(state: .watched, for: watchlistItem) } label: {
+                Label("Mark as watched", systemImage: "eye")
+            }
+        }
+    }
+}
+
+private struct WatchlistButton: View {
+
+    @EnvironmentObject var watchlist: Watchlist
+
+    let watchlistItem: Watchlist.WatchlistItem
+
+    var body: some View {
+        HStack {
+            switch watchlist.itemState(item: watchlistItem) {
+            case .toWatch:
+                Image(systemName: "star")
+            case .watched:
+                Image(systemName: "eye")
+            case .none:
+                Image(systemName: "plus")
+            }
+        }
+        .frame(width: 32, height: 32)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            switch watchlist.itemState(item: watchlistItem) {
+            case .toWatch:
+                watchlist.update(state: .watched, for: watchlistItem)
+            case .watched:
+                watchlist.update(state: .none, for: watchlistItem)
+            case .none:
+                watchlist.update(state: .toWatch, for: watchlistItem)
+            }
+        }
     }
 }
