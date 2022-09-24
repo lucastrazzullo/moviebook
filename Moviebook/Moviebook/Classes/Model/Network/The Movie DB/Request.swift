@@ -13,10 +13,10 @@ enum TheMovieDbDataRequestFactory {
         case cannotCreateURL
     }
 
-    static func makeURL(path: String, region: String? = Locale.current.region?.identifier, page: Int? = nil) throws -> URL {
+    static func makeURL(path: String, region: String? = Locale.current.region?.identifier, page: Int? = nil, queryItems: [URLQueryItem] = []) throws -> URL {
         let version = 3
 
-        var queryItems = [URLQueryItem]()
+        var queryItems = queryItems
         if let region = region {
             queryItems.append(URLQueryItem(name: "region", value: region))
         }

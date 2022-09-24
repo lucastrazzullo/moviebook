@@ -43,7 +43,12 @@ struct MovieView: View {
             if let movie = content.movie {
                 MovieContentView(isNavigationBarHidden: $isNavigationBarHidden, movie: movie)
             } else {
-                ProgressView()
+                Group {
+                    ProgressView()
+                        .controlSize(.large)
+                        .tint(.red)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
 
             if isNavigationBarHidden {
@@ -51,6 +56,9 @@ struct MovieView: View {
             }
         }
         .background(.black)
+        .navigationBarHidden(isNavigationBarHidden)
+        .animation(.default, value: isNavigationBarHidden)
+        .toolbar(.hidden, for: .tabBar)
         .task {
             await content.start(requestManager: requestManager)
         }
@@ -147,10 +155,8 @@ private struct MovieContentView: View {
                 .opacity(isImageLoaded ? 0 : 1)
                 .animation(.easeIn(duration: 0.6), value: isImageLoaded)
         }
-        .navigationBarHidden(isNavigationBarHidden)
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle(movie.details.title)
-        .toolbar(.hidden, for: .tabBar)
         .onChange(of: contentOffset) { offset in
             if offset < contentInset - 80 {
                 isNavigationBarHidden = true
@@ -158,7 +164,6 @@ private struct MovieContentView: View {
                 isNavigationBarHidden = false
             }
         }
-        .animation(.default, value: isNavigationBarHidden)
     }
 
     var imageUrl: URL? {

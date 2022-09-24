@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8128AB1428DF106C002FD343 /* SearchWebService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8128AB1328DF106C002FD343 /* SearchWebService.swift */; };
 		814D46D028C2224A000D7ABD /* Response.swift in Sources */ = {isa = PBXBuildFile; fileRef = 814D46CF28C2224A000D7ABD /* Response.swift */; };
 		814D46D228C22347000D7ABD /* Request.swift in Sources */ = {isa = PBXBuildFile; fileRef = 814D46D128C22347000D7ABD /* Request.swift */; };
 		814D46D928C22772000D7ABD /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 814D46DB28C22772000D7ABD /* Localizable.strings */; };
@@ -55,6 +56,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		8128AB1328DF106C002FD343 /* SearchWebService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchWebService.swift; sourceTree = "<group>"; };
 		814D46CF28C2224A000D7ABD /* Response.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Response.swift; sourceTree = "<group>"; };
 		814D46D128C22347000D7ABD /* Request.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Request.swift; sourceTree = "<group>"; };
 		814D46DA28C22772000D7ABD /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -286,6 +288,7 @@
 			children = (
 				8169FB6128C2107D0054BCE6 /* UpcomingWebService.swift */,
 				8169FB6528C215AB0054BCE6 /* PopularWebService.swift */,
+				8128AB1328DF106C002FD343 /* SearchWebService.swift */,
 				814D46EA28C26E6B000D7ABD /* MovieWebService.swift */,
 			);
 			path = "Web Service";
@@ -448,6 +451,7 @@
 				8169FB5F28C20C420054BCE6 /* ExploreView.swift in Sources */,
 				81C7A5EF28D45B8B00AA24E3 /* MovieCollection.swift in Sources */,
 				81C7A5ED28D45B7F00AA24E3 /* MovieDetails.swift in Sources */,
+				8128AB1428DF106C002FD343 /* SearchWebService.swift in Sources */,
 				81828ACC28DDC7A4006D696C /* ObservableScrollView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

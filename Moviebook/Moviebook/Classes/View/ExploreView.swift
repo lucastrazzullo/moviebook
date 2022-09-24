@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 @MainActor private final class Content: ObservableObject {
 
@@ -31,21 +32,38 @@ import SwiftUI
 
     // MARK: Instance Properties
 
-    @Published var movies: [Section.ID: [MovieDetails]] = [:]
+    @Published var isSearching: Bool = false
+    @Published var searchKeyword: String = ""
+    @Published var searchResults: [MovieDetails] = []
+    @Published var explore: [Section.ID: [MovieDetails]] = [:]
 
     var sections: [Section] {
         return Section.allCases
     }
 
+    private var subscriptions: Set<AnyCancellable> = []
+
     // MARK: Instance methods
 
     func start(requestManager: RequestManager) async {
         do {
-            movies[Section.upcoming.id] = try await UpcomingWebService(requestManager: requestManager).fetch()
-            movies[Section.popular.id] = try await PopularWebService(requestManager: requestManager).fetch()
+            explore[Section.upcoming.id] = try await UpcomingWebService(requestManager: requestManager).fetch()
+            explore[Section.popular.id] = try await PopularWebService(requestManager: requestManager).fetch()
         } catch {
             assertionFailure(error.localizedDescription)
         }
+
+        $searchKeyword
+            .debounce(for: .seconds(1), scheduler: DispatchQueue.main)
+            .sink(receiveValue: { keyword in
+                Task { [weak self] in
+                    self?.isSearching = true
+                    let results = try await SearchWebService(requestManager: requestManager).fetch(with: keyword)
+                    self?.searchResults = results
+                    self?.isSearching = false
+                }
+            })
+            .store(in: &subscriptions)
     }
 }
 
@@ -58,9 +76,26 @@ struct ExploreView: View {
     var body: some View {
         NavigationStack {
             List {
+                if !content.searchKeyword.isEmpty {
+                    Section(header: HStack(spacing: 4) {
+                        Text("\(NSLocalizedString("EXPLORE.SEARCH.RESULTS", comment: "")): \(content.searchKeyword)")
+                        if content.isSearching {
+                            ProgressView()
+                        }
+                    }) {
+                        ForEach(content.searchResults) { movie in
+                            NavigationLink(value: movie.id) {
+                                MoviePreview(details: movie)
+                            }
+                        }
+                    }
+                    .listRowSeparator(.hidden)
+                    .listSectionSeparator(.hidden)
+                }
+
                 ForEach(content.sections) { section in
-                    SwiftUI.Section(header: Text(section.name)) {
-                        ForEach(content.movies[section.id] ?? []) { movie in
+                    Section(header: Text(section.name)) {
+                        ForEach(content.explore[section.id] ?? []) { movie in
                             NavigationLink(value: movie.id) {
                                 MoviePreview(details: movie)
                             }
@@ -75,6 +110,7 @@ struct ExploreView: View {
             .navigationDestination(for: Movie.ID.self) { movieId in
                 MovieView(movieId: movieId)
             }
+            .searchable(text: $content.searchKeyword)
             .task {
                 await content.start(requestManager: requestManager)
             }
