@@ -56,9 +56,9 @@ struct MovieView: View {
             }
         }
         .background(.black)
+        .toolbar(.hidden, for: .tabBar)
         .navigationBarHidden(isNavigationBarHidden)
         .animation(.default, value: isNavigationBarHidden)
-        .toolbar(.hidden, for: .tabBar)
         .task {
             await content.start(requestManager: requestManager)
         }
@@ -118,7 +118,7 @@ private struct MovieContentView: View {
                     width: UIScreen.main.bounds.width,
                     height: max(0, isImageLoaded ? geometry.frame(in: .global).minY + contentInset - contentOffset : UIScreen.main.bounds.height)
                 )
-                .animation(.easeIn(duration: 0.6), value: isImageLoaded)
+                .animation(.default, value: isImageLoaded)
                 .ignoresSafeArea(.all, edges: .top)
             }
             .frame(height: max(0, contentOffset))
@@ -144,7 +144,7 @@ private struct MovieContentView: View {
                     .background(.thickMaterial)
                     .cornerRadius(12)
                 }
-                .animation(.easeOut(duration: 0.6), value: isImageLoaded)
+                .animation(.default, value: isImageLoaded)
                 .ignoresSafeArea(.all, edges: .bottom)
             }
         }
@@ -153,7 +153,7 @@ private struct MovieContentView: View {
                 .background(.thickMaterial)
                 .ignoresSafeArea()
                 .opacity(isImageLoaded ? 0 : 1)
-                .animation(.easeIn(duration: 0.6), value: isImageLoaded)
+                .animation(.easeIn(duration: 0.4), value: isImageLoaded)
         }
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle(movie.details.title)
