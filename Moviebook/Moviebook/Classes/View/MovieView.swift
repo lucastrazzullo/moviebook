@@ -82,7 +82,7 @@ private struct MovieHeaderView: View {
 private struct MovieContentView: View {
 
     @State private var contentOffset: CGFloat = 0
-    @State private var contentInset: CGFloat = 480
+    @State private var contentInset: CGFloat = 0
     @State private var isImageLoaded: Bool = false
 
     @Binding var isNavigationBarHidden: Bool
@@ -98,14 +98,19 @@ private struct MovieContentView: View {
                         image
                             .resizable()
                             .background(GeometryReader { proxy in Color.clear.onAppear {
-                                contentInset = proxy.size.height
+                                let imageRatio = proxy.size.width / proxy.size.height
+                                contentInset = UIScreen.main.bounds.width / imageRatio
                                 isImageLoaded = true
                             }})
                             .aspectRatio(contentMode: .fill)
                     },
                     placeholder: { Color.clear }
                 )
-                .frame(width: UIScreen.main.bounds.width, height: max(0, geometry.frame(in: .global).minY + contentInset - contentOffset))
+                .frame(
+                    width: UIScreen.main.bounds.width,
+                    height: max(0, isImageLoaded ? geometry.frame(in: .global).minY + contentInset - contentOffset : UIScreen.main.bounds.height)
+                )
+                .animation(.easeIn(duration: 0.6), value: isImageLoaded)
                 .ignoresSafeArea(.all, edges: .top)
             }
             .frame(height: max(0, contentOffset))
@@ -131,7 +136,8 @@ private struct MovieContentView: View {
                     .background(.thickMaterial)
                     .cornerRadius(12)
                 }
-                .animation(.default, value: isImageLoaded)
+                .animation(.easeOut(duration: 0.6), value: isImageLoaded)
+                .ignoresSafeArea(.all, edges: .bottom)
             }
         }
         .overlay {
@@ -159,7 +165,7 @@ private struct MovieContentView: View {
         guard let path = movie.details.posterPath else {
             return nil
         }
-        return try? TheMovieDbImageRequestFactory.makeURL(path: path, format: .poster(size: .original))
+        return try? TheMovieDbImageRequestFactory.makeURL(path: path, format: .poster(size: .large))
     }
 }
 
