@@ -91,7 +91,7 @@ struct WatchlistView: View {
     var onStartDiscoverySelected: () -> Void = {}
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Group {
                 if watchlist.isEmpty {
                     EmptyWatchlistView(onStartDiscoverySelected: onStartDiscoverySelected)
@@ -102,8 +102,10 @@ struct WatchlistView: View {
                         ForEach(content.sections) { section in
                             if let movies = content.movies[section.id] {
                                 Section(header: Text(section.name)) {
-                                    ForEach(movies) { movie in
-                                        Text(movie.title)
+                                    ForEach(movies) { movieDetails in
+                                        NavigationLink(value: movieDetails.id) {
+                                            MoviePreview(details: movieDetails)
+                                        }
                                     }
                                 }
                             }
@@ -112,6 +114,9 @@ struct WatchlistView: View {
                 }
             }
             .navigationTitle(NSLocalizedString("WATCHLIST.TITLE", comment: ""))
+            .navigationDestination(for: Movie.ID.self) { movieId in
+                MovieView(movieId: movieId)
+            }
             .task {
                 content.start(watchlist: watchlist, requestManager: requestManager)
             }
