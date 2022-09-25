@@ -110,7 +110,7 @@ struct ExploreView: View {
             .navigationDestination(for: Movie.ID.self) { movieId in
                 MovieView(movieId: movieId)
             }
-            .searchable(text: $content.searchKeyword)
+            .searchable(text: $content.searchKeyword, prompt: NSLocalizedString("EXPLORE.SEARCH.PROMPT", comment: ""))
             .task {
                 await content.start(requestManager: requestManager)
             }
