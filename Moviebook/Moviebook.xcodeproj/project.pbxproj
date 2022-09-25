@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		8128AB1428DF106C002FD343 /* SearchWebService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8128AB1328DF106C002FD343 /* SearchWebService.swift */; };
+		8128AB1628E0BECF002FD343 /* MovieCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8128AB1528E0BECF002FD343 /* MovieCardView.swift */; };
 		814D46D028C2224A000D7ABD /* Response.swift in Sources */ = {isa = PBXBuildFile; fileRef = 814D46CF28C2224A000D7ABD /* Response.swift */; };
 		814D46D228C22347000D7ABD /* Request.swift in Sources */ = {isa = PBXBuildFile; fileRef = 814D46D128C22347000D7ABD /* Request.swift */; };
 		814D46D928C22772000D7ABD /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 814D46DB28C22772000D7ABD /* Localizable.strings */; };
@@ -57,6 +58,7 @@
 
 /* Begin PBXFileReference section */
 		8128AB1328DF106C002FD343 /* SearchWebService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchWebService.swift; sourceTree = "<group>"; };
+		8128AB1528E0BECF002FD343 /* MovieCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieCardView.swift; sourceTree = "<group>"; };
 		814D46CF28C2224A000D7ABD /* Response.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Response.swift; sourceTree = "<group>"; };
 		814D46D128C22347000D7ABD /* Request.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Request.swift; sourceTree = "<group>"; };
 		814D46DA28C22772000D7ABD /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
@@ -247,6 +249,7 @@
 				8169FB1E28C204450054BCE6 /* WatchlistView.swift */,
 				8169FB5E28C20C420054BCE6 /* ExploreView.swift */,
 				81828AC928DDB736006D696C /* MovieView.swift */,
+				8128AB1528E0BECF002FD343 /* MovieCardView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -431,6 +434,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8128AB1628E0BECF002FD343 /* MovieCardView.swift in Sources */,
 				8169FB6228C2107D0054BCE6 /* UpcomingWebService.swift in Sources */,
 				814D46D228C22347000D7ABD /* Request.swift in Sources */,
 				814D46DF28C23062000D7ABD /* RequestManager.swift in Sources */,

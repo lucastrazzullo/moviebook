@@ -69,7 +69,7 @@ import Combine
             .compactMap({ self.movieIdentifiers($0) })
             .concurrentMap { movieIdentifier -> MovieDetails in
                 let webService = MovieWebService(requestManager: requestManager)
-                return try await webService.fetchDetails(with: movieIdentifier)
+                return try await webService.fetchMovie(with: movieIdentifier).details
             }
     }
 

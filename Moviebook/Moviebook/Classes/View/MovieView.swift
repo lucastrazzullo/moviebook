@@ -127,21 +127,7 @@ private struct MovieContentView: View {
                     Spacer()
                         .frame(height: isImageLoaded ? contentInset - 24 : UIScreen.main.bounds.height)
 
-                    VStack(alignment: .leading, spacing: 24) {
-                        Text(movie.details.title)
-                            .font(.title2)
-
-                        Text(movie.overview)
-                            .font(.body)
-                            .lineSpacing(12)
-
-                        Spacer()
-                            .frame(height: 600)
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(.thickMaterial)
-                    .cornerRadius(12)
+                    MovieCardView(movie: movie)
                 }
                 .ignoresSafeArea(.all, edges: .bottom)
             }
