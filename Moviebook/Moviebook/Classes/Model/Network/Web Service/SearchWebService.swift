@@ -11,7 +11,7 @@ struct SearchWebService {
 
     let requestManager: RequestManager
 
-    func fetch(with keyword: String) async throws -> [MovieDetails] {
+    func fetchMovie(with keyword: String) async throws -> [MovieDetails] {
         let searchQueryItem = URLQueryItem(name: "query", value: keyword)
         let url = try TheMovieDbDataRequestFactory.makeURL(path: "search/movie", queryItems: [searchQueryItem])
         let data = try await requestManager.request(from: url)

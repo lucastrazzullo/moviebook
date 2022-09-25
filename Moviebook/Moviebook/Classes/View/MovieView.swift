@@ -56,8 +56,8 @@ struct MovieView: View {
             }
         }
         .background(.black)
+        .toolbar(isNavigationBarHidden ? .hidden : .visible)
         .toolbar(.hidden, for: .tabBar)
-        .navigationBarHidden(isNavigationBarHidden)
         .animation(.default, value: isNavigationBarHidden)
         .task {
             await content.start(requestManager: requestManager)

@@ -58,7 +58,7 @@ import Combine
             .sink(receiveValue: { keyword in
                 Task { [weak self] in
                     self?.isSearching = true
-                    let results = try await SearchWebService(requestManager: requestManager).fetch(with: keyword)
+                    let results = try await SearchWebService(requestManager: requestManager).fetchMovie(with: keyword)
                     self?.searchResults = results
                     self?.isSearching = false
                 }

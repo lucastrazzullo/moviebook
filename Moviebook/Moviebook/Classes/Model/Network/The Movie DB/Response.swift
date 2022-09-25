@@ -66,7 +66,7 @@ extension MovieCollection: Decodable {
 
         id = try values.decode(MovieCollection.ID.self, forKey: .id)
         name = try values.decode(String.self, forKey: .name)
-        posterPath = try values.decode(String.self, forKey: .posterPath)
-        backdropPath = try values.decode(String.self, forKey: .backdropPath)
+        posterPath = try values.decodeIfPresent(String.self, forKey: .posterPath)
+        backdropPath = try values.decodeIfPresent(String.self, forKey: .backdropPath)
     }
 }
