@@ -118,7 +118,6 @@ private struct MovieContentView: View {
                     width: UIScreen.main.bounds.width,
                     height: max(0, isImageLoaded ? geometry.frame(in: .global).minY + contentInset - contentOffset : UIScreen.main.bounds.height)
                 )
-                .animation(.default, value: isImageLoaded)
                 .ignoresSafeArea(.all, edges: .top)
             }
             .frame(height: max(0, contentOffset))
@@ -144,7 +143,6 @@ private struct MovieContentView: View {
                     .background(.thickMaterial)
                     .cornerRadius(12)
                 }
-                .animation(.default, value: isImageLoaded)
                 .ignoresSafeArea(.all, edges: .bottom)
             }
         }
