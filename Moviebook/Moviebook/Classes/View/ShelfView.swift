@@ -208,18 +208,21 @@ private struct IndexIndicatorView: View {
         HStack {
             ForEach(movies, id: \.id) { movie in
                 ZStack {
-                    Circle()
-                        .fill(.gray)
-                        .frame(width: 6, height: 6)
-
                     if movie.id == movies[currentIndex].id {
-                        Circle()
-                            .fill(.black)
-                            .frame(width: 6, height: 6)
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(.orange)
+                            .frame(width: 8, height: 12)
+                    } else {
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(.thinMaterial)
+                            .frame(width: 6, height: 10)
                     }
                 }
             }
         }
+        .padding(8)
+        .background(.black.opacity(0.7))
+        .cornerRadius(12)
     }
 }
 
