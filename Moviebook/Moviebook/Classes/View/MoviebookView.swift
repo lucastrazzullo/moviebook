@@ -57,6 +57,6 @@ struct MoviebookView_Previews: PreviewProvider {
     static var previews: some View {
         MoviebookView()
             .environment(\.requestManager, MockRequestManager())
-            .environmentObject(Watchlist())
+            .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
     }
 }

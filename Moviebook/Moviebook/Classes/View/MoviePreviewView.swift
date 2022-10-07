@@ -1,5 +1,5 @@
 //
-//  MoviePreview.swift
+//  MoviePreviewView.swift
 //  Moviebook
 //
 //  Created by Luca Strazzullo on 25/09/2022.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct MoviePreview: View {
+struct MoviePreviewView: View {
 
     let details: MovieDetails
 
@@ -39,12 +39,7 @@ struct MoviePreview: View {
                     Text("10.10.2018")
                         .font(.caption)
 
-                    HStack(spacing: 2) {
-                        ForEach(1...5, id: \.self) { rating in
-                            Image(systemName: "star.fill")
-                                .font(.caption2)
-                        }
-                    }
+                    RatingView(rating: 3)
                 }
                 .padding(.vertical, 4)
             }
@@ -91,50 +86,9 @@ private struct WatchlistMenu: View {
     }
 }
 
-private struct WatchlistButton: View {
-
-    @EnvironmentObject var watchlist: Watchlist
-
-    let watchlistItem: Watchlist.WatchlistItem
-
-    var body: some View {
-        Menu {
-            Button { watchlist.update(state: .toWatch, for: watchlistItem) } label: {
-                Label("Add to watchlist", systemImage: "plus")
-            }
-            .disabled(watchlist.itemState(item: watchlistItem) == .toWatch)
-
-            Button { watchlist.update(state: .watched, for: watchlistItem) } label: {
-                Label("Mark as watched", systemImage: "checkmark")
-            }
-            .disabled(watchlist.itemState(item: watchlistItem) == .watched)
-
-            Button { watchlist.update(state: .none, for: watchlistItem) } label: {
-                Label("Remove from watchlist", systemImage: "minus")
-            }
-            .disabled(watchlist.itemState(item: watchlistItem) == .none)
-
-        } label: {
-            switch watchlist.itemState(item: watchlistItem) {
-            case .toWatch:
-                Image(systemName: "star")
-            case .watched:
-                Image(systemName: "checkmark")
-            case .none:
-                Image(systemName: "plus")
-            }
-        }
-    }
-}
-
-struct MoviePreview_Previews: PreviewProvider {
-    static let movie: Movie = {
-        let data = try! MockServer().data(from: MovieWebService.URLFactory.makeMovieUrl(movieIdentifier: 954))
-        let movie = try! JSONDecoder().decode(Movie.self, from: data)
-        return movie
-    }()
+struct MoviePreviewView_Previews: PreviewProvider {
     static var previews: some View {
-        MoviePreview(details: movie.details)
-            .environmentObject(Watchlist())
+        MoviePreviewView(details: MockServer.movie(with: 954).details)
+            .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
     }
 }

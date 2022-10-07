@@ -21,5 +21,13 @@ final class MockServer {
 
         return try Data(contentsOf: url)
     }
+
+    // MARK: Helper methods
+
+    static func movie(with identifier: Movie.ID) -> Movie {
+        let data = try! MockServer().data(from: MovieWebService.URLFactory.makeMovieUrl(movieIdentifier: identifier))
+        let movie = try! JSONDecoder().decode(Movie.self, from: data)
+        return movie
+    }
 }
 #endif

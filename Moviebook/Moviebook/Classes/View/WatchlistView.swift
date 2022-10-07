@@ -32,10 +32,15 @@ import Combine
 
     // MARK: Instance Properties
 
+    @Published var selectedSection: Content.Section = .toWatch
     @Published var movies: [Section.ID: [MovieDetails]] = [:]
 
     var sections: [Section] {
         return Section.allCases
+    }
+
+    var movieDetails: [MovieDetails] {
+        return movies[selectedSection.id] ?? []
     }
 
     private var subscriptions: Set<AnyCancellable> = []
@@ -84,38 +89,70 @@ import Combine
 
 struct WatchlistView: View {
 
+    enum WatchlistLayout {
+        case stack
+        case list
+    }
+
     @Environment(\.requestManager) var requestManager
     @EnvironmentObject var watchlist: Watchlist
     @StateObject private var content: Content = Content()
+
+    @State private var selectedLayout: WatchlistLayout = .stack
 
     var onStartDiscoverySelected: () -> Void = {}
 
     var body: some View {
         NavigationStack {
             Group {
-                if watchlist.isEmpty {
-                    EmptyWatchlistView(onStartDiscoverySelected: onStartDiscoverySelected)
-                } else if content.movies.isEmpty {
-                    ProgressView()
-                } else {
+                switch selectedLayout {
+                case .list:
                     List {
-                        ForEach(content.sections) { section in
-                            if let movies = content.movies[section.id] {
-                                Section(header: Text(section.name)) {
-                                    ForEach(movies) { movieDetails in
-                                        NavigationLink(value: movieDetails.id) {
-                                            MoviePreview(details: movieDetails)
-                                        }
-                                    }
-                                }
+                        ForEach(content.movieDetails) { movie in
+                            NavigationLink(value: movie.id) {
+                                MoviePreviewView(details: movie)
                             }
                         }
+                        .listRowSeparator(.hidden)
                     }
+                    .listStyle(.plain)
+                case .stack:
+                    ShelfView(movieDetails: content.movieDetails)
+                        .ignoresSafeArea(.container, edges: .top)
                 }
             }
             .navigationTitle(NSLocalizedString("WATCHLIST.TITLE", comment: ""))
             .navigationDestination(for: Movie.ID.self) { movieId in
                 MovieView(movieId: movieId)
+            }
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Picker("Section", selection: $content.selectedSection) {
+                        ForEach(content.sections, id: \.self) { section in
+                            Text(section.name)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+
+                ToolbarItem(placement: .primaryAction) {
+                    Menu {
+                        Button { selectedLayout = .stack } label: {
+                            Label("Show as stack", systemImage: "square.stack")
+                        }
+                        Button { selectedLayout = .list } label: {
+                            Label("Show as list", systemImage: "list.star")
+                        }
+                    } label: {
+                        switch selectedLayout {
+                        case .list:
+                            Image(systemName: "list.star")
+                        case .stack:
+                            Image(systemName: "square.stack")
+                        }
+                    }
+                    .tint(.primary)
+                }
             }
             .task {
                 content.start(watchlist: watchlist, requestManager: requestManager)
@@ -144,6 +181,6 @@ struct WatchlistView_Previews: PreviewProvider {
     static var previews: some View {
         WatchlistView()
             .environment(\.requestManager, MockRequestManager())
-            .environmentObject(Watchlist())
+            .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
     }
 }

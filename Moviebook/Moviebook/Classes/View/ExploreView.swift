@@ -85,7 +85,7 @@ struct ExploreView: View {
                     }) {
                         ForEach(content.searchResults) { movie in
                             NavigationLink(value: movie.id) {
-                                MoviePreview(details: movie)
+                                MoviePreviewView(details: movie)
                             }
                         }
                     }
@@ -97,7 +97,7 @@ struct ExploreView: View {
                     Section(header: Text(section.name)) {
                         ForEach(content.explore[section.id] ?? []) { movie in
                             NavigationLink(value: movie.id) {
-                                MoviePreview(details: movie)
+                                MoviePreviewView(details: movie)
                             }
                         }
                     }
@@ -122,6 +122,6 @@ struct ExploreView_Previews: PreviewProvider {
     static var previews: some View {
         ExploreView()
             .environment(\.requestManager, MockRequestManager())
-            .environmentObject(Watchlist())
+            .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
     }
 }

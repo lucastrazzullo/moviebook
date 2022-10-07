@@ -55,3 +55,13 @@ final class Watchlist: ObservableObject {
         }
     }
 }
+
+#if DEBUG
+extension Watchlist {
+
+    convenience init(moviesToWatch: [Movie.ID]) {
+        self.init()
+        self.toWatch = Set(moviesToWatch.map(WatchlistItem.movie(id:)))
+    }
+}
+#endif

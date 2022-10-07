@@ -31,12 +31,7 @@ struct MovieCardView: View {
 }
 
 struct MovieCardView_Previews: PreviewProvider {
-    static let movie: Movie = {
-        let data = try! MockServer().data(from: MovieWebService.URLFactory.makeMovieUrl(movieIdentifier: 954))
-        let movie = try! JSONDecoder().decode(Movie.self, from: data)
-        return movie
-    }()
     static var previews: some View {
-        MovieCardView(movie: movie)
+        MovieCardView(movie: MockServer.movie(with: 954))
     }
 }
