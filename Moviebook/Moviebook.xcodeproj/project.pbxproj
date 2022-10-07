@@ -271,6 +271,8 @@
 		8169FB5728C207750054BCE6 /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				8169FB5828C207870054BCE6 /* User.swift */,
+				8169FB5C28C207ED0054BCE6 /* Watchlist.swift */,
 				8169FB6328C210820054BCE6 /* Entities */,
 				8169FB6428C2108A0054BCE6 /* Network */,
 			);
@@ -280,8 +282,6 @@
 		8169FB6328C210820054BCE6 /* Entities */ = {
 			isa = PBXGroup;
 			children = (
-				8169FB5828C207870054BCE6 /* User.swift */,
-				8169FB5C28C207ED0054BCE6 /* Watchlist.swift */,
 				8169FB5A28C207A40054BCE6 /* Movie.swift */,
 				81C7A5EC28D45B7F00AA24E3 /* MovieDetails.swift */,
 				81C7A5EE28D45B8B00AA24E3 /* MovieCollection.swift */,

@@ -69,7 +69,7 @@ import Combine
         .store(in: &subscriptions)
     }
 
-    private func loadMovieDetails(watchlistItems: Set<Watchlist.WatchlistItem>, requestManager: RequestManager) async throws -> [MovieDetails] {
+    private func loadMovieDetails(watchlistItems: [Watchlist.WatchlistItem], requestManager: RequestManager) async throws -> [MovieDetails] {
         return try await watchlistItems
             .compactMap({ self.movieIdentifiers($0) })
             .concurrentMap { movieIdentifier -> MovieDetails in
@@ -119,6 +119,7 @@ struct WatchlistView: View {
                 case .stack:
                     ShelfView(movieDetails: content.movieDetails)
                         .ignoresSafeArea(.container, edges: .top)
+                        .padding(.bottom, 12)
                 }
             }
             .navigationTitle(NSLocalizedString("WATCHLIST.TITLE", comment: ""))
