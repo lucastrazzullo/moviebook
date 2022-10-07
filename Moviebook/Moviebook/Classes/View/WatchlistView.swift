@@ -89,8 +89,8 @@ import Combine
 
 struct WatchlistView: View {
 
-    enum WatchlistLayout {
-        case stack
+    enum WatchlistLayout: Equatable {
+        case shelf
         case list
     }
 
@@ -98,7 +98,7 @@ struct WatchlistView: View {
     @EnvironmentObject var watchlist: Watchlist
     @StateObject private var content: Content = Content()
 
-    @State private var selectedLayout: WatchlistLayout = .stack
+    @State private var selectedLayout: WatchlistLayout = .shelf
 
     var onStartDiscoverySelected: () -> Void = {}
 
@@ -106,6 +106,10 @@ struct WatchlistView: View {
         NavigationStack {
             Group {
                 switch selectedLayout {
+                case .shelf:
+                    ShelfView(movieDetails: content.movieDetails)
+                        .ignoresSafeArea(.container, edges: .top)
+                        .padding(.bottom, 12)
                 case .list:
                     List {
                         ForEach(content.movieDetails) { movie in
@@ -116,13 +120,9 @@ struct WatchlistView: View {
                         .listRowSeparator(.hidden)
                     }
                     .listStyle(.plain)
-                case .stack:
-                    ShelfView(movieDetails: content.movieDetails)
-                        .ignoresSafeArea(.container, edges: .top)
-                        .padding(.bottom, 12)
                 }
             }
-            .navigationTitle(NSLocalizedString("WATCHLIST.TITLE", comment: ""))
+            .navigationTitle(selectedLayout == .list ? NSLocalizedString("WATCHLIST.TITLE", comment: "") : "")
             .navigationDestination(for: Movie.ID.self) { movieId in
                 MovieView(movieId: movieId)
             }
@@ -134,25 +134,50 @@ struct WatchlistView: View {
                         }
                     }
                     .pickerStyle(.segmented)
+                    .onAppear {
+                        switch selectedLayout {
+                        case .shelf:
+                            UISegmentedControl.appearance().backgroundColor = UIColor(Color.black.opacity(0.7))
+                            UISegmentedControl.appearance().selectedSegmentTintColor = .white
+                            UISegmentedControl.appearance().setTitleTextAttributes([.foregroundColor: UIColor.black], for: .selected)
+                            UISegmentedControl.appearance().setTitleTextAttributes([.foregroundColor: UIColor.white], for: .normal)
+                        case .list:
+                            break
+                        }
+                    }
+
                 }
 
                 ToolbarItem(placement: .primaryAction) {
                     Menu {
-                        Button { selectedLayout = .stack } label: {
-                            Label("Show as stack", systemImage: "square.stack")
+                        Button { selectedLayout = .shelf } label: {
+                            Label("Shelf", systemImage: "square.stack")
                         }
                         Button { selectedLayout = .list } label: {
-                            Label("Show as list", systemImage: "list.star")
+                            Label("List", systemImage: "list.star")
                         }
                     } label: {
-                        switch selectedLayout {
-                        case .list:
-                            Image(systemName: "list.star")
-                        case .stack:
-                            Image(systemName: "square.stack")
+                        Group {
+                            switch selectedLayout {
+                            case .shelf:
+                                Image(systemName: "square.stack")
+                                    .tint(.white)
+                                    .frame(minWidth: 32, minHeight: 32)
+                                    .font(.subheadline.bold())
+                                    .padding(8)
+                                    .background(.black.opacity(0.7))
+                                    .cornerRadius(12)
+                            case .list:
+                                Image(systemName: "list.star")
+                                    .tint(.primary)
+                                    .frame(minWidth: 32, minHeight: 32)
+                                    .font(.subheadline.bold())
+                                    .padding(8)
+                                    .background(.clear)
+                                    .cornerRadius(12)
+                            }
                         }
                     }
-                    .tint(.primary)
                 }
             }
             .task {
