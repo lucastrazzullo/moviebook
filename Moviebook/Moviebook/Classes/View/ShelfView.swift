@@ -60,8 +60,6 @@ struct ShelfView: View {
             let offset = dragOffset(itemWidth: detailsViewWidth) + Constants.detailsPadding
             let listWidth = CGFloat(numberOfItems) * detailsViewWidth
 
-            print(offset, posterViewWidth - listWidth)
-
             if offset > Constants.detailsPadding {
                 return Constants.detailsPadding + offset / 6
             } else if offset < posterViewWidth - listWidth - Constants.detailsPadding {
