@@ -47,8 +47,7 @@ extension MovieDetails: Decodable {
 
         id = try values.decode(MovieDetails.ID.self, forKey: .id)
         title = try values.decode(String.self, forKey: .title)
-        posterPath = try values.decodeIfPresent(String.self, forKey: .posterPath)
-        backdropPath = try values.decodeIfPresent(String.self, forKey: .backdropPath)
+        media = try MovieMedia(from: decoder)
     }
 }
 
@@ -66,7 +65,35 @@ extension MovieCollection: Decodable {
 
         id = try values.decode(MovieCollection.ID.self, forKey: .id)
         name = try values.decode(String.self, forKey: .name)
-        posterPath = try values.decodeIfPresent(String.self, forKey: .posterPath)
-        backdropPath = try values.decodeIfPresent(String.self, forKey: .backdropPath)
+        media = try MovieMedia(from: decoder)
+    }
+}
+
+extension MovieMedia: Decodable {
+
+    enum CodingKeys: String, CodingKey {
+        case posterPath = "poster_path"
+        case backdropPath = "backdrop_path"
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+
+
+        if let posterPath = try values.decodeIfPresent(String.self, forKey: .posterPath) {
+            posterUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .poster(path: posterPath, size: .original))
+            posterPreviewUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .poster(path: posterPath, size: .original))
+        } else {
+            posterUrl = nil
+            posterPreviewUrl = nil
+        }
+
+        if let backdropPath = try values.decodeIfPresent(String.self, forKey: .backdropPath) {
+            backdropUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .backdrop(path: backdropPath, size: .original))
+            backdropPreviewUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .backdrop(path: backdropPath, size: .original))
+        } else {
+            backdropUrl = nil
+            backdropPreviewUrl = nil
+        }
     }
 }

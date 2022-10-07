@@ -56,13 +56,12 @@ enum TheMovieDbImageRequestFactory {
     }
 
     enum PosterSize: String {
-        case thumb = "w185"
-        case large = "w780"
+        case preview = "w780"
         case original = "original"
     }
 
     enum BackdropSize: String {
-        case thumb = "w780"
+        case preview = "w1280"
         case original = "original"
     }
 

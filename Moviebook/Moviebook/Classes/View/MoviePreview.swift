@@ -15,7 +15,7 @@ struct MoviePreview: View {
         HStack(alignment: .center) {
             HStack(alignment: .center, spacing: 8) {
                 ZStack(alignment: .bottomTrailing) {
-                    AsyncImage(url: imageUrl, content: { image in
+                    AsyncImage(url: details.media.backdropPreviewUrl, content: { image in
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
@@ -55,13 +55,6 @@ struct MoviePreview: View {
         .contextMenu {
             WatchlistMenu(watchlistItem: Watchlist.WatchlistItem.movie(id: details.id))
         }
-    }
-
-    var imageUrl: URL? {
-        guard let path = details.backdropPath else {
-            return nil
-        }
-        return try? TheMovieDbImageRequestFactory.makeURL(format: .backdrop(path: path, size: .thumb))
     }
 }
 

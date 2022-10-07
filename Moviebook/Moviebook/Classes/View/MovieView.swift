@@ -101,7 +101,7 @@ private struct MovieContentView: View {
         ZStack(alignment: .top) {
             GeometryReader { geometry in
                 AsyncImage(
-                    url: imageUrl,
+                    url: movie.details.media.posterPreviewUrl,
                     content: { image in
                         image
                             .resizable()
@@ -148,13 +148,6 @@ private struct MovieContentView: View {
                 isNavigationBarHidden = false
             }
         }
-    }
-
-    var imageUrl: URL? {
-        guard let path = movie.details.posterPath else {
-            return nil
-        }
-        return try? TheMovieDbImageRequestFactory.makeURL(format: .poster(path: path, size: .large))
     }
 }
 
