@@ -17,33 +17,53 @@ struct ShelfView: View {
 
         let geometry: GeometryProxy
         let currentIndex: Int
+        let numberOfItems: Int
         let dragOffset: CGFloat
 
         // MARK: Object life cycle
 
-        init(geometry: GeometryProxy, currentIndex: Int, dragOffset: DragGesture.Value?) {
+        init(geometry: GeometryProxy, currentIndex: Int, numberOfItems: Int, dragOffset: DragGesture.Value?) {
             self.geometry = geometry
             self.currentIndex = currentIndex
+            self.numberOfItems = numberOfItems
             self.dragOffset = dragOffset?.translation.width ?? 0
         }
 
-        // MARK: Methods
+        // MARK: Computed properties
 
-        func posterViewWidth() -> CGFloat {
+        var posterViewWidth: CGFloat {
             return geometry.size.width
         }
 
-        func detailsViewWidth() -> CGFloat {
+        var detailsViewWidth: CGFloat {
             return geometry.size.width - Constants.detailsPadding * 2
         }
 
-        func postersScrollOffset() -> CGFloat {
-            return -(CGFloat(currentIndex) * posterViewWidth() - dragOffset)
+        var postersScrollOffset: CGFloat {
+            let offset = dragOffset(itemWidth: posterViewWidth)
+            let listWidth = CGFloat(numberOfItems) * posterViewWidth
+            return max(min(offset, 0), posterViewWidth-listWidth)
         }
 
-        func detailsScrollOffset() -> CGFloat {
-            return -(CGFloat(currentIndex) * detailsViewWidth() - dragOffset) + Constants.detailsPadding
+        var postersContainerOffset: CGFloat {
+            let offset = dragOffset(itemWidth: posterViewWidth)
+            let listWidth = CGFloat(numberOfItems) * posterViewWidth
+
+            if offset > posterViewWidth - listWidth {
+                return max(offset, 0)
+            } else {
+                return -(posterViewWidth - listWidth - offset)
+            }
         }
+
+        var detailsScrollOffset: CGFloat {
+            return -(CGFloat(currentIndex) * detailsViewWidth - dragOffset) + Constants.detailsPadding
+        }
+
+        private func dragOffset(itemWidth: CGFloat) -> CGFloat {
+            return -(CGFloat(currentIndex) * posterViewWidth - dragOffset)
+        }
+
     }
 
     @State private var dragOffset: DragGesture.Value?
@@ -53,24 +73,27 @@ struct ShelfView: View {
 
     var body: some View {
         Group {
-            GeometryReader { geometry in let geometryCalculator = GeometryCalculator(geometry: geometry, currentIndex: currentIndex, dragOffset: dragOffset)
+            GeometryReader { geometry in let geometryCalculator = GeometryCalculator(geometry: geometry, currentIndex: currentIndex, numberOfItems: movieDetails.count, dragOffset: dragOffset)
                 Group {
                     VStack(alignment: .leading) {
                         ZStack(alignment: .bottomLeading) {
-                            PostersListView(movies: movieDetails, posterElementWidth: geometryCalculator.posterViewWidth())
-                                .offset(x: geometryCalculator.postersScrollOffset())
+                            PostersListView(movies: movieDetails, posterElementWidth: geometryCalculator.posterViewWidth)
+                                .offset(x: geometryCalculator.postersScrollOffset)
 
                             IndexIndicatorView(movies: movieDetails, currentIndex: currentIndex)
-                                .frame(width: geometryCalculator.posterViewWidth())
+                                .frame(width: geometryCalculator.posterViewWidth)
                                 .padding(.bottom)
                         }
+                        .frame(width: geometryCalculator.posterViewWidth, alignment: .bottomLeading)
+                        .clipShape(RoundedRectangle(cornerRadius: 24))
+                        .offset(x: geometryCalculator.postersContainerOffset)
 
                         DetailsListView(
                             details: movieDetails,
-                            detailElementWidth: geometryCalculator.detailsViewWidth(),
+                            detailElementWidth: geometryCalculator.detailsViewWidth,
                             detailElementPadding: GeometryCalculator.Constants.detailsPadding
                         )
-                        .offset(x: geometryCalculator.detailsScrollOffset())
+                        .offset(x: geometryCalculator.detailsScrollOffset)
                         .padding(.top, 12)
                     }
                 }
@@ -79,9 +102,9 @@ struct ShelfView: View {
                         dragOffset = gesture
                     }
                     .onEnded { gesture in
-                        if gesture.translation.width > geometryCalculator.posterViewWidth() / 2 {
+                        if gesture.translation.width > geometryCalculator.posterViewWidth / 2 {
                             currentIndex = max(0, currentIndex - 1)
-                        } else if gesture.translation.width < -geometryCalculator.posterViewWidth() / 2 {
+                        } else if gesture.translation.width < -geometryCalculator.posterViewWidth / 2 {
                             currentIndex = min(movieDetails.count - 1, currentIndex + 1)
                         }
                         dragOffset = nil
