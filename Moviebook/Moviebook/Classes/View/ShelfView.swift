@@ -50,18 +50,29 @@ struct ShelfView: View {
             let listWidth = CGFloat(numberOfItems) * posterViewWidth
 
             if offset > posterViewWidth - listWidth {
-                return max(offset, 0)
+                return max(offset, 0) / 4
             } else {
-                return -(posterViewWidth - listWidth - offset)
+                return -(posterViewWidth - listWidth - offset) / 4
             }
         }
 
         var detailsScrollOffset: CGFloat {
-            return -(CGFloat(currentIndex) * detailsViewWidth - dragOffset) + Constants.detailsPadding
+            let offset = dragOffset(itemWidth: detailsViewWidth) + Constants.detailsPadding
+            let listWidth = CGFloat(numberOfItems) * detailsViewWidth
+
+            print(offset, posterViewWidth - listWidth)
+
+            if offset > Constants.detailsPadding {
+                return Constants.detailsPadding + offset / 6
+            } else if offset < posterViewWidth - listWidth - Constants.detailsPadding {
+                return offset - postersContainerOffset * 2
+            } else  {
+                return offset
+            }
         }
 
         private func dragOffset(itemWidth: CGFloat) -> CGFloat {
-            return -(CGFloat(currentIndex) * posterViewWidth - dragOffset)
+            return -(CGFloat(currentIndex) * itemWidth - dragOffset)
         }
 
     }
@@ -85,7 +96,7 @@ struct ShelfView: View {
                                 .padding(.bottom)
                         }
                         .frame(width: geometryCalculator.posterViewWidth, alignment: .bottomLeading)
-                        .clipShape(RoundedRectangle(cornerRadius: 24))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
                         .offset(x: geometryCalculator.postersContainerOffset)
 
                         DetailsListView(
@@ -112,7 +123,7 @@ struct ShelfView: View {
                 )
             }
         }
-        .animation(.spring(), value: dragOffset)
+        .animation(.default, value: dragOffset)
     }
 }
 

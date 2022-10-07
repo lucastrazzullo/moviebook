@@ -100,8 +100,6 @@ struct WatchlistView: View {
 
     @State private var selectedLayout: WatchlistLayout = .shelf
 
-    var onStartDiscoverySelected: () -> Void = {}
-
     var body: some View {
         NavigationStack {
             Group {
@@ -109,7 +107,7 @@ struct WatchlistView: View {
                 case .shelf:
                     ShelfView(movieDetails: content.movieDetails)
                         .ignoresSafeArea(.container, edges: .top)
-                        .padding(.bottom, 12)
+                        .padding(.bottom, 80)
                 case .list:
                     List {
                         ForEach(content.movieDetails) { movie in
@@ -145,7 +143,6 @@ struct WatchlistView: View {
                             break
                         }
                     }
-
                 }
 
                 ToolbarItem(placement: .primaryAction) {
