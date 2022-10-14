@@ -41,25 +41,26 @@ struct MoviebookView: View {
     @State private var selectedTab: Tab = .watchlist
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            Group {
-                switch selectedTab {
-                case .watchlist:
-                    WatchlistView()
-                case .explore:
-                    ExploreView()
-                }
-            }
-
-            TabSelector(
-                selectedTab: Binding(
-                    get: { .init(id: selectedTab.id, icon: selectedTab.icon)},
-                    set: { tab in if let tab = Tab(rawValue: tab.id) { selectedTab = tab }}
-                ),
-                tabs: Tab.allCases
-                    .map({ tab in .init(id: tab.id, icon: tab.icon) })
-            )
-        }
+//        ZStack(alignment: .bottom) {
+//            Group {
+//                switch selectedTab {
+//                case .watchlist:
+//                    WatchlistView()
+//                case .explore:
+//                    ExploreView()
+//                }
+//            }
+//
+//            TabSelector(
+//                selectedTab: Binding(
+//                    get: { .init(id: selectedTab.id, icon: selectedTab.icon)},
+//                    set: { tab in if let tab = Tab(rawValue: tab.id) { selectedTab = tab }}
+//                ),
+//                tabs: Tab.allCases
+//                    .map({ tab in .init(id: tab.id, icon: tab.icon) })
+//            )
+//        }
+        WatchlistView()
     }
 }
 

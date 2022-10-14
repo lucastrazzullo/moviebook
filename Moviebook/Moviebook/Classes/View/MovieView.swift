@@ -83,6 +83,7 @@ private struct MovieHeaderView: View {
                 .background(Circle().fill(.ultraThickMaterial))
         }
         .padding(.leading)
+        .padding(.top)
         .transition(.opacity.combined(with: .move(edge: .top)))
     }
 }

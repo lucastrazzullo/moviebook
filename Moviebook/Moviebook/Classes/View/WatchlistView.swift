@@ -99,15 +99,15 @@ struct WatchlistView: View {
     @StateObject private var content: Content = Content()
 
     @State private var selectedLayout: WatchlistLayout = .shelf
+    @State private var isExplorePresented: Bool = false
 
     var body: some View {
         NavigationStack {
             Group {
                 switch selectedLayout {
                 case .shelf:
-                    ShelfView(movieDetails: content.movieDetails)
+                    ShelfView(movieDetails: content.movieDetails, cornerRadius: isExplorePresented ? 0 : 16)
                         .ignoresSafeArea(.container, edges: .top)
-                        .padding(.bottom, 80)
                 case .list:
                     List {
                         ForEach(content.movieDetails) { movie in
@@ -145,36 +145,58 @@ struct WatchlistView: View {
                     }
                 }
 
-                ToolbarItem(placement: .primaryAction) {
-                    Menu {
-                        Button { selectedLayout = .shelf } label: {
-                            Label("Shelf", systemImage: "square.stack")
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    HStack {
+                        Button { isExplorePresented = true } label: {
+                            Image(systemName: "magnifyingglass")
                         }
-                        Button { selectedLayout = .list } label: {
-                            Label("List", systemImage: "list.star")
-                        }
-                    } label: {
-                        Group {
-                            switch selectedLayout {
-                            case .shelf:
-                                Image(systemName: "square.stack")
-                                    .tint(.white)
-                                    .frame(minWidth: 32, minHeight: 32)
-                                    .font(.subheadline.bold())
-                                    .padding(8)
-                                    .background(.black.opacity(0.7))
-                                    .cornerRadius(12)
-                            case .list:
-                                Image(systemName: "list.star")
-                                    .tint(.primary)
-                                    .frame(minWidth: 32, minHeight: 32)
-                                    .font(.subheadline.bold())
-                                    .padding(8)
-                                    .background(.clear)
-                                    .cornerRadius(12)
+                        .buttonStyle(.plain)
+                        .frame(width: 32, height: 24)
+                        .font(.footnote)
+
+                        Menu {
+                            Button { selectedLayout = .shelf } label: {
+                                Label("Shelf", systemImage: "square.stack")
+                            }
+                            Button { selectedLayout = .list } label: {
+                                Label("List", systemImage: "list.star")
+                            }
+                        } label: {
+                            Group {
+                                switch selectedLayout {
+                                case .shelf:
+                                    Image(systemName: "square.stack")
+                                        .font(.footnote)
+                                        .frame(width: 32, height: 24)
+                                case .list:
+                                    Image(systemName: "list.star")
+                                        .font(.footnote)
+                                        .frame(width: 32, height: 24)
+                                }
                             }
                         }
                     }
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 0)
+                    .background(.black.opacity(0.7))
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+                }
+            }
+            .sheet(isPresented: $isExplorePresented) {
+                NavigationStack {
+                    ExploreView()
+                        .navigationTitle(NSLocalizedString("EXPLORE.TITLE", comment: ""))
+                        .navigationDestination(for: Movie.ID.self) { movieId in
+                            MovieView(movieId: movieId)
+                        }
+                        .toolbar {
+                            ToolbarItem {
+                                Button(action: { isExplorePresented = false }) {
+                                    Text(NSLocalizedString("NAVIGATION.ACTION.CANCEL", comment: ""))
+                                }
+                            }
+                        }
                 }
             }
             .task {

@@ -74,46 +74,40 @@ struct ExploreView: View {
     @StateObject private var content: Content = Content()
 
     var body: some View {
-        NavigationStack {
-            List {
-                if !content.searchKeyword.isEmpty {
-                    Section(header: HStack(spacing: 4) {
-                        Text("\(NSLocalizedString("EXPLORE.SEARCH.RESULTS", comment: "")): \(content.searchKeyword)")
-                        if content.isSearching {
-                            ProgressView()
-                        }
-                    }) {
-                        ForEach(content.searchResults) { movie in
-                            NavigationLink(value: movie.id) {
-                                MoviePreviewView(details: movie)
-                            }
-                        }
+        List {
+            if !content.searchKeyword.isEmpty {
+                Section(header: HStack(spacing: 4) {
+                    Text("\(NSLocalizedString("EXPLORE.SEARCH.RESULTS", comment: "")): \(content.searchKeyword)")
+                    if content.isSearching {
+                        ProgressView()
                     }
-                    .listRowSeparator(.hidden)
-                    .listSectionSeparator(.hidden)
-                }
-
-                ForEach(content.sections) { section in
-                    Section(header: Text(section.name)) {
-                        ForEach(content.explore[section.id] ?? []) { movie in
-                            NavigationLink(value: movie.id) {
-                                MoviePreviewView(details: movie)
-                            }
+                }) {
+                    ForEach(content.searchResults) { movie in
+                        NavigationLink(value: movie.id) {
+                            MoviePreviewView(details: movie)
                         }
                     }
                 }
                 .listRowSeparator(.hidden)
                 .listSectionSeparator(.hidden)
             }
-            .listStyle(.inset)
-            .navigationTitle(NSLocalizedString("EXPLORE.TITLE", comment: ""))
-            .navigationDestination(for: Movie.ID.self) { movieId in
-                MovieView(movieId: movieId)
+
+            ForEach(content.sections) { section in
+                Section(header: Text(section.name)) {
+                    ForEach(content.explore[section.id] ?? []) { movie in
+                        NavigationLink(value: movie.id) {
+                            MoviePreviewView(details: movie)
+                        }
+                    }
+                }
             }
-            .searchable(text: $content.searchKeyword, prompt: NSLocalizedString("EXPLORE.SEARCH.PROMPT", comment: ""))
-            .task {
-                await content.start(requestManager: requestManager)
-            }
+            .listRowSeparator(.hidden)
+            .listSectionSeparator(.hidden)
+        }
+        .listStyle(.inset)
+        .searchable(text: $content.searchKeyword, prompt: NSLocalizedString("EXPLORE.SEARCH.PROMPT", comment: ""))
+        .task {
+            await content.start(requestManager: requestManager)
         }
     }
 }

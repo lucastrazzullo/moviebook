@@ -6,6 +6,10 @@
   
 */
 
+// MARK: Navigation
+
+"NAVIGATION.ACTION.CANCEL" = "Cancel";
+
 // MARK: Movie
 
 "MOVIE.POPULAR" = "Popular";

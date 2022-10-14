@@ -63,7 +63,7 @@ struct ShelfView: View {
             if offset > Constants.detailsPadding {
                 return Constants.detailsPadding + offset / 6
             } else if offset < posterViewWidth - listWidth - Constants.detailsPadding {
-                return offset - postersContainerOffset * 2
+                return offset - postersContainerOffset * 4
             } else  {
                 return offset
             }
@@ -72,13 +72,13 @@ struct ShelfView: View {
         private func dragOffset(itemWidth: CGFloat) -> CGFloat {
             return -(CGFloat(currentIndex) * itemWidth - dragOffset)
         }
-
     }
 
     @State private var dragOffset: DragGesture.Value?
     @State private var currentIndex: Int = 0
 
     let movieDetails: [MovieDetails]
+    let cornerRadius: CGFloat
 
     var body: some View {
         Group {
@@ -89,12 +89,14 @@ struct ShelfView: View {
                             PostersListView(movies: movieDetails, posterElementWidth: geometryCalculator.posterViewWidth)
                                 .offset(x: geometryCalculator.postersScrollOffset)
 
-                            IndexIndicatorView(movies: movieDetails, currentIndex: currentIndex)
-                                .frame(width: geometryCalculator.posterViewWidth)
-                                .padding(.bottom)
+                            if movieDetails.count > 1 {
+                                IndexIndicatorView(movies: movieDetails, currentIndex: currentIndex)
+                                    .frame(width: geometryCalculator.posterViewWidth)
+                                    .padding(.bottom)
+                            }
                         }
                         .frame(width: geometryCalculator.posterViewWidth, alignment: .bottomLeading)
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
                         .offset(x: geometryCalculator.postersContainerOffset)
 
                         DetailsListView(
@@ -184,6 +186,7 @@ private struct DetailsItemView: View {
             Spacer()
 
             WatchlistButton(watchlistItem: .movie(id: details.id))
+                .font(.headline)
         }
     }
 }
@@ -241,7 +244,7 @@ struct ShelfView_Previews: PreviewProvider {
         ShelfView(movieDetails: [
             MockServer.movie(with: 954).details,
             MockServer.movie(with: 616037).details
-        ])
+        ], cornerRadius: 16.0)
         .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
     }
 }
