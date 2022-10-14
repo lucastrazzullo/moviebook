@@ -76,6 +76,7 @@ struct ShelfView: View {
 
     @State private var dragOffset: DragGesture.Value?
     @State private var currentIndex: Int = 0
+    @State private var shouldShowSuggestions: Bool = false
 
     let movieDetails: [MovieDetails]
     let cornerRadius: CGFloat
@@ -102,7 +103,8 @@ struct ShelfView: View {
                         DetailsListView(
                             details: movieDetails,
                             detailElementWidth: geometryCalculator.detailsViewWidth,
-                            detailElementPadding: GeometryCalculator.Constants.detailsPadding
+                            detailElementPadding: GeometryCalculator.Constants.detailsPadding,
+                            shouldShowSuggestions: shouldShowSuggestions
                         )
                         .offset(x: geometryCalculator.detailsScrollOffset)
                         .padding(.top, 12)
@@ -118,12 +120,20 @@ struct ShelfView: View {
                         } else if gesture.translation.width < -geometryCalculator.posterViewWidth / 2 {
                             currentIndex = min(movieDetails.count - 1, currentIndex + 1)
                         }
+
+                        if gesture.translation.height > 50 {
+                            shouldShowSuggestions = false
+                        } else if gesture.translation.height < -50 {
+                            shouldShowSuggestions = true
+                        }
+
                         dragOffset = nil
                     }
                 )
             }
         }
         .animation(.default, value: dragOffset)
+        .animation(.default, value: shouldShowSuggestions)
     }
 }
 
@@ -156,14 +166,17 @@ private struct PostersListView: View {
 
 private struct DetailsListView: View {
 
+    @State private var dragOffset: DragGesture.Value?
+
     let details: [MovieDetails]
     let detailElementWidth: CGFloat
     let detailElementPadding: CGFloat
+    let shouldShowSuggestions: Bool
 
     var body: some View {
         HStack(alignment: .top, spacing: 0) {
             ForEach(details, id: \.id) { details in
-                DetailsItemView(details: details)
+                DetailsItemView(details: details, shouldShowSuggestions: shouldShowSuggestions)
                     .padding(.horizontal, detailElementPadding)
                     .frame(width: detailElementWidth)
             }
@@ -174,19 +187,26 @@ private struct DetailsListView: View {
 private struct DetailsItemView: View {
 
     let details: MovieDetails
+    let shouldShowSuggestions: Bool
 
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(details.title)
-                RatingView(rating: 3)
-                Text("20/10/2023").font(.caption)
+        VStack(spacing: 40) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(details.title)
+                    RatingView(rating: 3)
+                    Text("20/10/2023").font(.caption)
+                }
+
+                Spacer()
+
+                WatchlistButton(watchlistItem: .movie(id: details.id))
+                    .font(.headline)
             }
 
-            Spacer()
-
-            WatchlistButton(watchlistItem: .movie(id: details.id))
-                .font(.headline)
+            if shouldShowSuggestions {
+                SuggestionView()
+            }
         }
     }
 }
@@ -206,6 +226,9 @@ private struct SuggestionView: View {
                 Spacer()
             }
         }
+        .padding()
+        .background(.thinMaterial)
+        .cornerRadius(12)
     }
 }
 
