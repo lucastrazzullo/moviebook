@@ -127,7 +127,7 @@ struct WatchlistView: View {
             }
             .navigationTitle(selectedLayout == .list ? NSLocalizedString("WATCHLIST.TITLE", comment: "") : "")
             .navigationDestination(for: Movie.ID.self) { movieId in
-                MovieView(movieId: movieId)
+                MovieView(movieId: movieId, navigationPath: $navigationPath)
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -193,7 +193,7 @@ struct WatchlistView: View {
                     ExploreView()
                         .navigationTitle(NSLocalizedString("EXPLORE.TITLE", comment: ""))
                         .navigationDestination(for: Movie.ID.self) { movieId in
-                            MovieView(movieId: movieId)
+                            MovieView(movieId: movieId, navigationPath: $navigationPath)
                         }
                         .toolbar {
                             ToolbarItem {

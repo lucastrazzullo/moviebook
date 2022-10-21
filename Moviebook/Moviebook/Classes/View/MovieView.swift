@@ -36,12 +36,12 @@ struct MovieView: View {
 
     @StateObject private var content: Content
 
-    @State private var isNavigationBarHidden: Bool = true
+    @Binding private var navigationPath: NavigationPath
 
     var body: some View {
         ZStack(alignment: .topLeading) {
             if let movie = content.movie {
-                MovieContentView(isNavigationBarHidden: $isNavigationBarHidden, movie: movie)
+                MovieContentView(movie: movie, navigationPath: $navigationPath)
             } else {
                 Group {
                     ProgressView()
@@ -50,15 +50,9 @@ struct MovieView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-
-            if isNavigationBarHidden {
-                MovieHeaderView()
-            }
         }
-        .background(.black)
-        .toolbar(isNavigationBarHidden ? .hidden : .visible)
         .toolbar(.hidden, for: .tabBar)
-        .animation(.default, value: isNavigationBarHidden)
+        .toolbar(.hidden, for: .navigationBar)
         .task {
             await content.start(requestManager: requestManager)
         }
@@ -66,37 +60,25 @@ struct MovieView: View {
 
     // MARK: Obejct life cycle
 
-    init(movieId: Movie.ID) {
+    init(movieId: Movie.ID, navigationPath: Binding<NavigationPath>) {
         self._content = StateObject(wrappedValue: Content(movieId: movieId))
-    }
-}
-
-private struct MovieHeaderView: View {
-
-    @Environment(\.presentationMode) var presentationMode: Binding<PresentationMode>
-
-    var body: some View {
-        Button(action: { presentationMode.wrappedValue.dismiss() }) {
-            Image(systemName: "chevron.left")
-                .font(.subheadline.bold())
-                .padding()
-                .background(Circle().fill(.ultraThickMaterial))
-        }
-        .padding(.leading)
-        .padding(.top)
-        .transition(.opacity.combined(with: .move(edge: .top)))
+        self._navigationPath = navigationPath
     }
 }
 
 private struct MovieContentView: View {
 
+    @Environment(\.colorScheme) private var colorScheme
+
     @State private var contentOffset: CGFloat = 0
     @State private var contentInset: CGFloat = 0
     @State private var isImageLoaded: Bool = false
 
-    @Binding var isNavigationBarHidden: Bool
+    private let headerHeight: CGFloat = 120
 
     let movie: Movie
+
+    @Binding var navigationPath: NavigationPath
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -117,8 +99,9 @@ private struct MovieContentView: View {
                 )
                 .frame(
                     width: UIScreen.main.bounds.width,
-                    height: max(0, isImageLoaded ? geometry.frame(in: .global).minY + contentInset - contentOffset : UIScreen.main.bounds.height)
+                    height: max(headerHeight, isImageLoaded ? geometry.frame(in: .global).minY + contentInset - contentOffset : UIScreen.main.bounds.height)
                 )
+                .clipShape(RoundedRectangle(cornerRadius: 24))
                 .ignoresSafeArea(.all, edges: .top)
             }
             .frame(height: max(0, contentOffset))
@@ -126,15 +109,59 @@ private struct MovieContentView: View {
             ObservableScrollView(scrollOffset: $contentOffset, showsIndicators: false) { scrollViewProxy in
                 VStack {
                     Spacer()
-                        .frame(height: isImageLoaded ? contentInset - 24 : UIScreen.main.bounds.height)
+                        .frame(height: isImageLoaded ? contentInset : UIScreen.main.bounds.height)
 
                     MovieCardView(movie: movie)
                 }
-                .ignoresSafeArea(.all, edges: .bottom)
+            }
+
+            GeometryReader { geometry in
+                ZStack(alignment: .bottom) {
+                    ZStack(alignment: .center) {
+                        Group {
+                            Button(action: { navigationPath.removeLast() }) {
+                                Image(systemName: "chevron.left")
+                                    .font(.subheadline.bold())
+                                    .frame(width: 46, height: 46)
+                                    .background(Circle().fill(.ultraThickMaterial))
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                        Group {
+                            WatchlistButton(watchlistItem: .movie(id: movie.id))
+                                .font(.subheadline.bold())
+                                .frame(width: 46, height: 46)
+                                .background(Circle().fill(.ultraThickMaterial))
+                        }
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+
+                        if shouldShowHeader(geometry: geometry) {
+                            Text(movie.details.title)
+                                .font(.headline)
+                                .transition(.opacity.combined(with: .move(edge: .bottom)))
+                        }
+                    }
+                    .padding(.bottom, 20)
+                    .padding(.horizontal)
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: headerHeight + 2, alignment: .bottom)
+                .background(
+                    Rectangle()
+                        .fill(.background.opacity(0.2))
+                        .background(.regularMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 24))
+                        .opacity(shouldShowHeader(geometry: geometry) ? 1 : 0)
+                )
+                .ignoresSafeArea(.all, edges: .top)
+                .transition(.opacity)
+                .animation(.easeOut(duration: 0.2), value: contentOffset)
             }
         }
         .overlay {
             Rectangle()
+                .foregroundColor(.clear)
                 .background(.thickMaterial)
                 .ignoresSafeArea()
                 .opacity(isImageLoaded ? 0 : 1)
@@ -142,20 +169,18 @@ private struct MovieContentView: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle(movie.details.title)
-        .onChange(of: contentOffset) { offset in
-            if offset < contentInset - 80 {
-                isNavigationBarHidden = true
-            } else {
-                isNavigationBarHidden = false
-            }
-        }
+    }
+
+    private func shouldShowHeader(geometry: GeometryProxy) -> Bool {
+        contentOffset - contentInset - geometry.frame(in: .global).minY > -headerHeight
     }
 }
 
 struct MovieView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            MovieView(movieId: 954)
+            MovieView(movieId: 954, navigationPath: .constant(NavigationPath()))
+                .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
         }
     }
 }
