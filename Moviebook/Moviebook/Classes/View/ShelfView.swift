@@ -153,9 +153,9 @@ struct ShelfView: View {
                     }
                     .onEnded { gesture in
                         if horizontalDragOffset != nil {
-                            if gesture.translation.width > geometryCalculator.posterViewWidth / 2 {
+                            if gesture.translation.width > geometryCalculator.posterViewWidth / 3 {
                                 currentIndex = max(0, currentIndex - 1)
-                            } else if gesture.translation.width < -geometryCalculator.posterViewWidth / 2 {
+                            } else if gesture.translation.width < -geometryCalculator.posterViewWidth / 3 {
                                 currentIndex = min(movieDetails.count - 1, currentIndex + 1)
                             }
                         }
