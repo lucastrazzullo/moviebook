@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct MovieMedia {
+struct MovieMedia: Equatable {
     let posterUrl: URL?
     let posterPreviewUrl: URL?
     let backdropUrl: URL?

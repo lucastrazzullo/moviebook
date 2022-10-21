@@ -11,14 +11,10 @@ struct ShelfView: View {
 
     struct GeometryCalculator {
 
-        struct Constants {
-            static let detailsPadding: CGFloat = 30
-            static let expandingThreshold: CGFloat = 80
-        }
-
         private let geometry: GeometryProxy
         private let currentIndex: Int
         private let numberOfItems: Int
+        private let isContentExpanded: Bool
         private let horizontalOffset: CGFloat
         private let verticalOffset: CGFloat
 
@@ -27,11 +23,13 @@ struct ShelfView: View {
         init(geometry: GeometryProxy,
              currentIndex: Int,
              numberOfItems: Int,
+             isContentExpanded: Bool,
              horizontalDragOffset: DragGesture.Value?,
              verticalDragOffset: DragGesture.Value?) {
             self.geometry = geometry
             self.currentIndex = currentIndex
             self.numberOfItems = numberOfItems
+            self.isContentExpanded = isContentExpanded
             self.horizontalOffset = horizontalDragOffset?.translation.width ?? 0
             self.verticalOffset = verticalDragOffset?.translation.height ?? 0
         }
@@ -42,8 +40,12 @@ struct ShelfView: View {
             return geometry.size.width
         }
 
+        var detailsViewPadding: CGFloat {
+            return isContentExpanded ? 10 : 30
+        }
+
         var detailsViewWidth: CGFloat {
-            return geometry.size.width - Constants.detailsPadding * 2
+            return geometry.size.width - detailsViewPadding * 2
         }
 
         var postersScrollOffset: CGFloat {
@@ -64,12 +66,12 @@ struct ShelfView: View {
         }
 
         var detailsScrollOffset: CGFloat {
-            let offset = dragOffset(itemWidth: detailsViewWidth) + Constants.detailsPadding
+            let offset = dragOffset(itemWidth: detailsViewWidth) + detailsViewPadding
             let listWidth = CGFloat(numberOfItems) * detailsViewWidth
 
-            if offset > Constants.detailsPadding {
-                return Constants.detailsPadding + offset / 6
-            } else if offset < posterViewWidth - listWidth - Constants.detailsPadding {
+            if offset > detailsViewPadding {
+                return detailsViewPadding + offset / 6
+            } else if offset < posterViewWidth - listWidth - detailsViewPadding {
                 return offset - postersContainerOffset * 4
             } else  {
                 return offset
@@ -90,8 +92,10 @@ struct ShelfView: View {
     @State private var horizontalDragOffset: DragGesture.Value?
     @State private var verticalDragOffset: DragGesture.Value?
     @State private var currentIndex: Int = 0
-    @State private var isContentExpanded: Bool = false
+    @State private var isContentExpanded: Bool
     @State private var expandedContentHeight: CGFloat = 0
+
+    @Binding private var navigationPath: NavigationPath
 
     let movieDetails: [MovieDetails]
     let cornerRadius: CGFloat
@@ -99,7 +103,15 @@ struct ShelfView: View {
     var body: some View {
         Group {
             GeometryReader { geometry in
-                let geometryCalculator = GeometryCalculator(geometry: geometry, currentIndex: currentIndex, numberOfItems: movieDetails.count, horizontalDragOffset: horizontalDragOffset, verticalDragOffset: verticalDragOffset)
+                let geometryCalculator = GeometryCalculator(
+                    geometry: geometry,
+                    currentIndex: currentIndex,
+                    numberOfItems: movieDetails.count,
+                    isContentExpanded: isContentExpanded,
+                    horizontalDragOffset: horizontalDragOffset,
+                    verticalDragOffset: verticalDragOffset
+                )
+
                 Group {
                     VStack(alignment: .leading) {
                         ZStack(alignment: .bottomLeading) {
@@ -113,22 +125,23 @@ struct ShelfView: View {
                             }
                         }
                         .frame(width: geometryCalculator.posterViewWidth, alignment: .bottomLeading)
-                        .clipShape(RoundedRectangle(cornerRadius: cornerRadius + 2))
+                        .clipShape(RoundedRectangle(cornerRadius: isContentExpanded ? cornerRadius / 1.5 : cornerRadius + 2))
                         .overlay(
                             RoundedRectangle(cornerRadius: cornerRadius, style: .circular)
-                                .stroke(makeChromeColor(), lineWidth: !isContentExpanded ? 8 : 0)
+                                .stroke(makeChromeColor(), lineWidth: makeChromeWidth() )
                                 .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
                                 .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
                         )
                         .offset(x: geometryCalculator.postersContainerOffset)
 
                         DetailsListView(
+                            navigationPath: $navigationPath,
                             details: movieDetails,
-                            detailElementWidth: geometryCalculator.detailsViewWidth,
-                            detailElementPadding: GeometryCalculator.Constants.detailsPadding,
                             status: verticalDragOffset != nil
                                 ? .expanding(offset: -geometryCalculator.expandingScrollOffset)
                                 : isContentExpanded ? .expanded : .contracted,
+                            detailElementWidth: geometryCalculator.detailsViewWidth,
+                            detailElementPadding: geometryCalculator.detailsViewPadding,
                             expandedHeight: $expandedContentHeight
                         )
                         .offset(x: geometryCalculator.detailsScrollOffset)
@@ -161,9 +174,9 @@ struct ShelfView: View {
                         }
 
                         if verticalDragOffset != nil {
-                            if gesture.translation.height > GeometryCalculator.Constants.expandingThreshold {
+                            if gesture.translation.height > 80 {
                                 isContentExpanded = false
-                            } else if gesture.translation.height < -GeometryCalculator.Constants.expandingThreshold {
+                            } else if gesture.translation.height < -80 {
                                 isContentExpanded = true
                             }
                         }
@@ -185,6 +198,17 @@ struct ShelfView: View {
         default:
             return Color.white
         }
+    }
+
+    private func makeChromeWidth() -> CGFloat {
+        return isContentExpanded ? 0 : 8
+    }
+
+    init(movieDetails: [MovieDetails], cornerRadius: CGFloat, navigationPath: Binding<NavigationPath>, expanded: Bool = false) {
+        self.movieDetails = movieDetails
+        self.cornerRadius = cornerRadius
+        self._navigationPath = navigationPath
+        self._isContentExpanded = State(initialValue: expanded)
     }
 }
 
@@ -217,12 +241,12 @@ private struct PostersListView: View {
 
 private struct DetailsListView: View {
 
-    @State private var dragOffset: DragGesture.Value?
+    @Binding var navigationPath: NavigationPath
 
     let details: [MovieDetails]
+    let status: DetailsItemView.Status
     let detailElementWidth: CGFloat
     let detailElementPadding: CGFloat
-    let status: DetailsItemView.Status
 
     @Binding var expandedHeight: CGFloat
 
@@ -230,9 +254,10 @@ private struct DetailsListView: View {
         HStack(alignment: .top, spacing: 0) {
             ForEach(details, id: \.id) { details in
                 DetailsItemView(
+                    navigationPath: $navigationPath,
+                    expandedHeight: $expandedHeight,
                     details: details,
-                    status: status,
-                    expandedHeight: $expandedHeight
+                    status: status
                 )
                 .padding(.horizontal, detailElementPadding)
                 .frame(width: detailElementWidth)
@@ -252,26 +277,16 @@ private struct DetailsItemView: View {
     @State private var headerHeight: CGFloat = 0
     @State private var contentHeight: CGFloat = 0
 
+    @Binding var navigationPath: NavigationPath
+    @Binding var expandedHeight: CGFloat
+
     let details: MovieDetails
     let status: Status
 
-    @Binding var expandedHeight: CGFloat
-
     var body: some View {
-        VStack(spacing: 0) {
+        VStack(alignment: .leading, spacing: 0) {
             Group {
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(details.title)
-                        RatingView(rating: 3)
-                        Text("20/10/2023").font(.caption)
-                    }
-
-                    Spacer()
-
-                    WatchlistButton(watchlistItem: .movie(id: details.id))
-                        .font(.headline)
-                }
+                HeaderView(details: details)
             }
             .padding(.top, 12)
             .background(GeometryReader { geometry in
@@ -279,7 +294,7 @@ private struct DetailsItemView: View {
             })
 
             Group {
-                SuggestionView()
+                ContentView(navigationPath: $navigationPath, details: details)
             }
             .padding(.top, 24)
             .background(GeometryReader { geometry in
@@ -304,24 +319,78 @@ private struct DetailsItemView: View {
     }
 }
 
-private struct SuggestionView: View {
+private struct HeaderView: View {
+
+    let details: MovieDetails
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("Consigliato da").font(.subheadline)
-                Text("Valerio").font(.headline)
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(details.title)
+                RatingView(rating: 3)
+                Text("20/10/2023").font(.caption)
             }
+            .frame(width: 200, alignment: .leading)
 
-            HStack {
-                Text("Questo film e popt bell cos cos o frat cos.")
-                    .font(.caption)
-                Spacer()
-            }
+            Spacer()
+
+            WatchlistButton(watchlistItem: .movie(id: details.id))
+                .font(.headline)
         }
-        .padding()
-        .background(.thinMaterial)
-        .cornerRadius(12)
+    }
+}
+
+private struct ContentView: View {
+
+    @Binding var navigationPath: NavigationPath
+
+    let details: MovieDetails
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            HStack(alignment: .top) {
+                Image(systemName: "square.and.pencil")
+                VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Consigliato da").font(.caption2)
+                        Text("Valerio").font(.headline)
+                    }
+
+                    HStack {
+                        Text("Questo film e popt bell cos cos o frat cos e mo iamm ngopp a ddoj linee.")
+                            .font(.caption)
+                        Spacer()
+                    }
+                }
+            }
+            .frame(width: 240, alignment: .leading)
+            .padding()
+            .background(.thinMaterial)
+            .cornerRadius(12)
+
+            VStack(alignment: .leading) {
+                Text("Appartiene ad una serie").font(.subheadline)
+                Text("Mission Impossible").font(.title2)
+
+                HStack {
+                    Rectangle().frame(width: 60, height: 40).cornerRadius(8)
+                    Rectangle().frame(width: 60, height: 40).cornerRadius(8)
+                    Rectangle().frame(width: 60, height: 40).cornerRadius(8)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding()
+            .background(.thickMaterial)
+            .background(.orange)
+            .cornerRadius(12)
+
+            Button(action: { navigationPath.append(details.id) }) {
+                Text("Open")
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 6)
+            }
+            .buttonStyle(.borderedProminent)
+        }
     }
 }
 
@@ -357,10 +426,15 @@ private struct IndexIndicatorView: View {
 struct ShelfView_Previews: PreviewProvider {
 
     static var previews: some View {
-        ShelfView(movieDetails: [
-            MockServer.movie(with: 954).details,
-            MockServer.movie(with: 616037).details
-        ], cornerRadius: 16.0)
+        ShelfView(
+            movieDetails: [
+                MockServer.movie(with: 954).details,
+                MockServer.movie(with: 616037).details
+            ],
+            cornerRadius: 16.0,
+            navigationPath: .constant(NavigationPath()),
+            expanded: true
+        )
         .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
     }
 }

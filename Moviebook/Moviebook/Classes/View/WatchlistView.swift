@@ -98,16 +98,21 @@ struct WatchlistView: View {
     @EnvironmentObject var watchlist: Watchlist
     @StateObject private var content: Content = Content()
 
+    @State private var navigationPath = NavigationPath()
     @State private var selectedLayout: WatchlistLayout = .shelf
     @State private var isExplorePresented: Bool = false
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $navigationPath) {
             Group {
                 switch selectedLayout {
                 case .shelf:
-                    ShelfView(movieDetails: content.movieDetails, cornerRadius: isExplorePresented ? 0 : 16)
-                        .padding(.top)
+                    ShelfView(
+                        movieDetails: content.movieDetails,
+                        cornerRadius: isExplorePresented ? 0 : 16,
+                        navigationPath: $navigationPath
+                    )
+                    .padding(.top)
                 case .list:
                     List {
                         ForEach(content.movieDetails) { movie in
