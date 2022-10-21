@@ -45,7 +45,7 @@ struct ShelfView: View {
         }
 
         var detailsViewWidth: CGFloat {
-            return geometry.size.width - detailsViewPadding * 2
+            return geometry.size.width - detailsViewPadding * 2 + 10
         }
 
         var postersScrollOffset: CGFloat {
@@ -433,7 +433,7 @@ struct ShelfView_Previews: PreviewProvider {
             ],
             cornerRadius: 16.0,
             navigationPath: .constant(NavigationPath()),
-            expanded: true
+            expanded: false
         )
         .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
     }
