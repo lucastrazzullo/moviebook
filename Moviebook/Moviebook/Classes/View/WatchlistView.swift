@@ -107,7 +107,7 @@ struct WatchlistView: View {
                 switch selectedLayout {
                 case .shelf:
                     ShelfView(movieDetails: content.movieDetails, cornerRadius: isExplorePresented ? 0 : 16)
-                        .ignoresSafeArea(.container, edges: .top)
+                        .padding(.top)
                 case .list:
                     List {
                         ForEach(content.movieDetails) { movie in
