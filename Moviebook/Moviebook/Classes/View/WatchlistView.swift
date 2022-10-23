@@ -32,18 +32,15 @@ import Combine
 
     // MARK: Instance Properties
 
-    @Published var selectedSection: Content.Section = .toWatch
     @Published var movies: [Section.ID: [MovieDetails]] = [:]
 
     var sections: [Section] {
         return Section.allCases
     }
 
-    var movieDetails: [MovieDetails] {
-        return movies[selectedSection.id] ?? []
-    }
-
     private var subscriptions: Set<AnyCancellable> = []
+
+    // MARK: Internal methods
 
     func start(watchlist: Watchlist, requestManager: RequestManager) {
         watchlist.$toWatch.sink { [weak self] watchlistItems in
@@ -68,6 +65,12 @@ import Combine
         }
         .store(in: &subscriptions)
     }
+
+    func movieDetails(sectionIdentifier: Section.ID) -> [MovieDetails] {
+        return movies[sectionIdentifier] ?? []
+    }
+
+    // MARK: Private helper methods
 
     private func loadMovieDetails(watchlistItems: [Watchlist.WatchlistItem], requestManager: RequestManager) async throws -> [MovieDetails] {
         return try await watchlistItems
@@ -100,6 +103,7 @@ struct WatchlistView: View {
 
     @State private var navigationPath = NavigationPath()
     @State private var selectedLayout: WatchlistLayout = .shelf
+    @State private var selectedSection: Content.Section = .toWatch
     @State private var isExplorePresented: Bool = false
 
     var body: some View {
@@ -108,14 +112,15 @@ struct WatchlistView: View {
                 switch selectedLayout {
                 case .shelf:
                     ShelfView(
-                        movieDetails: content.movieDetails,
+                        movieDetails: content.movieDetails(sectionIdentifier: selectedSection.id),
                         cornerRadius: isExplorePresented ? 0 : 16,
                         navigationPath: $navigationPath
                     )
+                    .id(selectedSection.id)
                     .padding(.top)
                 case .list:
                     List {
-                        ForEach(content.movieDetails) { movie in
+                        ForEach(content.movieDetails(sectionIdentifier: selectedSection.id)) { movie in
                             NavigationLink(value: movie.id) {
                                 MoviePreviewView(details: movie)
                             }
@@ -131,7 +136,7 @@ struct WatchlistView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Picker("Section", selection: $content.selectedSection) {
+                    Picker("Section", selection: $selectedSection) {
                         ForEach(content.sections, id: \.self) { section in
                             Text(section.name)
                         }

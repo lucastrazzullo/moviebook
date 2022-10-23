@@ -45,7 +45,7 @@ struct ShelfView: View {
         }
 
         var detailsViewWidth: CGFloat {
-            return geometry.size.width - detailsViewPadding * 2 + 10
+            return geometry.size.width - detailsViewPadding * 2
         }
 
         var postersScrollOffset: CGFloat {
@@ -65,14 +65,14 @@ struct ShelfView: View {
             }
         }
 
-        var detailsScrollOffset: CGFloat {
-            let offset = dragOffset(itemWidth: detailsViewWidth) + detailsViewPadding
+        var detailsContainerHorizontalOffset: CGFloat {
+            let offset = dragOffset(itemWidth: detailsViewWidth + detailsViewPadding) + detailsViewPadding
             let listWidth = CGFloat(numberOfItems) * detailsViewWidth
 
             if offset > detailsViewPadding {
-                return detailsViewPadding + offset / 6
+                return detailsViewPadding + horizontalOffset / 6
             } else if offset < posterViewWidth - listWidth - detailsViewPadding {
-                return offset - postersContainerOffset * 4
+                return offset - horizontalOffset + horizontalOffset / 6
             } else  {
                 return offset
             }
@@ -144,7 +144,7 @@ struct ShelfView: View {
                             detailElementPadding: geometryCalculator.detailsViewPadding,
                             expandedHeight: $expandedContentHeight
                         )
-                        .offset(x: geometryCalculator.detailsScrollOffset)
+                        .offset(x: geometryCalculator.detailsContainerHorizontalOffset)
                     }
                     .offset(y: geometryCalculator.expandingScrollOffset - (isContentExpanded ? expandedContentHeight : 0))
                 }
@@ -251,7 +251,7 @@ private struct DetailsListView: View {
     @Binding var expandedHeight: CGFloat
 
     var body: some View {
-        HStack(alignment: .top, spacing: 0) {
+        HStack(alignment: .top, spacing: detailElementPadding) {
             ForEach(details, id: \.id) { details in
                 DetailsItemView(
                     navigationPath: $navigationPath,

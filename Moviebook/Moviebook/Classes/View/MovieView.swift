@@ -101,7 +101,7 @@ private struct MovieContentView: View {
                     width: UIScreen.main.bounds.width,
                     height: max(headerHeight, isImageLoaded ? geometry.frame(in: .global).minY + contentInset - contentOffset : UIScreen.main.bounds.height)
                 )
-                .clipShape(RoundedRectangle(cornerRadius: 24))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
                 .ignoresSafeArea(.all, edges: .top)
             }
             .frame(height: max(0, contentOffset))
@@ -151,7 +151,7 @@ private struct MovieContentView: View {
                     Rectangle()
                         .fill(.background.opacity(0.2))
                         .background(.regularMaterial)
-                        .clipShape(RoundedRectangle(cornerRadius: 24))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
                         .opacity(shouldShowHeader(geometry: geometry) ? 1 : 0)
                 )
                 .ignoresSafeArea(.all, edges: .top)
