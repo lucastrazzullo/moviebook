@@ -117,7 +117,7 @@ private struct MovieContentView: View {
 
             GeometryReader { geometry in
                 ZStack(alignment: .bottom) {
-                    ZStack(alignment: .center) {
+                    HStack(alignment: .center) {
                         Group {
                             Button(action: { navigationPath.removeLast() }) {
                                 Image(systemName: "chevron.left")
@@ -126,20 +126,22 @@ private struct MovieContentView: View {
                                     .background(Circle().fill(.ultraThickMaterial))
                             }
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                        if shouldShowHeader(geometry: geometry) {
+                            Text(movie.details.title)
+                                .lineLimit(2)
+                                .font(.headline)
+                                .transition(.opacity.combined(with: .move(edge: .bottom)))
+                                .frame(maxWidth: .infinity)
+                        } else {
+                            Spacer()
+                        }
 
                         Group {
                             WatchlistButton(watchlistItem: .movie(id: movie.id))
                                 .font(.subheadline.bold())
                                 .frame(width: 46, height: 46)
                                 .background(Circle().fill(.ultraThickMaterial))
-                        }
-                        .frame(maxWidth: .infinity, alignment: .trailing)
-
-                        if shouldShowHeader(geometry: geometry) {
-                            Text(movie.details.title)
-                                .font(.headline)
-                                .transition(.opacity.combined(with: .move(edge: .bottom)))
                         }
                     }
                     .padding(.bottom, 20)
