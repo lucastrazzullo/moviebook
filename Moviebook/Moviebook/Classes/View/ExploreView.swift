@@ -12,6 +12,10 @@ import Combine
 
     // MARK: Types
 
+    enum Error: Swift.Error, Equatable {
+        case failedToLoad
+    }
+
     enum Section: Identifiable, CaseIterable {
         case popular
         case upcoming
@@ -36,6 +40,7 @@ import Combine
     @Published var searchKeyword: String = ""
     @Published var searchResults: [MovieDetails] = []
     @Published var explore: [Section.ID: [MovieDetails]] = [:]
+    @Published var error: Error?
 
     var sections: [Section] {
         return Section.allCases
@@ -50,7 +55,7 @@ import Combine
             explore[Section.upcoming.id] = try await UpcomingWebService(requestManager: requestManager).fetch()
             explore[Section.popular.id] = try await PopularWebService(requestManager: requestManager).fetch()
         } catch {
-            assertionFailure(error.localizedDescription)
+            self.error = .failedToLoad
         }
 
         $searchKeyword
@@ -71,7 +76,9 @@ struct ExploreView: View {
 
     @Environment(\.requestManager) var requestManager
     @EnvironmentObject var watchlist: Watchlist
+
     @StateObject private var content: Content = Content()
+    @State private var isErrorPresented: Bool = false
 
     var body: some View {
         List {
@@ -106,6 +113,16 @@ struct ExploreView: View {
         }
         .listStyle(.inset)
         .searchable(text: $content.searchKeyword, prompt: NSLocalizedString("EXPLORE.SEARCH.PROMPT", comment: ""))
+        .alert("Error", isPresented: $isErrorPresented) {
+            Button("Retry", role: .cancel) {
+                Task {
+                    await content.start(requestManager: requestManager)
+                }
+            }
+        }
+        .onChange(of: content.error) { error in
+            isErrorPresented = error != nil
+        }
         .task {
             await content.start(requestManager: requestManager)
         }

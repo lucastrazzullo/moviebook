@@ -12,6 +12,10 @@ import Combine
 
     // MARK: Types
 
+    enum Error: Swift.Error, Equatable {
+        case failedToLoad
+    }
+
     enum Section: Identifiable, CaseIterable {
         case toWatch
         case watched
@@ -33,6 +37,7 @@ import Combine
     // MARK: Instance Properties
 
     @Published var movies: [Section.ID: [Movie]] = [:]
+    @Published var error: Error?
 
     var sections: [Section] {
         return Section.allCases
@@ -48,7 +53,7 @@ import Combine
                 do {
                     self?.movies[Section.toWatch.id] = try await self?.loadMovies(watchlistItems: watchlistItems, requestManager: requestManager)
                 } catch {
-                    assertionFailure(error.localizedDescription)
+                    self?.error = .failedToLoad
                 }
             }
         }
@@ -59,7 +64,7 @@ import Combine
                 do {
                     self?.movies[Section.watched.id] = try await self?.loadMovies(watchlistItems: watchlistItems, requestManager: requestManager)
                 } catch {
-                    assertionFailure(error.localizedDescription)
+                    self?.error = .failedToLoad
                 }
             }
         }
@@ -101,18 +106,20 @@ struct WatchlistView: View {
     @EnvironmentObject var watchlist: Watchlist
     @StateObject private var content: Content = Content()
 
-    @State private var navigationPath = NavigationPath()
+    @State private var watchlistNavigationPath = NavigationPath()
+    @State private var exploreNavigationPath = NavigationPath()
     @State private var selectedLayout: WatchlistLayout = .shelf
     @State private var selectedSection: Content.Section = .toWatch
     @State private var isExplorePresented: Bool = false
+    @State private var isErrorPresented: Bool = false
 
     var body: some View {
-        NavigationStack(path: $navigationPath) {
-            Group {
+        NavigationStack(path: $watchlistNavigationPath) {
+            ZStack {
                 switch selectedLayout {
                 case .shelf:
                     ShelfView(
-                        navigationPath: $navigationPath,
+                        navigationPath: $watchlistNavigationPath,
                         movies: content.movies(forSectionWith: selectedSection.id),
                         cornerRadius: isExplorePresented ? 0 : 16
                     )
@@ -132,7 +139,7 @@ struct WatchlistView: View {
             }
             .navigationTitle(selectedLayout == .list ? NSLocalizedString("WATCHLIST.TITLE", comment: "") : "")
             .navigationDestination(for: Movie.ID.self) { movieId in
-                MovieView(movieId: movieId, navigationPath: $navigationPath)
+                MovieView(movieId: movieId, navigationPath: $watchlistNavigationPath)
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -194,22 +201,30 @@ struct WatchlistView: View {
                 }
             }
             .sheet(isPresented: $isExplorePresented) {
-                NavigationStack {
+                NavigationStack(path: $exploreNavigationPath) {
                     ExploreView()
                         .navigationTitle(NSLocalizedString("EXPLORE.TITLE", comment: ""))
                         .navigationDestination(for: Movie.ID.self) { movieId in
-                            MovieView(movieId: movieId, navigationPath: $navigationPath)
+                            MovieView(movieId: movieId, navigationPath: $exploreNavigationPath)
                         }
                         .toolbar {
                             ToolbarItem {
                                 Button(action: { isExplorePresented = false }) {
-                                    Text(NSLocalizedString("NAVIGATION.ACTION.CANCEL", comment: ""))
+                                    Text(NSLocalizedString("NAVIGATION.ACTION.DONE", comment: ""))
                                 }
                             }
                         }
                 }
             }
-            .task {
+            .alert("Error", isPresented: $isErrorPresented) {
+                Button("Retry", role: .cancel) {
+                    content.start(watchlist: watchlist, requestManager: requestManager)
+                }
+            }
+            .onChange(of: content.error) { error in
+                isErrorPresented = error != nil
+            }
+            .onAppear {
                 content.start(watchlist: watchlist, requestManager: requestManager)
             }
         }
@@ -237,5 +252,15 @@ struct WatchlistView_Previews: PreviewProvider {
         WatchlistView()
             .environment(\.requestManager, MockRequestManager())
             .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
+    }
+}
+
+extension UINavigationController: UIGestureRecognizerDelegate {
+    override open func viewDidLoad() {
+        super.viewDidLoad()
+        interactivePopGestureRecognizer?.delegate = self
+    }
+    public func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        return viewControllers.count > 1
     }
 }

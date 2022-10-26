@@ -9,7 +9,16 @@ import SwiftUI
 
 @MainActor private final class Content: ObservableObject {
 
+    // MARK: Types
+
+    enum Error: Swift.Error, Equatable {
+        case failedToLoad
+    }
+
+    // MARK: Instance Properties
+
     @Published var movie: Movie?
+    @Published var error: Error?
 
     private let movieId: Movie.ID
 
@@ -25,7 +34,7 @@ import SwiftUI
         do {
             movie = try await MovieWebService(requestManager: requestManager).fetchMovie(with: movieId)
         } catch {
-            assertionFailure(error.localizedDescription)
+            self.error = .failedToLoad
         }
     }
 }
@@ -34,9 +43,10 @@ struct MovieView: View {
 
     @Environment(\.requestManager) var requestManager
 
-    @StateObject private var content: Content
-
     @Binding private var navigationPath: NavigationPath
+
+    @StateObject private var content: Content
+    @State private var isErrorPresented: Bool = false
 
     var body: some View {
         ZStack(alignment: .topLeading) {
@@ -53,6 +63,16 @@ struct MovieView: View {
         }
         .toolbar(.hidden, for: .tabBar)
         .toolbar(.hidden, for: .navigationBar)
+        .alert("Error", isPresented: $isErrorPresented) {
+            Button("Retry", role: .cancel) {
+                Task {
+                    await content.start(requestManager: requestManager)
+                }
+            }
+        }
+        .onChange(of: content.error) { error in
+            isErrorPresented = error != nil
+        }
         .task {
             await content.start(requestManager: requestManager)
         }
@@ -99,7 +119,7 @@ private struct MovieContentView: View {
                 )
                 .frame(
                     width: UIScreen.main.bounds.width,
-                    height: max(headerHeight, isImageLoaded ? geometry.frame(in: .global).minY + contentInset - contentOffset : UIScreen.main.bounds.height)
+                    height: max(headerHeight, isImageLoaded ? geometry.safeAreaInsets.top + contentInset - contentOffset : UIScreen.main.bounds.height)
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 8))
                 .ignoresSafeArea(.all, edges: .top)
@@ -174,7 +194,7 @@ private struct MovieContentView: View {
     }
 
     private func shouldShowHeader(geometry: GeometryProxy) -> Bool {
-        contentOffset - contentInset - geometry.frame(in: .global).minY > -headerHeight
+        contentOffset - contentInset - geometry.safeAreaInsets.top > -headerHeight
     }
 }
 

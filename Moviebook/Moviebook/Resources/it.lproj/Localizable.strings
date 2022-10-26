@@ -8,6 +8,7 @@
 
 // MARK: Navigation
 
+"NAVIGATION.ACTION.DONE" = "Fatto";
 "NAVIGATION.ACTION.CANCEL" = "Annulla";
 
 // MARK: Movie
