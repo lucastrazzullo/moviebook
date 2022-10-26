@@ -32,7 +32,7 @@ import Combine
 
     // MARK: Instance Properties
 
-    @Published var movies: [Section.ID: [MovieDetails]] = [:]
+    @Published var movies: [Section.ID: [Movie]] = [:]
 
     var sections: [Section] {
         return Section.allCases
@@ -46,7 +46,7 @@ import Combine
         watchlist.$toWatch.sink { [weak self] watchlistItems in
             Task {
                 do {
-                    self?.movies[Section.toWatch.id] = try await self?.loadMovieDetails(watchlistItems: watchlistItems, requestManager: requestManager)
+                    self?.movies[Section.toWatch.id] = try await self?.loadMovies(watchlistItems: watchlistItems, requestManager: requestManager)
                 } catch {
                     assertionFailure(error.localizedDescription)
                 }
@@ -57,7 +57,7 @@ import Combine
         watchlist.$watched.sink { [weak self] watchlistItems in
             Task {
                 do {
-                    self?.movies[Section.watched.id] = try await self?.loadMovieDetails(watchlistItems: watchlistItems, requestManager: requestManager)
+                    self?.movies[Section.watched.id] = try await self?.loadMovies(watchlistItems: watchlistItems, requestManager: requestManager)
                 } catch {
                     assertionFailure(error.localizedDescription)
                 }
@@ -66,18 +66,18 @@ import Combine
         .store(in: &subscriptions)
     }
 
-    func movieDetails(sectionIdentifier: Section.ID) -> [MovieDetails] {
-        return movies[sectionIdentifier] ?? []
+    func movies(forSectionWith identifier: Section.ID) -> [Movie] {
+        return movies[identifier] ?? []
     }
 
     // MARK: Private helper methods
 
-    private func loadMovieDetails(watchlistItems: [Watchlist.WatchlistItem], requestManager: RequestManager) async throws -> [MovieDetails] {
+    private func loadMovies(watchlistItems: [Watchlist.WatchlistItem], requestManager: RequestManager) async throws -> [Movie] {
         return try await watchlistItems
             .compactMap({ self.movieIdentifiers($0) })
-            .concurrentMap { movieIdentifier -> MovieDetails in
+            .concurrentMap { movieIdentifier -> Movie in
                 let webService = MovieWebService(requestManager: requestManager)
-                return try await webService.fetchMovie(with: movieIdentifier).details
+                return try await webService.fetchMovie(with: movieIdentifier)
             }
     }
 
@@ -112,17 +112,17 @@ struct WatchlistView: View {
                 switch selectedLayout {
                 case .shelf:
                     ShelfView(
-                        movieDetails: content.movieDetails(sectionIdentifier: selectedSection.id),
-                        cornerRadius: isExplorePresented ? 0 : 16,
-                        navigationPath: $navigationPath
+                        navigationPath: $navigationPath,
+                        movies: content.movies(forSectionWith: selectedSection.id),
+                        cornerRadius: isExplorePresented ? 0 : 16
                     )
                     .id(selectedSection.id)
                     .padding(.top)
                 case .list:
                     List {
-                        ForEach(content.movieDetails(sectionIdentifier: selectedSection.id)) { movie in
+                        ForEach(content.movies(forSectionWith: selectedSection.id)) { movie in
                             NavigationLink(value: movie.id) {
-                                MoviePreviewView(details: movie)
+                                MoviePreviewView(details: movie.details)
                             }
                         }
                         .listRowSeparator(.hidden)
