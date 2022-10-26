@@ -22,11 +22,11 @@ struct MovieCardView: View {
             }
             .padding(.horizontal, 20)
 
-            VStack(alignment: .trailing, spacing: 12) {
+            VStack(alignment: .leading, spacing: 12) {
                 Text(movie.overview)
                     .font(.body)
-                    .lineSpacing(12)
-                    .frame(maxHeight: isOverviewExpanded ? .infinity : 100)
+                    .lineSpacing(8)
+                    .lineLimit(isOverviewExpanded ? nil : 3)
 
                 Button(action: { isOverviewExpanded.toggle() }) {
                     Text(isOverviewExpanded ? "Less" : "More")
@@ -34,17 +34,43 @@ struct MovieCardView: View {
             }
             .padding(.horizontal, 20)
 
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.yellow)
-                .frame(height: 200)
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Specs")
+                    .font(.title3)
+                    .padding(.bottom)
 
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.gray)
-                .frame(height: 100)
+                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                    Text("Production").bold()
 
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.green)
-                .frame(height: 50)
+                    Spacer()
+
+                    VStack(alignment: .trailing) {
+                        Text("New Line Cinema")
+                        Text("Flynn Picture Company")
+                        Text("Seven Bucks Productions")
+                        Text("DC Films")
+                    }
+                }
+
+                Divider()
+
+                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                    Text("Budget").bold()
+                    Spacer()
+                    Text("200.000.000")
+                }
+
+                Divider()
+
+                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                    Text("Incassi").bold()
+                    Spacer()
+                    Text("140.000.000")
+                }
+            }
+            .font(.subheadline)
+            .padding(20)
+            .background(RoundedRectangle(cornerRadius: 4).fill(.thinMaterial))
         }
         .padding()
         .frame(maxWidth: .infinity)
