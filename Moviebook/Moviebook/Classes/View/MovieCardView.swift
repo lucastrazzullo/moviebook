@@ -9,6 +9,8 @@ import SwiftUI
 
 struct MovieCardView: View {
 
+    @State private var isOverviewExpanded: Bool = false
+
     let movie: Movie
 
     var body: some View {
@@ -20,10 +22,17 @@ struct MovieCardView: View {
             }
             .padding(.horizontal, 20)
 
-            Text(movie.overview)
-                .font(.body)
-                .lineSpacing(12)
-                .padding(.horizontal, 20)
+            VStack(alignment: .trailing, spacing: 12) {
+                Text(movie.overview)
+                    .font(.body)
+                    .lineSpacing(12)
+                    .frame(maxHeight: isOverviewExpanded ? .infinity : 100)
+
+                Button(action: { isOverviewExpanded.toggle() }) {
+                    Text(isOverviewExpanded ? "Less" : "More")
+                }
+            }
+            .padding(.horizontal, 20)
 
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color.yellow)
@@ -39,11 +48,14 @@ struct MovieCardView: View {
         }
         .padding()
         .frame(maxWidth: .infinity)
+        .animation(.default, value: isOverviewExpanded)
     }
 }
 
 struct MovieCardView_Previews: PreviewProvider {
     static var previews: some View {
-        MovieCardView(movie: MockServer.movie(with: 954))
+        ScrollView {
+            MovieCardView(movie: MockServer.movie(with: 954))
+        }
     }
 }
