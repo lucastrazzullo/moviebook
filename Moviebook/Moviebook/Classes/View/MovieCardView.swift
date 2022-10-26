@@ -40,6 +40,10 @@ struct MovieCardView: View {
             .background(RoundedRectangle(cornerRadius: 8).stroke(.orange))
 
             VStack(alignment: .leading, spacing: 12) {
+                Text("Overview")
+                    .font(.title3)
+                    .padding(.bottom)
+
                 Text(movie.overview)
                     .font(.body)
                     .lineSpacing(8)
