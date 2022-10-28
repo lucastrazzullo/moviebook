@@ -7,13 +7,11 @@
 
 import Foundation
 
-final class User {
-
-    static let shared: User = User(watchlist: Watchlist())
+final actor User {
 
     let watchlist: Watchlist
 
-    private init(watchlist: Watchlist) {
+    init(watchlist: Watchlist) {
         self.watchlist = watchlist
     }
 }

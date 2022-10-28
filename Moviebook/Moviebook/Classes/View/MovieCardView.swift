@@ -11,6 +11,7 @@ struct MovieCardView: View {
 
     @EnvironmentObject var watchlist: Watchlist
 
+    @State private var watchlistState: Watchlist.WatchlistItemState = .none
     @State private var isOverviewExpanded: Bool = false
 
     let movie: Movie
@@ -20,12 +21,14 @@ struct MovieCardView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(movie.details.title).font(.title)
                 RatingView(rating: 3)
-                Text("20/10/2023").font(.caption)
+                if let releaseDate = movie.details.release {
+                    Text(releaseDate, style: .date).font(.caption)
+                }
             }
             .padding(.horizontal)
 
             Group {
-                switch watchlist.itemState(item: .movie(id: movie.id)) {
+                switch watchlistState {
                 case .none:
                     VStack(alignment: .leading, spacing: 8) {
                         Text("You haven't watched this movie.")

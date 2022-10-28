@@ -7,7 +7,12 @@
 
 import Foundation
 
-final class Watchlist: ObservableObject {
+protocol WatchlistStorage {
+    func save(watchlist: Watchlist)
+    func load(watchlist: Watchlist)
+}
+
+@MainActor final class Watchlist: ObservableObject {
 
     enum WatchlistItem: Hashable, Codable {
         case movie(id: Movie.ID)
@@ -23,15 +28,16 @@ final class Watchlist: ObservableObject {
         return toWatch.isEmpty && watched.isEmpty
     }
 
-    @Published private(set) var toWatch: [WatchlistItem]
-    @Published private(set) var watched: [WatchlistItem]
+    @Published private(set) var toWatch: [WatchlistItem] = []
+    @Published private(set) var watched: [WatchlistItem] = []
+
+    private let storage: WatchlistStorage
 
     // MARK: Object life cycle
 
-    init() {
-        toWatch = []
-        watched = []
-        load()
+    init(storage: WatchlistStorage) {
+        self.storage = storage
+        self.storage.load(watchlist: self)
     }
 
     // MARK: Internal methods
@@ -47,72 +53,133 @@ final class Watchlist: ObservableObject {
     }
 
     func update(state: WatchlistItemState, for item: WatchlistItem) {
-        switch state {
-        case .none:
-            if let index = toWatch.firstIndex(of: item) {
-                toWatch.remove(at: index)
+        Task {
+            switch state {
+            case .none:
+                remove(toWatch: item)
+                remove(watched: item)
+            case .toWatch:
+                remove(watched: item)
+                append(toWatch: item)
+            case .watched:
+                remove(toWatch: item)
+                append(watched: item)
             }
-            if let index = watched.firstIndex(of: item) {
-                watched.remove(at: index)
-            }
-        case .toWatch:
-            if let index = watched.firstIndex(of: item) {
-                watched.remove(at: index)
-            }
+
+            storage.save(watchlist: self)
+        }
+    }
+
+    func set(toWatchItems: [WatchlistItem]) {
+        Task { @MainActor [weak self] in
+            self?.toWatch = toWatchItems
+        }
+    }
+
+    func set(watchedItems: [WatchlistItem]) {
+        Task { @MainActor [weak self] in
+            self?.watched = watchedItems
+        }
+    }
+
+    func append(toWatch item: WatchlistItem) {
+        Task {
             if !toWatch.contains(item) {
                 toWatch.append(item)
             }
-        case .watched:
-            if let index = toWatch.firstIndex(of: item) {
-                toWatch.remove(at: index)
-            }
+        }
+    }
+
+    func append(watched item: WatchlistItem) {
+        Task {
             if !watched.contains(item) {
                 watched.append(item)
             }
         }
-
-        save()
     }
 
-    // MARK: Private methods
-
-    private func save() {
-        do {
-            let defaults = UserDefaults.standard
-            defaults.set(try JSONEncoder().encode(toWatch), forKey: "Watchlist.toWatch")
-            defaults.set(try JSONEncoder().encode(watched), forKey: "Watchlist.watched")
-        } catch {
-            print(error)
+    func remove(toWatch item: WatchlistItem) {
+        Task {
+            if let index = toWatch.firstIndex(of: item) {
+                toWatch.remove(at: index)
+            }
         }
     }
 
-    private func load() {
-        do {
-            let defaults = UserDefaults.standard
-            if let data = defaults.data(forKey: "Watchlist.toWatch") {
-                toWatch = try JSONDecoder().decode([WatchlistItem].self, from: data)
+    func remove(watched item: WatchlistItem) {
+        Task {
+            if let index = watched.firstIndex(of: item) {
+                watched.remove(at: index)
             }
-            if let data = defaults.data(forKey: "Watchlist.watched") {
-                watched = try JSONDecoder().decode([WatchlistItem].self, from: data)
-            }
+        }
+    }
+}
 
-        } catch {
-            print(error)
+final class UserDefaultsWatchlistStorage: WatchlistStorage {
+
+    func save(watchlist: Watchlist) {
+        Task {
+            do {
+                let defaults = UserDefaults.standard
+                await defaults.set(try JSONEncoder().encode(watchlist.toWatch), forKey: "Watchlist.toWatch")
+                await defaults.set(try JSONEncoder().encode(watchlist.watched), forKey: "Watchlist.watched")
+            } catch {
+                print(error)
+            }
+        }
+    }
+
+    func load(watchlist: Watchlist) {
+        Task {
+            do {
+                let defaults = UserDefaults.standard
+                if let data = defaults.data(forKey: "Watchlist.toWatch") {
+                    await watchlist.set(toWatchItems: try JSONDecoder().decode([Watchlist.WatchlistItem].self, from: data))
+                }
+                if let data = defaults.data(forKey: "Watchlist.watched") {
+                    await watchlist.set(watchedItems: try JSONDecoder().decode([Watchlist.WatchlistItem].self, from: data))
+                }
+            } catch {
+                print(error)
+            }
         }
     }
 }
 
 #if DEBUG
+final class InMemoryStorage: WatchlistStorage {
+
+    var toWatch: [Watchlist.WatchlistItem]
+    var watched: [Watchlist.WatchlistItem]
+
+    init(toWatch: [Watchlist.WatchlistItem], watched: [Watchlist.WatchlistItem]) {
+        self.toWatch = toWatch
+        self.watched = watched
+    }
+
+    func save(watchlist: Watchlist) {
+        Task {
+           toWatch = await watchlist.toWatch
+           watched = await watchlist.watched
+        }
+    }
+
+    func load(watchlist: Watchlist) {
+        Task {
+            await watchlist.set(toWatchItems: toWatch)
+            await watchlist.set(watchedItems: watched)
+        }
+    }
+}
+
 extension Watchlist {
 
     convenience init(moviesToWatch: [Movie.ID]) {
-        self.init()
-        self.toWatch = moviesToWatch.map(WatchlistItem.movie(id:))
+        self.init(storage: InMemoryStorage(toWatch: moviesToWatch.map(WatchlistItem.movie(id:)), watched: []))
     }
 
     convenience init(watchedMovies: [Movie.ID]) {
-        self.init()
-        self.watched = watchedMovies.map(WatchlistItem.movie(id:))
+        self.init(storage: InMemoryStorage(toWatch: [], watched: watchedMovies.map(WatchlistItem.movie(id:))))
     }
 }
 #endif

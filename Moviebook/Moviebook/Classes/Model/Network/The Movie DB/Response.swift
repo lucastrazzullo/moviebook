@@ -35,9 +35,16 @@ extension Movie: Decodable {
 
 extension MovieDetails: Decodable {
 
+    static let releaseDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+
     enum CodingKeys: String, CodingKey {
         case id = "id"
         case title = "title"
+        case releaseDate = "release_date"
         case posterPath = "poster_path"
         case backdropPath = "backdrop_path"
     }
@@ -48,6 +55,13 @@ extension MovieDetails: Decodable {
         id = try values.decode(MovieDetails.ID.self, forKey: .id)
         title = try values.decode(String.self, forKey: .title)
         media = try MovieMedia(from: decoder)
+
+        let releaseDateString = try values.decodeIfPresent(String.self, forKey: .releaseDate)
+        if let releaseDateString = releaseDateString {
+            release = Self.releaseDateFormatter.date(from: releaseDateString)
+        } else {
+            release = nil
+        }
     }
 }
 
