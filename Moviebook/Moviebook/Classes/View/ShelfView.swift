@@ -339,7 +339,7 @@ private struct HeaderView: View {
 
             Spacer()
 
-            WatchlistButton(watchlistItem: .movie(id: movieDetails.id))
+            DefaultWatchlistButton(watchlistItem: .movie(id: movieDetails.id))
                 .font(.headline)
         }
     }

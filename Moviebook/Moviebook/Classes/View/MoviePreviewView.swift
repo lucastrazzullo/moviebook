@@ -44,7 +44,7 @@ struct MoviePreviewView: View {
                 .padding(.vertical, 4)
             }
 
-            WatchlistButton(watchlistItem: Watchlist.WatchlistItem.movie(id: details.id))
+            DefaultWatchlistButton(watchlistItem: Watchlist.WatchlistItem.movie(id: details.id))
                 .font(.caption)
         }
         .contextMenu {

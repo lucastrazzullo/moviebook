@@ -88,8 +88,6 @@ struct MovieView: View {
 
 private struct MovieContentView: View {
 
-    @Environment(\.colorScheme) private var colorScheme
-
     @State private var contentOffset: CGFloat = 0
     @State private var contentInset: CGFloat = 0
     @State private var isImageLoaded: Bool = false
@@ -121,7 +119,7 @@ private struct MovieContentView: View {
                     width: UIScreen.main.bounds.width,
                     height: max(headerHeight, isImageLoaded ? geometry.safeAreaInsets.top + contentInset - contentOffset : UIScreen.main.bounds.height)
                 )
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
                 .ignoresSafeArea(.all, edges: .top)
             }
             .frame(height: max(0, contentOffset))
@@ -158,7 +156,7 @@ private struct MovieContentView: View {
                         }
 
                         Group {
-                            WatchlistButton(watchlistItem: .movie(id: movie.id))
+                            DefaultWatchlistButton(watchlistItem: .movie(id: movie.id))
                                 .font(.subheadline.bold())
                                 .frame(width: 46, height: 46)
                                 .background(Circle().fill(.ultraThickMaterial))
@@ -173,7 +171,7 @@ private struct MovieContentView: View {
                     Rectangle()
                         .fill(.background.opacity(0.2))
                         .background(.regularMaterial)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
                         .opacity(shouldShowHeader(geometry: geometry) ? 1 : 0)
                 )
                 .ignoresSafeArea(.all, edges: .top)

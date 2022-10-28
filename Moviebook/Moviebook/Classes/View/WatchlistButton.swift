@@ -7,11 +7,12 @@
 
 import SwiftUI
 
-struct WatchlistButton: View {
+struct WatchlistButton<LabelType>: View where LabelType: View  {
 
     @EnvironmentObject var watchlist: Watchlist
 
     let watchlistItem: Watchlist.WatchlistItem
+    let label: LabelType
 
     var body: some View {
         Menu {
@@ -31,6 +32,24 @@ struct WatchlistButton: View {
             .disabled(watchlist.itemState(item: watchlistItem) == .none)
 
         } label: {
+            label
+        }
+    }
+
+    init(watchlistItem: Watchlist.WatchlistItem, @ViewBuilder label: @escaping () -> LabelType) {
+        self.watchlistItem = watchlistItem
+        self.label = label()
+    }
+}
+
+struct DefaultWatchlistButton: View {
+
+    @EnvironmentObject var watchlist: Watchlist
+
+    let watchlistItem: Watchlist.WatchlistItem
+
+    var body: some View {
+        WatchlistButton(watchlistItem: watchlistItem) {
             switch watchlist.itemState(item: watchlistItem) {
             case .toWatch:
                 Image(systemName: "star")
@@ -45,7 +64,7 @@ struct WatchlistButton: View {
 
 struct WatchlistButton_Previews: PreviewProvider {
     static var previews: some View {
-        WatchlistButton(watchlistItem: .movie(id: 954))
+        DefaultWatchlistButton(watchlistItem: .movie(id: 954))
             .environmentObject(Watchlist(moviesToWatch: [954]))
     }
 }

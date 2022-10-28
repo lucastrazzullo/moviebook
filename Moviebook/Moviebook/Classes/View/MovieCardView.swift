@@ -27,63 +27,58 @@ struct MovieCardView: View {
             Group {
                 switch watchlist.itemState(item: .movie(id: movie.id)) {
                 case .none:
-                    Text("You haven't watched this movie.")
-                        .font(.headline)
-                    Text("If you add it to your watchlist, you can also add a note.")
-                        .font(.subheadline)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("You haven't watched this movie.")
+                            .font(.headline)
 
-                    Button(action: { watchlist.update(state: .toWatch, for: .movie(id: movie.id)) }) {
-                        Text("Add")
+                        Text("If you add it to your watchlist, you can also add a note or you can mark it as watched and add your own vote.")
+                            .font(.subheadline)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.trailing)
+
+                        Spacer()
+
+                        HStack {
+                            Button(action: { watchlist.update(state: .toWatch, for: .movie(id: movie.id)) }) {
+                                Text("Add to watchlist")
+                            }
+                            .buttonStyle(.borderedProminent)
+
+                            Button(action: { watchlist.update(state: .watched, for: .movie(id: movie.id)) }) {
+                                Text("Mark as watched")
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                        .frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.borderedProminent)
+
                 case .toWatch:
                     HStack(alignment: .top, spacing: 8) {
                         Image(systemName: "quote.opening").font(.title)
                             .foregroundColor(.accentColor)
 
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Suggested by Valerio.")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
+                        VStack(alignment: .leading, spacing: 24) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Suggested by Valerio.")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
 
-                            VStack(alignment: .leading, spacing: 12) {
                                 Text("This movie is amazing. Great special effects.")
                                     .fixedSize(horizontal: false, vertical: true)
                                     .font(.body)
-
-                                Button(action: { watchlist.update(state: .watched, for: .movie(id: movie.id)) }) {
-                                    Text("Mark as watched")
-                                }
-                                .buttonStyle(.borderedProminent)
                             }
+                            Button(action: { watchlist.update(state: .watched, for: .movie(id: movie.id)) }) {
+                                Text("Mark as watched")
+                            }
+                            .buttonStyle(.borderedProminent)
                         }
                     }
 
                 case .watched:
                     VStack(alignment: .leading, spacing: 24) {
                         HStack(alignment: .top, spacing: 8) {
-                            ZStack {
-                                Circle()
-                                    .stroke(style: .init(lineWidth: 12, lineCap: .round))
-                                    .foregroundColor(.white.opacity(0.2))
-
-                                Circle()
-                                    .trim(from: 0.0, to: 0.25)
-                                    .stroke(style: .init(lineWidth: 12, lineCap: .round))
-
-                                VStack {
-                                    HStack(alignment: .firstTextBaseline, spacing: 2) {
-                                        Text("2.5").font(.title)
-                                        Text("/")
-                                        Text("10")
-                                    }
-
-                                    Text("Your vote")
-                                        .font(.footnote)
-                                        .opacity(0.8)
-                                }
-                            }
-                            .frame(maxHeight: 150)
+                            CircularRatingView(rating: 2.5, label: "Your vote", style: .prominent)
+                            .frame(height: 150)
 
                             Spacer()
 
@@ -92,8 +87,8 @@ struct MovieCardView: View {
                                     .font(.headline)
                                     .multilineTextAlignment(.trailing)
 
-                                Button(action: {}) {
-                                    Text("Update").font(.caption)
+                                WatchlistButton(watchlistItem: .movie(id: movie.id)) {
+                                    Text("Update").font(.subheadline)
                                 }
                                 .buttonStyle(.borderedProminent)
                             }
@@ -201,8 +196,8 @@ struct MovieCardView: View {
 struct MovieCardView_Previews: PreviewProvider {
     static var previews: some View {
         ScrollView {
-            MovieCardView(movie: MockServer.movie(with: 954))
-                .environmentObject(Watchlist(watchedMovies: [954]))
+            MovieCardView(movie: MockServer.movie(with: 616037))
+                .environmentObject(Watchlist(moviesToWatch: []))
         }
     }
 }
