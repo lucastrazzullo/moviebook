@@ -333,7 +333,9 @@ private struct HeaderView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(movieDetails.title)
                 RatingView(rating: 3)
-                Text("20/10/2023").font(.caption)
+                if let releaseDate = movieDetails.release {
+                    Text(releaseDate, style: .date).font(.caption)
+                }
             }
             .frame(width: 200, alignment: .leading)
 

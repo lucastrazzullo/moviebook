@@ -36,8 +36,9 @@ struct MoviePreviewView: View {
                         .font(.subheadline)
                         .frame(maxWidth: 140, alignment: .leading)
 
-                    Text("10.10.2018")
-                        .font(.caption)
+                    if let releaseDate = details.release {
+                        Text(releaseDate, style: .date).font(.caption)
+                    }
 
                     RatingView(rating: 3)
                 }
