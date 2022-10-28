@@ -20,7 +20,7 @@ struct MovieCardView: View {
         VStack(alignment: .leading, spacing: 30) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(movie.details.title).font(.title)
-                RatingView(rating: 3)
+                RatingView(rating: movie.details.rating)
                 if let releaseDate = movie.details.release {
                     Text(releaseDate, style: .date).font(.caption)
                 }

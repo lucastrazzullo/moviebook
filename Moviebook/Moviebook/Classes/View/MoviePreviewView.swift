@@ -40,7 +40,7 @@ struct MoviePreviewView: View {
                         Text(releaseDate, style: .date).font(.caption)
                     }
 
-                    RatingView(rating: 3)
+                    RatingView(rating: details.rating)
                 }
                 .padding(.vertical, 4)
             }

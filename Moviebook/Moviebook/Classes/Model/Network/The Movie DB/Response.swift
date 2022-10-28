@@ -45,6 +45,7 @@ extension MovieDetails: Decodable {
         case id = "id"
         case title = "title"
         case releaseDate = "release_date"
+        case rating = "vote_average"
         case posterPath = "poster_path"
         case backdropPath = "backdrop_path"
     }
@@ -54,6 +55,7 @@ extension MovieDetails: Decodable {
 
         id = try values.decode(MovieDetails.ID.self, forKey: .id)
         title = try values.decode(String.self, forKey: .title)
+        rating = Rating(value: try values.decode(Float.self, forKey: .rating), quota: 10.0)
         media = try MovieMedia(from: decoder)
 
         let releaseDateString = try values.decodeIfPresent(String.self, forKey: .releaseDate)

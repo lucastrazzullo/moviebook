@@ -9,13 +9,13 @@ import SwiftUI
 
 struct RatingView: View {
 
-    let rating: Int
+    let rating: Rating
 
     var body: some View {
         HStack(spacing: 2) {
             ForEach(1...5, id: \.self) { index in
-                Image(systemName: index <= rating ? "star.fill" : "star")
-                    .foregroundColor(index <= rating ? .accentColor : nil)
+                Image(systemName: index <= Int(rating.percentage*5) ? "star.fill" : "star")
+                    .foregroundColor(index <= Int(rating.percentage*5) ? .accentColor : nil)
                     .font(.caption2)
             }
         }
@@ -24,6 +24,6 @@ struct RatingView: View {
 
 struct RatingView_Previews: PreviewProvider {
     static var previews: some View {
-        RatingView(rating: 4)
+        RatingView(rating: .init(value: 4, quota: 5))
     }
 }

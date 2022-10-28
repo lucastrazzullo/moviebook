@@ -11,5 +11,6 @@ struct MovieDetails: Identifiable, Equatable {
     let id: Movie.ID
     let title: String
     let release: Date?
+    let rating: Rating
     let media: MovieMedia
 }

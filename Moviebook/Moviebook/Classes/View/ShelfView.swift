@@ -332,7 +332,7 @@ private struct HeaderView: View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
                 Text(movieDetails.title)
-                RatingView(rating: 3)
+                RatingView(rating: movieDetails.rating)
                 if let releaseDate = movieDetails.release {
                     Text(releaseDate, style: .date).font(.caption)
                 }
