@@ -24,29 +24,128 @@ struct MovieCardView: View {
             }
             .padding(.horizontal)
 
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Non hai ancora visto questo film")
-                    .font(.headline)
-                Text("Se aggiungi il film alla watchlist potrai associare alcune informazioni personali che troverai successivamente raccolte in questo box.")
-                    .font(.subheadline)
+            Group {
+                switch watchlist.itemState(item: .movie(id: movie.id)) {
+                case .none:
+                    Text("You haven't watched this movie.")
+                        .font(.headline)
+                    Text("If you add it to your watchlist, you can also add a note.")
+                        .font(.subheadline)
 
-                Button(action: { }) {
-                    Text("Aggiungi")
+                    Button(action: { watchlist.update(state: .toWatch, for: .movie(id: movie.id)) }) {
+                        Text("Add")
+                    }
+                    .buttonStyle(.borderedProminent)
+                case .toWatch:
+                    HStack(alignment: .top, spacing: 8) {
+                        Image(systemName: "quote.opening").font(.title)
+                            .foregroundColor(.accentColor)
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Suggested by Valerio.")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("This movie is amazing. Great special effects.")
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .font(.body)
+
+                                Button(action: { watchlist.update(state: .watched, for: .movie(id: movie.id)) }) {
+                                    Text("Mark as watched")
+                                }
+                                .buttonStyle(.borderedProminent)
+                            }
+                        }
+                    }
+
+                case .watched:
+                    VStack(alignment: .leading, spacing: 24) {
+                        HStack(alignment: .top, spacing: 8) {
+                            ZStack {
+                                Circle()
+                                    .stroke(style: .init(lineWidth: 12, lineCap: .round))
+                                    .foregroundColor(.white.opacity(0.2))
+
+                                Circle()
+                                    .trim(from: 0.0, to: 0.25)
+                                    .stroke(style: .init(lineWidth: 12, lineCap: .round))
+
+                                VStack {
+                                    HStack(alignment: .firstTextBaseline, spacing: 2) {
+                                        Text("2.5").font(.title)
+                                        Text("/")
+                                        Text("10")
+                                    }
+
+                                    Text("Your vote")
+                                        .font(.footnote)
+                                        .opacity(0.8)
+                                }
+                            }
+                            .frame(maxHeight: 150)
+
+                            Spacer()
+
+                            VStack(alignment: .trailing) {
+                                Text("You watched this movie")
+                                    .font(.headline)
+                                    .multilineTextAlignment(.trailing)
+
+                                Button(action: {}) {
+                                    Text("Update").font(.caption)
+                                }
+                                .buttonStyle(.borderedProminent)
+                            }
+                        }
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.accentColor.opacity(0.2))
+                        .background(.ultraThinMaterial)
+                        .background(ZStack {
+                            AsyncImage(
+                                url: movie.details.media.backdropPreviewUrl,
+                                content: { image in
+                                    image
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fill)
+                                },
+                                placeholder: { Color.black }
+                            )
+                            .opacity(0.4)
+                        })
+                        .background(Color.black)
+                        .cornerRadius(12)
+
+                        HStack(alignment: .top, spacing: 8) {
+                            Image(systemName: "quote.opening").font(.title)
+                                .foregroundColor(.accentColor)
+
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Suggested by Valerio.")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+
+                                VStack(alignment: .leading, spacing: 12) {
+                                    Text("This movie is amazing. Great special effects.")
+                                        .fixedSize(horizontal: false, vertical: true)
+                                        .font(.body)
+                                }
+                            }
+                        }
+                    }
                 }
-                .buttonStyle(.borderedProminent)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding()
             .background(RoundedRectangle(cornerRadius: 8).stroke(.orange))
 
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 8) {
                 Text("Overview")
-                    .font(.title3)
-                    .padding(.bottom)
+                    .font(.title2)
 
                 Text(movie.overview)
                     .font(.body)
-                    .lineSpacing(8)
                     .lineLimit(isOverviewExpanded ? nil : 3)
 
                 Button(action: { isOverviewExpanded.toggle() }) {
@@ -57,7 +156,7 @@ struct MovieCardView: View {
 
             VStack(alignment: .leading, spacing: 12) {
                 Text("Specs")
-                    .font(.title3)
+                    .font(.title2)
                     .padding(.bottom)
 
                 HStack(alignment: .firstTextBaseline, spacing: 12) {
@@ -103,7 +202,7 @@ struct MovieCardView_Previews: PreviewProvider {
     static var previews: some View {
         ScrollView {
             MovieCardView(movie: MockServer.movie(with: 954))
-                .environmentObject(Watchlist(moviesToWatch: [954]))
+                .environmentObject(Watchlist(watchedMovies: [954]))
         }
     }
 }

@@ -109,5 +109,10 @@ extension Watchlist {
         self.init()
         self.toWatch = moviesToWatch.map(WatchlistItem.movie(id:))
     }
+
+    convenience init(watchedMovies: [Movie.ID]) {
+        self.init()
+        self.watched = watchedMovies.map(WatchlistItem.movie(id:))
+    }
 }
 #endif
