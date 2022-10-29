@@ -119,7 +119,7 @@ private struct MovieContentView: View {
                     width: UIScreen.main.bounds.width,
                     height: max(headerHeight, isImageLoaded ? geometry.safeAreaInsets.top + contentInset - contentOffset : UIScreen.main.bounds.height)
                 )
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .clipped()
                 .ignoresSafeArea(.all, edges: .top)
             }
             .frame(height: max(0, contentOffset))
@@ -127,7 +127,8 @@ private struct MovieContentView: View {
             ObservableScrollView(scrollOffset: $contentOffset, showsIndicators: false) { scrollViewProxy in
                 VStack {
                     Spacer()
-                        .frame(height: isImageLoaded ? contentInset : UIScreen.main.bounds.height)
+                        .frame(height: isImageLoaded ? contentInset - 24 : UIScreen.main.bounds.height)
+                        .animation(.easeIn(duration: 0.4), value: isImageLoaded)
 
                     MovieCardView(movie: movie)
                 }
@@ -171,7 +172,6 @@ private struct MovieContentView: View {
                     Rectangle()
                         .fill(.background.opacity(0.2))
                         .background(.regularMaterial)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
                         .opacity(shouldShowHeader(geometry: geometry) ? 1 : 0)
                 )
                 .ignoresSafeArea(.all, edges: .top)

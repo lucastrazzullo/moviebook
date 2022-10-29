@@ -25,6 +25,7 @@ struct MovieCardView: View {
                 }
             }
             .padding(.horizontal)
+            .padding(.vertical, 4)
 
             Group {
                 switch watchlist.itemState(item: .movie(id: movie.id)) {
@@ -95,7 +96,7 @@ struct MovieCardView: View {
                         }
                         .foregroundColor(.white)
                         .padding()
-                        .background(.ultraThinMaterial.opacity(0.2))
+                        .background(.ultraThinMaterial.opacity(0.6))
                         .background(Color.accentColor.opacity(0.2))
                         .background(ZStack {
                             AsyncImage(
@@ -189,6 +190,9 @@ struct MovieCardView: View {
         }
         .padding()
         .frame(maxWidth: .infinity)
+        .background(.background)
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.12), radius: 4, y: -8)
         .animation(.default, value: isOverviewExpanded)
     }
 }
