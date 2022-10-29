@@ -329,7 +329,7 @@ private struct HeaderView: View {
     let movieDetails: MovieDetails
 
     var body: some View {
-        HStack {
+        HStack(alignment: .firstTextBaseline) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(movieDetails.title)
                 RatingView(rating: movieDetails.rating)
@@ -341,8 +341,7 @@ private struct HeaderView: View {
 
             Spacer()
 
-            DefaultWatchlistButton(watchlistItem: .movie(id: movieDetails.id))
-                .font(.headline)
+            WatermarkWatchlistButton(watchlistItem: .movie(id: movieDetails.id))
         }
     }
 }

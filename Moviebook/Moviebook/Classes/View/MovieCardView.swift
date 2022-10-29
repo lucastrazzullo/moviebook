@@ -11,7 +11,6 @@ struct MovieCardView: View {
 
     @EnvironmentObject var watchlist: Watchlist
 
-    @State private var watchlistState: Watchlist.WatchlistItemState = .none
     @State private var isOverviewExpanded: Bool = false
 
     let movie: Movie
@@ -28,7 +27,7 @@ struct MovieCardView: View {
             .padding(.horizontal)
 
             Group {
-                switch watchlistState {
+                switch watchlist.itemState(item: .movie(id: movie.id)) {
                 case .none:
                     VStack(alignment: .leading, spacing: 8) {
                         Text("You haven't watched this movie.")
@@ -43,12 +42,12 @@ struct MovieCardView: View {
 
                         HStack {
                             Button(action: { watchlist.update(state: .toWatch, for: .movie(id: movie.id)) }) {
-                                Text("Add to watchlist")
+                                WatchlistWatermarkLabel(itemState: .none)
                             }
                             .buttonStyle(.borderedProminent)
 
                             Button(action: { watchlist.update(state: .watched, for: .movie(id: movie.id)) }) {
-                                Text("Mark as watched")
+                                WatchlistWatermarkLabel(itemState: .watched)
                             }
                             .buttonStyle(.bordered)
                         }
@@ -71,6 +70,7 @@ struct MovieCardView: View {
                                     .font(.body)
                             }
                             Button(action: { watchlist.update(state: .watched, for: .movie(id: movie.id)) }) {
+                                WatchlistIcon(itemState: .watched)
                                 Text("Mark as watched")
                             }
                             .buttonStyle(.borderedProminent)
@@ -90,16 +90,13 @@ struct MovieCardView: View {
                                     .font(.headline)
                                     .multilineTextAlignment(.trailing)
 
-                                WatchlistButton(watchlistItem: .movie(id: movie.id)) {
-                                    Text("Update").font(.subheadline)
-                                }
-                                .buttonStyle(.borderedProminent)
+                                WatermarkWatchlistButton(watchlistItem: .movie(id: movie.id))
                             }
                         }
                         .foregroundColor(.white)
                         .padding()
+                        .background(.ultraThinMaterial.opacity(0.2))
                         .background(Color.accentColor.opacity(0.2))
-                        .background(.ultraThinMaterial)
                         .background(ZStack {
                             AsyncImage(
                                 url: movie.details.media.backdropPreviewUrl,
@@ -200,7 +197,7 @@ struct MovieCardView_Previews: PreviewProvider {
     static var previews: some View {
         ScrollView {
             MovieCardView(movie: MockServer.movie(with: 616037))
-                .environmentObject(Watchlist(moviesToWatch: []))
+                .environmentObject(Watchlist(moviesToWatch: [616037]))
         }
     }
 }

@@ -156,7 +156,7 @@ private struct MovieContentView: View {
                         }
 
                         Group {
-                            DefaultWatchlistButton(watchlistItem: .movie(id: movie.id))
+                            IconWatchlistButton(watchlistItem: .movie(id: movie.id))
                                 .font(.subheadline.bold())
                                 .frame(width: 46, height: 46)
                                 .background(Circle().fill(.ultraThickMaterial))
