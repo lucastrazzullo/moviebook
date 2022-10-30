@@ -1,0 +1,29 @@
+/* 
+  Localizable.strings
+  Moviebook
+
+  Created by Luca Strazzullo on 02/09/2022.
+  
+*/
+
+// MARK: Navigation
+
+"NAVIGATION.ACTION.DONE" = "Fatto";
+"NAVIGATION.ACTION.CANCEL" = "Annulla";
+
+// MARK: Movie
+
+"MOVIE.POPULAR" = "I più visti";
+"MOVIE.UPCOMING" = "Coming soon";
+
+// MARK: Watchlist
+
+"WATCHLIST.TITLE" = "Watchlist";
+"WATCHLIST.TO_WATCH.TITLE" = "Da vedere";
+"WATCHLIST.WATCHED.TITLE" = "Visti";
+
+// MARK: Explore
+
+"EXPLORE.TITLE" = "Esplora";
+"EXPLORE.SEARCH.RESULTS" = "La tua ricerca";
+"EXPLORE.SEARCH.PROMPT" = "Cerca un film";
