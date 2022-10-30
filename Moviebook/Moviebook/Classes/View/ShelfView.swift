@@ -428,6 +428,7 @@ private struct IndexIndicatorView: View {
     }
 }
 
+#if DEBUG
 struct ShelfView_Previews: PreviewProvider {
 
     static var previews: some View {
@@ -443,3 +444,4 @@ struct ShelfView_Previews: PreviewProvider {
         .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
     }
 }
+#endif

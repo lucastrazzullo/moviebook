@@ -197,6 +197,7 @@ struct MovieCardView: View {
     }
 }
 
+#if DEBUG
 struct MovieCardView_Previews: PreviewProvider {
     static var previews: some View {
         ScrollView {
@@ -205,3 +206,4 @@ struct MovieCardView_Previews: PreviewProvider {
         }
     }
 }
+#endif

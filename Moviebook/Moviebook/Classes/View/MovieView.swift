@@ -196,6 +196,7 @@ private struct MovieContentView: View {
     }
 }
 
+#if DEBUG
 struct MovieView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
@@ -204,3 +205,4 @@ struct MovieView_Previews: PreviewProvider {
         }
     }
 }
+#endif
