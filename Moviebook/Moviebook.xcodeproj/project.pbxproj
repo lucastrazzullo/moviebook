@@ -105,6 +105,7 @@
 		81828ACB28DDC7A4006D696C /* ObservableScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObservableScrollView.swift; sourceTree = "<group>"; };
 		81A69CC2290BCC3400724FB9 /* CircularRatingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircularRatingView.swift; sourceTree = "<group>"; };
 		81A69CC4290C398200724FB9 /* Rating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rating.swift; sourceTree = "<group>"; };
+		81A69CC6290E7AC000724FB9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		81C7A5EC28D45B7F00AA24E3 /* MovieDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieDetails.swift; sourceTree = "<group>"; };
 		81C7A5EE28D45B8B00AA24E3 /* MovieCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieCollection.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -185,6 +186,7 @@
 		8169FB1B28C204450054BCE6 /* Moviebook */ = {
 			isa = PBXGroup;
 			children = (
+				81A69CC6290E7AC000724FB9 /* Info.plist */,
 				8169FB4E28C205BF0054BCE6 /* Classes */,
 				8169FB5028C205D30054BCE6 /* Data */,
 				8169FB4F28C205C60054BCE6 /* Resources */,
@@ -660,6 +662,7 @@
 				DEVELOPMENT_TEAM = UC9U5RZ8UF;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Moviebook/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -693,6 +696,7 @@
 				DEVELOPMENT_TEAM = UC9U5RZ8UF;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Moviebook/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
