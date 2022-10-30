@@ -152,7 +152,7 @@ struct MovieCardView: View {
                 .padding(.horizontal)
             }
 
-            MovieSpecsView(movieDetails: movie.details)
+            MovieSpecsView(movieDetails: movie.details, movieGenres: movie.genres)
         }
         .padding()
         .frame(maxWidth: .infinity)
@@ -173,6 +173,7 @@ private struct MovieSpecsView: View {
     }()
 
     let movieDetails: MovieDetails
+    let movieGenres: [MovieGenre]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -191,6 +192,18 @@ private struct MovieSpecsView: View {
             if let releaseDate = movieDetails.release {
                 MovieSpecsRow(label: "Release date") {
                     Text(releaseDate, style: .date)
+                }
+
+                Divider()
+            }
+
+            if !movieGenres.isEmpty {
+                MovieSpecsRow(label: "Genres") {
+                    VStack(alignment: .trailing) {
+                        ForEach(movieGenres) { genre in
+                            Text(genre.name)
+                        }
+                    }
                 }
 
                 Divider()

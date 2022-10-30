@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		810A9935290ED832005A33EE /* MovieGenre.swift in Sources */ = {isa = PBXBuildFile; fileRef = 810A9934290ED832005A33EE /* MovieGenre.swift */; };
 		8128AB1428DF106C002FD343 /* SearchWebService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8128AB1328DF106C002FD343 /* SearchWebService.swift */; };
 		8128AB1628E0BECF002FD343 /* MovieCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8128AB1528E0BECF002FD343 /* MovieCardView.swift */; };
 		8128AB1828E0C1D9002FD343 /* MoviePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8128AB1728E0C1D9002FD343 /* MoviePreviewView.swift */; };
@@ -64,6 +65,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		810A9934290ED832005A33EE /* MovieGenre.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieGenre.swift; sourceTree = "<group>"; };
 		8128AB1328DF106C002FD343 /* SearchWebService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchWebService.swift; sourceTree = "<group>"; };
 		8128AB1528E0BECF002FD343 /* MovieCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieCardView.swift; sourceTree = "<group>"; };
 		8128AB1728E0C1D9002FD343 /* MoviePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviePreviewView.swift; sourceTree = "<group>"; };
@@ -294,6 +296,7 @@
 				81C7A5EC28D45B7F00AA24E3 /* MovieDetails.swift */,
 				81C7A5EE28D45B8B00AA24E3 /* MovieCollection.swift */,
 				8128AB1928F003AB002FD343 /* MovieMedia.swift */,
+				810A9934290ED832005A33EE /* MovieGenre.swift */,
 			);
 			path = Entities;
 			sourceTree = "<group>";
@@ -479,6 +482,7 @@
 				8169FB1D28C204450054BCE6 /* MoviebookApp.swift in Sources */,
 				814D46EB28C26E6B000D7ABD /* MovieWebService.swift in Sources */,
 				8169FB5D28C207ED0054BCE6 /* Watchlist.swift in Sources */,
+				810A9935290ED832005A33EE /* MovieGenre.swift in Sources */,
 				814D46E528C23999000D7ABD /* MockRequestManager.swift in Sources */,
 				8169FB5F28C20C420054BCE6 /* ExploreView.swift in Sources */,
 				81C7A5EF28D45B8B00AA24E3 /* MovieCollection.swift in Sources */,

@@ -10,5 +10,6 @@ import Foundation
 struct Movie: Identifiable {
     let id: Int
     let details: MovieDetails
+    let genres: [MovieGenre]
     let collection: MovieCollection?
 }

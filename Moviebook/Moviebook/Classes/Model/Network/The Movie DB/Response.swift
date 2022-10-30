@@ -19,6 +19,7 @@ extension Movie: Decodable {
 
     enum CodingKeys: String, CodingKey {
         case id = "id"
+        case genres = "genres"
         case collection = "belongs_to_collection"
     }
 
@@ -27,6 +28,7 @@ extension Movie: Decodable {
 
         id = try values.decode(Movie.ID.self, forKey: .id)
         details = try MovieDetails(from: decoder)
+        genres = try values.decode([MovieGenre].self, forKey: .genres)
         collection = try values.decodeIfPresent(MovieCollection.self, forKey: .collection)
     }
 }
@@ -72,6 +74,21 @@ extension MovieDetails: Decodable {
         } else {
             runtime = nil
         }
+    }
+}
+
+extension MovieGenre: Decodable {
+
+    enum CodingKeys: String, CodingKey {
+        case id = "id"
+        case name = "name"
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+
+        id = try values.decode(MovieGenre.ID.self, forKey: .id)
+        name = try values.decode(String.self, forKey: .name)
     }
 }
 
