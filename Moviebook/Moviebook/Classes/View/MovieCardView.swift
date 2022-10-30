@@ -136,19 +136,21 @@ struct MovieCardView: View {
             .padding()
             .background(RoundedRectangle(cornerRadius: 8).stroke(.orange))
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Overview")
-                    .font(.title2)
+            if let overview = movie.details.overview, !overview.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Overview")
+                        .font(.title2)
 
-                Text(movie.overview)
-                    .font(.body)
-                    .lineLimit(isOverviewExpanded ? nil : 3)
+                    Text(overview)
+                        .font(.body)
+                        .lineLimit(isOverviewExpanded ? nil : 3)
 
-                Button(action: { isOverviewExpanded.toggle() }) {
-                    Text(isOverviewExpanded ? "Less" : "More")
+                    Button(action: { isOverviewExpanded.toggle() }) {
+                        Text(isOverviewExpanded ? "Less" : "More")
+                    }
                 }
+                .padding(.horizontal)
             }
-            .padding(.horizontal)
 
             MovieSpecsView(movieDetails: movie.details)
         }

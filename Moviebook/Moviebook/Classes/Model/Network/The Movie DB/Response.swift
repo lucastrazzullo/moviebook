@@ -19,7 +19,6 @@ extension Movie: Decodable {
 
     enum CodingKeys: String, CodingKey {
         case id = "id"
-        case overview = "overview"
         case collection = "belongs_to_collection"
     }
 
@@ -28,7 +27,6 @@ extension Movie: Decodable {
 
         id = try values.decode(Movie.ID.self, forKey: .id)
         details = try MovieDetails(from: decoder)
-        overview = try values.decode(String.self, forKey: .overview)
         collection = try values.decodeIfPresent(MovieCollection.self, forKey: .collection)
     }
 }
@@ -44,6 +42,7 @@ extension MovieDetails: Decodable {
     enum CodingKeys: String, CodingKey {
         case id = "id"
         case title = "title"
+        case overview = "overview"
         case releaseDate = "release_date"
         case runtime = "runtime"
         case rating = "vote_average"
@@ -56,6 +55,7 @@ extension MovieDetails: Decodable {
 
         id = try values.decode(MovieDetails.ID.self, forKey: .id)
         title = try values.decode(String.self, forKey: .title)
+        overview = try values.decodeIfPresent(String.self, forKey: .overview)
         rating = Rating(value: try values.decode(Float.self, forKey: .rating), quota: 10.0)
         media = try MovieMedia(from: decoder)
 
