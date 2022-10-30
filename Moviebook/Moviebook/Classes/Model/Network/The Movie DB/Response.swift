@@ -45,6 +45,7 @@ extension MovieDetails: Decodable {
         case id = "id"
         case title = "title"
         case releaseDate = "release_date"
+        case runtime = "runtime"
         case rating = "vote_average"
         case posterPath = "poster_path"
         case backdropPath = "backdrop_path"
@@ -63,6 +64,13 @@ extension MovieDetails: Decodable {
             release = Self.releaseDateFormatter.date(from: releaseDateString)
         } else {
             release = nil
+        }
+
+        let minutes = try values.decodeIfPresent(Int.self, forKey: .runtime)
+        if let minutes = minutes {
+            runtime = TimeInterval(minutes*60)
+        } else {
+            runtime = nil
         }
     }
 }

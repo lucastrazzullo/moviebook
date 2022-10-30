@@ -150,43 +150,7 @@ struct MovieCardView: View {
             }
             .padding(.horizontal)
 
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Specs")
-                    .font(.title2)
-                    .padding(.bottom)
-
-                HStack(alignment: .firstTextBaseline, spacing: 12) {
-                    Text("Production").bold()
-
-                    Spacer()
-
-                    VStack(alignment: .trailing) {
-                        Text("New Line Cinema")
-                        Text("Flynn Picture Company")
-                        Text("Seven Bucks Productions")
-                        Text("DC Films")
-                    }
-                }
-
-                Divider()
-
-                HStack(alignment: .firstTextBaseline, spacing: 12) {
-                    Text("Budget").bold()
-                    Spacer()
-                    Text("200.000.000")
-                }
-
-                Divider()
-
-                HStack(alignment: .firstTextBaseline, spacing: 12) {
-                    Text("Incassi").bold()
-                    Spacer()
-                    Text("140.000.000")
-                }
-            }
-            .font(.subheadline)
-            .padding()
-            .background(RoundedRectangle(cornerRadius: 8).fill(.thinMaterial))
+            MovieSpecsView(movieDetails: movie.details)
         }
         .padding()
         .frame(maxWidth: .infinity)
@@ -194,6 +158,78 @@ struct MovieCardView: View {
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.12), radius: 4, y: -8)
         .animation(.default, value: isOverviewExpanded)
+    }
+}
+
+private struct MovieSpecsView: View {
+
+    private static let formatter: DateComponentsFormatter = {
+        let formatter = DateComponentsFormatter()
+        formatter.unitsStyle = .abbreviated
+        formatter.allowedUnits = [.hour, .minute]
+        return formatter
+    }()
+
+    let movieDetails: MovieDetails
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Specs")
+                .font(.title2)
+                .padding(.bottom)
+
+            if let runtime = movieDetails.runtime, let runtimeString = MovieSpecsView.formatter.string(from: runtime) {
+                MovieSpecsRow(label: "Runtime") {
+                    VStack {
+                        Text(runtimeString)
+                    }
+                }
+
+                Divider()
+            }
+
+            MovieSpecsRow(label: "Production") {
+                VStack(alignment: .trailing) {
+                    Text("New Line Cinema")
+                    Text("Flynn Picture Company")
+                    Text("Seven Bucks Productions")
+                    Text("DC Films")
+                }
+            }
+
+            Divider()
+
+            MovieSpecsRow(label: "Budget") {
+                VStack(alignment: .trailing) {
+                    Text("200.000.000")
+                }
+            }
+
+            Divider()
+
+            MovieSpecsRow(label: "Incassi") {
+                VStack(alignment: .trailing) {
+                    Text("140.000.000")
+                }
+            }
+        }
+        .font(.subheadline)
+        .padding()
+        .background(RoundedRectangle(cornerRadius: 8).fill(.thinMaterial))
+    }
+}
+
+private struct MovieSpecsRow<ContentType: View>: View {
+
+    let label: String
+    let content: () -> ContentType
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
+            Text(label).bold()
+            Spacer()
+            content()
+        }
     }
 }
 
