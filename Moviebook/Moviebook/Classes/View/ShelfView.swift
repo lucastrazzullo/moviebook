@@ -334,7 +334,7 @@ private struct HeaderView: View {
                 Text(movieDetails.title)
                 RatingView(rating: movieDetails.rating)
                 if let releaseDate = movieDetails.release {
-                    Text(releaseDate, style: .date).font(.caption)
+                    Text(releaseDate, format: .dateTime.year()).font(.caption)
                 }
             }
             .frame(width: 200, alignment: .leading)

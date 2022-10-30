@@ -21,7 +21,7 @@ struct MovieCardView: View {
                 Text(movie.details.title).font(.title)
                 RatingView(rating: movie.details.rating)
                 if let releaseDate = movie.details.release {
-                    Text(releaseDate, style: .date).font(.caption)
+                    Text(releaseDate, format: .dateTime.year()).font(.caption)
                 }
             }
             .padding(.horizontal)
@@ -180,9 +180,15 @@ private struct MovieSpecsView: View {
 
             if let runtime = movieDetails.runtime, let runtimeString = MovieSpecsView.formatter.string(from: runtime) {
                 MovieSpecsRow(label: "Runtime") {
-                    VStack {
-                        Text(runtimeString)
-                    }
+                    Text(runtimeString)
+                }
+
+                Divider()
+            }
+
+            if let releaseDate = movieDetails.release {
+                MovieSpecsRow(label: "Release date") {
+                    Text(releaseDate, style: .date)
                 }
 
                 Divider()
