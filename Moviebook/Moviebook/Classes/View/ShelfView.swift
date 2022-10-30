@@ -410,7 +410,7 @@ private struct IndexIndicatorView: View {
         HStack {
             ForEach(movieIdentifiers, id: \.self) { movieIdentifier in
                 ZStack {
-                    if movieIdentifier == movieIdentifiers[currentIndex] {
+                    if movieIdentifiers.indices.contains(currentIndex), movieIdentifier == movieIdentifiers[currentIndex] {
                         RoundedRectangle(cornerRadius: 2)
                             .fill(.orange)
                             .frame(width: 3, height: 8)
