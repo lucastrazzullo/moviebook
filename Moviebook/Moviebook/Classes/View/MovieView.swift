@@ -28,9 +28,16 @@ import SwiftUI
         self.movieId = movieId
     }
 
+    init(movie: Movie) {
+        self.movieId = movie.id
+        self.movie = movie
+    }
+
     // MARK: Instance methods
 
     func start(requestManager: RequestManager) async {
+        guard movie == nil else { return }
+
         do {
             movie = try await MovieWebService(requestManager: requestManager).fetchMovie(with: movieId)
         } catch {
@@ -84,15 +91,22 @@ struct MovieView: View {
         self._content = StateObject(wrappedValue: Content(movieId: movieId))
         self._navigationPath = navigationPath
     }
+
+    init(movie: Movie, navigationPath: Binding<NavigationPath>?) {
+        self._content = StateObject(wrappedValue: Content(movie: movie))
+        self._navigationPath = navigationPath ?? .constant(NavigationPath())
+    }
 }
 
 private struct MovieContentView: View {
+
+    @Environment(\.dismiss) private var dismiss
 
     @State private var contentOffset: CGFloat = 0
     @State private var contentInset: CGFloat = 0
     @State private var isImageLoaded: Bool = false
 
-    private let headerHeight: CGFloat = 120
+    private let headerHeight: CGFloat = 100
 
     let movie: Movie
 
@@ -138,11 +152,20 @@ private struct MovieContentView: View {
                 ZStack(alignment: .bottom) {
                     HStack(alignment: .center) {
                         Group {
-                            Button(action: { navigationPath.removeLast() }) {
-                                Image(systemName: "chevron.left")
-                                    .font(.subheadline.bold())
-                                    .frame(width: 32, height: 24)
-                                    .padding(4)
+                            if !navigationPath.isEmpty {
+                                Button(action: { navigationPath.removeLast() }) {
+                                    Image(systemName: "chevron.left")
+                                        .font(.subheadline.bold())
+                                        .frame(width: 32, height: 24)
+                                        .padding(4)
+                                }
+                            } else {
+                                Button(action: dismiss.callAsFunction) {
+                                    Image(systemName: "chevron.down")
+                                        .font(.subheadline.bold())
+                                        .frame(width: 32, height: 24)
+                                        .padding(4)
+                                }
                             }
                         }
                         .padding(.horizontal, 4)
