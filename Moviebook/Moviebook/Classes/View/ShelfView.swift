@@ -27,7 +27,7 @@ struct ShelfView: View {
              horizontalDragOffset: DragGesture.Value?,
              verticalDragOffset: DragGesture.Value?) {
             self.geometry = geometry
-            self.currentIndex = currentIndex
+            self.currentIndex = max(min(currentIndex, numberOfItems - 1), 0)
             self.numberOfItems = numberOfItems
             self.isContentExpanded = isContentExpanded
             self.horizontalOffset = horizontalDragOffset?.translation.width ?? 0
