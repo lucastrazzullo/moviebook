@@ -141,10 +141,15 @@ private struct MovieContentView: View {
                             Button(action: { navigationPath.removeLast() }) {
                                 Image(systemName: "chevron.left")
                                     .font(.subheadline.bold())
-                                    .frame(width: 46, height: 46)
-                                    .background(Circle().fill(.ultraThickMaterial))
+                                    .frame(width: 32, height: 24)
+                                    .padding(4)
                             }
                         }
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 0)
+                        .background(.black.opacity(0.8))
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
 
                         if shouldShowHeader(geometry: geometry) {
                             Text(movie.details.title)
@@ -159,9 +164,14 @@ private struct MovieContentView: View {
                         Group {
                             IconWatchlistButton(watchlistItem: .movie(id: movie.id))
                                 .font(.subheadline.bold())
-                                .frame(width: 46, height: 46)
-                                .background(Circle().fill(.ultraThickMaterial))
+                                .frame(width: 32, height: 24)
+                                .padding(4)
                         }
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 0)
+                        .background(.black.opacity(0.8))
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
                     }
                     .padding(.bottom, 20)
                     .padding(.horizontal)
