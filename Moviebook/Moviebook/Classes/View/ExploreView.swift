@@ -129,6 +129,7 @@ struct ExploreView: View {
     }
 }
 
+#if DEBUG
 struct ExploreView_Previews: PreviewProvider {
     static var previews: some View {
         ExploreView()
@@ -136,3 +137,4 @@ struct ExploreView_Previews: PreviewProvider {
             .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
     }
 }
+#endif

@@ -87,9 +87,11 @@ private struct WatchlistMenu: View {
     }
 }
 
+#if DEBUG
 struct MoviePreviewView_Previews: PreviewProvider {
     static var previews: some View {
         MoviePreviewView(details: MockServer.movie(with: 954).details)
             .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
     }
 }
+#endif

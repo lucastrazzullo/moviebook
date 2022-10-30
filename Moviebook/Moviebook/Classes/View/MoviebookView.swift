@@ -16,6 +16,7 @@ struct MoviebookView: View {
     }
 }
 
+#if DEBUG
 struct MoviebookView_Previews: PreviewProvider {
     static var previews: some View {
         MoviebookView()
@@ -23,3 +24,4 @@ struct MoviebookView_Previews: PreviewProvider {
             .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
     }
 }
+#endif

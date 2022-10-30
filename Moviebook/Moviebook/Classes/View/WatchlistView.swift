@@ -247,6 +247,7 @@ private struct EmptyWatchlistView: View {
     }
 }
 
+#if DEBUG
 struct WatchlistView_Previews: PreviewProvider {
     static var previews: some View {
         WatchlistView()
@@ -254,13 +255,4 @@ struct WatchlistView_Previews: PreviewProvider {
             .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
     }
 }
-
-extension UINavigationController: UIGestureRecognizerDelegate {
-    override open func viewDidLoad() {
-        super.viewDidLoad()
-        interactivePopGestureRecognizer?.delegate = self
-    }
-    public func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
-        return viewControllers.count > 1
-    }
-}
+#endif

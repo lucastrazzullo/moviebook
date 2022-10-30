@@ -120,6 +120,7 @@ struct WatermarkWatchlistButton: View {
     }
 }
 
+#if DEBUG
 struct WatchlistButton_Previews: PreviewProvider {
     static var previews: some View {
         VStack(spacing: 44) {
@@ -131,3 +132,4 @@ struct WatchlistButton_Previews: PreviewProvider {
         }
     }
 }
+#endif
