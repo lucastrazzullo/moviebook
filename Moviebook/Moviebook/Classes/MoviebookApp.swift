@@ -14,7 +14,7 @@ import SwiftUI
 @main
 struct MoviebookApp: App {
 
-    let requestManager = DefaultRequestManager.shared
+    let requestManager = DefaultRequestManager(logging: .disabled)
     let user = User(watchlist: Globals.watchlist)
 
     var body: some Scene {
@@ -27,7 +27,7 @@ struct MoviebookApp: App {
 }
 
 private struct RequestManagerKey: EnvironmentKey {
-    static let defaultValue = DefaultRequestManager.shared
+    static let defaultValue: RequestManager = DefaultRequestManager(logging: .disabled)
 }
 
 extension EnvironmentValues {

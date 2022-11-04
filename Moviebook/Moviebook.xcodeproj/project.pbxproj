@@ -48,6 +48,7 @@
 		81CDE61D2914FED300A34BBC /* MovieProduction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81CDE61C2914FED300A34BBC /* MovieProduction.swift */; };
 		81CDE61F2915073B00A34BBC /* MoneyValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81CDE61E2915073B00A34BBC /* MoneyValue.swift */; };
 		81CDE621291508CC00A34BBC /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81CDE620291508CC00A34BBC /* Configuration.swift */; };
+		81CDE62329150D3000A34BBC /* MovieTrailer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81CDE62229150D3000A34BBC /* MovieTrailer.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -116,6 +117,7 @@
 		81CDE61C2914FED300A34BBC /* MovieProduction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieProduction.swift; sourceTree = "<group>"; };
 		81CDE61E2915073B00A34BBC /* MoneyValue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoneyValue.swift; sourceTree = "<group>"; };
 		81CDE620291508CC00A34BBC /* Configuration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
+		81CDE62229150D3000A34BBC /* MovieTrailer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieTrailer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -304,6 +306,7 @@
 				81C7A5EC28D45B7F00AA24E3 /* MovieDetails.swift */,
 				81C7A5EE28D45B8B00AA24E3 /* MovieCollection.swift */,
 				8128AB1928F003AB002FD343 /* MovieMedia.swift */,
+				81CDE62229150D3000A34BBC /* MovieTrailer.swift */,
 				810A9934290ED832005A33EE /* MovieGenre.swift */,
 				81CDE61C2914FED300A34BBC /* MovieProduction.swift */,
 			);
@@ -484,6 +487,7 @@
 				8169FB5B28C207A40054BCE6 /* Movie.swift in Sources */,
 				8169FB1F28C204450054BCE6 /* WatchlistView.swift in Sources */,
 				814D46EE28C27EC0000D7ABD /* SequenceExtensions.swift in Sources */,
+				81CDE62329150D3000A34BBC /* MovieTrailer.swift in Sources */,
 				814D46E128C2391D000D7ABD /* MockServer.swift in Sources */,
 				8169FB5928C207870054BCE6 /* User.swift in Sources */,
 				8169FB6628C215AB0054BCE6 /* PopularWebService.swift in Sources */,
