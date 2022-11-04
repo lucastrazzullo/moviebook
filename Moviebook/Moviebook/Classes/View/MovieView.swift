@@ -100,11 +100,10 @@ struct MovieView: View {
 
 private struct MovieContentView: View {
 
-    @Environment(\.dismiss) private var dismiss
-
     @State private var contentOffset: CGFloat = 0
     @State private var contentInset: CGFloat = 0
     @State private var isImageLoaded: Bool = false
+    @State private var isTrailerPresented: MovieTrailer? = nil
 
     private let headerHeight: CGFloat = 100
 
@@ -115,26 +114,14 @@ private struct MovieContentView: View {
     var body: some View {
         ZStack(alignment: .top) {
             GeometryReader { geometry in
-                AsyncImage(
-                    url: movie.details.media.posterPreviewUrl,
-                    content: { image in
-                        image
-                            .resizable()
-                            .background(GeometryReader { proxy in Color.clear.onAppear {
-                                let imageRatio = proxy.size.width / proxy.size.height
-                                contentInset = UIScreen.main.bounds.width / imageRatio
-                                isImageLoaded = true
-                            }})
-                            .aspectRatio(contentMode: .fill)
-                    },
-                    placeholder: { Color.clear }
+                PosterView(
+                    isImageLoaded: $isImageLoaded,
+                    contentInset: $contentInset,
+                    headerHeight: headerHeight,
+                    contentOffset: contentOffset,
+                    safeAreaTopInset: geometry.safeAreaInsets.top,
+                    movieMedia: movie.details.media
                 )
-                .frame(
-                    width: UIScreen.main.bounds.width,
-                    height: max(headerHeight, isImageLoaded ? geometry.safeAreaInsets.top + contentInset - contentOffset : UIScreen.main.bounds.height)
-                )
-                .clipped()
-                .ignoresSafeArea(.all, edges: .top)
             }
             .frame(height: max(0, contentOffset))
 
@@ -149,66 +136,12 @@ private struct MovieContentView: View {
             }
 
             GeometryReader { geometry in
-                ZStack(alignment: .bottom) {
-                    HStack(alignment: .center) {
-                        Group {
-                            if !navigationPath.isEmpty {
-                                Button(action: { navigationPath.removeLast() }) {
-                                    Image(systemName: "chevron.left")
-                                        .font(.subheadline.bold())
-                                        .frame(width: 32, height: 24)
-                                        .padding(4)
-                                }
-                            } else {
-                                Button(action: dismiss.callAsFunction) {
-                                    Image(systemName: "chevron.down")
-                                        .font(.subheadline.bold())
-                                        .frame(width: 32, height: 24)
-                                        .padding(4)
-                                }
-                            }
-                        }
-                        .padding(.horizontal, 4)
-                        .padding(.vertical, 0)
-                        .background(.black.opacity(0.8))
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
-
-                        if shouldShowHeader(geometry: geometry) {
-                            Text(movie.details.title)
-                                .lineLimit(2)
-                                .font(.headline)
-                                .transition(.opacity.combined(with: .move(edge: .bottom)))
-                                .frame(maxWidth: .infinity)
-                        } else {
-                            Spacer()
-                        }
-
-                        Group {
-                            IconWatchlistButton(watchlistItem: .movie(id: movie.id))
-                                .font(.subheadline.bold())
-                                .frame(width: 32, height: 24)
-                                .padding(4)
-                        }
-                        .padding(.horizontal, 4)
-                        .padding(.vertical, 0)
-                        .background(.black.opacity(0.8))
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
-                    }
-                    .padding(.bottom, 20)
-                    .padding(.horizontal)
-                }
-                .frame(maxWidth: .infinity)
-                .frame(height: headerHeight + 2, alignment: .bottom)
-                .background(
-                    Rectangle()
-                        .fill(.background.opacity(0.2))
-                        .background(.regularMaterial)
-                        .opacity(shouldShowHeader(geometry: geometry) ? 1 : 0)
+                HeaderView(
+                    navigationPath: $navigationPath,
+                    shouldShowHeader: shouldShowHeader(geometry: geometry),
+                    headerHeight: headerHeight,
+                    movieDetails: movie.details
                 )
-                .ignoresSafeArea(.all, edges: .top)
-                .transition(.opacity)
                 .animation(.easeOut(duration: 0.2), value: contentOffset)
             }
         }
@@ -220,12 +153,122 @@ private struct MovieContentView: View {
                 .opacity(isImageLoaded ? 0 : 1)
                 .animation(.easeIn(duration: 0.4), value: isImageLoaded)
         }
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationTitle(movie.details.title)
+        .sheet(item: $isTrailerPresented) { trailer in
+            TrailerPlayer(trailer: trailer)
+        }
     }
 
     private func shouldShowHeader(geometry: GeometryProxy) -> Bool {
         contentOffset - contentInset - geometry.safeAreaInsets.top > -headerHeight
+    }
+}
+
+private struct PosterView: View {
+
+    @Binding var isImageLoaded: Bool
+    @Binding var contentInset: CGFloat
+
+    let headerHeight: CGFloat
+    let contentOffset: CGFloat
+    let safeAreaTopInset: CGFloat
+
+    let movieMedia: MovieMedia
+
+    var body: some View {
+        AsyncImage(
+            url: movieMedia.posterUrl,
+            content: { image in
+                image
+                    .resizable()
+                    .background(GeometryReader { proxy in Color.clear.onAppear {
+                        let imageRatio = proxy.size.width / proxy.size.height
+                        contentInset = UIScreen.main.bounds.width / imageRatio
+                        isImageLoaded = true
+                    }})
+                    .aspectRatio(contentMode: .fill)
+            },
+            placeholder: { Color.clear }
+        )
+        .frame(
+            width: UIScreen.main.bounds.width,
+            height: max(headerHeight, isImageLoaded ? safeAreaTopInset + contentInset - contentOffset : UIScreen.main.bounds.height)
+        )
+        .clipped()
+        .ignoresSafeArea(.all, edges: .top)
+    }
+}
+
+private struct HeaderView: View {
+
+    @Environment(\.dismiss) private var dismiss
+    @Binding var navigationPath: NavigationPath
+
+    let shouldShowHeader: Bool
+    let headerHeight: CGFloat
+
+    let movieDetails: MovieDetails
+
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            HStack(alignment: .center) {
+                Group {
+                    if !navigationPath.isEmpty {
+                        Button(action: { navigationPath.removeLast() }) {
+                            Image(systemName: "chevron.left")
+                                .font(.subheadline.bold())
+                                .frame(width: 32, height: 24)
+                                .padding(4)
+                        }
+                    } else {
+                        Button(action: dismiss.callAsFunction) {
+                            Image(systemName: "chevron.down")
+                                .font(.subheadline.bold())
+                                .frame(width: 32, height: 24)
+                                .padding(4)
+                        }
+                    }
+                }
+                .padding(.horizontal, 4)
+                .padding(.vertical, 0)
+                .background(.black.opacity(0.8))
+                .foregroundColor(.white)
+                .cornerRadius(12)
+
+                if shouldShowHeader {
+                    Text(movieDetails.title)
+                        .lineLimit(2)
+                        .font(.headline)
+                        .transition(.opacity.combined(with: .move(edge: .bottom)))
+                        .frame(maxWidth: .infinity)
+                } else {
+                    Spacer()
+                }
+
+                Group {
+                    IconWatchlistButton(watchlistItem: .movie(id: movieDetails.id))
+                        .font(.subheadline.bold())
+                        .frame(width: 32, height: 24)
+                        .padding(4)
+                }
+                .padding(.horizontal, 4)
+                .padding(.vertical, 0)
+                .background(.black.opacity(0.8))
+                .foregroundColor(.white)
+                .cornerRadius(12)
+            }
+            .padding(.bottom, 20)
+            .padding(.horizontal)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: headerHeight + 2, alignment: .bottom)
+        .background(
+            Rectangle()
+                .fill(.background.opacity(0.2))
+                .background(.regularMaterial)
+                .opacity(shouldShowHeader ? 1 : 0)
+        )
+        .ignoresSafeArea(.all, edges: .top)
+        .transition(.opacity)
     }
 }
 
@@ -235,6 +278,7 @@ struct MovieView_Previews: PreviewProvider {
         NavigationView {
             MovieView(movieId: 954, navigationPath: .constant(NavigationPath()))
                 .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
+                .environment(\.requestManager, MockRequestManager())
         }
     }
 }

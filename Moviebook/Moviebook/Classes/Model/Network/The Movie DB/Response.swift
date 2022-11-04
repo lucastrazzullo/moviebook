@@ -193,18 +193,18 @@ extension MovieTrailer: Decodable {
     }
 
     enum CodingKeys: CodingKey {
-        case id
+        case key
         case site
     }
 
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
 
-        let id = try values.decode(String.self, forKey: .id)
+        let key = try values.decode(String.self, forKey: .key)
         let site = try values.decode(String.self, forKey: .site)
         switch site {
         case "YouTube":
-            self = .youtube(id: id)
+            self = .youtube(id: key)
         default:
             throw DecodingError.siteNotSupported(site)
         }

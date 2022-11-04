@@ -7,6 +7,13 @@
 
 import Foundation
 
-enum MovieTrailer: Equatable {
+enum MovieTrailer: Equatable, Identifiable {
     case youtube(id: String)
+
+    var id: String {
+        switch self {
+        case .youtube(let id):
+            return id
+        }
+    }
 }
