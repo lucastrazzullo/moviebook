@@ -155,8 +155,17 @@ private struct MovieContentView: View {
                 .opacity(isImageLoaded ? 0 : 1)
                 .animation(.easeIn(duration: 0.4), value: isImageLoaded)
         }
-        .sheet(item: $isTrailerPresented) { trailer in
-            TrailerPlayer(trailer: trailer)
+        .fullScreenCover(item: $isTrailerPresented) { trailer in
+            ZStack(alignment: .topLeading) {
+                TrailerPlayer(trailer: trailer, autoplay: true)
+
+                WatermarkView {
+                    Button(action: { isTrailerPresented = nil }) {
+                        Image(systemName: "chevron.down")
+                    }
+                }
+                .padding()
+            }
         }
     }
 
