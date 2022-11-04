@@ -293,7 +293,7 @@ private struct DetailsItemView: View {
     let onOpenSelected: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .center, spacing: 0) {
             Group {
                 HeaderView(movieDetails: movie.details)
             }
@@ -301,6 +301,15 @@ private struct DetailsItemView: View {
             .background(GeometryReader { geometry in
                 Color.clear.onAppear { headerHeight = geometry.size.height }
             })
+
+            Group {
+                Image(systemName: "chevron.compact.up")
+                    .font(.title2)
+                    .foregroundColor(.secondary)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 24)
+            .opacity(1 - makeOpacity())
 
             Group {
                 ContentView(movie: movie, onOpenSelected: onOpenSelected)
