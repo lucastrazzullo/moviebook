@@ -105,7 +105,8 @@ private struct MovieContentView: View {
     @State private var isImageLoaded: Bool = false
     @State private var isTrailerPresented: MovieTrailer? = nil
 
-    private let headerHeight: CGFloat = 100
+    private let headerHeight: CGFloat = 90
+    private let headerOverlap: CGFloat = 24
 
     let movie: Movie
 
@@ -128,7 +129,7 @@ private struct MovieContentView: View {
             ObservableScrollView(scrollOffset: $contentOffset, showsIndicators: false) { scrollViewProxy in
                 VStack {
                     Spacer()
-                        .frame(height: isImageLoaded ? contentInset - 24 : UIScreen.main.bounds.height)
+                        .frame(height: isImageLoaded ? contentInset - headerOverlap : UIScreen.main.bounds.height)
                         .animation(.easeIn(duration: 0.4), value: isImageLoaded)
 
                     MovieCardView(movie: movie)
@@ -138,6 +139,7 @@ private struct MovieContentView: View {
             GeometryReader { geometry in
                 HeaderView(
                     navigationPath: $navigationPath,
+                    isTrailerPresented: $isTrailerPresented,
                     shouldShowHeader: shouldShowHeader(geometry: geometry),
                     headerHeight: headerHeight,
                     movieDetails: movie.details
@@ -202,6 +204,7 @@ private struct HeaderView: View {
 
     @Environment(\.dismiss) private var dismiss
     @Binding var navigationPath: NavigationPath
+    @Binding var isTrailerPresented: MovieTrailer?
 
     let shouldShowHeader: Bool
     let headerHeight: CGFloat
@@ -211,28 +214,17 @@ private struct HeaderView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             HStack(alignment: .center) {
-                Group {
+                WatermarkView {
                     if !navigationPath.isEmpty {
                         Button(action: { navigationPath.removeLast() }) {
                             Image(systemName: "chevron.left")
-                                .font(.subheadline.bold())
-                                .frame(width: 32, height: 24)
-                                .padding(4)
                         }
                     } else {
                         Button(action: dismiss.callAsFunction) {
                             Image(systemName: "chevron.down")
-                                .font(.subheadline.bold())
-                                .frame(width: 32, height: 24)
-                                .padding(4)
                         }
                     }
                 }
-                .padding(.horizontal, 4)
-                .padding(.vertical, 0)
-                .background(.black.opacity(0.8))
-                .foregroundColor(.white)
-                .cornerRadius(12)
 
                 if shouldShowHeader {
                     Text(movieDetails.title)
@@ -244,23 +236,22 @@ private struct HeaderView: View {
                     Spacer()
                 }
 
-                Group {
+
+                WatermarkView {
                     IconWatchlistButton(watchlistItem: .movie(id: movieDetails.id))
-                        .font(.subheadline.bold())
-                        .frame(width: 32, height: 24)
-                        .padding(4)
+
+                    if let trailer = movieDetails.media.trailer {
+                        Button(action: { isTrailerPresented = trailer }) {
+                            Image(systemName: "play.fill")
+                        }
+                    }
                 }
-                .padding(.horizontal, 4)
-                .padding(.vertical, 0)
-                .background(.black.opacity(0.8))
-                .foregroundColor(.white)
-                .cornerRadius(12)
             }
-            .padding(.bottom, 20)
             .padding(.horizontal)
         }
         .frame(maxWidth: .infinity)
-        .frame(height: headerHeight + 2, alignment: .bottom)
+        .frame(height: headerHeight, alignment: .bottom)
+        .padding(.bottom, 20)
         .background(
             Rectangle()
                 .fill(.background.opacity(0.2))

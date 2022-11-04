@@ -82,12 +82,12 @@ private struct MovieWatchlistStateView: View {
 
                     HStack {
                         Button(action: { watchlist.update(state: .toWatch, for: .movie(id: movieId)) }) {
-                            WatchlistWatermarkLabel(itemState: .none)
+                            WatchlistLabel(itemState: .none)
                         }
                         .buttonStyle(.borderedProminent)
 
                         Button(action: { watchlist.update(state: .watched, for: .movie(id: movieId)) }) {
-                            WatchlistWatermarkLabel(itemState: .watched)
+                            WatchlistLabel(itemState: .watched)
                         }
                         .buttonStyle(.bordered)
                     }

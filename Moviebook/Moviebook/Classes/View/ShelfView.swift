@@ -411,24 +411,21 @@ private struct IndexIndicatorView: View {
     let currentIndex: Int
 
     var body: some View {
-        HStack {
+        WatermarkView {
             ForEach(movieIdentifiers, id: \.self) { movieIdentifier in
                 ZStack {
                     if movieIdentifiers.indices.contains(currentIndex), movieIdentifier == movieIdentifiers[currentIndex] {
                         RoundedRectangle(cornerRadius: 2)
                             .fill(.orange)
-                            .frame(width: 3, height: 8)
+                            .frame(width: 8, height: 12)
                     } else {
                         RoundedRectangle(cornerRadius: 2)
                             .fill(.thinMaterial)
-                            .frame(width: 4, height: 6)
+                            .frame(width: 6, height: 8)
                     }
                 }
             }
         }
-        .padding(8)
-        .background(.black.opacity(0.7))
-        .cornerRadius(12)
     }
 }
 

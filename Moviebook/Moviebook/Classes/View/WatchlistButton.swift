@@ -77,7 +77,7 @@ struct WatchlistText: View {
     }
 }
 
-struct WatchlistWatermarkLabel: View {
+struct WatchlistLabel: View {
 
     let itemState: Watchlist.WatchlistItemState
 
@@ -109,13 +109,9 @@ struct WatermarkWatchlistButton: View {
 
     var body: some View {
         WatchlistButton(watchlistItem: watchlistItem) { state in
-            WatchlistWatermarkLabel(itemState: state)
-                .font(.footnote)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(.black.opacity(0.7))
-                .foregroundColor(.white)
-                .cornerRadius(6)
+            WatermarkView {
+                WatchlistLabel(itemState: state)
+            }
         }
     }
 }
