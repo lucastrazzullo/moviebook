@@ -29,6 +29,7 @@ extension Movie: Decodable {
         id = try values.decode(Movie.ID.self, forKey: .id)
         details = try MovieDetails(from: decoder)
         genres = try values.decode([MovieGenre].self, forKey: .genres)
+        production = try MovieProduction(from: decoder)
         collection = try values.decodeIfPresent(MovieCollection.self, forKey: .collection)
     }
 }
@@ -45,6 +46,8 @@ extension MovieDetails: Decodable {
         case id = "id"
         case title = "title"
         case overview = "overview"
+        case budget = "budget"
+        case revenue = "revenue"
         case releaseDate = "release_date"
         case runtime = "runtime"
         case rating = "vote_average"
@@ -74,6 +77,18 @@ extension MovieDetails: Decodable {
         } else {
             runtime = nil
         }
+
+        if let budgetValue = try values.decodeIfPresent(Int.self, forKey: .budget) {
+            budget = MoneyValue(value: budgetValue, currencyCode: TheMovieDbConfiguration.currency)
+        } else {
+            budget = nil
+        }
+
+        if let revenueValue = try values.decodeIfPresent(Int.self, forKey: .revenue) {
+            revenue = MoneyValue(value: revenueValue, currencyCode: TheMovieDbConfiguration.currency)
+        } else {
+            revenue = nil
+        }
     }
 }
 
@@ -89,6 +104,22 @@ extension MovieGenre: Decodable {
 
         id = try values.decode(MovieGenre.ID.self, forKey: .id)
         name = try values.decode(String.self, forKey: .name)
+    }
+}
+
+extension MovieProduction: Decodable {
+
+    struct Company: Decodable {
+        let name: String
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case production = "production_companies"
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        companies = try values.decode([Company].self, forKey: .production).map(\.name)
     }
 }
 

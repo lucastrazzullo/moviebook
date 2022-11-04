@@ -16,11 +16,21 @@ struct MovieCardView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 30) {
             MovieHeaderView(details: movie.details)
-            MovieWatchlistStateView(movieId: movie.id, movieBackdropPreviewUrl: movie.details.media.backdropPreviewUrl)
+
+            MovieWatchlistStateView(
+                movieId: movie.id,
+                movieBackdropPreviewUrl: movie.details.media.backdropPreviewUrl
+            )
+
             if let overview = movie.details.overview, !overview.isEmpty {
                 MovieOverviewView(isExpanded: $isOverviewExpanded, overview: overview)
             }
-            MovieSpecsView(movieDetails: movie.details, movieGenres: movie.genres)
+
+            MovieSpecsView(
+                movieDetails: movie.details,
+                movieGenres: movie.genres,
+                movieProduction: movie.production
+            )
         }
         .padding()
         .frame(maxWidth: .infinity)
@@ -201,6 +211,7 @@ private struct MovieSpecsView: View {
 
     let movieDetails: MovieDetails
     let movieGenres: [MovieGenre]
+    let movieProduction: MovieProduction
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -238,26 +249,29 @@ private struct MovieSpecsView: View {
 
             MovieSpecsRow(label: "Production") {
                 VStack(alignment: .trailing) {
-                    Text("New Line Cinema")
-                    Text("Flynn Picture Company")
-                    Text("Seven Bucks Productions")
-                    Text("DC Films")
+                    ForEach(movieProduction.companies, id: \.self) { companyName in
+                        Text(companyName)
+                    }
                 }
             }
 
             Divider()
 
-            MovieSpecsRow(label: "Budget") {
-                VStack(alignment: .trailing) {
-                    Text("200.000.000")
+            if let budget = movieDetails.budget, budget.value > 0 {
+                MovieSpecsRow(label: "Budget") {
+                    VStack(alignment: .trailing) {
+                        Text(budget.value, format: .currency(code: budget.currencyCode))
+                    }
                 }
+
+                Divider()
             }
 
-            Divider()
-
-            MovieSpecsRow(label: "Incassi") {
-                VStack(alignment: .trailing) {
-                    Text("140.000.000")
+            if let revenue = movieDetails.revenue, revenue.value > 0 {
+                MovieSpecsRow(label: "Incassi") {
+                    VStack(alignment: .trailing) {
+                        Text(revenue.value, format: .currency(code: revenue.currencyCode))
+                    }
                 }
             }
         }
