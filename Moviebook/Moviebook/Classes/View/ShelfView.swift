@@ -89,8 +89,6 @@ struct ShelfView: View {
 
     @Environment(\.colorScheme) private var colorScheme
 
-    @Binding private var navigationPath: NavigationPath
-
     @State private var horizontalDragOffset: DragGesture.Value?
     @State private var verticalDragOffset: DragGesture.Value?
     @State private var currentIndex: Int = 0
@@ -99,6 +97,7 @@ struct ShelfView: View {
 
     let movies: [Movie]
     let cornerRadius: CGFloat
+    let onOpen: (Movie) -> Void
 
     var body: some View {
         Group {
@@ -120,6 +119,11 @@ struct ShelfView: View {
                                 posterElementWidth: geometryCalculator.posterViewWidth
                             )
                             .offset(x: geometryCalculator.postersScrollOffset)
+                            .onTapGesture {
+                                if movies.indices.contains(currentIndex) {
+                                    onOpen(movies[currentIndex])
+                                }
+                            }
 
                             if movies.count > 1 {
                                 IndexIndicatorView(
@@ -148,7 +152,7 @@ struct ShelfView: View {
                                 : isContentExpanded ? .expanded : .contracted,
                             detailElementWidth: geometryCalculator.detailsViewWidth,
                             detailElementPadding: geometryCalculator.detailsViewPadding,
-                            onOpenSelected: { navigationPath.append($0.id) }
+                            onOpenSelected: onOpen
                         )
                         .offset(x: geometryCalculator.detailsContainerHorizontalOffset)
                     }
@@ -210,10 +214,10 @@ struct ShelfView: View {
         return isContentExpanded ? 0 : 8
     }
 
-    init(navigationPath: Binding<NavigationPath>, movies: [Movie], cornerRadius: CGFloat, expanded: Bool = false) {
+    init(movies: [Movie], cornerRadius: CGFloat, expanded: Bool = false, onOpen: @escaping (Movie) -> Void) {
         self.movies = movies
         self.cornerRadius = cornerRadius
-        self._navigationPath = navigationPath
+        self.onOpen = onOpen
         self._isContentExpanded = State(initialValue: expanded)
     }
 }
@@ -289,7 +293,7 @@ private struct DetailsItemView: View {
     let onOpenSelected: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .center, spacing: 0) {
             Group {
                 HeaderView(movieDetails: movie.details)
             }
@@ -297,6 +301,15 @@ private struct DetailsItemView: View {
             .background(GeometryReader { geometry in
                 Color.clear.onAppear { headerHeight = geometry.size.height }
             })
+
+            Group {
+                Image(systemName: "chevron.compact.up")
+                    .font(.title2)
+                    .foregroundColor(.secondary)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 24)
+            .opacity(1 - makeOpacity())
 
             Group {
                 ContentView(movie: movie, onOpenSelected: onOpenSelected)
@@ -334,7 +347,7 @@ private struct HeaderView: View {
                 Text(movieDetails.title)
                 RatingView(rating: movieDetails.rating)
                 if let releaseDate = movieDetails.release {
-                    Text(releaseDate, style: .date).font(.caption)
+                    Text(releaseDate, format: .dateTime.year()).font(.caption)
                 }
             }
             .frame(width: 200, alignment: .leading)
@@ -407,24 +420,21 @@ private struct IndexIndicatorView: View {
     let currentIndex: Int
 
     var body: some View {
-        HStack {
+        WatermarkView {
             ForEach(movieIdentifiers, id: \.self) { movieIdentifier in
                 ZStack {
                     if movieIdentifiers.indices.contains(currentIndex), movieIdentifier == movieIdentifiers[currentIndex] {
                         RoundedRectangle(cornerRadius: 2)
                             .fill(.orange)
-                            .frame(width: 3, height: 8)
+                            .frame(width: 8, height: 12)
                     } else {
                         RoundedRectangle(cornerRadius: 2)
                             .fill(.thinMaterial)
-                            .frame(width: 4, height: 6)
+                            .frame(width: 6, height: 8)
                     }
                 }
             }
         }
-        .padding(8)
-        .background(.black.opacity(0.7))
-        .cornerRadius(12)
     }
 }
 
@@ -433,13 +443,13 @@ struct ShelfView_Previews: PreviewProvider {
 
     static var previews: some View {
         ShelfView(
-            navigationPath: .constant(NavigationPath()),
             movies: [
                 MockServer.movie(with: 954),
                 MockServer.movie(with: 616037)
             ],
             cornerRadius: 16.0,
-            expanded: false
+            expanded: false,
+            onOpen: { _ in }
         )
         .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
     }

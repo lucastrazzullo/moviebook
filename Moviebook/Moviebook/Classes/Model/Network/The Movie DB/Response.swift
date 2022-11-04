@@ -11,6 +11,15 @@ import Foundation
 
 struct TheMovieDbResponseWithResults<ItemType: Decodable>: Decodable {
     let results: [ItemType]
+
+    enum CodingKeys: CodingKey {
+        case results
+    }
+
+    init(from decoder: Decoder) throws {
+        let container: KeyedDecodingContainer<CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
+        self.results = try container.decode([ItemType].self, forKey: CodingKeys.results)
+    }
 }
 
 // MARK: - Entities Decoding Extensions
@@ -19,7 +28,7 @@ extension Movie: Decodable {
 
     enum CodingKeys: String, CodingKey {
         case id = "id"
-        case overview = "overview"
+        case genres = "genres"
         case collection = "belongs_to_collection"
     }
 
@@ -28,7 +37,8 @@ extension Movie: Decodable {
 
         id = try values.decode(Movie.ID.self, forKey: .id)
         details = try MovieDetails(from: decoder)
-        overview = try values.decode(String.self, forKey: .overview)
+        genres = try values.decode([MovieGenre].self, forKey: .genres)
+        production = try MovieProduction(from: decoder)
         collection = try values.decodeIfPresent(MovieCollection.self, forKey: .collection)
     }
 }
@@ -44,7 +54,11 @@ extension MovieDetails: Decodable {
     enum CodingKeys: String, CodingKey {
         case id = "id"
         case title = "title"
+        case overview = "overview"
+        case budget = "budget"
+        case revenue = "revenue"
         case releaseDate = "release_date"
+        case runtime = "runtime"
         case rating = "vote_average"
         case posterPath = "poster_path"
         case backdropPath = "backdrop_path"
@@ -55,6 +69,7 @@ extension MovieDetails: Decodable {
 
         id = try values.decode(MovieDetails.ID.self, forKey: .id)
         title = try values.decode(String.self, forKey: .title)
+        overview = try values.decodeIfPresent(String.self, forKey: .overview)
         rating = Rating(value: try values.decode(Float.self, forKey: .rating), quota: 10.0)
         media = try MovieMedia(from: decoder)
 
@@ -64,6 +79,56 @@ extension MovieDetails: Decodable {
         } else {
             release = nil
         }
+
+        let minutes = try values.decodeIfPresent(Int.self, forKey: .runtime)
+        if let minutes = minutes {
+            runtime = TimeInterval(minutes*60)
+        } else {
+            runtime = nil
+        }
+
+        if let budgetValue = try values.decodeIfPresent(Int.self, forKey: .budget) {
+            budget = MoneyValue(value: budgetValue, currencyCode: TheMovieDbConfiguration.currency)
+        } else {
+            budget = nil
+        }
+
+        if let revenueValue = try values.decodeIfPresent(Int.self, forKey: .revenue) {
+            revenue = MoneyValue(value: revenueValue, currencyCode: TheMovieDbConfiguration.currency)
+        } else {
+            revenue = nil
+        }
+    }
+}
+
+extension MovieGenre: Decodable {
+
+    enum CodingKeys: String, CodingKey {
+        case id = "id"
+        case name = "name"
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+
+        id = try values.decode(MovieGenre.ID.self, forKey: .id)
+        name = try values.decode(String.self, forKey: .name)
+    }
+}
+
+extension MovieProduction: Decodable {
+
+    struct Company: Decodable {
+        let name: String
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case production = "production_companies"
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        companies = try values.decode([Company].self, forKey: .production).map(\.name)
     }
 }
 
@@ -90,13 +155,14 @@ extension MovieMedia: Decodable {
     enum CodingKeys: String, CodingKey {
         case posterPath = "poster_path"
         case backdropPath = "backdrop_path"
+        case videos = "videos"
+        case title = "title"
     }
 
     init(from decoder: Decoder) throws {
-        let values = try decoder.container(keyedBy: CodingKeys.self)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
 
-
-        if let posterPath = try values.decodeIfPresent(String.self, forKey: .posterPath) {
+        if let posterPath = try container.decodeIfPresent(String.self, forKey: .posterPath) {
             posterUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .poster(path: posterPath, size: .original))
             posterPreviewUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .poster(path: posterPath, size: .original))
         } else {
@@ -104,12 +170,43 @@ extension MovieMedia: Decodable {
             posterPreviewUrl = nil
         }
 
-        if let backdropPath = try values.decodeIfPresent(String.self, forKey: .backdropPath) {
+        if let backdropPath = try container.decodeIfPresent(String.self, forKey: .backdropPath) {
             backdropUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .backdrop(path: backdropPath, size: .original))
             backdropPreviewUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .backdrop(path: backdropPath, size: .original))
         } else {
             backdropUrl = nil
             backdropPreviewUrl = nil
+        }
+
+        if let videos = try container.decodeIfPresent(TheMovieDbResponseWithResults<MovieTrailer>.self, forKey: .videos) {
+            trailer = videos.results.first
+        } else {
+            trailer = nil
+        }
+    }
+}
+
+extension MovieTrailer: Decodable {
+
+    enum DecodingError: Error {
+        case siteNotSupported(_ site: String)
+    }
+
+    enum CodingKeys: CodingKey {
+        case key
+        case site
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+
+        let key = try values.decode(String.self, forKey: .key)
+        let site = try values.decode(String.self, forKey: .site)
+        switch site {
+        case "YouTube":
+            self = .youtube(id: key)
+        default:
+            throw DecodingError.siteNotSupported(site)
         }
     }
 }

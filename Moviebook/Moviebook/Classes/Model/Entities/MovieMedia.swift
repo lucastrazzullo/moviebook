@@ -12,4 +12,5 @@ struct MovieMedia: Equatable {
     let posterPreviewUrl: URL?
     let backdropUrl: URL?
     let backdropPreviewUrl: URL?
+    let trailer: MovieTrailer?
 }

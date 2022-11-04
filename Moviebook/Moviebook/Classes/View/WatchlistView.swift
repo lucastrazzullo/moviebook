@@ -111,6 +111,7 @@ struct WatchlistView: View {
     @State private var selectedLayout: WatchlistLayout = .shelf
     @State private var selectedSection: Content.Section = .toWatch
     @State private var isExplorePresented: Bool = false
+    @State private var isMoviePresented: Movie? = nil
     @State private var isErrorPresented: Bool = false
 
     var body: some View {
@@ -119,9 +120,10 @@ struct WatchlistView: View {
                 switch selectedLayout {
                 case .shelf:
                     ShelfView(
-                        navigationPath: $watchlistNavigationPath,
                         movies: content.movies(forSectionWith: selectedSection.id),
-                        cornerRadius: isExplorePresented ? 0 : 16
+                        cornerRadius: isExplorePresented ? 0 : 16, onOpen: { movie in
+                            isMoviePresented = movie
+                        }
                     )
                     .id(selectedSection.id)
                     .padding(.top)
@@ -152,7 +154,7 @@ struct WatchlistView: View {
                     .onAppear {
                         switch selectedLayout {
                         case .shelf:
-                            UISegmentedControl.appearance().backgroundColor = UIColor(Color.black.opacity(0.7))
+                            UISegmentedControl.appearance().backgroundColor = UIColor(Color.black.opacity(0.8))
                             UISegmentedControl.appearance().selectedSegmentTintColor = .white
                             UISegmentedControl.appearance().setTitleTextAttributes([.foregroundColor: UIColor.black], for: .selected)
                             UISegmentedControl.appearance().setTitleTextAttributes([.foregroundColor: UIColor.white], for: .normal)
@@ -163,13 +165,11 @@ struct WatchlistView: View {
                 }
 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack {
-                        Button { isExplorePresented = true } label: {
-                            Image(systemName: "magnifyingglass")
-                        }
-                        .buttonStyle(.plain)
-                        .frame(width: 32, height: 24)
-                        .font(.footnote)
+                    WatermarkView {
+                        Image(systemName: "magnifyingglass")
+                            .onTapGesture {
+                                isExplorePresented = true
+                            }
 
                         Menu {
                             Button { selectedLayout = .shelf } label: {
@@ -179,25 +179,14 @@ struct WatchlistView: View {
                                 Label("List", systemImage: "list.star")
                             }
                         } label: {
-                            Group {
-                                switch selectedLayout {
-                                case .shelf:
-                                    Image(systemName: "square.stack")
-                                        .font(.footnote)
-                                        .frame(width: 32, height: 24)
-                                case .list:
-                                    Image(systemName: "list.star")
-                                        .font(.footnote)
-                                        .frame(width: 32, height: 24)
-                                }
+                            switch selectedLayout {
+                            case .shelf:
+                                Image(systemName: "square.stack")
+                            case .list:
+                                Image(systemName: "list.star")
                             }
                         }
                     }
-                    .padding(.horizontal, 4)
-                    .padding(.vertical, 0)
-                    .background(.black.opacity(0.7))
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
                 }
             }
             .sheet(isPresented: $isExplorePresented) {
@@ -215,6 +204,9 @@ struct WatchlistView: View {
                             }
                         }
                 }
+            }
+            .sheet(item: $isMoviePresented) { movie in
+                MovieView(movie: movie, navigationPath: nil)
             }
             .alert("Error", isPresented: $isErrorPresented) {
                 Button("Retry", role: .cancel) {
