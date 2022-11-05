@@ -366,26 +366,6 @@ private struct ContentView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            HStack(alignment: .top) {
-                Image(systemName: "square.and.pencil")
-                VStack(alignment: .leading, spacing: 8) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Consigliato da").font(.caption2)
-                        Text("Valerio").font(.headline)
-                    }
-
-                    HStack {
-                        Text("Questo film e popt bell cos cos o frat cos e mo iamm ngopp a ddoj linee.")
-                            .font(.caption)
-                        Spacer()
-                    }
-                }
-            }
-            .frame(width: 240, alignment: .leading)
-            .padding()
-            .background(.thinMaterial)
-            .cornerRadius(12)
-
             VStack(alignment: .leading) {
                 Text("Appartiene ad una serie").font(.subheadline)
                 Text("Mission Impossible").font(.title2)
