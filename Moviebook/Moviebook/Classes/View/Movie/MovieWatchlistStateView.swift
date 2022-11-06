@@ -126,6 +126,7 @@ struct MovieWatchlistStateView: View {
     }
 }
 
+#if DEBUG
 struct MovieWatchlistStateView_Previews: PreviewProvider {
     static var previews: some View {
         MovieWatchlistStateView(
@@ -141,3 +142,4 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
         .environmentObject(Watchlist(moviesToWatch: [954]))
     }
 }
+#endif
