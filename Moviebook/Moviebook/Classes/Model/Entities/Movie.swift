@@ -12,5 +12,5 @@ struct Movie: Identifiable {
     let details: MovieDetails
     let genres: [MovieGenre]
     let production: MovieProduction
-    let collection: MovieCollection?
+    var collection: MovieCollection?
 }

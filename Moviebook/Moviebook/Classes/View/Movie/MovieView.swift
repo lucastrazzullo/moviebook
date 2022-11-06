@@ -87,9 +87,9 @@ struct MovieView: View {
 
     // MARK: Obejct life cycle
 
-    init(movieId: Movie.ID, navigationPath: Binding<NavigationPath>) {
+    init(movieId: Movie.ID, navigationPath: Binding<NavigationPath>?) {
         self._content = StateObject(wrappedValue: Content(movieId: movieId))
-        self._navigationPath = navigationPath
+        self._navigationPath = navigationPath ?? .constant(NavigationPath())
     }
 
     init(movie: Movie, navigationPath: Binding<NavigationPath>?) {

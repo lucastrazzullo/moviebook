@@ -137,6 +137,7 @@ extension MovieCollection: Decodable {
     enum CodingKeys: String, CodingKey {
         case id = "id"
         case name = "name"
+        case list = "parts"
     }
 
     init(from decoder: Decoder) throws {
@@ -144,6 +145,7 @@ extension MovieCollection: Decodable {
 
         id = try values.decode(MovieCollection.ID.self, forKey: .id)
         name = try values.decode(String.self, forKey: .name)
+        list = try values.decodeIfPresent([MovieDetails].self, forKey: .list)
     }
 }
 

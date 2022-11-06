@@ -117,6 +117,10 @@ struct WatchlistView: View {
         case list
     }
 
+    struct MovieItem: Identifiable {
+        let id: Movie.ID
+    }
+
     @Environment(\.requestManager) var requestManager
     @EnvironmentObject var watchlist: Watchlist
     @StateObject private var content: Content = Content()
@@ -127,6 +131,7 @@ struct WatchlistView: View {
     @State private var selectedSection: Content.Section = .toWatch
     @State private var isExplorePresented: Bool = false
     @State private var isMoviePresented: Movie? = nil
+    @State private var isMoviePresentedWithIdentifier: MovieItem? = nil
     @State private var isErrorPresented: Bool = false
 
     var body: some View {
@@ -135,12 +140,13 @@ struct WatchlistView: View {
                 switch selectedLayout {
                 case .shelf:
                     ShelfView(
-                        items: content.items(forSectionWith: selectedSection.id)
-                            .map(\.movie)
-                            .map(ShelfView.ShelfItem.init(movie:)),
+                        movies: content.items(forSectionWith: selectedSection.id).map(\.movie),
                         cornerRadius: isExplorePresented ? 0 : 16,
-                        onOpen: { item in
-                            isMoviePresented = item.movie
+                        onOpenMovie: { movie in
+                            isMoviePresented = movie
+                        },
+                        onOpenMovieWithIdentifier: { movieIdentifier in
+                            isMoviePresentedWithIdentifier = MovieItem(id: movieIdentifier)
                         }
                     )
                     .id(selectedSection.id)
@@ -225,6 +231,9 @@ struct WatchlistView: View {
             }
             .sheet(item: $isMoviePresented) { movie in
                 MovieView(movie: movie, navigationPath: nil)
+            }
+            .sheet(item: $isMoviePresentedWithIdentifier) { movieItem in
+                MovieView(movieId: movieItem.id, navigationPath: nil)
             }
             .alert("Error", isPresented: $isErrorPresented) {
                 Button("Retry", role: .cancel) {

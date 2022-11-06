@@ -9,101 +9,19 @@ import SwiftUI
 
 struct ShelfView: View {
 
-    struct GeometryCalculator {
-
-        private let geometry: GeometryProxy
-        private let currentIndex: Int
-        private let numberOfItems: Int
-        private let isContentExpanded: Bool
-        private let horizontalOffset: CGFloat
-        private let verticalOffset: CGFloat
-
-        // MARK: Object life cycle
-
-        init(geometry: GeometryProxy,
-             currentIndex: Int,
-             numberOfItems: Int,
-             isContentExpanded: Bool,
-             horizontalDragOffset: DragGesture.Value?,
-             verticalDragOffset: DragGesture.Value?) {
-            self.geometry = geometry
-            self.currentIndex = max(min(currentIndex, numberOfItems - 1), 0)
-            self.numberOfItems = numberOfItems
-            self.isContentExpanded = isContentExpanded
-            self.horizontalOffset = horizontalDragOffset?.translation.width ?? 0
-            self.verticalOffset = verticalDragOffset?.translation.height ?? 0
-        }
-
-        // MARK: Computed properties
-
-        var posterViewWidth: CGFloat {
-            return geometry.size.width
-        }
-
-        var detailsViewPadding: CGFloat {
-            return isContentExpanded ? 10 : 30
-        }
-
-        var detailsViewWidth: CGFloat {
-            return geometry.size.width - detailsViewPadding * 2
-        }
-
-        var postersScrollOffset: CGFloat {
-            let offset = dragOffset(itemWidth: posterViewWidth)
-            let listWidth = CGFloat(numberOfItems) * posterViewWidth
-            return max(min(offset, 0), posterViewWidth-listWidth)
-        }
-
-        var postersContainerOffset: CGFloat {
-            let offset = dragOffset(itemWidth: posterViewWidth)
-            let listWidth = CGFloat(numberOfItems) * posterViewWidth
-
-            if offset > posterViewWidth - listWidth {
-                return max(offset, 0) / 4
-            } else {
-                return -(posterViewWidth - listWidth - offset) / 4
-            }
-        }
-
-        var detailsContainerHorizontalOffset: CGFloat {
-            let offset = dragOffset(itemWidth: detailsViewWidth + detailsViewPadding) + detailsViewPadding
-            let listWidth = CGFloat(numberOfItems) * detailsViewWidth
-
-            if offset > detailsViewPadding {
-                return detailsViewPadding + horizontalOffset / 6
-            } else if offset < posterViewWidth - listWidth - detailsViewPadding {
-                return offset - horizontalOffset + horizontalOffset / 6
-            } else  {
-                return offset
-            }
-        }
-
-        var expandingScrollOffset: CGFloat {
-            return verticalOffset
-        }
-
-        private func dragOffset(itemWidth: CGFloat) -> CGFloat {
-            return -(CGFloat(currentIndex) * itemWidth - horizontalOffset)
-        }
-    }
-
-    struct ShelfItem {
-        let movie: Movie
-    }
-
-    // MARK: Instance properties
-
     @Environment(\.colorScheme) private var colorScheme
 
     @State private var horizontalDragOffset: DragGesture.Value?
     @State private var verticalDragOffset: DragGesture.Value?
     @State private var currentIndex: Int = 0
     @State private var isContentExpanded: Bool
-    @State private var expandedContentHeight: CGFloat = 0
 
-    let items: [ShelfItem]
+    private let expandedContentHeight: CGFloat = 360
+
+    let movies: [Movie]
     let cornerRadius: CGFloat
-    let onOpen: (ShelfItem) -> Void
+    let openMovie: (Movie) -> Void
+    let openMovieWithIdentifier: (Movie.ID) -> Void
 
     var body: some View {
         Group {
@@ -111,7 +29,7 @@ struct ShelfView: View {
                 let geometryCalculator = GeometryCalculator(
                     geometry: geometry,
                     currentIndex: currentIndex,
-                    numberOfItems: items.count,
+                    numberOfItems: movies.count,
                     isContentExpanded: isContentExpanded,
                     horizontalDragOffset: horizontalDragOffset,
                     verticalDragOffset: verticalDragOffset
@@ -121,19 +39,19 @@ struct ShelfView: View {
                     VStack(alignment: .leading) {
                         ZStack(alignment: .bottomLeading) {
                             PostersListView(
-                                posterUrls: items.map(\.movie.details.media.posterUrl),
+                                posterUrls: movies.map(\.details.media.posterUrl),
                                 posterElementWidth: geometryCalculator.posterViewWidth
                             )
                             .offset(x: geometryCalculator.postersScrollOffset)
                             .onTapGesture {
-                                if items.indices.contains(currentIndex) {
-                                    onOpen(items[currentIndex])
+                                if movies.indices.contains(currentIndex) {
+                                    openMovie(movies[currentIndex])
                                 }
                             }
 
-                            if items.count > 1 {
+                            if movies.count > 1 {
                                 IndexIndicatorView(
-                                    movieIdentifiers: items.map(\.movie.id),
+                                    movieIdentifiers: movies.map(\.id),
                                     currentIndex: currentIndex
                                 )
                                 .frame(width: geometryCalculator.posterViewWidth)
@@ -151,14 +69,14 @@ struct ShelfView: View {
                         .offset(x: geometryCalculator.postersContainerOffset)
 
                         DetailsListView(
-                            expandedHeight: $expandedContentHeight,
-                            items: items,
+                            movies: movies,
                             status: verticalDragOffset != nil
                                 ? .expanding(offset: -geometryCalculator.expandingScrollOffset)
                                 : isContentExpanded ? .expanded : .contracted,
                             detailElementWidth: geometryCalculator.detailsViewWidth,
                             detailElementPadding: geometryCalculator.detailsViewPadding,
-                            onOpenSelected: onOpen
+                            onMovieSelected: openMovie,
+                            onMovieIdentifierSelected: openMovieWithIdentifier
                         )
                         .offset(x: geometryCalculator.detailsContainerHorizontalOffset)
                     }
@@ -166,16 +84,23 @@ struct ShelfView: View {
                 }
                 .gesture(DragGesture()
                     .onChanged { gesture in
-                        if horizontalDragOffset != nil {
-                            horizontalDragOffset = gesture
-                            return
+
+                        if !isContentExpanded {
+                            if horizontalDragOffset != nil {
+                                horizontalDragOffset = gesture
+                                return
+                            }
                         }
+
                         if verticalDragOffset != nil {
                             verticalDragOffset = gesture
                             return
                         }
+
                         if abs(gesture.translation.width) > abs(gesture.translation.height) {
-                            horizontalDragOffset = gesture
+                            if !isContentExpanded {
+                                horizontalDragOffset = gesture
+                            }
                         } else {
                             verticalDragOffset = gesture
                         }
@@ -185,7 +110,7 @@ struct ShelfView: View {
                             if gesture.translation.width > geometryCalculator.posterViewWidth / 3 {
                                 currentIndex = max(0, currentIndex - 1)
                             } else if gesture.translation.width < -geometryCalculator.posterViewWidth / 3 {
-                                currentIndex = min(items.count - 1, currentIndex + 1)
+                                currentIndex = min(movies.count - 1, currentIndex + 1)
                             }
                         }
 
@@ -222,11 +147,97 @@ struct ShelfView: View {
 
     // MARK: Object life cycle
 
-    init(items: [ShelfItem], cornerRadius: CGFloat, expanded: Bool = false, onOpen: @escaping (ShelfItem) -> Void) {
-        self.items = items
+    init(movies: [Movie],
+         cornerRadius: CGFloat,
+         expanded: Bool = false,
+         onOpenMovie: @escaping (Movie) -> Void,
+         onOpenMovieWithIdentifier: @escaping (Movie.ID) -> Void) {
+        self.movies = movies
         self.cornerRadius = cornerRadius
-        self.onOpen = onOpen
+        self.openMovie = onOpenMovie
+        self.openMovieWithIdentifier = onOpenMovieWithIdentifier
+
         self._isContentExpanded = State(initialValue: expanded)
+    }
+}
+
+// MARK: - Helper types
+
+private struct GeometryCalculator {
+
+    private let geometry: GeometryProxy
+    private let currentIndex: Int
+    private let numberOfItems: Int
+    private let isContentExpanded: Bool
+    private let horizontalOffset: CGFloat
+    private let verticalOffset: CGFloat
+
+    // MARK: Object life cycle
+
+    init(geometry: GeometryProxy,
+         currentIndex: Int,
+         numberOfItems: Int,
+         isContentExpanded: Bool,
+         horizontalDragOffset: DragGesture.Value?,
+         verticalDragOffset: DragGesture.Value?) {
+        self.geometry = geometry
+        self.currentIndex = max(min(currentIndex, numberOfItems - 1), 0)
+        self.numberOfItems = numberOfItems
+        self.isContentExpanded = isContentExpanded
+        self.horizontalOffset = horizontalDragOffset?.translation.width ?? 0
+        self.verticalOffset = verticalDragOffset?.translation.height ?? 0
+    }
+
+    // MARK: Computed properties
+
+    var posterViewWidth: CGFloat {
+        return geometry.size.width
+    }
+
+    var detailsViewPadding: CGFloat {
+        return isContentExpanded ? 10 : 30
+    }
+
+    var detailsViewWidth: CGFloat {
+        return geometry.size.width - detailsViewPadding * 2
+    }
+
+    var postersScrollOffset: CGFloat {
+        let offset = dragOffset(itemWidth: posterViewWidth)
+        let listWidth = CGFloat(numberOfItems) * posterViewWidth
+        return max(min(offset, 0), posterViewWidth-listWidth)
+    }
+
+    var postersContainerOffset: CGFloat {
+        let offset = dragOffset(itemWidth: posterViewWidth)
+        let listWidth = CGFloat(numberOfItems) * posterViewWidth
+
+        if offset > posterViewWidth - listWidth {
+            return max(offset, 0) / 4
+        } else {
+            return -(posterViewWidth - listWidth - offset) / 4
+        }
+    }
+
+    var detailsContainerHorizontalOffset: CGFloat {
+        let offset = dragOffset(itemWidth: detailsViewWidth + detailsViewPadding) + detailsViewPadding
+        let listWidth = CGFloat(numberOfItems) * detailsViewWidth
+
+        if offset > detailsViewPadding {
+            return detailsViewPadding + horizontalOffset / 6
+        } else if offset < posterViewWidth - listWidth - detailsViewPadding {
+            return offset - horizontalOffset + horizontalOffset / 6
+        } else  {
+            return offset
+        }
+    }
+
+    var expandingScrollOffset: CGFloat {
+        return verticalOffset
+    }
+
+    private func dragOffset(itemWidth: CGFloat) -> CGFloat {
+        return -(CGFloat(currentIndex) * itemWidth - horizontalOffset)
     }
 }
 
@@ -259,22 +270,21 @@ private struct PostersListView: View {
 
 private struct DetailsListView: View {
 
-    @Binding var expandedHeight: CGFloat
-
-    let items: [ShelfView.ShelfItem]
+    let movies: [Movie]
     let status: DetailsItemView.Status
     let detailElementWidth: CGFloat
     let detailElementPadding: CGFloat
-    let onOpenSelected: (ShelfView.ShelfItem) -> Void
+    let onMovieSelected: (Movie) -> Void
+    let onMovieIdentifierSelected: (Movie.ID) -> Void
 
     var body: some View {
         HStack(alignment: .top, spacing: detailElementPadding) {
-            ForEach(items, id: \.movie.id) { item in
+            ForEach(movies, id: \.id) { movie in
                 DetailsItemView(
-                    expandedHeight: $expandedHeight,
-                    item: item,
+                    movie: movie,
                     status: status,
-                    onOpenSelected: { onOpenSelected(item) }
+                    onMovieSelected: onMovieSelected,
+                    onMovieIdentifierSelected: onMovieIdentifierSelected
                 )
                 .padding(.horizontal, detailElementPadding)
                 .frame(width: detailElementWidth)
@@ -291,24 +301,18 @@ private struct DetailsItemView: View {
         case contracted
     }
 
-    @State private var headerHeight: CGFloat = 0
-    @State private var contentHeight: CGFloat = 0
-
-    @Binding var expandedHeight: CGFloat
-
-    let item: ShelfView.ShelfItem
+    let movie: Movie
     let status: Status
-    let onOpenSelected: () -> Void
+
+    let onMovieSelected: (Movie) -> Void
+    let onMovieIdentifierSelected: (Movie.ID) -> Void
 
     var body: some View {
         VStack(alignment: .center, spacing: 0) {
             Group {
-                HeaderView(movieDetails: item.movie.details)
+                HeaderView(movieDetails: movie.details)
             }
             .padding(.top, 12)
-            .background(GeometryReader { geometry in
-                Color.clear.onAppear { headerHeight = geometry.size.height }
-            })
 
             Group {
                 Image(systemName: "chevron.compact.up")
@@ -320,15 +324,13 @@ private struct DetailsItemView: View {
             .opacity(1 - makeOpacity())
 
             Group {
-                ContentView(movie: item.movie, onOpenSelected: onOpenSelected)
+                ContentView(
+                    movie: movie,
+                    onMovieSelected: onMovieSelected,
+                    onMovieIdentifierSelected: onMovieIdentifierSelected
+                )
             }
             .padding(.top, 24)
-            .background(GeometryReader { geometry in
-                Color.clear.onAppear {
-                    contentHeight = geometry.size.height
-                    expandedHeight = contentHeight
-                }
-            })
             .opacity(makeOpacity())
         }
     }
@@ -340,7 +342,7 @@ private struct DetailsItemView: View {
         case .expanded:
             return 1
         case .expanding(let offset):
-            return offset / contentHeight
+            return offset / 100
         }
     }
 }
@@ -369,18 +371,87 @@ private struct HeaderView: View {
 
 private struct ContentView: View {
 
-    let movie: Movie
-    let onOpenSelected: () -> Void
+    @MainActor final class Content: ObservableObject {
+
+        @Published private(set) var movie: Movie
+
+        init(movie: Movie) {
+            self.movie = movie
+        }
+
+        func load(requestManager: RequestManager) async {
+            if let collection = movie.collection, collection.list == nil {
+                do {
+                    self.movie.collection?.list = try await MovieWebService(requestManager: requestManager).fetchCollection(with: collection.id).list
+                } catch {
+                    print(error)
+                }
+            }
+        }
+    }
+
+    @Environment(\.requestManager) var requestManager
+
+    @StateObject private var content: Content
+
+    private let onMovieSelected: (Movie) -> Void
+    private let onMovieIdentifierSelected: (Movie.ID) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Button(action: onOpenSelected) {
+            if let collection = content.movie.collection, let list = collection.list, !list.isEmpty {
+                VStack(alignment: .leading) {
+                    Text("Belong to:")
+                    Text(collection.name).font(.title2)
+                    ScrollView(.horizontal) {
+                        HStack {
+                            ForEach(list) { movieDetails in
+                                Group {
+                                    AsyncImage(url: movieDetails.media.posterPreviewUrl, content: { image in
+                                        image
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fill)
+                                    }, placeholder: {
+                                        Color
+                                            .gray
+                                            .opacity(0.2)
+                                    })
+                                    .frame(height: 120)
+                                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                                }
+                                .padding(.trailing, 4)
+                                .padding(.bottom, 4)
+                                .onTapGesture {
+                                    onMovieIdentifierSelected(movieDetails.id)
+                                }
+                            }
+                        }
+                        .padding(.vertical)
+                    }
+                }
+                .padding()
+                .background(.thickMaterial)
+                .cornerRadius(12)
+            }
+
+            Button(action: { onMovieSelected(content.movie) }) {
                 Text("Open")
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 6)
             }
             .buttonStyle(.borderedProminent)
         }
+        .task {
+            await content.load(requestManager: requestManager)
+        }
+    }
+
+    init(movie: Movie,
+         onMovieSelected: @escaping (Movie) -> Void,
+         onMovieIdentifierSelected: @escaping (Movie.ID) -> Void) {
+        self._content = StateObject(wrappedValue: Content(movie: movie))
+        self.onMovieSelected = onMovieSelected
+        self.onMovieIdentifierSelected = onMovieIdentifierSelected
     }
 }
 
@@ -415,13 +486,14 @@ struct ShelfView_Previews: PreviewProvider {
 
     static var previews: some View {
         ShelfView(
-            items: [
-                .init(movie: MockServer.movie(with: 954)),
-                .init(movie: MockServer.movie(with: 616037))
+            movies: [
+                MockServer.movie(with: 954),
+                MockServer.movie(with: 616037)
             ],
             cornerRadius: 16.0,
-            expanded: false,
-            onOpen: { _ in }
+            expanded: true,
+            onOpenMovie: { _ in },
+            onOpenMovieWithIdentifier: { _ in }
         )
         .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
     }

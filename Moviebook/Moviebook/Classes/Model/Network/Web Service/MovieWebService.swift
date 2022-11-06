@@ -16,6 +16,10 @@ struct MovieWebService {
                 URLQueryItem(name: "append_to_response", value: "videos")
             ])
         }
+
+        static func makeMovieCollectionUrl(collectionIdentifier: MovieCollection.ID) throws -> URL {
+            return try TheMovieDbDataRequestFactory.makeURL(path: "collection/\(collectionIdentifier)")
+        }
     }
 
     let requestManager: RequestManager
@@ -24,6 +28,13 @@ struct MovieWebService {
         let url = try URLFactory.makeMovieUrl(movieIdentifier: identifier)
         let data = try await requestManager.request(from: url)
         let parsedResponse = try JSONDecoder().decode(Movie.self, from: data)
+        return parsedResponse
+    }
+
+    func fetchCollection(with identifier: MovieCollection.ID) async throws -> MovieCollection {
+        let url = try URLFactory.makeMovieCollectionUrl(collectionIdentifier: identifier)
+        let data = try await requestManager.request(from: url)
+        let parsedResponse = try JSONDecoder().decode(MovieCollection.self, from: data)
         return parsedResponse
     }
 }
