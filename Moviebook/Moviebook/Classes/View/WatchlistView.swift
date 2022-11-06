@@ -34,9 +34,17 @@ import Combine
         }
     }
 
+    struct Item: Identifiable {
+        var id: Movie.ID {
+            return movie.id
+        }
+
+        let movie: Movie
+    }
+
     // MARK: Instance Properties
 
-    @Published var movies: [Section.ID: [Movie]] = [:]
+    @Published var items: [Section.ID: [Item]] = [:]
     @Published var error: Error?
 
     var sections: [Section] {
@@ -51,7 +59,8 @@ import Combine
         watchlist.$toWatch.sink { [weak self] watchlistItems in
             Task {
                 do {
-                    self?.movies[Section.toWatch.id] = try await self?.loadMovies(watchlistItems: watchlistItems, requestManager: requestManager)
+                    self?.items[Section.toWatch.id] = try await self?.loadItems(watchlistItems: watchlistItems, requestManager: requestManager)
+                    self?.error = nil
                 } catch {
                     self?.error = .failedToLoad
                 }
@@ -62,7 +71,8 @@ import Combine
         watchlist.$watched.sink { [weak self] watchlistItems in
             Task {
                 do {
-                    self?.movies[Section.watched.id] = try await self?.loadMovies(watchlistItems: watchlistItems, requestManager: requestManager)
+                    self?.items[Section.watched.id] = try await self?.loadItems(watchlistItems: watchlistItems, requestManager: requestManager)
+                    self?.error = nil
                 } catch {
                     self?.error = .failedToLoad
                 }
@@ -71,11 +81,16 @@ import Combine
         .store(in: &subscriptions)
     }
 
-    func movies(forSectionWith identifier: Section.ID) -> [Movie] {
-        return movies[identifier] ?? []
+    func items(forSectionWith identifier: Section.ID) -> [Item] {
+        return items[identifier] ?? []
     }
 
     // MARK: Private helper methods
+
+    private func loadItems(watchlistItems: [Watchlist.WatchlistItem], requestManager: RequestManager) async throws -> [Item] {
+        let movies = try await loadMovies(watchlistItems: watchlistItems, requestManager: requestManager)
+        return movies.map(Item.init(movie:))
+    }
 
     private func loadMovies(watchlistItems: [Watchlist.WatchlistItem], requestManager: RequestManager) async throws -> [Movie] {
         return try await watchlistItems
@@ -120,18 +135,21 @@ struct WatchlistView: View {
                 switch selectedLayout {
                 case .shelf:
                     ShelfView(
-                        movies: content.movies(forSectionWith: selectedSection.id),
-                        cornerRadius: isExplorePresented ? 0 : 16, onOpen: { movie in
-                            isMoviePresented = movie
+                        items: content.items(forSectionWith: selectedSection.id)
+                            .map(\.movie)
+                            .map(ShelfView.ShelfItem.init(movie:)),
+                        cornerRadius: isExplorePresented ? 0 : 16,
+                        onOpen: { item in
+                            isMoviePresented = item.movie
                         }
                     )
                     .id(selectedSection.id)
                     .padding(.top)
                 case .list:
                     List {
-                        ForEach(content.movies(forSectionWith: selectedSection.id)) { movie in
-                            NavigationLink(value: movie.id) {
-                                MoviePreviewView(details: movie.details)
+                        ForEach(content.items(forSectionWith: selectedSection.id)) { item in
+                            NavigationLink(value: item.id) {
+                                MoviePreviewView(details: item.movie.details)
                             }
                         }
                         .listRowSeparator(.hidden)

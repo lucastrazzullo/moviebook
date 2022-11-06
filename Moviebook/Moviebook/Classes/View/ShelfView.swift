@@ -87,6 +87,12 @@ struct ShelfView: View {
         }
     }
 
+    struct ShelfItem {
+        let movie: Movie
+    }
+
+    // MARK: Instance properties
+
     @Environment(\.colorScheme) private var colorScheme
 
     @State private var horizontalDragOffset: DragGesture.Value?
@@ -95,9 +101,9 @@ struct ShelfView: View {
     @State private var isContentExpanded: Bool
     @State private var expandedContentHeight: CGFloat = 0
 
-    let movies: [Movie]
+    let items: [ShelfItem]
     let cornerRadius: CGFloat
-    let onOpen: (Movie) -> Void
+    let onOpen: (ShelfItem) -> Void
 
     var body: some View {
         Group {
@@ -105,7 +111,7 @@ struct ShelfView: View {
                 let geometryCalculator = GeometryCalculator(
                     geometry: geometry,
                     currentIndex: currentIndex,
-                    numberOfItems: movies.count,
+                    numberOfItems: items.count,
                     isContentExpanded: isContentExpanded,
                     horizontalDragOffset: horizontalDragOffset,
                     verticalDragOffset: verticalDragOffset
@@ -115,19 +121,19 @@ struct ShelfView: View {
                     VStack(alignment: .leading) {
                         ZStack(alignment: .bottomLeading) {
                             PostersListView(
-                                posterUrls: movies.map(\.details.media.posterUrl),
+                                posterUrls: items.map(\.movie.details.media.posterUrl),
                                 posterElementWidth: geometryCalculator.posterViewWidth
                             )
                             .offset(x: geometryCalculator.postersScrollOffset)
                             .onTapGesture {
-                                if movies.indices.contains(currentIndex) {
-                                    onOpen(movies[currentIndex])
+                                if items.indices.contains(currentIndex) {
+                                    onOpen(items[currentIndex])
                                 }
                             }
 
-                            if movies.count > 1 {
+                            if items.count > 1 {
                                 IndexIndicatorView(
-                                    movieIdentifiers: movies.map(\.id),
+                                    movieIdentifiers: items.map(\.movie.id),
                                     currentIndex: currentIndex
                                 )
                                 .frame(width: geometryCalculator.posterViewWidth)
@@ -146,7 +152,7 @@ struct ShelfView: View {
 
                         DetailsListView(
                             expandedHeight: $expandedContentHeight,
-                            movies: movies,
+                            items: items,
                             status: verticalDragOffset != nil
                                 ? .expanding(offset: -geometryCalculator.expandingScrollOffset)
                                 : isContentExpanded ? .expanded : .contracted,
@@ -179,7 +185,7 @@ struct ShelfView: View {
                             if gesture.translation.width > geometryCalculator.posterViewWidth / 3 {
                                 currentIndex = max(0, currentIndex - 1)
                             } else if gesture.translation.width < -geometryCalculator.posterViewWidth / 3 {
-                                currentIndex = min(movies.count - 1, currentIndex + 1)
+                                currentIndex = min(items.count - 1, currentIndex + 1)
                             }
                         }
 
@@ -214,8 +220,10 @@ struct ShelfView: View {
         return isContentExpanded ? 0 : 8
     }
 
-    init(movies: [Movie], cornerRadius: CGFloat, expanded: Bool = false, onOpen: @escaping (Movie) -> Void) {
-        self.movies = movies
+    // MARK: Object life cycle
+
+    init(items: [ShelfItem], cornerRadius: CGFloat, expanded: Bool = false, onOpen: @escaping (ShelfItem) -> Void) {
+        self.items = items
         self.cornerRadius = cornerRadius
         self.onOpen = onOpen
         self._isContentExpanded = State(initialValue: expanded)
@@ -253,20 +261,20 @@ private struct DetailsListView: View {
 
     @Binding var expandedHeight: CGFloat
 
-    let movies: [Movie]
+    let items: [ShelfView.ShelfItem]
     let status: DetailsItemView.Status
     let detailElementWidth: CGFloat
     let detailElementPadding: CGFloat
-    let onOpenSelected: (Movie) -> Void
+    let onOpenSelected: (ShelfView.ShelfItem) -> Void
 
     var body: some View {
         HStack(alignment: .top, spacing: detailElementPadding) {
-            ForEach(movies, id: \.id) { movie in
+            ForEach(items, id: \.movie.id) { item in
                 DetailsItemView(
                     expandedHeight: $expandedHeight,
-                    movie: movie,
+                    item: item,
                     status: status,
-                    onOpenSelected: { onOpenSelected(movie) }
+                    onOpenSelected: { onOpenSelected(item) }
                 )
                 .padding(.horizontal, detailElementPadding)
                 .frame(width: detailElementWidth)
@@ -288,14 +296,14 @@ private struct DetailsItemView: View {
 
     @Binding var expandedHeight: CGFloat
 
-    let movie: Movie
+    let item: ShelfView.ShelfItem
     let status: Status
     let onOpenSelected: () -> Void
 
     var body: some View {
         VStack(alignment: .center, spacing: 0) {
             Group {
-                HeaderView(movieDetails: movie.details)
+                HeaderView(movieDetails: item.movie.details)
             }
             .padding(.top, 12)
             .background(GeometryReader { geometry in
@@ -312,7 +320,7 @@ private struct DetailsItemView: View {
             .opacity(1 - makeOpacity())
 
             Group {
-                ContentView(movie: movie, onOpenSelected: onOpenSelected)
+                ContentView(movie: item.movie, onOpenSelected: onOpenSelected)
             }
             .padding(.top, 24)
             .background(GeometryReader { geometry in
@@ -407,9 +415,9 @@ struct ShelfView_Previews: PreviewProvider {
 
     static var previews: some View {
         ShelfView(
-            movies: [
-                MockServer.movie(with: 954),
-                MockServer.movie(with: 616037)
+            items: [
+                .init(movie: MockServer.movie(with: 954)),
+                .init(movie: MockServer.movie(with: 616037))
             ],
             cornerRadius: 16.0,
             expanded: false,
