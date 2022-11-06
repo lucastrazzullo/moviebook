@@ -1,5 +1,5 @@
 //
-//  TrailerPlayer.swift
+//  MovieVideoPlayer.swift
 //  Moviebook
 //
 //  Created by Luca Strazzullo on 04/11/2022.
@@ -8,14 +8,14 @@
 import SwiftUI
 import YouTubePlayerKit
 
-struct TrailerPlayer: View {
+struct MovieVideoPlayer: View {
 
-    let trailer: MovieTrailer
+    let video: MovieVideo
     let autoplay: Bool
 
     var body: some View {
         Group {
-            switch trailer {
+            switch video.source {
             case .youtube(let id):
                 YouTubePlayerView(YouTubePlayer(
                     source: .video(id: id),
@@ -30,14 +30,14 @@ struct TrailerPlayer: View {
         .background(.black)
     }
 
-    init(trailer: MovieTrailer, autoplay: Bool = false) {
-        self.trailer = trailer
+    init(video: MovieVideo, autoplay: Bool = false) {
+        self.video = video
         self.autoplay = autoplay
     }
 }
 
 struct TrailerPlayer_Previews: PreviewProvider {
     static var previews: some View {
-        TrailerPlayer(trailer: .youtube(id: "x5DhuDSArTI"))
+        MovieVideoPlayer(video: MovieVideo(id: "id", type: .trailer, source: .youtube(id: "x5DhuDSArTI")))
     }
 }

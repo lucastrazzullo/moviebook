@@ -178,33 +178,48 @@ extension MovieMedia: Decodable {
             backdropPreviewUrl = nil
         }
 
-        if let videos = try container.decodeIfPresent(TheMovieDbResponseWithResults<MovieTrailer>.self, forKey: .videos) {
-            trailer = videos.results.first
+        if let videoResults = try? container.decodeIfPresent(TheMovieDbResponseWithResults<MovieVideo>.self, forKey: .videos)?.results {
+            videos = videoResults
         } else {
-            trailer = nil
+            videos = []
         }
     }
 }
 
-extension MovieTrailer: Decodable {
-
+extension MovieVideo: Decodable {
+    
     enum DecodingError: Error {
         case siteNotSupported(_ site: String)
+        case typeNotSupported(_ type: String)
     }
-
+    
     enum CodingKeys: CodingKey {
+        case id
         case key
         case site
+        case type
     }
-
+    
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
+
+        id = try values.decode(String.self, forKey: .id)
+
+        let type = try values.decode(String.self, forKey: .type)
+        switch type {
+        case "Trailer":
+            self.type = .trailer
+        case "Teaser":
+            self.type = .teaser
+        default:
+            throw DecodingError.typeNotSupported(type)
+        }
 
         let key = try values.decode(String.self, forKey: .key)
         let site = try values.decode(String.self, forKey: .site)
         switch site {
         case "YouTube":
-            self = .youtube(id: key)
+            self.source = .youtube(id: key)
         default:
             throw DecodingError.siteNotSupported(site)
         }
