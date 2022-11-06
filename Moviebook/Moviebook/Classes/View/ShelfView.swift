@@ -366,23 +366,7 @@ private struct ContentView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            VStack(alignment: .leading) {
-                Text("Appartiene ad una serie").font(.subheadline)
-                Text("Mission Impossible").font(.title2)
-
-                HStack {
-                    Rectangle().frame(width: 60, height: 40).cornerRadius(8)
-                    Rectangle().frame(width: 60, height: 40).cornerRadius(8)
-                    Rectangle().frame(width: 60, height: 40).cornerRadius(8)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding()
-            .background(.thickMaterial)
-            .background(.orange)
-            .cornerRadius(12)
-
-            Button(action: { onOpenSelected() }) {
+            Button(action: onOpenSelected) {
                 Text("Open")
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 6)
