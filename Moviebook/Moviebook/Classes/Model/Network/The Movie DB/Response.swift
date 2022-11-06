@@ -137,8 +137,6 @@ extension MovieCollection: Decodable {
     enum CodingKeys: String, CodingKey {
         case id = "id"
         case name = "name"
-        case posterPath = "poster_path"
-        case backdropPath = "backdrop_path"
     }
 
     init(from decoder: Decoder) throws {
@@ -146,7 +144,6 @@ extension MovieCollection: Decodable {
 
         id = try values.decode(MovieCollection.ID.self, forKey: .id)
         name = try values.decode(String.self, forKey: .name)
-        media = try MovieMedia(from: decoder)
     }
 }
 
