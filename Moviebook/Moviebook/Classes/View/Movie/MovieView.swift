@@ -87,9 +87,9 @@ struct MovieView: View {
 
     // MARK: Obejct life cycle
 
-    init(movieId: Movie.ID, navigationPath: Binding<NavigationPath>) {
+    init(movieId: Movie.ID, navigationPath: Binding<NavigationPath>?) {
         self._content = StateObject(wrappedValue: Content(movieId: movieId))
-        self._navigationPath = navigationPath
+        self._navigationPath = navigationPath ?? .constant(NavigationPath())
     }
 
     init(movie: Movie, navigationPath: Binding<NavigationPath>?) {
@@ -103,7 +103,7 @@ private struct MovieContentView: View {
     @State private var contentOffset: CGFloat = 0
     @State private var contentInset: CGFloat = 0
     @State private var isImageLoaded: Bool = false
-    @State private var isTrailerPresented: MovieTrailer? = nil
+    @State private var isVideoPresented: MovieVideo? = nil
 
     private let headerHeight: CGFloat = 90
     private let headerOverlap: CGFloat = 24
@@ -139,7 +139,7 @@ private struct MovieContentView: View {
             GeometryReader { geometry in
                 HeaderView(
                     navigationPath: $navigationPath,
-                    isTrailerPresented: $isTrailerPresented,
+                    isVideoPresented: $isVideoPresented,
                     shouldShowHeader: shouldShowHeader(geometry: geometry),
                     headerHeight: headerHeight,
                     movieDetails: movie.details
@@ -155,12 +155,12 @@ private struct MovieContentView: View {
                 .opacity(isImageLoaded ? 0 : 1)
                 .animation(.easeIn(duration: 0.4), value: isImageLoaded)
         }
-        .fullScreenCover(item: $isTrailerPresented) { trailer in
+        .fullScreenCover(item: $isVideoPresented) { video in
             ZStack(alignment: .topLeading) {
-                TrailerPlayer(trailer: trailer, autoplay: true)
+                MovieVideoPlayer(video: video, autoplay: true)
 
                 WatermarkView {
-                    Button(action: { isTrailerPresented = nil }) {
+                    Button(action: { isVideoPresented = nil }) {
                         Image(systemName: "chevron.down")
                     }
                 }
@@ -213,7 +213,7 @@ private struct HeaderView: View {
 
     @Environment(\.dismiss) private var dismiss
     @Binding var navigationPath: NavigationPath
-    @Binding var isTrailerPresented: MovieTrailer?
+    @Binding var isVideoPresented: MovieVideo?
 
     let shouldShowHeader: Bool
     let headerHeight: CGFloat
@@ -249,10 +249,22 @@ private struct HeaderView: View {
                 WatermarkView {
                     IconWatchlistButton(watchlistItem: .movie(id: movieDetails.id))
 
-                    if let trailer = movieDetails.media.trailer {
-                        Button(action: { isTrailerPresented = trailer }) {
+                    if !movieDetails.media.videos.isEmpty {
+                        Menu {
+                            ForEach(movieDetails.media.videos) { video in
+                                Button(action: { isVideoPresented = video }) {
+                                    switch video.type {
+                                    case .trailer:
+                                        Label("Trailer", systemImage: "play")
+                                    case .teaser:
+                                        Label("Teaser", systemImage: "play")
+                                    }
+                                }
+                            }
+                        } label: {
                             Image(systemName: "play.fill")
                         }
+
                     }
                 }
             }

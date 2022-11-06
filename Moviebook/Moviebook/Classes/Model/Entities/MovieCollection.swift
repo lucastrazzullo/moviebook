@@ -10,5 +10,5 @@ import Foundation
 struct MovieCollection: Identifiable {
     let id: Int
     let name: String
-    let media: MovieMedia
+    var list: [MovieDetails]?
 }
