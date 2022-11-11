@@ -22,6 +22,7 @@ struct ShelfView: View {
     let cornerRadius: CGFloat
     let openMovie: (Movie) -> Void
     let openMovieWithIdentifier: (Movie.ID) -> Void
+    let openCollectionwithIdentifier: (MovieCollection.ID) -> Void
 
     var body: some View {
         Group {
@@ -76,7 +77,8 @@ struct ShelfView: View {
                             detailElementWidth: geometryCalculator.detailsViewWidth,
                             detailElementPadding: geometryCalculator.detailsViewPadding,
                             onMovieSelected: openMovie,
-                            onMovieIdentifierSelected: openMovieWithIdentifier
+                            onMovieIdentifierSelected: openMovieWithIdentifier,
+                            onCollectionIdentifierSelected: openCollectionwithIdentifier
                         )
                         .offset(x: geometryCalculator.detailsContainerHorizontalOffset)
                     }
@@ -151,11 +153,13 @@ struct ShelfView: View {
          cornerRadius: CGFloat,
          expanded: Bool = false,
          onOpenMovie: @escaping (Movie) -> Void,
-         onOpenMovieWithIdentifier: @escaping (Movie.ID) -> Void) {
+         onOpenMovieWithIdentifier: @escaping (Movie.ID) -> Void,
+         onOpenCollectionwithIdentifier: @escaping (MovieCollection.ID) -> Void) {
         self.movies = movies
         self.cornerRadius = cornerRadius
         self.openMovie = onOpenMovie
         self.openMovieWithIdentifier = onOpenMovieWithIdentifier
+        self.openCollectionwithIdentifier = onOpenCollectionwithIdentifier
 
         self._isContentExpanded = State(initialValue: expanded)
     }
@@ -276,6 +280,7 @@ private struct DetailsListView: View {
     let detailElementPadding: CGFloat
     let onMovieSelected: (Movie) -> Void
     let onMovieIdentifierSelected: (Movie.ID) -> Void
+    let onCollectionIdentifierSelected: (MovieCollection.ID) -> Void
 
     var body: some View {
         HStack(alignment: .top, spacing: detailElementPadding) {
@@ -284,7 +289,8 @@ private struct DetailsListView: View {
                     movie: movie,
                     status: status,
                     onMovieSelected: onMovieSelected,
-                    onMovieIdentifierSelected: onMovieIdentifierSelected
+                    onMovieIdentifierSelected: onMovieIdentifierSelected,
+                    onCollectionIdentifierSelected: onCollectionIdentifierSelected
                 )
                 .padding(.horizontal, detailElementPadding)
                 .frame(width: detailElementWidth)
@@ -306,6 +312,7 @@ private struct DetailsItemView: View {
 
     let onMovieSelected: (Movie) -> Void
     let onMovieIdentifierSelected: (Movie.ID) -> Void
+    let onCollectionIdentifierSelected: (MovieCollection.ID) -> Void
 
     var body: some View {
         VStack(alignment: .center, spacing: 0) {
@@ -327,7 +334,8 @@ private struct DetailsItemView: View {
                 ContentView(
                     movie: movie,
                     onMovieSelected: onMovieSelected,
-                    onMovieIdentifierSelected: onMovieIdentifierSelected
+                    onMovieIdentifierSelected: onMovieIdentifierSelected,
+                    onCollectionIdentifierSelected: onCollectionIdentifierSelected
                 )
             }
             .padding(.top, 24)
@@ -371,87 +379,31 @@ private struct HeaderView: View {
 
 private struct ContentView: View {
 
-    @MainActor final class Content: ObservableObject {
-
-        @Published private(set) var movie: Movie
-
-        init(movie: Movie) {
-            self.movie = movie
-        }
-
-        func load(requestManager: RequestManager) async {
-            if let collection = movie.collection, collection.list == nil {
-                do {
-                    self.movie.collection?.list = try await MovieWebService(requestManager: requestManager).fetchCollection(with: collection.id).list
-                } catch {
-                    print(error)
-                }
-            }
-        }
-    }
-
-    @Environment(\.requestManager) var requestManager
-
-    @StateObject private var content: Content
-
-    private let onMovieSelected: (Movie) -> Void
-    private let onMovieIdentifierSelected: (Movie.ID) -> Void
+    let movie: Movie
+    let onMovieSelected: (Movie) -> Void
+    let onMovieIdentifierSelected: (Movie.ID) -> Void
+    let onCollectionIdentifierSelected: (MovieCollection.ID) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            if let collection = content.movie.collection, let list = collection.list, !list.isEmpty {
-                VStack(alignment: .leading) {
-                    Text("Belong to:")
-                    Text(collection.name).font(.title2)
-                    ScrollView(.horizontal) {
-                        HStack {
-                            ForEach(list) { movieDetails in
-                                Group {
-                                    AsyncImage(url: movieDetails.media.posterPreviewUrl, content: { image in
-                                        image
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fill)
-                                    }, placeholder: {
-                                        Color
-                                            .gray
-                                            .opacity(0.2)
-                                    })
-                                    .frame(height: 120)
-                                    .clipShape(RoundedRectangle(cornerRadius: 6))
-                                }
-                                .padding(.trailing, 4)
-                                .padding(.bottom, 4)
-                                .onTapGesture {
-                                    onMovieIdentifierSelected(movieDetails.id)
-                                }
-                            }
-                        }
-                        .padding(.vertical)
-                    }
-                }
+            if let collection = movie.collection {
+                MovieCollectionView(
+                    collection: collection,
+                    onMovieIdentifierSelected: onMovieIdentifierSelected,
+                    onCollectionIdentifierSelected: onCollectionIdentifierSelected
+                )
                 .padding()
-                .background(.thickMaterial)
-                .cornerRadius(12)
+                .background(.thinMaterial)
+                .cornerRadius(24)
             }
 
-            Button(action: { onMovieSelected(content.movie) }) {
+            Button(action: { onMovieSelected(movie) }) {
                 Text("Open")
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 6)
             }
             .buttonStyle(.borderedProminent)
         }
-        .task {
-            await content.load(requestManager: requestManager)
-        }
-    }
-
-    init(movie: Movie,
-         onMovieSelected: @escaping (Movie) -> Void,
-         onMovieIdentifierSelected: @escaping (Movie.ID) -> Void) {
-        self._content = StateObject(wrappedValue: Content(movie: movie))
-        self.onMovieSelected = onMovieSelected
-        self.onMovieIdentifierSelected = onMovieIdentifierSelected
     }
 }
 
@@ -487,14 +439,16 @@ struct ShelfView_Previews: PreviewProvider {
     static var previews: some View {
         ShelfView(
             movies: [
-                MockServer.movie(with: 954),
-                MockServer.movie(with: 616037)
+                MockWebService.movie(with: 954),
+                MockWebService.movie(with: 616037)
             ],
             cornerRadius: 16.0,
             expanded: true,
             onOpenMovie: { _ in },
-            onOpenMovieWithIdentifier: { _ in }
+            onOpenMovieWithIdentifier: { _ in },
+            onOpenCollectionwithIdentifier: { _ in }
         )
+        .environment(\.requestManager, MockRequestManager())
         .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
     }
 }

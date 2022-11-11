@@ -12,6 +12,8 @@
 		8112AF0529152FA80041475D /* MovieVideoPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8112AF0429152FA80041475D /* MovieVideoPlayer.swift */; };
 		8112AF0729153EA60041475D /* WatermarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8112AF0629153EA60041475D /* WatermarkView.swift */; };
 		8112AF0B2916DF5D0041475D /* MovieWatchlistStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8112AF0A2916DF5D0041475D /* MovieWatchlistStateView.swift */; };
+		81242FF2291826F700AEB69A /* MockWebService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81242FF1291826F700AEB69A /* MockWebService.swift */; };
+		81242FF629182A3300AEB69A /* MovieCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81242FF529182A3300AEB69A /* MovieCollectionView.swift */; };
 		8128AB1428DF106C002FD343 /* SearchWebService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8128AB1328DF106C002FD343 /* SearchWebService.swift */; };
 		8128AB1628E0BECF002FD343 /* MovieCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8128AB1528E0BECF002FD343 /* MovieCardView.swift */; };
 		8128AB1828E0C1D9002FD343 /* MoviePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8128AB1728E0C1D9002FD343 /* MoviePreviewView.swift */; };
@@ -77,6 +79,8 @@
 		8112AF0429152FA80041475D /* MovieVideoPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieVideoPlayer.swift; sourceTree = "<group>"; };
 		8112AF0629153EA60041475D /* WatermarkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatermarkView.swift; sourceTree = "<group>"; };
 		8112AF0A2916DF5D0041475D /* MovieWatchlistStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieWatchlistStateView.swift; sourceTree = "<group>"; };
+		81242FF1291826F700AEB69A /* MockWebService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockWebService.swift; sourceTree = "<group>"; };
+		81242FF529182A3300AEB69A /* MovieCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieCollectionView.swift; sourceTree = "<group>"; };
 		8128AB1328DF106C002FD343 /* SearchWebService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchWebService.swift; sourceTree = "<group>"; };
 		8128AB1528E0BECF002FD343 /* MovieCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieCardView.swift; sourceTree = "<group>"; };
 		8128AB1728E0C1D9002FD343 /* MoviePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviePreviewView.swift; sourceTree = "<group>"; };
@@ -160,6 +164,7 @@
 				8128AB1528E0BECF002FD343 /* MovieCardView.swift */,
 				8128AB1728E0C1D9002FD343 /* MoviePreviewView.swift */,
 				8112AF0A2916DF5D0041475D /* MovieWatchlistStateView.swift */,
+				81242FF529182A3300AEB69A /* MovieCollectionView.swift */,
 			);
 			path = Movie;
 			sourceTree = "<group>";
@@ -191,6 +196,7 @@
 			children = (
 				814D46E428C23999000D7ABD /* MockRequestManager.swift */,
 				814D46E028C2391D000D7ABD /* MockServer.swift */,
+				81242FF1291826F700AEB69A /* MockWebService.swift */,
 			);
 			path = Mocks;
 			sourceTree = "<group>";
@@ -504,6 +510,7 @@
 				8128AB1628E0BECF002FD343 /* MovieCardView.swift in Sources */,
 				8128AB1A28F003AB002FD343 /* MovieMedia.swift in Sources */,
 				8169FB6228C2107D0054BCE6 /* UpcomingWebService.swift in Sources */,
+				81242FF629182A3300AEB69A /* MovieCollectionView.swift in Sources */,
 				814A13E728F0488100477126 /* WatchlistButton.swift in Sources */,
 				814A13E528F03F2100477126 /* ShelfView.swift in Sources */,
 				814D46D228C22347000D7ABD /* Request.swift in Sources */,
@@ -519,6 +526,7 @@
 				81CDE62329150D3000A34BBC /* MovieVideo.swift in Sources */,
 				814D46E128C2391D000D7ABD /* MockServer.swift in Sources */,
 				8169FB5928C207870054BCE6 /* User.swift in Sources */,
+				81242FF2291826F700AEB69A /* MockWebService.swift in Sources */,
 				8169FB6628C215AB0054BCE6 /* PopularWebService.swift in Sources */,
 				81A69CC5290C398200724FB9 /* Rating.swift in Sources */,
 				814D46D028C2224A000D7ABD /* Response.swift in Sources */,

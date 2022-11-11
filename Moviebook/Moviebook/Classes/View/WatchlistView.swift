@@ -13,7 +13,14 @@ import Combine
     // MARK: Types
 
     enum Error: Swift.Error, Equatable {
-        case failedToLoad
+        case failedToLoad(id: UUID, retry: () -> Void)
+
+        static func == (lhs: Content.Error, rhs: Content.Error) -> Bool {
+            switch (lhs, rhs) {
+            case (.failedToLoad(let lhsId, _), .failedToLoad(let rhsId, _)):
+                return lhsId == rhsId
+            }
+        }
     }
 
     enum Section: Identifiable, CaseIterable {
@@ -56,27 +63,15 @@ import Combine
     // MARK: Internal methods
 
     func start(watchlist: Watchlist, requestManager: RequestManager) {
+        subscriptions.forEach({ $0.cancel() })
+
         watchlist.$toWatch.sink { [weak self] watchlistItems in
-            Task {
-                do {
-                    self?.items[Section.toWatch.id] = try await self?.loadItems(watchlistItems: watchlistItems, requestManager: requestManager)
-                    self?.error = nil
-                } catch {
-                    self?.error = .failedToLoad
-                }
-            }
+            self?.loadItems(from: watchlistItems, inSectionWith: Section.toWatch.id, requestManager: requestManager)
         }
         .store(in: &subscriptions)
 
         watchlist.$watched.sink { [weak self] watchlistItems in
-            Task {
-                do {
-                    self?.items[Section.watched.id] = try await self?.loadItems(watchlistItems: watchlistItems, requestManager: requestManager)
-                    self?.error = nil
-                } catch {
-                    self?.error = .failedToLoad
-                }
-            }
+            self?.loadItems(from: watchlistItems, inSectionWith: Section.watched.id, requestManager: requestManager)
         }
         .store(in: &subscriptions)
     }
@@ -86,6 +81,19 @@ import Combine
     }
 
     // MARK: Private helper methods
+
+    private func loadItems(from watchlistItems: [Watchlist.WatchlistItem], inSectionWith identifier: Section.ID, requestManager: RequestManager) {
+        Task { [weak self] in
+            do {
+                self?.items[identifier] = try await self?.loadItems(watchlistItems: watchlistItems, requestManager: requestManager)
+                self?.error = nil
+            } catch {
+                self?.error = .failedToLoad(id: .init(), retry: { [weak self] in
+                    self?.loadItems(from: watchlistItems, inSectionWith: identifier, requestManager: requestManager)
+                })
+            }
+        }
+    }
 
     private func loadItems(watchlistItems: [Watchlist.WatchlistItem], requestManager: RequestManager) async throws -> [Item] {
         let movies = try await loadMovies(watchlistItems: watchlistItems, requestManager: requestManager)
@@ -117,8 +125,21 @@ struct WatchlistView: View {
         case list
     }
 
-    struct MovieItem: Identifiable {
-        let id: Movie.ID
+    enum PresentedItem: Identifiable {
+        case movie(Movie)
+        case movieWithIdentifier(Movie.ID)
+        case collectionWithIdentifier(MovieCollection.ID)
+
+        var id: AnyHashable {
+            switch self {
+            case .movie(let movie):
+                return movie.id
+            case .movieWithIdentifier(let id):
+                return id
+            case .collectionWithIdentifier(let id):
+                return id
+            }
+        }
     }
 
     @Environment(\.requestManager) var requestManager
@@ -130,8 +151,7 @@ struct WatchlistView: View {
     @State private var selectedLayout: WatchlistLayout = .shelf
     @State private var selectedSection: Content.Section = .toWatch
     @State private var isExplorePresented: Bool = false
-    @State private var isMoviePresented: Movie? = nil
-    @State private var isMoviePresentedWithIdentifier: MovieItem? = nil
+    @State private var isItemPresented: PresentedItem? = nil
     @State private var isErrorPresented: Bool = false
 
     var body: some View {
@@ -143,10 +163,13 @@ struct WatchlistView: View {
                         movies: content.items(forSectionWith: selectedSection.id).map(\.movie),
                         cornerRadius: isExplorePresented ? 0 : 16,
                         onOpenMovie: { movie in
-                            isMoviePresented = movie
+                            isItemPresented = .movie(movie)
                         },
                         onOpenMovieWithIdentifier: { movieIdentifier in
-                            isMoviePresentedWithIdentifier = MovieItem(id: movieIdentifier)
+                            isItemPresented = .movieWithIdentifier(movieIdentifier)
+                        },
+                        onOpenCollectionwithIdentifier: { collectionIdentifier in
+                            isItemPresented = .collectionWithIdentifier(collectionIdentifier)
                         }
                     )
                     .id(selectedSection.id)
@@ -229,15 +252,22 @@ struct WatchlistView: View {
                         }
                 }
             }
-            .sheet(item: $isMoviePresented) { movie in
-                MovieView(movie: movie, navigationPath: nil)
-            }
-            .sheet(item: $isMoviePresentedWithIdentifier) { movieItem in
-                MovieView(movieId: movieItem.id, navigationPath: nil)
+            .sheet(item: $isItemPresented) { item in
+                switch item {
+                case .movie(let movie):
+                    MovieView(movie: movie, navigationPath: nil)
+                case .movieWithIdentifier(let id):
+                    MovieView(movieId: id, navigationPath: nil)
+                case .collectionWithIdentifier(let id):
+                    Text("Collection with id: \(id)")
+                }
             }
             .alert("Error", isPresented: $isErrorPresented) {
-                Button("Retry", role: .cancel) {
-                    content.start(watchlist: watchlist, requestManager: requestManager)
+                if let error = content.error {
+                    switch error {
+                    case .failedToLoad(_, let retry):
+                        Button("Retry", role: .none, action: retry)
+                    }
                 }
             }
             .onChange(of: content.error) { error in

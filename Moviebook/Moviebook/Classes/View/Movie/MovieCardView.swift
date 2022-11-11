@@ -180,8 +180,8 @@ private struct MovieSpecsRow<ContentType: View>: View {
 struct MovieCardView_Previews: PreviewProvider {
     static var previews: some View {
         ScrollView {
-            MovieCardView(movie: MockServer.movie(with: 616037))
-                .environmentObject(Watchlist(moviesToWatch: [616037]))
+            MovieCardView(movie: MockWebService.movie(with: 954))
+                .environmentObject(Watchlist(moviesToWatch: []))
         }
     }
 }
