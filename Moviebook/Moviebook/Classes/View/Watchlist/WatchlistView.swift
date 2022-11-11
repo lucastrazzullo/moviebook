@@ -41,7 +41,7 @@ import Combine
     // MARK: Instance Properties
 
     @Published var items: [Section.ID: [Item]] = [:]
-    @Published var error: ContentError?
+    @Published var error: WebServiceError?
 
     var sections: [Section] {
         return Section.allCases

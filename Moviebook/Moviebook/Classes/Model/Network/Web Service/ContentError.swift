@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum ContentError: Error, Equatable {
+enum WebServiceError: Error, Equatable {
     case failedToLoad(id: UUID, retry: () -> Void)
 
     var retry: () -> Void {
@@ -17,7 +17,7 @@ enum ContentError: Error, Equatable {
         }
     }
 
-    static func == (lhs: ContentError, rhs: ContentError) -> Bool {
+    static func == (lhs: Self, rhs: Self) -> Bool {
         switch (lhs, rhs) {
         case (.failedToLoad(let lhsId, _), .failedToLoad(let rhsId, _)):
             return lhsId == rhsId

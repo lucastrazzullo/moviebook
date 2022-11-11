@@ -12,7 +12,7 @@ import SwiftUI
     // MARK: Instance Properties
 
     @Published var movie: Movie?
-    @Published var error: ContentError?
+    @Published var error: WebServiceError?
 
     private let movieId: Movie.ID
 

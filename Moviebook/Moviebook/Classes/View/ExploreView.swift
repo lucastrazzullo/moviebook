@@ -36,7 +36,7 @@ import Combine
     @Published var searchKeyword: String = ""
     @Published var searchResults: [MovieDetails] = []
     @Published var explore: [Section.ID: [MovieDetails]] = [:]
-    @Published var error: ContentError?
+    @Published var error: WebServiceError?
 
     var sections: [Section] {
         return Section.allCases
