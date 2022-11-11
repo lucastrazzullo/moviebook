@@ -246,7 +246,6 @@ private struct HeaderView: View {
                     Spacer()
                 }
 
-
                 WatermarkView {
                     IconWatchlistButton(watchlistItem: .movie(id: movieDetails.id))
 
@@ -271,8 +270,7 @@ private struct HeaderView: View {
             }
             .padding(.horizontal)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.bottom, 20)
+        .padding(.vertical, 20)
         .background(
             GeometryReader { geometry in
                 Rectangle()
@@ -292,11 +290,11 @@ private struct HeaderView: View {
 #if DEBUG
 struct MovieView_Previews: PreviewProvider {
     static var previews: some View {
-//        NavigationView {
+        NavigationView {
             MovieView(movieId: 954, navigationPath: .constant(NavigationPath()))
                 .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
                 .environment(\.requestManager, MockRequestManager())
-//        }
+        }
     }
 }
 #endif
