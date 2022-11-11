@@ -47,6 +47,7 @@ struct MovieCollectionView: View {
     }
 }
 
+#if DEBUG
 struct MovieCollectionView_Previews: PreviewProvider {
     static let collections: [MovieCollection] = {
         return [
@@ -67,3 +68,4 @@ struct MovieCollectionView_Previews: PreviewProvider {
         }
     }
 }
+#endif

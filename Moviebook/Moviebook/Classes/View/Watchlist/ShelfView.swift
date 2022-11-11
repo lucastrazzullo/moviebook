@@ -434,7 +434,7 @@ struct ShelfView_Previews: PreviewProvider {
                 MockWebService.movie(with: 616037)
             ],
             cornerRadius: 16.0,
-            expanded: true,
+            expanded: false,
             onOpenMovie: { _ in },
             onOpenMovieWithIdentifier: { _ in }
         )
