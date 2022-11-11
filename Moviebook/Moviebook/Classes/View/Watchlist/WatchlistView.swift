@@ -117,15 +117,12 @@ struct WatchlistView: View {
     enum PresentedItem: Identifiable {
         case movie(Movie)
         case movieWithIdentifier(Movie.ID)
-        case collectionWithIdentifier(MovieCollection.ID)
 
         var id: AnyHashable {
             switch self {
             case .movie(let movie):
                 return movie.id
             case .movieWithIdentifier(let id):
-                return id
-            case .collectionWithIdentifier(let id):
                 return id
             }
         }
@@ -156,9 +153,6 @@ struct WatchlistView: View {
                         },
                         onOpenMovieWithIdentifier: { movieIdentifier in
                             isItemPresented = .movieWithIdentifier(movieIdentifier)
-                        },
-                        onOpenCollectionwithIdentifier: { collectionIdentifier in
-                            isItemPresented = .collectionWithIdentifier(collectionIdentifier)
                         }
                     )
                     .id(selectedSection.id)
@@ -234,8 +228,6 @@ struct WatchlistView: View {
                     MovieView(movie: movie)
                 case .movieWithIdentifier(let id):
                     MovieView(movieId: id)
-                case .collectionWithIdentifier(let id):
-                    Text("Collection with id: \(id)")
                 }
             }
             .alert("Error", isPresented: $isErrorPresented) {

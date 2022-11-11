@@ -22,7 +22,6 @@ struct ShelfView: View {
     let cornerRadius: CGFloat
     let openMovie: (Movie) -> Void
     let openMovieWithIdentifier: (Movie.ID) -> Void
-    let openCollectionwithIdentifier: (MovieCollection.ID) -> Void
 
     var body: some View {
         Group {
@@ -77,8 +76,7 @@ struct ShelfView: View {
                             detailElementWidth: geometryCalculator.detailsViewWidth,
                             detailElementPadding: geometryCalculator.detailsViewPadding,
                             onMovieSelected: openMovie,
-                            onMovieIdentifierSelected: openMovieWithIdentifier,
-                            onCollectionIdentifierSelected: openCollectionwithIdentifier
+                            onMovieIdentifierSelected: openMovieWithIdentifier
                         )
                         .offset(x: geometryCalculator.detailsContainerHorizontalOffset)
                     }
@@ -153,13 +151,11 @@ struct ShelfView: View {
          cornerRadius: CGFloat,
          expanded: Bool = false,
          onOpenMovie: @escaping (Movie) -> Void,
-         onOpenMovieWithIdentifier: @escaping (Movie.ID) -> Void,
-         onOpenCollectionwithIdentifier: @escaping (MovieCollection.ID) -> Void) {
+         onOpenMovieWithIdentifier: @escaping (Movie.ID) -> Void) {
         self.movies = movies
         self.cornerRadius = cornerRadius
         self.openMovie = onOpenMovie
         self.openMovieWithIdentifier = onOpenMovieWithIdentifier
-        self.openCollectionwithIdentifier = onOpenCollectionwithIdentifier
 
         self._isContentExpanded = State(initialValue: expanded)
     }
@@ -280,7 +276,6 @@ private struct DetailsListView: View {
     let detailElementPadding: CGFloat
     let onMovieSelected: (Movie) -> Void
     let onMovieIdentifierSelected: (Movie.ID) -> Void
-    let onCollectionIdentifierSelected: (MovieCollection.ID) -> Void
 
     var body: some View {
         HStack(alignment: .top, spacing: detailElementPadding) {
@@ -289,8 +284,7 @@ private struct DetailsListView: View {
                     movie: movie,
                     status: status,
                     onMovieSelected: onMovieSelected,
-                    onMovieIdentifierSelected: onMovieIdentifierSelected,
-                    onCollectionIdentifierSelected: onCollectionIdentifierSelected
+                    onMovieIdentifierSelected: onMovieIdentifierSelected
                 )
                 .padding(.horizontal, detailElementPadding)
                 .frame(width: detailElementWidth)
@@ -312,7 +306,6 @@ private struct DetailsItemView: View {
 
     let onMovieSelected: (Movie) -> Void
     let onMovieIdentifierSelected: (Movie.ID) -> Void
-    let onCollectionIdentifierSelected: (MovieCollection.ID) -> Void
 
     var body: some View {
         VStack(alignment: .center, spacing: 0) {
@@ -334,8 +327,7 @@ private struct DetailsItemView: View {
                 ContentView(
                     movie: movie,
                     onMovieSelected: onMovieSelected,
-                    onMovieIdentifierSelected: onMovieIdentifierSelected,
-                    onCollectionIdentifierSelected: onCollectionIdentifierSelected
+                    onMovieIdentifierSelected: onMovieIdentifierSelected
                 )
             }
             .padding(.top, 24)
@@ -382,15 +374,14 @@ private struct ContentView: View {
     let movie: Movie
     let onMovieSelected: (Movie) -> Void
     let onMovieIdentifierSelected: (Movie.ID) -> Void
-    let onCollectionIdentifierSelected: (MovieCollection.ID) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            if let collection = movie.collection {
+            if let collection = movie.collection, let list = collection.list, !list.isEmpty {
                 MovieCollectionView(
-                    collection: collection,
-                    onMovieIdentifierSelected: onMovieIdentifierSelected,
-                    onCollectionIdentifierSelected: onCollectionIdentifierSelected
+                    name: collection.name,
+                    movieDetails: list,
+                    onMovieIdentifierSelected: onMovieIdentifierSelected
                 )
                 .padding()
                 .background(.thinMaterial)
@@ -445,8 +436,7 @@ struct ShelfView_Previews: PreviewProvider {
             cornerRadius: 16.0,
             expanded: true,
             onOpenMovie: { _ in },
-            onOpenMovieWithIdentifier: { _ in },
-            onOpenCollectionwithIdentifier: { _ in }
+            onOpenMovieWithIdentifier: { _ in }
         )
         .environment(\.requestManager, MockRequestManager())
         .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
