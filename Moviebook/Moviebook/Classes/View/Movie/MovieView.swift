@@ -58,7 +58,7 @@ struct MovieView: View {
     var body: some View {
         ZStack(alignment: .topLeading) {
             if let movie = content.movie {
-                MovieContentView(movie: movie, navigationPath: $navigationPath)
+                MovieContentView(navigationPath: $navigationPath, movie: movie)
             } else {
                 Group {
                     ProgressView()
@@ -105,47 +105,46 @@ private struct MovieContentView: View {
     @State private var isImageLoaded: Bool = false
     @State private var isVideoPresented: MovieVideo? = nil
 
-    private let headerHeight: CGFloat = 90
-    private let headerOverlap: CGFloat = 24
+    private let cardOverlap: CGFloat = 24
 
-    let movie: Movie
+    // MARK: Internal properties
 
     @Binding var navigationPath: NavigationPath
+
+    let movie: Movie
 
     var body: some View {
         ZStack(alignment: .top) {
             GeometryReader { geometry in
                 PosterView(
                     isImageLoaded: $isImageLoaded,
-                    contentInset: $contentInset,
-                    headerHeight: headerHeight,
+                    imageHeight: $contentInset,
                     contentOffset: contentOffset,
-                    safeAreaTopInset: geometry.safeAreaInsets.top,
                     movieMedia: movie.details.media
                 )
-            }
-            .frame(height: max(0, contentOffset))
 
-            ObservableScrollView(scrollOffset: $contentOffset, showsIndicators: false) { scrollViewProxy in
-                VStack {
-                    Spacer()
-                        .frame(height: isImageLoaded ? contentInset - headerOverlap : UIScreen.main.bounds.height)
-                        .animation(.easeIn(duration: 0.4), value: isImageLoaded)
+                ObservableScrollView(scrollOffset: $contentOffset, showsIndicators: false) { scrollViewProxy in
+                    VStack {
+                        Spacer()
+                            .frame(height: isImageLoaded
+                                   ? max(0, contentInset - geometry.safeAreaInsets.top - cardOverlap)
+                                   : geometry.size.height
+                            )
+                            .animation(.easeIn(duration: 0.4), value: isImageLoaded)
 
-                    MovieCardView(movie: movie)
+                        MovieCardView(movie: movie)
+                    }
                 }
             }
-
-            GeometryReader { geometry in
-                HeaderView(
-                    navigationPath: $navigationPath,
-                    isVideoPresented: $isVideoPresented,
-                    shouldShowHeader: shouldShowHeader(geometry: geometry),
-                    headerHeight: headerHeight,
-                    movieDetails: movie.details
-                )
-                .animation(.easeOut(duration: 0.2), value: contentOffset)
-            }
+        }
+        .safeAreaInset(edge: .top) {
+            HeaderView(
+                navigationPath: $navigationPath,
+                isVideoPresented: $isVideoPresented,
+                contentOffset: contentOffset,
+                contentInset: contentInset,
+                movieDetails: movie.details
+            )
         }
         .overlay {
             Rectangle()
@@ -168,57 +167,59 @@ private struct MovieContentView: View {
             }
         }
     }
-
-    private func shouldShowHeader(geometry: GeometryProxy) -> Bool {
-        contentOffset - contentInset - geometry.safeAreaInsets.top > -headerHeight
-    }
 }
 
 private struct PosterView: View {
 
     @Binding var isImageLoaded: Bool
-    @Binding var contentInset: CGFloat
+    @Binding var imageHeight: CGFloat
 
-    let headerHeight: CGFloat
     let contentOffset: CGFloat
-    let safeAreaTopInset: CGFloat
-
     let movieMedia: MovieMedia
 
     var body: some View {
-        AsyncImage(
-            url: movieMedia.posterUrl,
-            content: { image in
-                image
-                    .resizable()
-                    .background(GeometryReader { proxy in Color.clear.onAppear {
-                        let imageRatio = proxy.size.width / proxy.size.height
-                        contentInset = UIScreen.main.bounds.width / imageRatio
-                        isImageLoaded = true
-                    }})
-                    .aspectRatio(contentMode: .fill)
-            },
-            placeholder: { Color.clear }
-        )
-        .frame(
-            width: UIScreen.main.bounds.width,
-            height: max(headerHeight, isImageLoaded ? safeAreaTopInset + contentInset - contentOffset : UIScreen.main.bounds.height)
-        )
-        .clipped()
-        .ignoresSafeArea(.all, edges: .top)
+        GeometryReader { mainGeometry in
+            AsyncImage(
+                url: movieMedia.posterUrl,
+                content: { image in
+                    image
+                        .resizable()
+                        .background(GeometryReader { imageGeometry in Color.clear.onAppear {
+                            let imageRatio = imageGeometry.size.width / imageGeometry.size.height
+                            imageHeight = mainGeometry.size.width / imageRatio
+                            isImageLoaded = true
+                        }})
+                        .aspectRatio(contentMode: .fill)
+                },
+                placeholder: { Color.clear }
+            )
+            .frame(
+                width: UIScreen.main.bounds.width,
+                height: max(0, isImageLoaded ? imageHeight - contentOffset : mainGeometry.size.height)
+            )
+            .clipped()
+            .ignoresSafeArea(.all, edges: .top)
+        }
     }
 }
 
 private struct HeaderView: View {
 
     @Environment(\.dismiss) private var dismiss
+
+    @State private var headerHeight: CGFloat = 0
+
     @Binding var navigationPath: NavigationPath
     @Binding var isVideoPresented: MovieVideo?
 
-    let shouldShowHeader: Bool
-    let headerHeight: CGFloat
+    let contentOffset: CGFloat
+    let contentInset: CGFloat
 
     let movieDetails: MovieDetails
+
+    private var shouldShowHeader: Bool {
+        return contentOffset - contentInset + headerHeight > 0
+    }
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -271,27 +272,31 @@ private struct HeaderView: View {
             .padding(.horizontal)
         }
         .frame(maxWidth: .infinity)
-        .frame(height: headerHeight, alignment: .bottom)
         .padding(.bottom, 20)
         .background(
-            Rectangle()
-                .fill(.background.opacity(0.2))
-                .background(.regularMaterial)
-                .opacity(shouldShowHeader ? 1 : 0)
+            GeometryReader { geometry in
+                Rectangle()
+                    .fill(.background.opacity(0.2))
+                    .background(.regularMaterial)
+                    .opacity(shouldShowHeader ? 1 : 0)
+                    .onAppear {
+                        headerHeight = geometry.size.height
+                    }
+            }
         )
-        .ignoresSafeArea(.all, edges: .top)
         .transition(.opacity)
+        .animation(.easeOut(duration: 0.2), value: shouldShowHeader)
     }
 }
 
 #if DEBUG
 struct MovieView_Previews: PreviewProvider {
     static var previews: some View {
-        NavigationView {
+//        NavigationView {
             MovieView(movieId: 954, navigationPath: .constant(NavigationPath()))
                 .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
                 .environment(\.requestManager, MockRequestManager())
-        }
+//        }
     }
 }
 #endif
