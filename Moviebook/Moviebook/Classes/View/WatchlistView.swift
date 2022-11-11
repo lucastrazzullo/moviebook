@@ -12,17 +12,6 @@ import Combine
 
     // MARK: Types
 
-    enum Error: Swift.Error, Equatable {
-        case failedToLoad(id: UUID, retry: () -> Void)
-
-        static func == (lhs: Content.Error, rhs: Content.Error) -> Bool {
-            switch (lhs, rhs) {
-            case (.failedToLoad(let lhsId, _), .failedToLoad(let rhsId, _)):
-                return lhsId == rhsId
-            }
-        }
-    }
-
     enum Section: Identifiable, CaseIterable {
         case toWatch
         case watched
@@ -52,7 +41,7 @@ import Combine
     // MARK: Instance Properties
 
     @Published var items: [Section.ID: [Item]] = [:]
-    @Published var error: Error?
+    @Published var error: ContentError?
 
     var sections: [Section] {
         return Section.allCases
@@ -146,8 +135,8 @@ struct WatchlistView: View {
     @EnvironmentObject var watchlist: Watchlist
     @StateObject private var content: Content = Content()
 
-    @State private var watchlistNavigationPath = NavigationPath()
-    @State private var exploreNavigationPath = NavigationPath()
+    @State private var navigationPath = NavigationPath()
+
     @State private var selectedLayout: WatchlistLayout = .shelf
     @State private var selectedSection: Content.Section = .toWatch
     @State private var isExplorePresented: Bool = false
@@ -155,7 +144,7 @@ struct WatchlistView: View {
     @State private var isErrorPresented: Bool = false
 
     var body: some View {
-        NavigationStack(path: $watchlistNavigationPath) {
+        NavigationStack(path: $navigationPath) {
             ZStack {
                 switch selectedLayout {
                 case .shelf:
@@ -188,7 +177,7 @@ struct WatchlistView: View {
             }
             .navigationTitle(selectedLayout == .list ? NSLocalizedString("WATCHLIST.TITLE", comment: "") : "")
             .navigationDestination(for: Movie.ID.self) { movieId in
-                MovieView(movieId: movieId, navigationPath: $watchlistNavigationPath)
+                MovieView(movieId: movieId, navigationPath: $navigationPath)
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -237,37 +226,21 @@ struct WatchlistView: View {
                 }
             }
             .sheet(isPresented: $isExplorePresented) {
-                NavigationStack(path: $exploreNavigationPath) {
-                    ExploreView()
-                        .navigationTitle(NSLocalizedString("EXPLORE.TITLE", comment: ""))
-                        .navigationDestination(for: Movie.ID.self) { movieId in
-                            MovieView(movieId: movieId, navigationPath: $exploreNavigationPath)
-                        }
-                        .toolbar {
-                            ToolbarItem {
-                                Button(action: { isExplorePresented = false }) {
-                                    Text(NSLocalizedString("NAVIGATION.ACTION.DONE", comment: ""))
-                                }
-                            }
-                        }
-                }
+                ExploreView()
             }
             .sheet(item: $isItemPresented) { item in
                 switch item {
                 case .movie(let movie):
-                    MovieView(movie: movie, navigationPath: nil)
+                    MovieView(movie: movie)
                 case .movieWithIdentifier(let id):
-                    MovieView(movieId: id, navigationPath: nil)
+                    MovieView(movieId: id)
                 case .collectionWithIdentifier(let id):
                     Text("Collection with id: \(id)")
                 }
             }
             .alert("Error", isPresented: $isErrorPresented) {
-                if let error = content.error {
-                    switch error {
-                    case .failedToLoad(_, let retry):
-                        Button("Retry", role: .none, action: retry)
-                    }
+                Button("Retry", role: .cancel) {
+                    content.error?.retry()
                 }
             }
             .onChange(of: content.error) { error in

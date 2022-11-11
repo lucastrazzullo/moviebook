@@ -9,16 +9,10 @@ import SwiftUI
 
 @MainActor private final class Content: ObservableObject {
 
-    // MARK: Types
-
-    enum Error: Swift.Error, Equatable {
-        case failedToLoad
-    }
-
     // MARK: Instance Properties
 
     @Published var movie: Movie?
-    @Published var error: Error?
+    @Published var error: ContentError?
 
     private let movieId: Movie.ID
 
@@ -35,13 +29,20 @@ import SwiftUI
 
     // MARK: Instance methods
 
-    func start(requestManager: RequestManager) async {
+    func start(requestManager: RequestManager) {
         guard movie == nil else { return }
+        loadMovie(requestManager: requestManager)
+    }
 
-        do {
-            movie = try await MovieWebService(requestManager: requestManager).fetchMovie(with: movieId)
-        } catch {
-            self.error = .failedToLoad
+    private func loadMovie(requestManager: RequestManager) {
+        Task {
+            do {
+                movie = try await MovieWebService(requestManager: requestManager).fetchMovie(with: movieId)
+            } catch {
+                self.error = .failedToLoad(id: .init(), retry: { [weak self] in
+                    self?.loadMovie(requestManager: requestManager)
+                })
+            }
         }
     }
 }
@@ -72,27 +73,25 @@ struct MovieView: View {
         .toolbar(.hidden, for: .navigationBar)
         .alert("Error", isPresented: $isErrorPresented) {
             Button("Retry", role: .cancel) {
-                Task {
-                    await content.start(requestManager: requestManager)
-                }
+                content.error?.retry()
             }
         }
         .onChange(of: content.error) { error in
             isErrorPresented = error != nil
         }
-        .task {
-            await content.start(requestManager: requestManager)
+        .onAppear {
+            content.start(requestManager: requestManager)
         }
     }
 
     // MARK: Obejct life cycle
 
-    init(movieId: Movie.ID, navigationPath: Binding<NavigationPath>?) {
+    init(movieId: Movie.ID, navigationPath: Binding<NavigationPath>? = nil) {
         self._content = StateObject(wrappedValue: Content(movieId: movieId))
         self._navigationPath = navigationPath ?? .constant(NavigationPath())
     }
 
-    init(movie: Movie, navigationPath: Binding<NavigationPath>?) {
+    init(movie: Movie, navigationPath: Binding<NavigationPath>? = nil) {
         self._content = StateObject(wrappedValue: Content(movie: movie))
         self._navigationPath = navigationPath ?? .constant(NavigationPath())
     }
@@ -291,7 +290,7 @@ private struct HeaderView: View {
 struct MovieView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            MovieView(movieId: 954, navigationPath: .constant(NavigationPath()))
+            MovieView(movieId: 954)
                 .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
                 .environment(\.requestManager, MockRequestManager())
         }

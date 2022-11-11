@@ -10,6 +10,7 @@ import SwiftUI
 struct MoviePreviewView: View {
 
     let details: MovieDetails
+    let onSelected: (() -> Void)?
 
     var body: some View {
         HStack(alignment: .center) {
@@ -44,6 +45,7 @@ struct MoviePreviewView: View {
                 }
                 .padding(.vertical, 4)
             }
+            .onTapGesture(perform: { onSelected?() })
 
             IconWatchlistButton(watchlistItem: .movie(id: details.id))
                 .font(.caption)
@@ -51,6 +53,11 @@ struct MoviePreviewView: View {
         .contextMenu {
             WatchlistMenu(watchlistItem: Watchlist.WatchlistItem.movie(id: details.id))
         }
+    }
+
+    init(details: MovieDetails, onSelected: (() -> Void)? = nil) {
+        self.details = details
+        self.onSelected = onSelected
     }
 }
 
