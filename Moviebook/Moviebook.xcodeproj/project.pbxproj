@@ -284,7 +284,6 @@
 				8169FB1C28C204450054BCE6 /* MoviebookApp.swift */,
 				814D46EC28C27EB3000D7ABD /* Kit */,
 				8169FB5728C207750054BCE6 /* Model */,
-				818FA44A291E864200CF6318 /* View Model */,
 				8169FB5528C207680054BCE6 /* View */,
 			);
 			path = Classes;
@@ -312,7 +311,6 @@
 			isa = PBXGroup;
 			children = (
 				8169FB5328C207590054BCE6 /* MoviebookView.swift */,
-				814A13E428F03F2100477126 /* ShelfView.swift */,
 				8169FB5E28C20C420054BCE6 /* ExploreView.swift */,
 				818FA44D291E8B0700CF6318 /* Watchlist */,
 				8112AF082916DF010041475D /* Movie */,
@@ -359,16 +357,10 @@
 			path = Network;
 			sourceTree = "<group>";
 		};
-		818FA44A291E864200CF6318 /* View Model */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = "View Model";
-			sourceTree = "<group>";
-		};
 		818FA44D291E8B0700CF6318 /* Watchlist */ = {
 			isa = PBXGroup;
 			children = (
+				814A13E428F03F2100477126 /* ShelfView.swift */,
 				8169FB1E28C204450054BCE6 /* WatchlistView.swift */,
 				814A13E628F0488100477126 /* WatchlistButton.swift */,
 			);
