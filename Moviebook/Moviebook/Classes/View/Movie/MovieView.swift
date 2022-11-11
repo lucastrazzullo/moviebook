@@ -251,11 +251,17 @@ private struct HeaderView: View {
                         Menu {
                             ForEach(movieDetails.media.videos) { video in
                                 Button(action: { isVideoPresented = video }) {
-                                    switch video.type {
-                                    case .trailer:
-                                        Label("Trailer", systemImage: "play")
-                                    case .teaser:
-                                        Label("Teaser", systemImage: "play")
+                                    HStack {
+                                        switch video.type {
+                                        case .trailer:
+                                            Text("Trailer: \(video.name)")
+                                        case .teaser:
+                                            Text("Teaser: \(video.name)")
+                                        case .behindTheScenes:
+                                            Text("Behind the scenes: \(video.name)")
+                                        }
+                                        Spacer()
+                                        Image(systemName: "play")
                                     }
                                 }
                             }

@@ -16,9 +16,11 @@ struct MovieVideo: Equatable, Identifiable {
     enum MediaType {
         case teaser
         case trailer
+        case behindTheScenes
     }
 
     let id: String
+    let name: String
     let type: MediaType
     let source: Source
 }
