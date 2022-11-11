@@ -61,12 +61,7 @@ struct MovieView: View {
             if let movie = content.movie {
                 MovieContentView(navigationPath: $navigationPath, movie: movie)
             } else {
-                Group {
-                    ProgressView()
-                        .controlSize(.large)
-                        .tint(.red)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                MovieLoaderView()
             }
         }
         .toolbar(.hidden, for: .tabBar)
@@ -97,8 +92,21 @@ struct MovieView: View {
     }
 }
 
+private struct MovieLoaderView: View {
+
+    var body: some View {
+        Group {
+            ProgressView()
+                .controlSize(.large)
+                .tint(.red)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
 private struct MovieContentView: View {
 
+    @State private var headerHeight: CGFloat = 0
     @State private var contentOffset: CGFloat = 0
     @State private var contentInset: CGFloat = 0
     @State private var isImageLoaded: Bool = false
@@ -122,36 +130,34 @@ private struct MovieContentView: View {
                     movieMedia: movie.details.media
                 )
 
+                if !isImageLoaded {
+                    MovieLoaderView().onAppear {
+                        contentInset = geometry.size.height
+                    }
+                }
+
                 ObservableScrollView(scrollOffset: $contentOffset, showsIndicators: false) { scrollViewProxy in
                     VStack {
                         Spacer()
                             .frame(height: isImageLoaded
                                    ? max(0, contentInset - geometry.safeAreaInsets.top - cardOverlap)
-                                   : geometry.size.height
+                                   : max(0, geometry.size.height - geometry.safeAreaInsets.top)
                             )
-                            .animation(.easeIn(duration: 0.4), value: isImageLoaded)
 
-                        MovieCardView(movie: movie)
+                        MovieCardView(navigationPath: $navigationPath, movie: movie)
                     }
                 }
             }
         }
+        .animation(.default, value: isImageLoaded)
         .safeAreaInset(edge: .top) {
             HeaderView(
                 navigationPath: $navigationPath,
+                headerHeight: $headerHeight,
                 isVideoPresented: $isVideoPresented,
-                contentOffset: contentOffset,
-                contentInset: contentInset,
-                movieDetails: movie.details
+                movieDetails: movie.details,
+                shouldShowHeader: isImageLoaded && contentOffset - contentInset + headerHeight > 0
             )
-        }
-        .overlay {
-            Rectangle()
-                .foregroundColor(.clear)
-                .background(.thickMaterial)
-                .ignoresSafeArea()
-                .opacity(isImageLoaded ? 0 : 1)
-                .animation(.easeIn(duration: 0.4), value: isImageLoaded)
         }
         .fullScreenCover(item: $isVideoPresented) { video in
             ZStack(alignment: .topLeading) {
@@ -190,7 +196,7 @@ private struct PosterView: View {
                         }})
                         .aspectRatio(contentMode: .fill)
                 },
-                placeholder: { Color.clear }
+                placeholder: { Color.black }
             )
             .frame(
                 width: UIScreen.main.bounds.width,
@@ -206,19 +212,12 @@ private struct HeaderView: View {
 
     @Environment(\.dismiss) private var dismiss
 
-    @State private var headerHeight: CGFloat = 0
-
     @Binding var navigationPath: NavigationPath
+    @Binding var headerHeight: CGFloat
     @Binding var isVideoPresented: MovieVideo?
 
-    let contentOffset: CGFloat
-    let contentInset: CGFloat
-
     let movieDetails: MovieDetails
-
-    private var shouldShowHeader: Bool {
-        return contentOffset - contentInset + headerHeight > 0
-    }
+    let shouldShowHeader: Bool
 
     var body: some View {
         ZStack(alignment: .bottom) {

@@ -132,7 +132,8 @@ struct WatchlistView: View {
     @EnvironmentObject var watchlist: Watchlist
     @StateObject private var content: Content = Content()
 
-    @State private var navigationPath = NavigationPath()
+    @State private var watchlistNnavigationPath = NavigationPath()
+    @State private var presentedItemNavigationPath = NavigationPath()
 
     @State private var selectedLayout: WatchlistLayout = .shelf
     @State private var selectedSection: Content.Section = .toWatch
@@ -141,7 +142,7 @@ struct WatchlistView: View {
     @State private var isErrorPresented: Bool = false
 
     var body: some View {
-        NavigationStack(path: $navigationPath) {
+        NavigationStack(path: $watchlistNnavigationPath) {
             ZStack {
                 switch selectedLayout {
                 case .shelf:
@@ -160,8 +161,8 @@ struct WatchlistView: View {
                 case .list:
                     List {
                         ForEach(content.items(forSectionWith: selectedSection.id)) { item in
-                            NavigationLink(value: item.id) {
-                                MoviePreviewView(details: item.movie.details)
+                            MoviePreviewView(details: item.movie.details) {
+                                isItemPresented = .movie(item.movie)
                             }
                         }
                         .listRowSeparator(.hidden)
@@ -171,7 +172,7 @@ struct WatchlistView: View {
             }
             .navigationTitle(selectedLayout == .list ? NSLocalizedString("WATCHLIST.TITLE", comment: "") : "")
             .navigationDestination(for: Movie.ID.self) { movieId in
-                MovieView(movieId: movieId, navigationPath: $navigationPath)
+                MovieView(movieId: movieId, navigationPath: $watchlistNnavigationPath)
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -223,11 +224,18 @@ struct WatchlistView: View {
                 ExploreView()
             }
             .sheet(item: $isItemPresented) { item in
-                switch item {
-                case .movie(let movie):
-                    MovieView(movie: movie)
-                case .movieWithIdentifier(let id):
-                    MovieView(movieId: id)
+                NavigationStack(path: $presentedItemNavigationPath) {
+                    Group {
+                        switch item {
+                        case .movie(let movie):
+                            MovieView(movie: movie, navigationPath: $presentedItemNavigationPath)
+                        case .movieWithIdentifier(let id):
+                            MovieView(movieId: id, navigationPath: $presentedItemNavigationPath)
+                        }
+                    }
+                    .navigationDestination(for: Movie.ID.self) { movieId in
+                        MovieView(movieId: movieId, navigationPath: $presentedItemNavigationPath)
+                    }
                 }
             }
             .alert("Error", isPresented: $isErrorPresented) {
