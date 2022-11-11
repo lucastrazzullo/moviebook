@@ -371,87 +371,30 @@ private struct HeaderView: View {
 
 private struct ContentView: View {
 
-    @MainActor final class Content: ObservableObject {
-
-        @Published private(set) var movie: Movie
-
-        init(movie: Movie) {
-            self.movie = movie
-        }
-
-        func load(requestManager: RequestManager) async {
-            if let collection = movie.collection, collection.list == nil {
-                do {
-                    self.movie.collection?.list = try await MovieWebService(requestManager: requestManager).fetchCollection(with: collection.id).list
-                } catch {
-                    print(error)
-                }
-            }
-        }
-    }
-
-    @Environment(\.requestManager) var requestManager
-
-    @StateObject private var content: Content
-
-    private let onMovieSelected: (Movie) -> Void
-    private let onMovieIdentifierSelected: (Movie.ID) -> Void
+    let movie: Movie
+    let onMovieSelected: (Movie) -> Void
+    let onMovieIdentifierSelected: (Movie.ID) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            if let collection = content.movie.collection, let list = collection.list, !list.isEmpty {
-                VStack(alignment: .leading) {
-                    Text("Belong to:")
-                    Text(collection.name).font(.title2)
-                    ScrollView(.horizontal) {
-                        HStack {
-                            ForEach(list) { movieDetails in
-                                Group {
-                                    AsyncImage(url: movieDetails.media.posterPreviewUrl, content: { image in
-                                        image
-                                            .resizable()
-                                            .aspectRatio(contentMode: .fill)
-                                    }, placeholder: {
-                                        Color
-                                            .gray
-                                            .opacity(0.2)
-                                    })
-                                    .frame(height: 120)
-                                    .clipShape(RoundedRectangle(cornerRadius: 6))
-                                }
-                                .padding(.trailing, 4)
-                                .padding(.bottom, 4)
-                                .onTapGesture {
-                                    onMovieIdentifierSelected(movieDetails.id)
-                                }
-                            }
-                        }
-                        .padding(.vertical)
-                    }
-                }
+            if let collection = movie.collection, let list = collection.list, !list.isEmpty {
+                MovieCollectionView(
+                    name: collection.name,
+                    movieDetails: list,
+                    onMovieIdentifierSelected: onMovieIdentifierSelected
+                )
                 .padding()
-                .background(.thickMaterial)
-                .cornerRadius(12)
+                .background(.thinMaterial)
+                .cornerRadius(24)
             }
 
-            Button(action: { onMovieSelected(content.movie) }) {
+            Button(action: { onMovieSelected(movie) }) {
                 Text("Open")
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 6)
             }
             .buttonStyle(.borderedProminent)
         }
-        .task {
-            await content.load(requestManager: requestManager)
-        }
-    }
-
-    init(movie: Movie,
-         onMovieSelected: @escaping (Movie) -> Void,
-         onMovieIdentifierSelected: @escaping (Movie.ID) -> Void) {
-        self._content = StateObject(wrappedValue: Content(movie: movie))
-        self.onMovieSelected = onMovieSelected
-        self.onMovieIdentifierSelected = onMovieIdentifierSelected
     }
 }
 
@@ -487,14 +430,15 @@ struct ShelfView_Previews: PreviewProvider {
     static var previews: some View {
         ShelfView(
             movies: [
-                MockServer.movie(with: 954),
-                MockServer.movie(with: 616037)
+                MockWebService.movie(with: 954),
+                MockWebService.movie(with: 616037)
             ],
             cornerRadius: 16.0,
-            expanded: true,
+            expanded: false,
             onOpenMovie: { _ in },
             onOpenMovieWithIdentifier: { _ in }
         )
+        .environment(\.requestManager, MockRequestManager())
         .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
     }
 }

@@ -12,10 +12,6 @@ import Combine
 
     // MARK: Types
 
-    enum Error: Swift.Error, Equatable {
-        case failedToLoad
-    }
-
     enum Section: Identifiable, CaseIterable {
         case popular
         case upcoming
@@ -40,7 +36,7 @@ import Combine
     @Published var searchKeyword: String = ""
     @Published var searchResults: [MovieDetails] = []
     @Published var explore: [Section.ID: [MovieDetails]] = [:]
-    @Published var error: Error?
+    @Published var error: WebServiceError?
 
     var sections: [Section] {
         return Section.allCases
@@ -50,13 +46,9 @@ import Combine
 
     // MARK: Instance methods
 
-    func start(requestManager: RequestManager) async {
-        do {
-            explore[Section.upcoming.id] = try await UpcomingWebService(requestManager: requestManager).fetch()
-            explore[Section.popular.id] = try await PopularWebService(requestManager: requestManager).fetch()
-        } catch {
-            self.error = .failedToLoad
-        }
+    func start(requestManager: RequestManager) {
+        loadMovies(for: .upcoming, requestManager: requestManager)
+        loadMovies(for: .popular, requestManager: requestManager)
 
         $searchKeyword
             .debounce(for: .seconds(1), scheduler: DispatchQueue.main)
@@ -70,61 +62,99 @@ import Combine
             })
             .store(in: &subscriptions)
     }
+
+    private func loadMovies(for section: Section, requestManager: RequestManager) {
+        Task {
+            do {
+                switch section {
+                case .popular:
+                    explore[section.id] = try await PopularWebService(requestManager: requestManager).fetch()
+                case .upcoming:
+                    explore[section.id] = try await UpcomingWebService(requestManager: requestManager).fetch()
+                }
+
+            } catch {
+                self.error = .failedToLoad(id: .init(), retry: { [weak self] in
+                    self?.loadMovies(for: section, requestManager: requestManager)
+                })
+            }
+        }
+    }
 }
 
 struct ExploreView: View {
 
+    private struct MovieIdentifier: Identifiable {
+        let id: Movie.ID
+    }
+
+    @Environment(\.dismiss) private var dismiss
     @Environment(\.requestManager) var requestManager
     @EnvironmentObject var watchlist: Watchlist
 
     @StateObject private var content: Content = Content()
+    @State private var isMoviePresented: MovieIdentifier?
     @State private var isErrorPresented: Bool = false
 
     var body: some View {
-        List {
-            if !content.searchKeyword.isEmpty {
-                Section(header: HStack(spacing: 4) {
-                    Text("\(NSLocalizedString("EXPLORE.SEARCH.RESULTS", comment: "")): \(content.searchKeyword)")
-                    if content.isSearching {
-                        ProgressView()
+        NavigationView {
+            List {
+                if !content.searchKeyword.isEmpty {
+                    Section(header: HStack(spacing: 4) {
+                        Text("\(NSLocalizedString("EXPLORE.SEARCH.RESULTS", comment: "")): \(content.searchKeyword)")
+                        if content.isSearching {
+                            ProgressView()
+                        }
+                    }) {
+                        ForEach(content.searchResults) { movieDetails in
+                            MoviePreviewView(details: movieDetails) {
+                                isMoviePresented = MovieIdentifier(id: movieDetails.id)
+                            }
+                        }
                     }
-                }) {
-                    ForEach(content.searchResults) { movie in
-                        NavigationLink(value: movie.id) {
-                            MoviePreviewView(details: movie)
+                    .listRowSeparator(.hidden)
+                    .listSectionSeparator(.hidden)
+                }
+
+                ForEach(content.sections) { section in
+                    Section(header: Text(section.name)) {
+                        ForEach(content.explore[section.id] ?? []) { movieDetails in
+                            MoviePreviewView(details: movieDetails) {
+                                isMoviePresented = MovieIdentifier(id: movieDetails.id)
+                            }
                         }
                     }
                 }
                 .listRowSeparator(.hidden)
                 .listSectionSeparator(.hidden)
             }
-
-            ForEach(content.sections) { section in
-                Section(header: Text(section.name)) {
-                    ForEach(content.explore[section.id] ?? []) { movie in
-                        NavigationLink(value: movie.id) {
-                            MoviePreviewView(details: movie)
-                        }
+            .listStyle(.inset)
+            .navigationTitle(NSLocalizedString("EXPLORE.TITLE", comment: ""))
+            .toolbar {
+                ToolbarItem {
+                    Button(action: dismiss.callAsFunction) {
+                        Text(NSLocalizedString("NAVIGATION.ACTION.DONE", comment: ""))
                     }
                 }
             }
-            .listRowSeparator(.hidden)
-            .listSectionSeparator(.hidden)
-        }
-        .listStyle(.inset)
-        .searchable(text: $content.searchKeyword, prompt: NSLocalizedString("EXPLORE.SEARCH.PROMPT", comment: ""))
-        .alert("Error", isPresented: $isErrorPresented) {
-            Button("Retry", role: .cancel) {
-                Task {
-                    await content.start(requestManager: requestManager)
+            .searchable(
+                text: $content.searchKeyword,
+                prompt: NSLocalizedString("EXPLORE.SEARCH.PROMPT", comment: "")
+            )
+            .sheet(item: $isMoviePresented) { movieIdentifier in
+                MovieView(movieId: movieIdentifier.id)
+            }
+            .alert("Error", isPresented: $isErrorPresented) {
+                Button("Retry", role: .cancel) {
+                    content.error?.retry()
                 }
             }
-        }
-        .onChange(of: content.error) { error in
-            isErrorPresented = error != nil
-        }
-        .task {
-            await content.start(requestManager: requestManager)
+            .onChange(of: content.error) { error in
+                isErrorPresented = error != nil
+            }
+            .onAppear {
+                content.start(requestManager: requestManager)
+            }
         }
     }
 }

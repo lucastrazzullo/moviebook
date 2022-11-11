@@ -10,6 +10,20 @@ import Foundation
 // MARK: - Response with results
 
 struct TheMovieDbResponseWithResults<ItemType: Decodable>: Decodable {
+
+    struct SafeItem<Base: Decodable>: Decodable {
+        public let value: Base?
+
+        public init(from decoder: Decoder) throws {
+            do {
+                let container = try decoder.singleValueContainer()
+                self.value = try container.decode(Base.self)
+            } catch {
+                self.value = nil
+            }
+        }
+    }
+
     let results: [ItemType]
 
     enum CodingKeys: CodingKey {
@@ -18,7 +32,7 @@ struct TheMovieDbResponseWithResults<ItemType: Decodable>: Decodable {
 
     init(from decoder: Decoder) throws {
         let container: KeyedDecodingContainer<CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
-        self.results = try container.decode([ItemType].self, forKey: CodingKeys.results)
+        self.results = try container.decode([SafeItem<ItemType>].self, forKey: CodingKeys.results).compactMap({ $0.value })
     }
 }
 
@@ -190,19 +204,28 @@ extension MovieVideo: Decodable {
     enum DecodingError: Error {
         case siteNotSupported(_ site: String)
         case typeNotSupported(_ type: String)
+        case nonOfficialTrailer
     }
     
     enum CodingKeys: CodingKey {
         case id
+        case name
         case key
         case site
         case type
+        case official
     }
     
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
 
+        let official = try values.decode(Bool.self, forKey: .official)
+        guard official else {
+            throw DecodingError.nonOfficialTrailer
+        }
+
         id = try values.decode(String.self, forKey: .id)
+        name = try values.decode(String.self, forKey: .name)
 
         let type = try values.decode(String.self, forKey: .type)
         switch type {
@@ -210,6 +233,8 @@ extension MovieVideo: Decodable {
             self.type = .trailer
         case "Teaser":
             self.type = .teaser
+        case "Behind the Scenes":
+            self.type = .behindTheScenes
         default:
             throw DecodingError.typeNotSupported(type)
         }

@@ -11,6 +11,8 @@ struct MovieCardView: View {
 
     @State private var isOverviewExpanded: Bool = false
 
+    @Binding var navigationPath: NavigationPath
+
     let movie: Movie
 
     var body: some View {
@@ -24,6 +26,16 @@ struct MovieCardView: View {
 
             if let overview = movie.details.overview, !overview.isEmpty {
                 MovieOverviewView(isExpanded: $isOverviewExpanded, overview: overview)
+            }
+
+            if let collection = movie.collection, let list = collection.list, !list.isEmpty {
+                MovieCollectionView(
+                    name: collection.name,
+                    movieDetails: list,
+                    onMovieIdentifierSelected: { identifier in
+                        navigationPath.append(identifier)
+                    }
+                )
             }
 
             MovieSpecsView(
@@ -180,8 +192,11 @@ private struct MovieSpecsRow<ContentType: View>: View {
 struct MovieCardView_Previews: PreviewProvider {
     static var previews: some View {
         ScrollView {
-            MovieCardView(movie: MockServer.movie(with: 616037))
-                .environmentObject(Watchlist(moviesToWatch: [616037]))
+            MovieCardView(
+                navigationPath: .constant(NavigationPath()),
+                movie: MockWebService.movie(with: 954)
+            )
+            .environmentObject(Watchlist(moviesToWatch: []))
         }
     }
 }

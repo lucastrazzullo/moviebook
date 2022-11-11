@@ -27,11 +27,16 @@ struct MovieWebService {
     func fetchMovie(with identifier: Movie.ID) async throws -> Movie {
         let url = try URLFactory.makeMovieUrl(movieIdentifier: identifier)
         let data = try await requestManager.request(from: url)
-        let parsedResponse = try JSONDecoder().decode(Movie.self, from: data)
-        return parsedResponse
+        var movie = try JSONDecoder().decode(Movie.self, from: data)
+
+        if let collectionIdentifier = movie.collection?.id, let collection = try? await fetchCollection(with: collectionIdentifier) {
+            movie.collection = collection
+        }
+
+        return movie
     }
 
-    func fetchCollection(with identifier: MovieCollection.ID) async throws -> MovieCollection {
+    private func fetchCollection(with identifier: MovieCollection.ID) async throws -> MovieCollection {
         let url = try URLFactory.makeMovieCollectionUrl(collectionIdentifier: identifier)
         let data = try await requestManager.request(from: url)
         let parsedResponse = try JSONDecoder().decode(MovieCollection.self, from: data)

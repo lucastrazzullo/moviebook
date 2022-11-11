@@ -38,6 +38,6 @@ struct MovieVideoPlayer: View {
 
 struct TrailerPlayer_Previews: PreviewProvider {
     static var previews: some View {
-        MovieVideoPlayer(video: MovieVideo(id: "id", type: .trailer, source: .youtube(id: "x5DhuDSArTI")))
+        MovieVideoPlayer(video: MovieVideo(id: "id", name: "Trailer", type: .trailer, source: .youtube(id: "x5DhuDSArTI")))
     }
 }

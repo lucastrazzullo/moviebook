@@ -12,10 +12,6 @@ import Combine
 
     // MARK: Types
 
-    enum Error: Swift.Error, Equatable {
-        case failedToLoad
-    }
-
     enum Section: Identifiable, CaseIterable {
         case toWatch
         case watched
@@ -45,7 +41,7 @@ import Combine
     // MARK: Instance Properties
 
     @Published var items: [Section.ID: [Item]] = [:]
-    @Published var error: Error?
+    @Published var error: WebServiceError?
 
     var sections: [Section] {
         return Section.allCases
@@ -56,27 +52,15 @@ import Combine
     // MARK: Internal methods
 
     func start(watchlist: Watchlist, requestManager: RequestManager) {
+        subscriptions.forEach({ $0.cancel() })
+
         watchlist.$toWatch.sink { [weak self] watchlistItems in
-            Task {
-                do {
-                    self?.items[Section.toWatch.id] = try await self?.loadItems(watchlistItems: watchlistItems, requestManager: requestManager)
-                    self?.error = nil
-                } catch {
-                    self?.error = .failedToLoad
-                }
-            }
+            self?.loadItems(from: watchlistItems, inSectionWith: Section.toWatch.id, requestManager: requestManager)
         }
         .store(in: &subscriptions)
 
         watchlist.$watched.sink { [weak self] watchlistItems in
-            Task {
-                do {
-                    self?.items[Section.watched.id] = try await self?.loadItems(watchlistItems: watchlistItems, requestManager: requestManager)
-                    self?.error = nil
-                } catch {
-                    self?.error = .failedToLoad
-                }
-            }
+            self?.loadItems(from: watchlistItems, inSectionWith: Section.watched.id, requestManager: requestManager)
         }
         .store(in: &subscriptions)
     }
@@ -86,6 +70,19 @@ import Combine
     }
 
     // MARK: Private helper methods
+
+    private func loadItems(from watchlistItems: [Watchlist.WatchlistItem], inSectionWith identifier: Section.ID, requestManager: RequestManager) {
+        Task { [weak self] in
+            do {
+                self?.items[identifier] = try await self?.loadItems(watchlistItems: watchlistItems, requestManager: requestManager)
+                self?.error = nil
+            } catch {
+                self?.error = .failedToLoad(id: .init(), retry: { [weak self] in
+                    self?.loadItems(from: watchlistItems, inSectionWith: identifier, requestManager: requestManager)
+                })
+            }
+        }
+    }
 
     private func loadItems(watchlistItems: [Watchlist.WatchlistItem], requestManager: RequestManager) async throws -> [Item] {
         let movies = try await loadMovies(watchlistItems: watchlistItems, requestManager: requestManager)
@@ -117,25 +114,35 @@ struct WatchlistView: View {
         case list
     }
 
-    struct MovieItem: Identifiable {
-        let id: Movie.ID
+    enum PresentedItem: Identifiable {
+        case movie(Movie)
+        case movieWithIdentifier(Movie.ID)
+
+        var id: AnyHashable {
+            switch self {
+            case .movie(let movie):
+                return movie.id
+            case .movieWithIdentifier(let id):
+                return id
+            }
+        }
     }
 
     @Environment(\.requestManager) var requestManager
     @EnvironmentObject var watchlist: Watchlist
     @StateObject private var content: Content = Content()
 
-    @State private var watchlistNavigationPath = NavigationPath()
-    @State private var exploreNavigationPath = NavigationPath()
+    @State private var watchlistNnavigationPath = NavigationPath()
+    @State private var presentedItemNavigationPath = NavigationPath()
+
     @State private var selectedLayout: WatchlistLayout = .shelf
     @State private var selectedSection: Content.Section = .toWatch
     @State private var isExplorePresented: Bool = false
-    @State private var isMoviePresented: Movie? = nil
-    @State private var isMoviePresentedWithIdentifier: MovieItem? = nil
+    @State private var isItemPresented: PresentedItem? = nil
     @State private var isErrorPresented: Bool = false
 
     var body: some View {
-        NavigationStack(path: $watchlistNavigationPath) {
+        NavigationStack(path: $watchlistNnavigationPath) {
             ZStack {
                 switch selectedLayout {
                 case .shelf:
@@ -143,10 +150,10 @@ struct WatchlistView: View {
                         movies: content.items(forSectionWith: selectedSection.id).map(\.movie),
                         cornerRadius: isExplorePresented ? 0 : 16,
                         onOpenMovie: { movie in
-                            isMoviePresented = movie
+                            isItemPresented = .movie(movie)
                         },
                         onOpenMovieWithIdentifier: { movieIdentifier in
-                            isMoviePresentedWithIdentifier = MovieItem(id: movieIdentifier)
+                            isItemPresented = .movieWithIdentifier(movieIdentifier)
                         }
                     )
                     .id(selectedSection.id)
@@ -154,8 +161,8 @@ struct WatchlistView: View {
                 case .list:
                     List {
                         ForEach(content.items(forSectionWith: selectedSection.id)) { item in
-                            NavigationLink(value: item.id) {
-                                MoviePreviewView(details: item.movie.details)
+                            MoviePreviewView(details: item.movie.details) {
+                                isItemPresented = .movie(item.movie)
                             }
                         }
                         .listRowSeparator(.hidden)
@@ -165,7 +172,7 @@ struct WatchlistView: View {
             }
             .navigationTitle(selectedLayout == .list ? NSLocalizedString("WATCHLIST.TITLE", comment: "") : "")
             .navigationDestination(for: Movie.ID.self) { movieId in
-                MovieView(movieId: movieId, navigationPath: $watchlistNavigationPath)
+                MovieView(movieId: movieId, navigationPath: $watchlistNnavigationPath)
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -214,30 +221,26 @@ struct WatchlistView: View {
                 }
             }
             .sheet(isPresented: $isExplorePresented) {
-                NavigationStack(path: $exploreNavigationPath) {
-                    ExploreView()
-                        .navigationTitle(NSLocalizedString("EXPLORE.TITLE", comment: ""))
-                        .navigationDestination(for: Movie.ID.self) { movieId in
-                            MovieView(movieId: movieId, navigationPath: $exploreNavigationPath)
+                ExploreView()
+            }
+            .sheet(item: $isItemPresented) { item in
+                NavigationStack(path: $presentedItemNavigationPath) {
+                    Group {
+                        switch item {
+                        case .movie(let movie):
+                            MovieView(movie: movie, navigationPath: $presentedItemNavigationPath)
+                        case .movieWithIdentifier(let id):
+                            MovieView(movieId: id, navigationPath: $presentedItemNavigationPath)
                         }
-                        .toolbar {
-                            ToolbarItem {
-                                Button(action: { isExplorePresented = false }) {
-                                    Text(NSLocalizedString("NAVIGATION.ACTION.DONE", comment: ""))
-                                }
-                            }
-                        }
+                    }
+                    .navigationDestination(for: Movie.ID.self) { movieId in
+                        MovieView(movieId: movieId, navigationPath: $presentedItemNavigationPath)
+                    }
                 }
-            }
-            .sheet(item: $isMoviePresented) { movie in
-                MovieView(movie: movie, navigationPath: nil)
-            }
-            .sheet(item: $isMoviePresentedWithIdentifier) { movieItem in
-                MovieView(movieId: movieItem.id, navigationPath: nil)
             }
             .alert("Error", isPresented: $isErrorPresented) {
                 Button("Retry", role: .cancel) {
-                    content.start(watchlist: watchlist, requestManager: requestManager)
+                    content.error?.retry()
                 }
             }
             .onChange(of: content.error) { error in
