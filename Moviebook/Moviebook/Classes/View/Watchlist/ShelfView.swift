@@ -398,6 +398,46 @@ private struct ContentView: View {
     }
 }
 
+private struct MovieCollectionView: View {
+
+    let name: String
+    let movieDetails: [MovieDetails]
+    let onMovieIdentifierSelected: (Movie.ID) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text("Belong to:")
+            Text(name).font(.title2)
+
+            ScrollView(.horizontal) {
+                HStack {
+                    ForEach(movieDetails) { movieDetails in
+                        Group {
+                            AsyncImage(url: movieDetails.media.posterPreviewUrl, content: { image in
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                            }, placeholder: {
+                                Color
+                                    .gray
+                                    .opacity(0.2)
+                            })
+                            .frame(height: 120)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                        }
+                        .padding(.trailing, 4)
+                        .padding(.bottom, 4)
+                        .onTapGesture {
+                            onMovieIdentifierSelected(movieDetails.id)
+                        }
+                    }
+                }
+                .padding(.vertical)
+            }
+        }
+    }
+}
+
 // MARK: - Index indicator
 
 private struct IndexIndicatorView: View {

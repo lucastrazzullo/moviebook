@@ -93,6 +93,7 @@ struct ExploreView: View {
     @EnvironmentObject var watchlist: Watchlist
 
     @StateObject private var content: Content = Content()
+    @State private var movieNavigationPath: NavigationPath = NavigationPath()
     @State private var isMoviePresented: MovieIdentifier?
     @State private var isErrorPresented: Bool = false
 
@@ -142,7 +143,12 @@ struct ExploreView: View {
                 prompt: NSLocalizedString("EXPLORE.SEARCH.PROMPT", comment: "")
             )
             .sheet(item: $isMoviePresented) { movieIdentifier in
-                MovieView(movieId: movieIdentifier.id)
+                NavigationStack(path: $movieNavigationPath) {
+                    MovieView(movieId: movieIdentifier.id, navigationPath: $movieNavigationPath)
+                        .navigationDestination(for: Movie.ID.self) { movieId in
+                            MovieView(movieId: movieId, navigationPath: $movieNavigationPath)
+                        }
+                }
             }
             .alert("Error", isPresented: $isErrorPresented) {
                 Button("Retry", role: .cancel) {

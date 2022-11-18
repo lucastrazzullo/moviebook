@@ -81,14 +81,14 @@ struct MovieView: View {
 
     // MARK: Obejct life cycle
 
-    init(movieId: Movie.ID, navigationPath: Binding<NavigationPath>? = nil) {
+    init(movieId: Movie.ID, navigationPath: Binding<NavigationPath>) {
         self._content = StateObject(wrappedValue: Content(movieId: movieId))
-        self._navigationPath = navigationPath ?? .constant(NavigationPath())
+        self._navigationPath = navigationPath
     }
 
-    init(movie: Movie, navigationPath: Binding<NavigationPath>? = nil) {
+    init(movie: Movie, navigationPath: Binding<NavigationPath>) {
         self._content = StateObject(wrappedValue: Content(movie: movie))
-        self._navigationPath = navigationPath ?? .constant(NavigationPath())
+        self._navigationPath = navigationPath
     }
 }
 
@@ -295,7 +295,7 @@ private struct HeaderView: View {
 struct MovieView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            MovieView(movieId: 954)
+            MovieView(movieId: 954, navigationPath: .constant(NavigationPath()))
                 .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
                 .environment(\.requestManager, MockRequestManager())
         }
