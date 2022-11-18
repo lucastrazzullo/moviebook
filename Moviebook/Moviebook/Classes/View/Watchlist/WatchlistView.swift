@@ -109,11 +109,6 @@ import Combine
 
 struct WatchlistView: View {
 
-    enum WatchlistLayout: Equatable {
-        case shelf
-        case list
-    }
-
     enum PresentedItem: Identifiable {
         case movie(Movie)
         case movieWithIdentifier(Movie.ID)
@@ -135,7 +130,6 @@ struct WatchlistView: View {
     @State private var watchlistNnavigationPath = NavigationPath()
     @State private var presentedItemNavigationPath = NavigationPath()
 
-    @State private var selectedLayout: WatchlistLayout = .shelf
     @State private var selectedSection: Content.Section = .toWatch
     @State private var isExplorePresented: Bool = false
     @State private var isItemPresented: PresentedItem? = nil
@@ -143,34 +137,16 @@ struct WatchlistView: View {
 
     var body: some View {
         NavigationStack(path: $watchlistNnavigationPath) {
-            ZStack {
-                switch selectedLayout {
-                case .shelf:
-                    ShelfView(
-                        movies: content.items(forSectionWith: selectedSection.id).map(\.movie),
-                        cornerRadius: isExplorePresented ? 0 : 16,
-                        onOpenMovie: { movie in
-                            isItemPresented = .movie(movie)
-                        },
-                        onOpenMovieWithIdentifier: { movieIdentifier in
-                            isItemPresented = .movieWithIdentifier(movieIdentifier)
-                        }
-                    )
-                    .id(selectedSection.id)
-                    .padding(.top)
-                case .list:
-                    List {
-                        ForEach(content.items(forSectionWith: selectedSection.id)) { item in
-                            MoviePreviewView(details: item.movie.details) {
-                                isItemPresented = .movie(item.movie)
-                            }
-                        }
-                        .listRowSeparator(.hidden)
+            List {
+                ForEach(content.items(forSectionWith: selectedSection.id)) { item in
+                    MoviePreviewView(details: item.movie.details) {
+                        isItemPresented = .movie(item.movie)
                     }
-                    .listStyle(.plain)
                 }
+                .listRowSeparator(.hidden)
             }
-            .navigationTitle(selectedLayout == .list ? NSLocalizedString("WATCHLIST.TITLE", comment: "") : "")
+            .listStyle(.plain)
+            .navigationTitle(NSLocalizedString("WATCHLIST.TITLE", comment: ""))
             .navigationDestination(for: Movie.ID.self) { movieId in
                 MovieView(movieId: movieId, navigationPath: $watchlistNnavigationPath)
             }
@@ -183,15 +159,10 @@ struct WatchlistView: View {
                     }
                     .pickerStyle(.segmented)
                     .onAppear {
-                        switch selectedLayout {
-                        case .shelf:
-                            UISegmentedControl.appearance().backgroundColor = UIColor(Color.black.opacity(0.8))
-                            UISegmentedControl.appearance().selectedSegmentTintColor = .white
-                            UISegmentedControl.appearance().setTitleTextAttributes([.foregroundColor: UIColor.black], for: .selected)
-                            UISegmentedControl.appearance().setTitleTextAttributes([.foregroundColor: UIColor.white], for: .normal)
-                        case .list:
-                            break
-                        }
+                        UISegmentedControl.appearance().backgroundColor = UIColor(Color.black.opacity(0.8))
+                        UISegmentedControl.appearance().selectedSegmentTintColor = .white
+                        UISegmentedControl.appearance().setTitleTextAttributes([.foregroundColor: UIColor.black], for: .selected)
+                        UISegmentedControl.appearance().setTitleTextAttributes([.foregroundColor: UIColor.white], for: .normal)
                     }
                 }
 
@@ -201,22 +172,6 @@ struct WatchlistView: View {
                             .onTapGesture {
                                 isExplorePresented = true
                             }
-
-                        Menu {
-                            Button { selectedLayout = .shelf } label: {
-                                Label("Shelf", systemImage: "square.stack")
-                            }
-                            Button { selectedLayout = .list } label: {
-                                Label("List", systemImage: "list.star")
-                            }
-                        } label: {
-                            switch selectedLayout {
-                            case .shelf:
-                                Image(systemName: "square.stack")
-                            case .list:
-                                Image(systemName: "list.star")
-                            }
-                        }
                     }
                 }
             }
