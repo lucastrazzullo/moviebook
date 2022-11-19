@@ -89,6 +89,7 @@ private struct MovieOverviewView: View {
             Text(overview)
                 .font(.body)
                 .lineLimit(isExpanded ? nil : 3)
+                .fixedSize(horizontal: false, vertical: true)
 
             Button(action: { isExpanded.toggle() }) {
                 Text(isExpanded ? "Less" : "More")
@@ -110,7 +111,6 @@ private struct MovieCollectionView: View {
             Text(name).font(.title2)
                 .padding()
                 .padding(.horizontal)
-                .foregroundColor(.white)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack {
@@ -151,8 +151,8 @@ private struct MovieCollectionView: View {
             }
             .padding(.bottom)
         }
-        .background(.ultraThinMaterial)
-        .background(.black)
+        .background(.ultraThickMaterial)
+        .background(.primary)
     }
 }
 
@@ -170,70 +170,73 @@ private struct MovieSpecsView: View {
     let movieProduction: MovieProduction
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading) {
             Text("Specs")
                 .font(.title2)
-                .padding(.bottom)
+                .padding(.leading)
 
-            if let runtime = movieDetails.runtime, let runtimeString = MovieSpecsView.formatter.string(from: runtime) {
-                MovieSpecsRow(label: "Runtime") {
-                    Text(runtimeString)
+            VStack(alignment: .leading, spacing: 12) {
+
+                if let runtime = movieDetails.runtime, let runtimeString = MovieSpecsView.formatter.string(from: runtime) {
+                    MovieSpecsRow(label: "Runtime") {
+                        Text(runtimeString)
+                    }
+
+                    Divider()
                 }
 
-                Divider()
-            }
+                if let releaseDate = movieDetails.release {
+                    MovieSpecsRow(label: "Release date") {
+                        Text(releaseDate, style: .date)
+                    }
 
-            if let releaseDate = movieDetails.release {
-                MovieSpecsRow(label: "Release date") {
-                    Text(releaseDate, style: .date)
+                    Divider()
                 }
 
-                Divider()
-            }
+                if !movieGenres.isEmpty {
+                    MovieSpecsRow(label: "Genres") {
+                        VStack(alignment: .trailing) {
+                            ForEach(movieGenres) { genre in
+                                Text(genre.name)
+                            }
+                        }
+                    }
 
-            if !movieGenres.isEmpty {
-                MovieSpecsRow(label: "Genres") {
+                    Divider()
+                }
+
+                MovieSpecsRow(label: "Production") {
                     VStack(alignment: .trailing) {
-                        ForEach(movieGenres) { genre in
-                            Text(genre.name)
+                        ForEach(movieProduction.companies, id: \.self) { companyName in
+                            Text(companyName)
                         }
                     }
                 }
 
                 Divider()
-            }
 
-            MovieSpecsRow(label: "Production") {
-                VStack(alignment: .trailing) {
-                    ForEach(movieProduction.companies, id: \.self) { companyName in
-                        Text(companyName)
+                if let budget = movieDetails.budget, budget.value > 0 {
+                    MovieSpecsRow(label: "Budget") {
+                        VStack(alignment: .trailing) {
+                            Text(budget.value, format: .currency(code: budget.currencyCode))
+                        }
+                    }
+
+                    Divider()
+                }
+
+                if let revenue = movieDetails.revenue, revenue.value > 0 {
+                    MovieSpecsRow(label: "Incassi") {
+                        VStack(alignment: .trailing) {
+                            Text(revenue.value, format: .currency(code: revenue.currencyCode))
+                        }
                     }
                 }
             }
-
-            Divider()
-
-            if let budget = movieDetails.budget, budget.value > 0 {
-                MovieSpecsRow(label: "Budget") {
-                    VStack(alignment: .trailing) {
-                        Text(budget.value, format: .currency(code: budget.currencyCode))
-                    }
-                }
-
-                Divider()
-            }
-
-            if let revenue = movieDetails.revenue, revenue.value > 0 {
-                MovieSpecsRow(label: "Incassi") {
-                    VStack(alignment: .trailing) {
-                        Text(revenue.value, format: .currency(code: revenue.currencyCode))
-                    }
-                }
-            }
+            .font(.subheadline)
+            .padding()
+            .background(RoundedRectangle(cornerRadius: 8).fill(.thinMaterial))
         }
-        .font(.subheadline)
-        .padding()
-        .background(RoundedRectangle(cornerRadius: 8).fill(.thinMaterial))
     }
 }
 
