@@ -99,6 +99,7 @@ struct IconWatchlistButton: View {
     var body: some View {
         WatchlistButton(watchlistItem: watchlistItem) { state in
             WatchlistIcon(itemState: state)
+                .padding(8)
         }
     }
 }
