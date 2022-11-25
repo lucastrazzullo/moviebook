@@ -30,7 +30,7 @@ struct MovieWatchlistStateView: View {
                     Spacer()
 
                     HStack {
-                        Button(action: { watchlist.update(state: .toWatch, for: .movie(id: movieId)) }) {
+                        Button(action: { watchlist.update(state: .toWatch(reason: .toImplement), for: .movie(id: movieId)) }) {
                             WatchlistLabel(itemState: .none)
                         }
                         .buttonStyle(.borderedProminent)

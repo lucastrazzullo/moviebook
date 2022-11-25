@@ -17,20 +17,20 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
 
     var body: some View {
         Menu {
-            Button { watchlist.update(state: .toWatch, for: watchlistItem) } label: {
+            Button { watchlist.update(state: .toWatch(reason: .toImplement), for: watchlistItem) } label: {
                 Label("Add to watchlist", systemImage: "plus")
             }
-            .disabled(watchlist.itemState(item: watchlistItem) == .toWatch)
+            .disabled(isAddToWatchlistDisabled)
 
             Button { watchlist.update(state: .watched, for: watchlistItem) } label: {
                 Label("Mark as watched", systemImage: "checkmark")
             }
-            .disabled(watchlist.itemState(item: watchlistItem) == .watched)
+            .disabled(isMarkAsWatchedDisabled)
 
             Button { watchlist.update(state: .none, for: watchlistItem) } label: {
                 Label("Remove from watchlist", systemImage: "minus")
             }
-            .disabled(watchlist.itemState(item: watchlistItem) == .none)
+            .disabled(isRemoveFromWatchlistDisabled)
 
         } label: {
             label(watchlist.itemState(item: watchlistItem))
@@ -40,6 +40,29 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
     init(watchlistItem: Watchlist.WatchlistItem, @ViewBuilder label: @escaping (Watchlist.WatchlistItemState) -> LabelType) {
         self.watchlistItem = watchlistItem
         self.label = label
+    }
+
+    // MARK: Private helper methods
+
+    private var isAddToWatchlistDisabled: Bool {
+        guard case .toWatch = watchlist.itemState(item: watchlistItem) else {
+            return false
+        }
+        return true
+    }
+
+    private var isMarkAsWatchedDisabled: Bool {
+        guard case .watched = watchlist.itemState(item: watchlistItem) else {
+            return false
+        }
+        return true
+    }
+
+    private var isRemoveFromWatchlistDisabled: Bool {
+        guard case .none = watchlist.itemState(item: watchlistItem) else {
+            return false
+        }
+        return true
     }
 }
 

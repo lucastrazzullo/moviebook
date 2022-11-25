@@ -77,14 +77,14 @@ private struct WatchlistMenu: View {
                 Label("Mark as watched", systemImage: "checkmark")
             }
         case .watched:
-            Button { watchlist.update(state: .toWatch, for: watchlistItem) } label: {
+            Button { watchlist.update(state: .toWatch(reason: .toImplement), for: watchlistItem) } label: {
                 Label("Move to watchlist", systemImage: "star")
             }
             Button { watchlist.update(state: .none, for: watchlistItem) } label: {
                 Label("Remove from watchlist", systemImage: "minus")
             }
         case .none:
-            Button { watchlist.update(state: .toWatch, for: watchlistItem) } label: {
+            Button { watchlist.update(state: .toWatch(reason: .toImplement), for: watchlistItem) } label: {
                 Label("Add to watchlist", systemImage: "plus")
             }
             Button { watchlist.update(state: .watched, for: watchlistItem) } label: {

@@ -18,9 +18,9 @@ protocol WatchlistStorage {
         case movie(id: Movie.ID)
     }
 
-    enum WatchlistItemState {
+    enum WatchlistItemState: Equatable {
         case none
-        case toWatch
+        case toWatch(reason: WatchlistToWatchReason)
         case watched
     }
 
@@ -44,7 +44,7 @@ protocol WatchlistStorage {
 
     func itemState(item: WatchlistItem) -> WatchlistItemState {
         if toWatch.contains(item) {
-            return .toWatch
+            return .toWatch(reason: .toImplement)
         } else if watched.contains(item) {
             return .watched
         } else {
