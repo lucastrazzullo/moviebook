@@ -296,7 +296,10 @@ struct MovieView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
             MovieView(movieId: 954, navigationPath: .constant(NavigationPath()))
-                .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
+                .environmentObject(Watchlist(items: [
+                    .movie(id: 954): .toWatch(reason: .toImplement),
+                    .movie(id: 616037): .toWatch(reason: .toImplement)
+                ]))
                 .environment(\.requestManager, MockRequestManager())
         }
     }

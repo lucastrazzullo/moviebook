@@ -479,7 +479,10 @@ struct ShelfView_Previews: PreviewProvider {
             onOpenMovieWithIdentifier: { _ in }
         )
         .environment(\.requestManager, MockRequestManager())
-        .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
+        .environmentObject(Watchlist(items: [
+            .movie(id: 954): .toWatch(reason: .toImplement),
+            .movie(id: 616037): .toWatch(reason: .toImplement)
+        ]))
     }
 }
 #endif

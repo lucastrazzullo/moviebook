@@ -139,7 +139,9 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
             )
         )
         .padding(24)
-        .environmentObject(Watchlist(moviesToWatch: [954]))
+        .environmentObject(Watchlist(items: [
+            .movie(id: 954): .toWatch(reason: .toImplement)
+        ]))
     }
 }
 #endif

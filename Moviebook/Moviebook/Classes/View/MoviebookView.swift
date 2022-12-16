@@ -21,7 +21,10 @@ struct MoviebookView_Previews: PreviewProvider {
     static var previews: some View {
         MoviebookView()
             .environment(\.requestManager, MockRequestManager())
-            .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
+            .environmentObject(Watchlist(items: [
+                .movie(id: 954): .toWatch(reason: .toImplement),
+                .movie(id: 616037): .toWatch(reason: .toImplement)
+            ]))
     }
 }
 #endif

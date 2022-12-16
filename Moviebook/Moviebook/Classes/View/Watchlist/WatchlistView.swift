@@ -54,15 +54,12 @@ import Combine
     func start(watchlist: Watchlist, requestManager: RequestManager) {
         subscriptions.forEach({ $0.cancel() })
 
-        watchlist.$toWatch.sink { [weak self] watchlistItems in
-            self?.loadItems(from: watchlistItems, inSectionWith: Section.toWatch.id, requestManager: requestManager)
-        }
-        .store(in: &subscriptions)
-
-        watchlist.$watched.sink { [weak self] watchlistItems in
-            self?.loadItems(from: watchlistItems, inSectionWith: Section.watched.id, requestManager: requestManager)
-        }
-        .store(in: &subscriptions)
+        watchlist.$content
+            .map(\.items)
+            .sink { [weak self, requestManager] items in
+                self?.refreshItems(items, requestManager: requestManager)
+            }
+            .store(in: &subscriptions)
     }
 
     func items(forSectionWith identifier: Section.ID) -> [Item] {
@@ -71,25 +68,44 @@ import Combine
 
     // MARK: Private helper methods
 
-    private func loadItems(from watchlistItems: [Watchlist.WatchlistItem], inSectionWith identifier: Section.ID, requestManager: RequestManager) {
+    private func refreshItems(_ items: [Moviebook.WatchlistContent.Item: Moviebook.WatchlistContent.ItemState], requestManager: RequestManager) {
+        var toWatch: [WatchlistContent.Item] = []
+        var watched: [WatchlistContent.Item] = []
+
+        items.forEach { item in
+            switch item.value {
+            case .toWatch:
+                toWatch.append(item.key)
+            case .watched:
+                watched.append(item.key)
+            default:
+                break
+            }
+        }
+
+        loadItems(from: toWatch, in: .toWatch, requestManager: requestManager)
+        loadItems(from: watched, in: .watched, requestManager: requestManager)
+    }
+
+    private func loadItems(from watchlistItems: [WatchlistContent.Item], in section: Section, requestManager: RequestManager) {
         Task { [weak self] in
             do {
-                self?.items[identifier] = try await self?.loadItems(watchlistItems: watchlistItems, requestManager: requestManager)
+                self?.items[section.id] = try await self?.loadItems(watchlistItems: watchlistItems, requestManager: requestManager)
                 self?.error = nil
             } catch {
                 self?.error = .failedToLoad(id: .init(), retry: { [weak self] in
-                    self?.loadItems(from: watchlistItems, inSectionWith: identifier, requestManager: requestManager)
+                    self?.loadItems(from: watchlistItems, in: section, requestManager: requestManager)
                 })
             }
         }
     }
 
-    private func loadItems(watchlistItems: [Watchlist.WatchlistItem], requestManager: RequestManager) async throws -> [Item] {
+    private func loadItems(watchlistItems: [WatchlistContent.Item], requestManager: RequestManager) async throws -> [Item] {
         let movies = try await loadMovies(watchlistItems: watchlistItems, requestManager: requestManager)
         return movies.map(Item.init(movie:))
     }
 
-    private func loadMovies(watchlistItems: [Watchlist.WatchlistItem], requestManager: RequestManager) async throws -> [Movie] {
+    private func loadMovies(watchlistItems: [WatchlistContent.Item], requestManager: RequestManager) async throws -> [Movie] {
         return try await watchlistItems
             .compactMap({ self.movieIdentifiers($0) })
             .concurrentMap { movieIdentifier -> Movie in
@@ -98,7 +114,7 @@ import Combine
             }
     }
 
-    private func movieIdentifiers(_ watchlistItem: Watchlist.WatchlistItem) -> Movie.ID? {
+    private func movieIdentifiers(_ watchlistItem: WatchlistContent.Item) -> Movie.ID? {
         if case .movie(let id) = watchlistItem {
             return id
         } else {
@@ -229,7 +245,10 @@ struct WatchlistView_Previews: PreviewProvider {
     static var previews: some View {
         WatchlistView()
             .environment(\.requestManager, MockRequestManager())
-            .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
+            .environmentObject(Watchlist(items: [
+                .movie(id: 954): .toWatch(reason: .toImplement),
+                .movie(id: 616037): .toWatch(reason: .toImplement)
+            ]))
     }
 }
 #endif

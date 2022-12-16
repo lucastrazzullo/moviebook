@@ -11,9 +11,9 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
 
     @EnvironmentObject var watchlist: Watchlist
 
-    @ViewBuilder let label: (Watchlist.WatchlistItemState) -> LabelType
+    @ViewBuilder let label: (WatchlistContent.ItemState) -> LabelType
 
-    let watchlistItem: Watchlist.WatchlistItem
+    let watchlistItem: WatchlistContent.Item
 
     var body: some View {
         Menu {
@@ -37,7 +37,7 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
         }
     }
 
-    init(watchlistItem: Watchlist.WatchlistItem, @ViewBuilder label: @escaping (Watchlist.WatchlistItemState) -> LabelType) {
+    init(watchlistItem: WatchlistContent.Item, @ViewBuilder label: @escaping (WatchlistContent.ItemState) -> LabelType) {
         self.watchlistItem = watchlistItem
         self.label = label
     }
@@ -70,7 +70,7 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
 
 struct WatchlistIcon: View {
 
-    let itemState: Watchlist.WatchlistItemState
+    let itemState: WatchlistContent.ItemState
 
     var body: some View {
         switch itemState {
@@ -86,7 +86,7 @@ struct WatchlistIcon: View {
 
 struct WatchlistText: View {
 
-    let itemState: Watchlist.WatchlistItemState
+    let itemState: WatchlistContent.ItemState
 
     var body: some View {
         switch itemState {
@@ -102,7 +102,7 @@ struct WatchlistText: View {
 
 struct WatchlistLabel: View {
 
-    let itemState: Watchlist.WatchlistItemState
+    let itemState: WatchlistContent.ItemState
 
     var body: some View {
         HStack {
@@ -117,7 +117,7 @@ struct WatchlistLabel: View {
 
 struct IconWatchlistButton: View {
 
-    let watchlistItem: Watchlist.WatchlistItem
+    let watchlistItem: WatchlistContent.Item
 
     var body: some View {
         WatchlistButton(watchlistItem: watchlistItem) { state in
@@ -129,7 +129,7 @@ struct IconWatchlistButton: View {
 
 struct WatermarkWatchlistButton: View {
 
-    let watchlistItem: Watchlist.WatchlistItem
+    let watchlistItem: WatchlistContent.Item
 
     var body: some View {
         WatchlistButton(watchlistItem: watchlistItem) { state in
@@ -145,10 +145,14 @@ struct WatchlistButton_Previews: PreviewProvider {
     static var previews: some View {
         VStack(spacing: 44) {
             IconWatchlistButton(watchlistItem: .movie(id: 954))
-                .environmentObject(Watchlist(moviesToWatch: [954]))
+                .environmentObject(Watchlist(items: [
+                    .movie(id: 954): .toWatch(reason: .toImplement)
+                ]))
 
             WatermarkWatchlistButton(watchlistItem: .movie(id: 954))
-                .environmentObject(Watchlist(watchedMovies: [954]))
+                .environmentObject(Watchlist(items: [
+                    .movie(id: 954): .watched,
+                ]))
         }
     }
 }

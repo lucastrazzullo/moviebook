@@ -51,7 +51,7 @@ struct MoviePreviewView: View {
                 .font(.caption)
         }
         .contextMenu {
-            WatchlistMenu(watchlistItem: Watchlist.WatchlistItem.movie(id: details.id))
+            WatchlistMenu(watchlistItem: WatchlistContent.Item.movie(id: details.id))
         }
     }
 
@@ -65,7 +65,7 @@ private struct WatchlistMenu: View {
 
     @EnvironmentObject var watchlist: Watchlist
 
-    let watchlistItem: Watchlist.WatchlistItem
+    let watchlistItem: WatchlistContent.Item
 
     var body: some View {
         switch watchlist.itemState(item: watchlistItem) {
@@ -98,7 +98,10 @@ private struct WatchlistMenu: View {
 struct MoviePreviewView_Previews: PreviewProvider {
     static var previews: some View {
         MoviePreviewView(details: MockWebService.movie(with: 954).details)
-            .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
+            .environmentObject(Watchlist(items: [
+                .movie(id: 954): .toWatch(reason: .toImplement),
+                .movie(id: 616037): .toWatch(reason: .toImplement)
+            ]))
     }
 }
 #endif

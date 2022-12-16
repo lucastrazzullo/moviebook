@@ -262,7 +262,7 @@ struct MovieCardView_Previews: PreviewProvider {
                 navigationPath: .constant(NavigationPath()),
                 movie: MockWebService.movie(with: 954)
             )
-            .environmentObject(Watchlist(moviesToWatch: []))
+            .environmentObject(Watchlist(items: [:]))
         }
     }
 }
