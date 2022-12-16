@@ -9,6 +9,19 @@ import SwiftUI
 
 struct MoviePreviewView: View {
 
+    enum PresentedItem: Identifiable {
+        case addToWatched(item: WatchlistContent.Item)
+
+        var id: AnyHashable {
+            switch self {
+            case .addToWatched(let item):
+                return item.id
+            }
+        }
+    }
+
+    @State private var presentedItem: PresentedItem?
+
     let details: MovieDetails?
     let onSelected: (() -> Void)?
 
@@ -54,9 +67,17 @@ struct MoviePreviewView: View {
                     .font(.caption)
             }
         }
+        .sheet(item: $presentedItem) { item in
+            switch item {
+            case .addToWatched(let item):
+                WatchlistAddToWatchView(item: item)
+            }
+        }
         .contextMenu {
             if let movieId = details?.id {
-                WatchlistMenu(watchlistItem: WatchlistContent.Item.movie(id: movieId))
+                WatchlistMenu(watchlistItem: WatchlistContent.Item.movie(id: movieId), shouldAddToWatch: { item in
+                    presentedItem = .addToWatched(item: item)
+                })
             }
         }
     }
@@ -72,29 +93,32 @@ private struct WatchlistMenu: View {
     @EnvironmentObject var watchlist: Watchlist
 
     let watchlistItem: WatchlistContent.Item
+    let shouldAddToWatch: (WatchlistContent.Item) -> Void
 
     var body: some View {
-        switch watchlist.itemState(item: watchlistItem) {
-        case .toWatch:
-            Button { watchlist.update(state: .none, for: watchlistItem) } label: {
-                Label("Remove from watchlist", systemImage: "minus")
-            }
-            Button { watchlist.update(state: .watched, for: watchlistItem) } label: {
-                Label("Mark as watched", systemImage: "checkmark")
-            }
-        case .watched:
-            Button { watchlist.update(state: .toWatch(reason: .toImplement), for: watchlistItem) } label: {
-                Label("Move to watchlist", systemImage: "star")
-            }
-            Button { watchlist.update(state: .none, for: watchlistItem) } label: {
-                Label("Remove from watchlist", systemImage: "minus")
-            }
-        case .none:
-            Button { watchlist.update(state: .toWatch(reason: .toImplement), for: watchlistItem) } label: {
-                Label("Add to watchlist", systemImage: "plus")
-            }
-            Button { watchlist.update(state: .watched, for: watchlistItem) } label: {
-                Label("Mark as watched", systemImage: "checkmark")
+        Group {
+            switch watchlist.itemState(item: watchlistItem) {
+            case .toWatch:
+                Button { watchlist.update(state: .none, for: watchlistItem) } label: {
+                    Label("Remove from watchlist", systemImage: "minus")
+                }
+                Button { watchlist.update(state: .watched, for: watchlistItem) } label: {
+                    Label("Mark as watched", systemImage: "checkmark")
+                }
+            case .watched:
+                Button(action: { shouldAddToWatch(watchlistItem) }) {
+                    Label("Move to watchlist", systemImage: "star")
+                }
+                Button { watchlist.update(state: .none, for: watchlistItem) } label: {
+                    Label("Remove from watchlist", systemImage: "minus")
+                }
+            case .none:
+                Button(action: { shouldAddToWatch(watchlistItem) }) {
+                    Label("Add to watchlist", systemImage: "plus")
+                }
+                Button { watchlist.update(state: .watched, for: watchlistItem) } label: {
+                    Label("Mark as watched", systemImage: "checkmark")
+                }
             }
         }
     }
@@ -105,8 +129,8 @@ struct MoviePreviewView_Previews: PreviewProvider {
     static var previews: some View {
         MoviePreviewView(details: MockWebService.movie(with: 954).details)
             .environmentObject(Watchlist(items: [
-                .movie(id: 954): .toWatch(reason: .toImplement),
-                .movie(id: 616037): .toWatch(reason: .toImplement)
+                .movie(id: 954): .toWatch(reason: .none),
+                .movie(id: 616037): .toWatch(reason: .none)
             ]))
     }
 }

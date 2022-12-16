@@ -9,6 +9,19 @@ import SwiftUI
 
 struct MovieWatchlistStateView: View {
 
+    enum PresentedItem: Identifiable {
+        case addToWatched(item: WatchlistContent.Item)
+
+        var id: AnyHashable {
+            switch self {
+            case .addToWatched(let item):
+                return item.id
+            }
+        }
+    }
+
+    @State private var presentedItem: PresentedItem?
+
     @EnvironmentObject var watchlist: Watchlist
 
     let movieId: Movie.ID
@@ -30,7 +43,7 @@ struct MovieWatchlistStateView: View {
                     Spacer()
 
                     HStack {
-                        Button(action: { watchlist.update(state: .toWatch(reason: .toImplement), for: .movie(id: movieId)) }) {
+                        Button(action: { presentedItem = .addToWatched(item: .movie(id: movieId)) }) {
                             WatchlistLabel(itemState: .none)
                         }
                         .buttonStyle(.borderedProminent)
@@ -43,26 +56,42 @@ struct MovieWatchlistStateView: View {
                     .frame(maxWidth: .infinity)
                 }
 
-            case .toWatch:
-                HStack(alignment: .top, spacing: 8) {
-                    Image(systemName: "quote.opening").font(.title)
-                        .foregroundColor(.accentColor)
+            case .toWatch(let reason):
+                if let reason = reason {
+                    switch reason {
+                    case .suggestion(let from, let comment):
+                        HStack(alignment: .top, spacing: 8) {
+                            Image(systemName: "quote.opening").font(.title)
+                                .foregroundColor(.accentColor)
 
-                    VStack(alignment: .leading, spacing: 24) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Suggested by Valerio.")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
+                            VStack(alignment: .leading, spacing: 24) {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    Text("Suggested by \(from).")
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
 
-                            Text("This movie is amazing. Great special effects.")
-                                .fixedSize(horizontal: false, vertical: true)
-                                .font(.body)
+                                    Text(comment)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                        .font(.body)
+                                }
+                                Button(action: { watchlist.update(state: .watched, for: .movie(id: movieId)) }) {
+                                    WatchlistIcon(itemState: .watched)
+                                    Text("Mark as watched")
+                                }
+                                .buttonStyle(.borderedProminent)
+                            }
                         }
-                        Button(action: { watchlist.update(state: .watched, for: .movie(id: movieId)) }) {
-                            WatchlistIcon(itemState: .watched)
-                            Text("Mark as watched")
+                    case .none:
+                        VStack(alignment: .center) {
+                            Text("You haven't watched this movie")
+
+                            Button(action: { watchlist.update(state: .watched, for: .movie(id: movieId)) }) {
+                                WatchlistIcon(itemState: .watched)
+                                Text("Mark as watched")
+                            }
+                            .buttonStyle(.borderedProminent)
                         }
-                        .buttonStyle(.borderedProminent)
+                        .frame(maxWidth: .infinity)
                     }
                 }
 
@@ -123,6 +152,12 @@ struct MovieWatchlistStateView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
         .background(RoundedRectangle(cornerRadius: 8).stroke(.orange))
+        .sheet(item: $presentedItem) { item in
+            switch item {
+            case .addToWatched(let item):
+                WatchlistAddToWatchView(item: item)
+            }
+        }
     }
 }
 
@@ -140,7 +175,8 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
         )
         .padding(24)
         .environmentObject(Watchlist(items: [
-            .movie(id: 954): .toWatch(reason: .toImplement)
+            .movie(id: 954): .toWatch(reason: .suggestion(from: "Valerio", comment: "This is really nice")),
+            .movie(id: 616037): .toWatch(reason: .none)
         ]))
     }
 }

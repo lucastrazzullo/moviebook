@@ -14,8 +14,15 @@ protocol WatchlistStorage {
 
 struct WatchlistContent: Codable {
 
-    enum Item: Hashable, Codable {
+    enum Item: Hashable, Codable, Identifiable {
         case movie(id: Movie.ID)
+
+        var id: AnyHashable {
+            switch self {
+            case .movie(let id):
+                return id
+            }
+        }
     }
 
     enum ItemState: Hashable, Codable {

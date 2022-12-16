@@ -9,5 +9,5 @@ import Foundation
 
 enum WatchlistToWatchReason: Codable, Hashable, Equatable {
     case suggestion(from: String, comment: String)
-    case toImplement
+    case none
 }

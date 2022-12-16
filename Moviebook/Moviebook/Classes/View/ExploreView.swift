@@ -171,8 +171,8 @@ struct ExploreView_Previews: PreviewProvider {
         ExploreView()
             .environment(\.requestManager, MockRequestManager())
             .environmentObject(Watchlist(items: [
-                .movie(id: 954): .toWatch(reason: .toImplement),
-                .movie(id: 616037): .toWatch(reason: .toImplement)
+                .movie(id: 954): .toWatch(reason: .none),
+                .movie(id: 616037): .toWatch(reason: .none)
             ]))
     }
 }

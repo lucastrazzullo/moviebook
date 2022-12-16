@@ -9,6 +9,19 @@ import SwiftUI
 
 struct WatchlistButton<LabelType>: View where LabelType: View  {
 
+    enum PresentedItem: Identifiable {
+        case addToWatched(item: WatchlistContent.Item)
+
+        var id: AnyHashable {
+            switch self {
+            case .addToWatched(let item):
+                return item.id
+            }
+        }
+    }
+
+    @State private var presentedItem: PresentedItem?
+
     @EnvironmentObject var watchlist: Watchlist
 
     @ViewBuilder let label: (WatchlistContent.ItemState) -> LabelType
@@ -17,7 +30,7 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
 
     var body: some View {
         Menu {
-            Button { watchlist.update(state: .toWatch(reason: .toImplement), for: watchlistItem) } label: {
+            Button(action: { presentedItem = .addToWatched(item: watchlistItem) }) {
                 Label("Add to watchlist", systemImage: "plus")
             }
             .disabled(isAddToWatchlistDisabled)
@@ -34,6 +47,12 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
 
         } label: {
             label(watchlist.itemState(item: watchlistItem))
+        }
+        .sheet(item: $presentedItem) { item in
+            switch item {
+            case .addToWatched(let item):
+                WatchlistAddToWatchView(item: item)
+            }
         }
     }
 
@@ -146,7 +165,7 @@ struct WatchlistButton_Previews: PreviewProvider {
         VStack(spacing: 44) {
             IconWatchlistButton(watchlistItem: .movie(id: 954))
                 .environmentObject(Watchlist(items: [
-                    .movie(id: 954): .toWatch(reason: .toImplement)
+                    .movie(id: 954): .toWatch(reason: .none)
                 ]))
 
             WatermarkWatchlistButton(watchlistItem: .movie(id: 954))
