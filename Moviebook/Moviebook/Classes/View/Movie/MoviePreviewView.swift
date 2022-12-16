@@ -9,14 +9,14 @@ import SwiftUI
 
 struct MoviePreviewView: View {
 
-    let details: MovieDetails
+    let details: MovieDetails?
     let onSelected: (() -> Void)?
 
     var body: some View {
         HStack(alignment: .center) {
             HStack(alignment: .center, spacing: 8) {
                 ZStack(alignment: .bottomTrailing) {
-                    AsyncImage(url: details.media.backdropPreviewUrl, content: { image in
+                    AsyncImage(url: details?.media.backdropPreviewUrl, content: { image in
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
@@ -32,30 +32,36 @@ struct MoviePreviewView: View {
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(details.title)
+                    Text(details?.title ?? "Loading")
                         .lineLimit(3)
                         .font(.subheadline)
                         .frame(maxWidth: 140, alignment: .leading)
 
-                    if let releaseDate = details.release {
+                    if let releaseDate = details?.release {
                         Text(releaseDate, format: .dateTime.year()).font(.caption)
                     }
 
-                    RatingView(rating: details.rating)
+                    if let rating = details?.rating {
+                        RatingView(rating: rating)
+                    }
                 }
                 .padding(.vertical, 4)
             }
             .onTapGesture(perform: { onSelected?() })
 
-            IconWatchlistButton(watchlistItem: .movie(id: details.id))
-                .font(.caption)
+            if let movieId = details?.id {
+                IconWatchlistButton(watchlistItem: .movie(id: movieId))
+                    .font(.caption)
+            }
         }
         .contextMenu {
-            WatchlistMenu(watchlistItem: WatchlistContent.Item.movie(id: details.id))
+            if let movieId = details?.id {
+                WatchlistMenu(watchlistItem: WatchlistContent.Item.movie(id: movieId))
+            }
         }
     }
 
-    init(details: MovieDetails, onSelected: (() -> Void)? = nil) {
+    init(details: MovieDetails?, onSelected: (() -> Void)? = nil) {
         self.details = details
         self.onSelected = onSelected
     }
