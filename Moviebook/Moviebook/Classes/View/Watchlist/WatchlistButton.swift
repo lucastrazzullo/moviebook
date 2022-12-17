@@ -10,10 +10,13 @@ import SwiftUI
 struct WatchlistButton<LabelType>: View where LabelType: View  {
 
     enum PresentedItem: Identifiable {
+        case addToWatch(item: WatchlistContent.Item)
         case addToWatched(item: WatchlistContent.Item)
 
         var id: AnyHashable {
             switch self {
+            case .addToWatch(let item):
+                return item.id
             case .addToWatched(let item):
                 return item.id
             }
@@ -30,12 +33,12 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
 
     var body: some View {
         Menu {
-            Button(action: { presentedItem = .addToWatched(item: watchlistItem) }) {
+            Button(action: { presentedItem = .addToWatch(item: watchlistItem) }) {
                 Label("Add to watchlist", systemImage: "plus")
             }
             .disabled(isAddToWatchlistDisabled)
 
-            Button { watchlist.update(state: .watched, for: watchlistItem) } label: {
+            Button { presentedItem = .addToWatched(item: watchlistItem) } label: {
                 Label("Mark as watched", systemImage: "checkmark")
             }
             .disabled(isMarkAsWatchedDisabled)
@@ -50,8 +53,10 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
         }
         .sheet(item: $presentedItem) { item in
             switch item {
-            case .addToWatched(let item):
+            case .addToWatch(let item):
                 WatchlistAddToWatchView(item: item)
+            case .addToWatched(let item):
+                WatchlistAddToWatchedView(item: item)
             }
         }
     }
@@ -87,12 +92,27 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
 
 // MARK: - Common Views
 
+enum WatchlistViewState {
+    case toWatch, watched, none
+
+    init(itemState: WatchlistContent.ItemState) {
+        switch itemState {
+        case .none:
+            self = .none
+        case .toWatch:
+            self = .toWatch
+        case .watched:
+            self = .watched
+        }
+    }
+}
+
 struct WatchlistIcon: View {
 
-    let itemState: WatchlistContent.ItemState
+    let state: WatchlistViewState
 
     var body: some View {
-        switch itemState {
+        switch state {
         case .toWatch:
             Image(systemName: "books.vertical.fill")
         case .watched:
@@ -101,14 +121,22 @@ struct WatchlistIcon: View {
             Image(systemName: "plus")
         }
     }
+
+    init(itemState: WatchlistContent.ItemState) {
+        self.state = WatchlistViewState(itemState: itemState)
+    }
+
+    init(state: WatchlistViewState) {
+        self.state = state
+    }
 }
 
 struct WatchlistText: View {
 
-    let itemState: WatchlistContent.ItemState
+    let state: WatchlistViewState
 
     var body: some View {
-        switch itemState {
+        switch state {
         case .toWatch:
             Text("In watchlist")
         case .watched:
@@ -117,18 +145,34 @@ struct WatchlistText: View {
             Text("Add")
         }
     }
+
+    init(itemState: WatchlistContent.ItemState) {
+        self.state = WatchlistViewState(itemState: itemState)
+    }
+
+    init(state: WatchlistViewState) {
+        self.state = state
+    }
 }
 
 struct WatchlistLabel: View {
 
-    let itemState: WatchlistContent.ItemState
+    let state: WatchlistViewState
 
     var body: some View {
         HStack {
-            WatchlistIcon(itemState: itemState)
-            WatchlistText(itemState: itemState)
+            WatchlistIcon(state: state)
+            WatchlistText(state: state)
                 .fixedSize(horizontal: true, vertical: false)
         }
+    }
+
+    init(itemState: WatchlistContent.ItemState) {
+        self.state = WatchlistViewState(itemState: itemState)
+    }
+
+    init(state: WatchlistViewState) {
+        self.state = state
     }
 }
 
@@ -170,7 +214,7 @@ struct WatchlistButton_Previews: PreviewProvider {
 
             WatermarkWatchlistButton(watchlistItem: .movie(id: 954))
                 .environmentObject(Watchlist(items: [
-                    .movie(id: 954): .watched,
+                    .movie(id: 954): .watched(reason: .none, rating: 6),
                 ]))
         }
     }

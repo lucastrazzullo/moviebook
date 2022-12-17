@@ -28,7 +28,7 @@ struct WatchlistContent: Codable {
     enum ItemState: Hashable, Codable {
         case none
         case toWatch(reason: WatchlistToWatchReason)
-        case watched
+        case watched(reason: WatchlistToWatchReason, rating: Double)
     }
 
     var items: [Item: ItemState] = [:]

@@ -9,6 +9,8 @@ import SwiftUI
 
 struct CircularRatingView: View {
 
+    static let ratingQuota: CGFloat = 10
+
     enum Style {
         case small
         case prominent
@@ -25,7 +27,7 @@ struct CircularRatingView: View {
                 .foregroundColor(.white.opacity(0.2))
 
             Circle()
-                .trim(from: 0.0, to: rating / 10)
+                .trim(from: 0.0, to: rating / Self.ratingQuota)
                 .stroke(style: .init(lineWidth: strokeWidth, lineCap: .round))
 
             VStack {

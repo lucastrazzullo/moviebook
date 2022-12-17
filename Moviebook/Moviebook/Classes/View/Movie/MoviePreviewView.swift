@@ -10,10 +10,13 @@ import SwiftUI
 struct MoviePreviewView: View {
 
     enum PresentedItem: Identifiable {
+        case addToWatch(item: WatchlistContent.Item)
         case addToWatched(item: WatchlistContent.Item)
 
         var id: AnyHashable {
             switch self {
+            case .addToWatch(let item):
+                return item.id
             case .addToWatched(let item):
                 return item.id
             }
@@ -69,15 +72,22 @@ struct MoviePreviewView: View {
         }
         .sheet(item: $presentedItem) { item in
             switch item {
-            case .addToWatched(let item):
+            case .addToWatch(let item):
                 WatchlistAddToWatchView(item: item)
+            case .addToWatched(let item):
+                WatchlistAddToWatchedView(item: item)
             }
         }
         .contextMenu {
             if let movieId = details?.id {
-                WatchlistMenu(watchlistItem: WatchlistContent.Item.movie(id: movieId), shouldAddToWatch: { item in
-                    presentedItem = .addToWatched(item: item)
-                })
+                WatchlistMenu(
+                    watchlistItem: WatchlistContent.Item.movie(id: movieId),
+                    shouldAddToWatch: { item in
+                        presentedItem = .addToWatch(item: item)
+                    },
+                    shouldAddToWatched: { item in
+                        presentedItem = .addToWatched(item: item)
+                    })
             }
         }
     }
@@ -94,6 +104,7 @@ private struct WatchlistMenu: View {
 
     let watchlistItem: WatchlistContent.Item
     let shouldAddToWatch: (WatchlistContent.Item) -> Void
+    let shouldAddToWatched: (WatchlistContent.Item) -> Void
 
     var body: some View {
         Group {
@@ -102,7 +113,7 @@ private struct WatchlistMenu: View {
                 Button { watchlist.update(state: .none, for: watchlistItem) } label: {
                     Label("Remove from watchlist", systemImage: "minus")
                 }
-                Button { watchlist.update(state: .watched, for: watchlistItem) } label: {
+                Button { shouldAddToWatched(watchlistItem) } label: {
                     Label("Mark as watched", systemImage: "checkmark")
                 }
             case .watched:
@@ -116,7 +127,7 @@ private struct WatchlistMenu: View {
                 Button(action: { shouldAddToWatch(watchlistItem) }) {
                     Label("Add to watchlist", systemImage: "plus")
                 }
-                Button { watchlist.update(state: .watched, for: watchlistItem) } label: {
+                Button { shouldAddToWatched(watchlistItem) } label: {
                     Label("Mark as watched", systemImage: "checkmark")
                 }
             }

@@ -44,6 +44,18 @@ struct WatchlistAddToWatchView: View {
 
     let item: WatchlistContent.Item
 
+    private var toWatchReason: WatchlistToWatchReason {
+        let state = watchlist.itemState(item: item)
+        switch state {
+        case .none:
+            return .none
+        case .toWatch(let reason):
+            return reason
+        case .watched(let reason, _):
+            return reason
+        }
+    }
+
     var body: some View {
         VStack {
             Text("Add to watchlist")
@@ -77,7 +89,7 @@ struct WatchlistAddToWatchView: View {
                     }
 
                     Button(action: addToWatch) {
-                        Text("Add")
+                        Text("Save")
                     }
                     .buttonStyle(.borderedProminent)
                     .frame(maxWidth: .infinity)
@@ -100,6 +112,15 @@ struct WatchlistAddToWatchView: View {
         .padding(.top)
         .foregroundColor(nil)
         .font(.body)
+        .onAppear {
+            switch toWatchReason {
+            case .suggestion(let from, let comment):
+                suggestedByText = from
+                commentText = comment
+            case .none:
+                break
+            }
+        }
     }
 
     private func addToWatch() {
@@ -112,8 +133,6 @@ struct WatchlistAddToWatchView: View {
 
         addToWatch(with: .suggestion(from: suggestedByText, comment: commentText))
     }
-
-
 
     private func addToWatch(with reason: WatchlistToWatchReason) {
         watchlist.update(state: .toWatch(reason: reason), for: item)
