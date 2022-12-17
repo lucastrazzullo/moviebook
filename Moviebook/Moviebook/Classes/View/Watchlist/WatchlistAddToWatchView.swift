@@ -140,9 +140,11 @@ struct WatchlistAddToWatchView: View {
     }
 }
 
+#if DEBUG
 struct WatchlistAddToWatchView_Previews: PreviewProvider {
     static var previews: some View {
         WatchlistAddToWatchView(item: .movie(id: 954))
             .environmentObject(Watchlist(items: [:]))
     }
 }
+#endif
