@@ -27,8 +27,8 @@ struct WatchlistContent: Codable {
 
     enum ItemState: Hashable, Codable {
         case none
-        case toWatch(reason: WatchlistToWatchReason)
-        case watched(reason: WatchlistToWatchReason, rating: Double)
+        case toWatch(reason: Watchlist.ToWatchReason)
+        case watched(reason: Watchlist.ToWatchReason, rating: Double)
     }
 
     var items: [Item: ItemState]
@@ -45,6 +45,11 @@ struct WatchlistContent: Codable {
 }
 
 @MainActor final class Watchlist: ObservableObject {
+
+    enum ToWatchReason: Codable, Hashable, Equatable {
+        case suggestion(from: String, comment: String)
+        case none
+    }
 
     @Published private(set) var content: WatchlistContent = WatchlistContent.empty
 

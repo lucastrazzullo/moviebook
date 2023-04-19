@@ -17,7 +17,7 @@ struct WatchlistAddToWatchedView: View {
 
     let item: WatchlistContent.Item
 
-    private var toWatchReason: WatchlistToWatchReason {
+    private var toWatchReason: Watchlist.ToWatchReason {
         let state = watchlist.itemState(item: item)
         switch state {
         case .none:
