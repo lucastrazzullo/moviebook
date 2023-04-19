@@ -177,7 +177,7 @@ extension MovieMedia: Decodable {
 
         if let posterPath = try container.decodeIfPresent(String.self, forKey: .posterPath) {
             posterUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .poster(path: posterPath, size: .original))
-            posterPreviewUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .poster(path: posterPath, size: .original))
+            posterPreviewUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .poster(path: posterPath, size: .preview))
         } else {
             posterUrl = nil
             posterPreviewUrl = nil
@@ -185,7 +185,7 @@ extension MovieMedia: Decodable {
 
         if let backdropPath = try container.decodeIfPresent(String.self, forKey: .backdropPath) {
             backdropUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .backdrop(path: backdropPath, size: .original))
-            backdropPreviewUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .backdrop(path: backdropPath, size: .original))
+            backdropPreviewUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .backdrop(path: backdropPath, size: .preview))
         } else {
             backdropUrl = nil
             backdropPreviewUrl = nil

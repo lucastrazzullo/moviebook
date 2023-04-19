@@ -50,7 +50,7 @@ struct MoviePreviewView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(details?.title ?? "Loading")
                         .lineLimit(3)
-                        .font(.subheadline)
+                        .font(.headline)
                         .frame(maxWidth: 140, alignment: .leading)
 
                     if let releaseDate = details?.release {
