@@ -12,9 +12,9 @@ struct WatermarkView<Content: View>: View {
     @ViewBuilder let content: () -> Content
 
     var body: some View {
-        HStack(alignment: .center, spacing: 28) {
+        HStack(alignment: .center, spacing: 16) {
             content()
-                .frame(height: 18, alignment: .center)
+                .frame(width: 18, height: 18, alignment: .center)
                 .font(.footnote)
         }
         .padding(.horizontal, 8)

@@ -57,7 +57,7 @@ struct MovieView: View {
     @State private var isErrorPresented: Bool = false
 
     var body: some View {
-        ZStack(alignment: .topLeading) {
+        Group {
             if let movie = content.movie {
                 MovieContentView(navigationPath: $navigationPath, movie: movie)
             } else {
