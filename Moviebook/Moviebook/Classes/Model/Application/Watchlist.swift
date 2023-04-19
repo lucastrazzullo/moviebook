@@ -31,12 +31,22 @@ struct WatchlistContent: Codable {
         case watched(reason: WatchlistToWatchReason, rating: Double)
     }
 
-    var items: [Item: ItemState] = [:]
+    var items: [Item: ItemState]
+
+    // MARK: Object life cycle
+
+    static var empty: WatchlistContent {
+        return WatchlistContent(items: [:])
+    }
+
+    init(items: [Item: ItemState]) {
+        self.items = items
+    }
 }
 
 @MainActor final class Watchlist: ObservableObject {
 
-    @Published private(set) var content: WatchlistContent = WatchlistContent()
+    @Published private(set) var content: WatchlistContent = WatchlistContent.empty
 
     private let storage: WatchlistStorage
 
@@ -65,34 +75,44 @@ struct WatchlistContent: Codable {
     }
 }
 
-final class UserDefaultsWatchlistStorage: WatchlistStorage {
+final class FileBasedWatchlistStorage: WatchlistStorage {
 
-    enum Error: Swift.Error {
-        case itemsNotFound
-    }
+    private let fileName: String = "watchlist-v00"
 
     func save(content: WatchlistContent) {
         do {
-            let defaults = UserDefaults.standard
-            defaults.set(try JSONEncoder().encode(content), forKey: "Watchlist.content")
+            let data = try JSONEncoder().encode(content)
+            try storeToFile(data, fileName: fileName)
         } catch {
-            print(error)
+            print("FileBased Storage -> Failed to save with error:", error)
         }
     }
 
     func load() -> WatchlistContent {
         do {
-            let defaults = UserDefaults.standard
-            if let data = defaults.data(forKey: "Watchlist.content") {
-                let content =  try JSONDecoder().decode(WatchlistContent.self, from: data)
-                return content
-            } else {
-                throw Error.itemsNotFound
-            }
+            let data = try readFromFile(fileName: fileName)
+            return try JSONDecoder().decode(WatchlistContent.self, from: data)
         } catch {
-            print(error)
-            return WatchlistContent()
+            print("FileBased Storage -> Failed to load with error:", error)
+            return WatchlistContent.empty
         }
+    }
+
+    // MARK: Private helper methods
+
+    private func storeToFile(_ data: Data, fileName: String) throws {
+        let url = itemUrl(fileName: fileName)
+        try data.write(to: url)
+    }
+
+    private func readFromFile(fileName: String) throws -> Data {
+        let url = itemUrl(fileName: fileName)
+        return try Data(contentsOf: url)
+    }
+
+    private func itemUrl(fileName: String) -> URL {
+        let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        return directory[0].appendingPathComponent(fileName)
     }
 }
 

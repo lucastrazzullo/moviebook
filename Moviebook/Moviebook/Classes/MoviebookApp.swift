@@ -7,21 +7,18 @@
 
 import SwiftUI
 
-@MainActor enum Globals {
-  static let watchlist = Watchlist(storage: UserDefaultsWatchlistStorage())
-}
-
 @main
 struct MoviebookApp: App {
 
+    @StateObject var watchlist = Watchlist(storage: FileBasedWatchlistStorage())
+
     let requestManager = DefaultRequestManager(logging: .disabled)
-    let user = User(watchlist: Globals.watchlist)
 
     var body: some Scene {
         WindowGroup {
             MoviebookView()
                 .environment(\.requestManager, requestManager)
-                .environmentObject(user.watchlist)
+                .environmentObject(watchlist)
         }
     }
 }
