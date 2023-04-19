@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol RequestManager {
+protocol RequestManager: AnyObject {
     func request(from url: URL) async throws -> Data
 }
 

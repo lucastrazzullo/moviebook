@@ -8,16 +8,61 @@
 import SwiftUI
 import Combine
 
-@MainActor private final class Content: ObservableObject {
+@MainActor private final class SearchContent: ObservableObject {
+
+    // MARK: Instance Properties
+
+    var title: String {
+        return NSLocalizedString("EXPLORE.SEARCH.RESULTS", comment: "") + ": " + searchKeyword
+    }
+
+    @Published var searchKeyword: String = ""
+    @Published var movies: [MovieDetails] = []
+    @Published var isLoading: Bool = false
+    @Published var error: WebServiceError? = nil
+
+    private var subscriptions: Set<AnyCancellable> = []
+
+    // MARK: Search
+
+    func start(requestManager: RequestManager) {
+        $searchKeyword
+            .debounce(for: .seconds(1), scheduler: DispatchQueue.main)
+            .sink(receiveValue: { [weak self, weak requestManager] keyword in
+                if let requestManager {
+                    Task {
+                        await self?.fetchMovies(for: keyword, requestManager: requestManager)
+                    }
+                }
+            })
+            .store(in: &subscriptions)
+    }
+
+    private func fetchMovies(for keyword: String, requestManager: RequestManager) async {
+        do {
+            isLoading = true
+            movies = try await SearchWebService(requestManager: requestManager).fetchMovie(with: keyword)
+            isLoading = false
+        } catch {
+            self.error = .failedToLoad(id: .init()) { [weak self] in
+                Task {
+                    await self?.fetchMovies(for: keyword, requestManager: requestManager)
+                }
+            }
+        }
+    }
+}
+
+@MainActor private final class ExploreContent: ObservableObject {
 
     // MARK: Types
 
-    enum Section: Identifiable, CaseIterable {
+    enum Section: String, Identifiable, CaseIterable {
         case popular
         case upcoming
 
         var id: String {
-            return self.name
+            return rawValue
         }
 
         var name: String {
@@ -32,51 +77,34 @@ import Combine
 
     // MARK: Instance Properties
 
-    @Published var isSearching: Bool = false
-    @Published var searchKeyword: String = ""
-    @Published var searchResults: [MovieDetails] = []
-    @Published var explore: [Section.ID: [MovieDetails]] = [:]
-    @Published var error: WebServiceError?
-
-    var sections: [Section] {
-        return Section.allCases
-    }
-
-    private var subscriptions: Set<AnyCancellable> = []
+    @Published var data: [Section: [MovieDetails]] = [:]
+    @Published var error: WebServiceError? = nil
 
     // MARK: Instance methods
 
     func start(requestManager: RequestManager) {
-        loadMovies(for: .upcoming, requestManager: requestManager)
-        loadMovies(for: .popular, requestManager: requestManager)
-
-        $searchKeyword
-            .debounce(for: .seconds(1), scheduler: DispatchQueue.main)
-            .sink(receiveValue: { keyword in
-                Task { [weak self] in
-                    self?.isSearching = true
-                    let results = try await SearchWebService(requestManager: requestManager).fetchMovie(with: keyword)
-                    self?.searchResults = results
-                    self?.isSearching = false
-                }
-            })
-            .store(in: &subscriptions)
+        for section in Section.allCases {
+            Task {
+                await fetchMovies(in: section, requestManager: requestManager)
+            }
+        }
     }
 
-    private func loadMovies(for section: Section, requestManager: RequestManager) {
-        Task {
-            do {
-                switch section {
-                case .popular:
-                    explore[section.id] = try await PopularWebService(requestManager: requestManager).fetch()
-                case .upcoming:
-                    explore[section.id] = try await UpcomingWebService(requestManager: requestManager).fetch()
-                }
+    // MARK: Data
 
-            } catch {
-                self.error = .failedToLoad(id: .init(), retry: { [weak self] in
-                    self?.loadMovies(for: section, requestManager: requestManager)
-                })
+    private func fetchMovies(in section: Section, requestManager: RequestManager) async {
+        do {
+            switch section {
+            case .popular:
+                data[section] = try await PopularWebService(requestManager: requestManager).fetch()
+            case .upcoming:
+                data[section] = try await UpcomingWebService(requestManager: requestManager).fetch()
+            }
+        } catch {
+            self.error = .failedToLoad(id: .init()) { [weak self] in
+                Task {
+                    await self?.fetchMovies(in: section, requestManager: requestManager)
+                }
             }
         }
     }
@@ -92,22 +120,23 @@ struct ExploreView: View {
     @Environment(\.requestManager) var requestManager
     @EnvironmentObject var watchlist: Watchlist
 
-    @StateObject private var content: Content = Content()
+    @StateObject private var searchContent: SearchContent = SearchContent()
+    @StateObject private var exploreContent: ExploreContent = ExploreContent()
+
     @State private var movieNavigationPath: NavigationPath = NavigationPath()
     @State private var isMoviePresented: MovieIdentifier?
-    @State private var isErrorPresented: Bool = false
 
     var body: some View {
         NavigationView {
             List {
-                if !content.searchKeyword.isEmpty {
+                if searchContent.isLoading || !searchContent.movies.isEmpty {
                     Section(header: HStack(spacing: 4) {
-                        Text("\(NSLocalizedString("EXPLORE.SEARCH.RESULTS", comment: "")): \(content.searchKeyword)")
-                        if content.isSearching {
+                        Text(searchContent.title)
+                        if searchContent.isLoading {
                             ProgressView()
                         }
                     }) {
-                        ForEach(content.searchResults) { movieDetails in
+                        ForEach(searchContent.movies) { movieDetails in
                             MoviePreviewView(details: movieDetails) {
                                 isMoviePresented = MovieIdentifier(id: movieDetails.id)
                             }
@@ -117,11 +146,13 @@ struct ExploreView: View {
                     .listSectionSeparator(.hidden)
                 }
 
-                ForEach(content.sections) { section in
-                    Section(header: Text(section.name)) {
-                        ForEach(content.explore[section.id] ?? []) { movieDetails in
-                            MoviePreviewView(details: movieDetails) {
-                                isMoviePresented = MovieIdentifier(id: movieDetails.id)
+                ForEach(ExploreContent.Section.allCases) { section in
+                    if let movies = exploreContent.data[section], !movies.isEmpty {
+                        Section(header: Text(section.name)) {
+                            ForEach(movies) { movieDetails in
+                                MoviePreviewView(details: movieDetails) {
+                                    isMoviePresented = MovieIdentifier(id: movieDetails.id)
+                                }
                             }
                         }
                     }
@@ -139,7 +170,7 @@ struct ExploreView: View {
                 }
             }
             .searchable(
-                text: $content.searchKeyword,
+                text: $searchContent.searchKeyword,
                 prompt: NSLocalizedString("EXPLORE.SEARCH.PROMPT", comment: "")
             )
             .sheet(item: $isMoviePresented) { movieIdentifier in
@@ -150,16 +181,14 @@ struct ExploreView: View {
                         }
                 }
             }
-            .alert("Error", isPresented: $isErrorPresented) {
-                Button("Retry", role: .cancel) {
-                    content.error?.retry()
-                }
-            }
-            .onChange(of: content.error) { error in
-                isErrorPresented = error != nil
+            .alert(item: $exploreContent.error) { error in
+                Alert(title: Text("Error"), dismissButton: .destructive(Text("Retry")) {
+                    error.retry()
+                })
             }
             .onAppear {
-                content.start(requestManager: requestManager)
+                searchContent.start(requestManager: requestManager)
+                exploreContent.start(requestManager: requestManager)
             }
         }
     }
