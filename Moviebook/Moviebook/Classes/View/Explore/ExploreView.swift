@@ -45,8 +45,10 @@ import Combine
                 isLoading = false
             } catch {
                 self.isLoading = false
-                self.error = .failedToLoad(id: .init()) { [weak self] in
-                    self?.fetchMovies(for: keyword, requestManager: requestManager)
+                self.error = .failedToLoad(id: .init()) { [weak self, weak requestManager] in
+                    if let requestManager {
+                        self?.fetchMovies(for: keyword, requestManager: requestManager)
+                    }
                 }
             }
         }
@@ -64,47 +66,78 @@ import Combine
         var id: String {
             return rawValue
         }
+    }
+
+    final class SectionContent: ObservableObject, Identifiable {
+
+        private let section: Section
+
+        var id: Section.ID {
+            return section.id
+        }
 
         var name: String {
-            switch self {
+            switch section {
             case .upcoming:
                 return NSLocalizedString("MOVIE.UPCOMING", comment: "")
             case .popular:
                 return NSLocalizedString("MOVIE.POPULAR", comment: "")
             }
         }
+
+        @Published var movies: [MovieDetails] = []
+        @Published var error: WebServiceError? = nil
+        @Published var isLoading: Bool = false
+
+        init(section: Section) {
+            self.section = section
+        }
+
+        func fetch(requestManager: RequestManager) {
+            Task {
+                do {
+                    error = nil
+                    isLoading = true
+                    movies = try await fetchMovies(requestManager: requestManager)
+                    isLoading = false
+                } catch {
+                    self.isLoading = false
+                    self.error = .failedToLoad(id: .init()) { [weak self, weak requestManager] in
+                        if let requestManager {
+                            self?.fetch(requestManager: requestManager)
+                        }
+                    }
+                }
+            }
+        }
+
+        private func fetchMovies(requestManager: RequestManager) async throws -> [MovieDetails] {
+            switch section {
+            case .popular:
+                return try await PopularWebService(requestManager: requestManager).fetch()
+            case .upcoming:
+                return try await UpcomingWebService(requestManager: requestManager).fetch()
+            }
+        }
     }
 
     // MARK: Instance Properties
 
-    @Published var data: [Section: [MovieDetails]] = [:]
-    @Published var error: WebServiceError? = nil
+    @Published var sections: [SectionContent] = Section.allCases.map { SectionContent(section: $0) }
+
+    private var subscriptions: Set<AnyCancellable> = []
 
     // MARK: Instance methods
 
     func start(requestManager: RequestManager) {
-        for section in Section.allCases {
-            fetchMovies(in: section, requestManager: requestManager)
-        }
-    }
-
-    // MARK: Data
-
-    private func fetchMovies(in section: Section, requestManager: RequestManager) {
-        Task {
-            do {
-                error = nil
-                switch section {
-                case .popular:
-                    data[section] = try await PopularWebService(requestManager: requestManager).fetch()
-                case .upcoming:
-                    data[section] = try await UpcomingWebService(requestManager: requestManager).fetch()
+        for section in sections {
+            section.fetch(requestManager: requestManager)
+            section.objectWillChange
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] _ in
+                    self?.objectWillChange.send()
                 }
-            } catch {
-                self.error = .failedToLoad(id: .init()) { [weak self] in
-                    self?.fetchMovies(in: section, requestManager: requestManager)
-                }
-            }
+                .store(in: &subscriptions)
         }
     }
 }
@@ -138,16 +171,14 @@ struct ExploreView: View {
                     })
                 }
 
-                ForEach(ExploreContent.Section.allCases) { section in
-                    if let movies = exploreContent.data[section] {
-                        SectionView(title: section.name,
-                                    isLoading: false,
-                                    error: exploreContent.error,
-                                    movies: movies,
-                                    onMovieSelected: { movieIdentifier in
-                            presentedMovieIdentifier = MovieIdentifier(id: movieIdentifier)
-                        })
-                    }
+                ForEach(exploreContent.sections) { section in
+                    SectionView(title: section.name,
+                                isLoading: section.isLoading,
+                                error: section.error,
+                                movies: section.movies,
+                                onMovieSelected: { movieIdentifier in
+                        presentedMovieIdentifier = MovieIdentifier(id: movieIdentifier)
+                    })
                 }
                 .listSectionSeparator(.hidden)
             }
