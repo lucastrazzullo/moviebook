@@ -179,6 +179,14 @@
 			path = Common;
 			sourceTree = "<group>";
 		};
+		812489BE29F149DD004A6BE6 /* Explore */ = {
+			isa = PBXGroup;
+			children = (
+				8169FB5E28C20C420054BCE6 /* ExploreView.swift */,
+			);
+			path = Explore;
+			sourceTree = "<group>";
+		};
 		814D46CE28C2221B000D7ABD /* The Movie DB */ = {
 			isa = PBXGroup;
 			children = (
@@ -307,7 +315,7 @@
 			isa = PBXGroup;
 			children = (
 				8169FB5328C207590054BCE6 /* MoviebookView.swift */,
-				8169FB5E28C20C420054BCE6 /* ExploreView.swift */,
+				812489BE29F149DD004A6BE6 /* Explore */,
 				818FA44D291E8B0700CF6318 /* Watchlist */,
 				8112AF082916DF010041475D /* Movie */,
 				8112AF092916DF240041475D /* Common */,
