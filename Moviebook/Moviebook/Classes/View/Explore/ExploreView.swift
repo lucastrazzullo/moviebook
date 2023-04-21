@@ -6,141 +6,6 @@
 //
 
 import SwiftUI
-import Combine
-
-@MainActor private final class SearchContent: ObservableObject {
-
-    // MARK: Instance Properties
-
-    var title: String {
-        return NSLocalizedString("EXPLORE.SEARCH.RESULTS", comment: "") + ": " + searchKeyword
-    }
-
-    @Published var searchKeyword: String = ""
-    @Published var movies: [MovieDetails] = []
-    @Published var isLoading: Bool = false
-    @Published var error: WebServiceError? = nil
-
-    private var subscriptions: Set<AnyCancellable> = []
-
-    // MARK: Search
-
-    func start(requestManager: RequestManager) {
-        $searchKeyword
-            .debounce(for: .seconds(1), scheduler: DispatchQueue.main)
-            .sink(receiveValue: { [weak self, weak requestManager] keyword in
-                if let requestManager {
-                    self?.fetchMovies(for: keyword, requestManager: requestManager)
-                }
-            })
-            .store(in: &subscriptions)
-    }
-
-    private func fetchMovies(for keyword: String, requestManager: RequestManager) {
-        Task {
-            do {
-                error = nil
-                isLoading = true
-                movies = try await SearchWebService(requestManager: requestManager).fetchMovie(with: keyword)
-                isLoading = false
-            } catch {
-                self.isLoading = false
-                self.error = .failedToLoad(id: .init()) { [weak self, weak requestManager] in
-                    if let requestManager {
-                        self?.fetchMovies(for: keyword, requestManager: requestManager)
-                    }
-                }
-            }
-        }
-    }
-}
-
-@MainActor private final class ExploreContent: ObservableObject {
-
-    // MARK: Types
-
-    enum Section: String, Identifiable, CaseIterable {
-        case popular
-        case upcoming
-
-        var id: String {
-            return rawValue
-        }
-    }
-
-    final class SectionContent: ObservableObject, Identifiable {
-
-        private let section: Section
-
-        var id: Section.ID {
-            return section.id
-        }
-
-        var name: String {
-            switch section {
-            case .upcoming:
-                return NSLocalizedString("MOVIE.UPCOMING", comment: "")
-            case .popular:
-                return NSLocalizedString("MOVIE.POPULAR", comment: "")
-            }
-        }
-
-        @Published var movies: [MovieDetails] = []
-        @Published var error: WebServiceError? = nil
-        @Published var isLoading: Bool = false
-
-        init(section: Section) {
-            self.section = section
-        }
-
-        func fetch(requestManager: RequestManager) {
-            Task {
-                do {
-                    error = nil
-                    isLoading = true
-                    movies = try await fetchMovies(requestManager: requestManager)
-                    isLoading = false
-                } catch {
-                    self.isLoading = false
-                    self.error = .failedToLoad(id: .init()) { [weak self, weak requestManager] in
-                        if let requestManager {
-                            self?.fetch(requestManager: requestManager)
-                        }
-                    }
-                }
-            }
-        }
-
-        private func fetchMovies(requestManager: RequestManager) async throws -> [MovieDetails] {
-            switch section {
-            case .popular:
-                return try await PopularWebService(requestManager: requestManager).fetch()
-            case .upcoming:
-                return try await UpcomingWebService(requestManager: requestManager).fetch()
-            }
-        }
-    }
-
-    // MARK: Instance Properties
-
-    @Published var sections: [SectionContent] = Section.allCases.map { SectionContent(section: $0) }
-
-    private var subscriptions: Set<AnyCancellable> = []
-
-    // MARK: Instance methods
-
-    func start(requestManager: RequestManager) {
-        for section in sections {
-            section.fetch(requestManager: requestManager)
-            section.objectWillChange
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] _ in
-                    self?.objectWillChange.send()
-                }
-                .store(in: &subscriptions)
-        }
-    }
-}
 
 struct ExploreView: View {
 
@@ -152,8 +17,8 @@ struct ExploreView: View {
     @Environment(\.requestManager) var requestManager
     @EnvironmentObject var watchlist: Watchlist
 
-    @StateObject private var searchContent: SearchContent = SearchContent()
-    @StateObject private var exploreContent: ExploreContent = ExploreContent()
+    @StateObject private var searchContent: ExploreSearchContent = ExploreSearchContent()
+    @StateObject private var exploreContent: ExploreSectionContent = ExploreSectionContent()
 
     @State private var movieNavigationPath: NavigationPath = NavigationPath()
     @State private var presentedMovieIdentifier: MovieIdentifier?
@@ -165,7 +30,7 @@ struct ExploreView: View {
                     SectionView(title: searchContent.title,
                                 isLoading: searchContent.isLoading,
                                 error: searchContent.error,
-                                movies: searchContent.movies,
+                                items: searchContent.result,
                                 onMovieSelected: { movieIdentifier in
                         presentedMovieIdentifier = MovieIdentifier(id: movieIdentifier)
                     })
@@ -175,7 +40,7 @@ struct ExploreView: View {
                     SectionView(title: section.name,
                                 isLoading: section.isLoading,
                                 error: section.error,
-                                movies: section.movies,
+                                items: .movies(section.items),
                                 onMovieSelected: { movieIdentifier in
                         presentedMovieIdentifier = MovieIdentifier(id: movieIdentifier)
                     })
@@ -195,6 +60,11 @@ struct ExploreView: View {
                 text: $searchContent.searchKeyword,
                 prompt: NSLocalizedString("EXPLORE.SEARCH.PROMPT", comment: "")
             )
+            .searchScopes($searchContent.searchScope) {
+                ForEach(ExploreSearchContent.Scope.allCases, id: \.self) { scope in
+                    Text(scope.rawValue.capitalized)
+                }
+            }
             .sheet(item: $presentedMovieIdentifier) { movieIdentifier in
                 NavigationStack(path: $movieNavigationPath) {
                     MovieView(movieId: movieIdentifier.id, navigationPath: $movieNavigationPath)
@@ -216,14 +86,21 @@ private struct SectionView: View {
     let title: String
     let isLoading: Bool
     let error: WebServiceError?
-    let movies: [MovieDetails]
+    let items: ExploreListItems
     let onMovieSelected: (Movie.ID) -> Void
 
     var body: some View {
         Section(header: header) {
-            ForEach(movies) { movieDetails in
-                MoviePreviewView(details: movieDetails) {
-                    onMovieSelected(movieDetails.id)
+            switch items {
+            case .movies(let movies):
+                ForEach(movies, id: \.self) { movieDetails in
+                    MoviePreviewView(details: movieDetails) {
+                        onMovieSelected(movieDetails.id)
+                    }
+                }
+            case .artists(let artists):
+                ForEach(artists, id: \.self) { artistDetails in
+                    ArtistPreviewView(details: artistDetails)
                 }
             }
         }

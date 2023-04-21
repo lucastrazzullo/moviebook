@@ -249,3 +249,22 @@ extension MovieVideo: Decodable {
         }
     }
 }
+
+extension ArtistDetails: Decodable {
+    
+    enum CodingKeys: String, CodingKey {
+        case id = "id"
+        case name = "name"
+        case popularity = "popularity"
+        case imagePath = "profile_path"
+    }
+    
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        
+        id = try values.decode(ArtistDetails.ID.self, forKey: .id)
+        name = try values.decode(String.self, forKey: .name)
+        popularity = try values.decode(Float.self, forKey: .popularity)
+        imagePath = try values.decode(String.self, forKey: .imagePath)
+    }
+}

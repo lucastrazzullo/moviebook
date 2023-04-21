@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Rating: Equatable {
+struct Rating: Equatable, Hashable {
 
     let value: Float
     let quota: Float
