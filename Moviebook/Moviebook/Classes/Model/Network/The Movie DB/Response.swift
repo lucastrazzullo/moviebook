@@ -251,20 +251,34 @@ extension MovieVideo: Decodable {
 }
 
 extension ArtistDetails: Decodable {
+
+    static let birthdayDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
     
     enum CodingKeys: String, CodingKey {
         case id = "id"
         case name = "name"
-        case popularity = "popularity"
+        case birthday = "birthday"
         case imagePath = "profile_path"
     }
     
     init(from decoder: Decoder) throws {
-        let values = try decoder.container(keyedBy: CodingKeys.self)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
         
-        id = try values.decode(ArtistDetails.ID.self, forKey: .id)
-        name = try values.decode(String.self, forKey: .name)
-        popularity = try values.decode(Float.self, forKey: .popularity)
-        imagePath = try values.decode(String.self, forKey: .imagePath)
+        id = try container.decode(ArtistDetails.ID.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+
+        let birthdayDateString = try container.decodeIfPresent(String.self, forKey: .birthday)
+        if let birthdayDateString {
+            birthday = Self.birthdayDateFormatter.date(from: birthdayDateString)
+        } else {
+            birthday = nil
+        }
+
+        let imagePath = try container.decode(String.self, forKey: .imagePath)
+        imageUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .avatar(path: imagePath, size: .preview))
     }
 }

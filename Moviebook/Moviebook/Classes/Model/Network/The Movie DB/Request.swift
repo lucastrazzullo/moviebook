@@ -63,15 +63,23 @@ enum TheMovieDbImageRequestFactory {
         case original = "original"
     }
 
+    enum AvatarSize: String {
+        case preview = "h632"
+        case original = "original"
+    }
+
     enum Format {
         case poster(path: String, size: PosterSize)
         case backdrop(path: String, size: BackdropSize)
+        case avatar(path: String, size: AvatarSize)
 
         var size: String {
             switch self {
             case .poster(_, let size):
                 return size.rawValue
             case .backdrop(_, let size):
+                return size.rawValue
+            case .avatar(_, let size):
                 return size.rawValue
             }
         }
@@ -81,6 +89,8 @@ enum TheMovieDbImageRequestFactory {
             case .poster(let path, _):
                 return path
             case .backdrop(let path, _):
+                return path
+            case .avatar(let path, _):
                 return path
             }
         }
