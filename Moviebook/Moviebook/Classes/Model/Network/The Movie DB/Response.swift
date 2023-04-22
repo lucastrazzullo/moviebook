@@ -36,6 +36,15 @@ struct TheMovieDbResponseWithResults<ItemType: Decodable>: Decodable {
     }
 }
 
+enum TheMovieDbResponse {
+
+    static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+}
+
 // MARK: - Entities Decoding Extensions
 
 extension Movie: Decodable {
@@ -58,12 +67,6 @@ extension Movie: Decodable {
 }
 
 extension MovieDetails: Decodable {
-
-    static let releaseDateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter
-    }()
 
     enum CodingKeys: String, CodingKey {
         case id = "id"
@@ -89,7 +92,7 @@ extension MovieDetails: Decodable {
 
         let releaseDateString = try values.decodeIfPresent(String.self, forKey: .releaseDate)
         if let releaseDateString = releaseDateString {
-            release = Self.releaseDateFormatter.date(from: releaseDateString)
+            release = TheMovieDbResponse.dateFormatter.date(from: releaseDateString)
         } else {
             release = nil
         }
@@ -269,7 +272,9 @@ extension ArtistDetails: Decodable {
     enum CodingKeys: String, CodingKey {
         case id = "id"
         case name = "name"
+        case biography = "biography"
         case birthday = "birthday"
+        case deathday = "deathday"
         case imagePath = "profile_path"
     }
     
@@ -278,6 +283,19 @@ extension ArtistDetails: Decodable {
         
         id = try container.decode(ArtistDetails.ID.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
+        biography = try container.decodeIfPresent(String.self, forKey: .biography)
+
+        if let birthdayString = try container.decodeIfPresent(String.self, forKey: .birthday) {
+            birthday = TheMovieDbResponse.dateFormatter.date(from: birthdayString)
+        } else {
+            birthday = nil
+        }
+
+        if let deathdayString = try container.decodeIfPresent(String.self, forKey: .deathday) {
+            deathday = TheMovieDbResponse.dateFormatter.date(from: deathdayString)
+        } else {
+            deathday = nil
+        }
 
         let imagePath = try container.decode(String.self, forKey: .imagePath)
         imageUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .avatar(path: imagePath, size: .preview))

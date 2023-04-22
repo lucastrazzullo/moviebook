@@ -17,7 +17,7 @@ struct MovieCardView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 30) {
-            MovieHeaderView(details: movie.details)
+            HeaderView(details: movie.details)
                 .padding(.horizontal)
 
             MovieWatchlistStateView(
@@ -27,12 +27,12 @@ struct MovieCardView: View {
             .padding(.horizontal)
 
             if let overview = movie.details.overview, !overview.isEmpty {
-                MovieOverviewView(isExpanded: $isOverviewExpanded, overview: overview)
+                OverviewView(isExpanded: $isOverviewExpanded, overview: overview)
                     .padding(.horizontal)
             }
 
             if let collection = movie.collection, let list = collection.list, !list.isEmpty {
-                MovieCollectionView(
+                CollectionView(
                     name: collection.name,
                     movieDetails: list,
                     highlightedMovieId: movie.id,
@@ -42,7 +42,7 @@ struct MovieCardView: View {
                 )
             }
 
-            MovieSpecsView(
+            SpecsView(
                 movieDetails: movie.details,
                 movieGenres: movie.genres,
                 movieProduction: movie.production
@@ -58,7 +58,7 @@ struct MovieCardView: View {
     }
 }
 
-private struct MovieHeaderView: View {
+private struct HeaderView: View {
 
     let details: MovieDetails
 
@@ -75,7 +75,7 @@ private struct MovieHeaderView: View {
     }
 }
 
-private struct MovieOverviewView: View {
+private struct OverviewView: View {
 
     @Binding var isExpanded: Bool
 
@@ -99,7 +99,7 @@ private struct MovieOverviewView: View {
     }
 }
 
-private struct MovieCollectionView: View {
+private struct CollectionView: View {
 
     let name: String
     let movieDetails: [MovieDetails]
@@ -156,7 +156,7 @@ private struct MovieCollectionView: View {
     }
 }
 
-private struct MovieSpecsView: View {
+private struct SpecsView: View {
 
     private static let formatter: DateComponentsFormatter = {
         let formatter = DateComponentsFormatter()
@@ -177,8 +177,8 @@ private struct MovieSpecsView: View {
 
             VStack(alignment: .leading, spacing: 12) {
 
-                if let runtime = movieDetails.runtime, let runtimeString = MovieSpecsView.formatter.string(from: runtime) {
-                    MovieSpecsRow(label: "Runtime") {
+                if let runtime = movieDetails.runtime, let runtimeString = SpecsView.formatter.string(from: runtime) {
+                    SpecsRow(label: "Runtime") {
                         Text(runtimeString)
                     }
 
@@ -186,7 +186,7 @@ private struct MovieSpecsView: View {
                 }
 
                 if let releaseDate = movieDetails.release {
-                    MovieSpecsRow(label: "Release date") {
+                    SpecsRow(label: "Release date") {
                         Text(releaseDate, style: .date)
                     }
 
@@ -194,7 +194,7 @@ private struct MovieSpecsView: View {
                 }
 
                 if !movieGenres.isEmpty {
-                    MovieSpecsRow(label: "Genres") {
+                    SpecsRow(label: "Genres") {
                         VStack(alignment: .trailing) {
                             ForEach(movieGenres) { genre in
                                 Text(genre.name)
@@ -205,7 +205,7 @@ private struct MovieSpecsView: View {
                     Divider()
                 }
 
-                MovieSpecsRow(label: "Production") {
+                SpecsRow(label: "Production") {
                     VStack(alignment: .trailing) {
                         ForEach(movieProduction.companies, id: \.self) { companyName in
                             Text(companyName)
@@ -216,7 +216,7 @@ private struct MovieSpecsView: View {
                 Divider()
 
                 if let budget = movieDetails.budget, budget.value > 0 {
-                    MovieSpecsRow(label: "Budget") {
+                    SpecsRow(label: "Budget") {
                         VStack(alignment: .trailing) {
                             Text(budget.value, format: .currency(code: budget.currencyCode))
                         }
@@ -226,7 +226,7 @@ private struct MovieSpecsView: View {
                 }
 
                 if let revenue = movieDetails.revenue, revenue.value > 0 {
-                    MovieSpecsRow(label: "Incassi") {
+                    SpecsRow(label: "Incassi") {
                         VStack(alignment: .trailing) {
                             Text(revenue.value, format: .currency(code: revenue.currencyCode))
                         }
@@ -240,7 +240,7 @@ private struct MovieSpecsView: View {
     }
 }
 
-private struct MovieSpecsRow<ContentType: View>: View {
+private struct SpecsRow<ContentType: View>: View {
 
     let label: String
     let content: () -> ContentType

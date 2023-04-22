@@ -68,7 +68,7 @@ struct ArtistView: View {
                     trailingHeaderView: {
                         EmptyView()
                     }, content: {
-                        EmptyView()
+                        ArtistCardView(navigationPath: $navigationPath, artist: artist)
                     }
                 )
             } else {

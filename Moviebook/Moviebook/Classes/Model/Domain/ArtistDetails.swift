@@ -8,7 +8,10 @@
 import Foundation
 
 struct ArtistDetails: Identifiable, Equatable, Hashable {
-    var id: Artist.ID
-    var name: String
-    var imageUrl: URL?
+    let id: Artist.ID
+    let name: String
+    let birthday: Date?
+    let deathday: Date?
+    let imageUrl: URL?
+    let biography: String?
 }
