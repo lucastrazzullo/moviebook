@@ -35,10 +35,6 @@ struct ArtistPreviewView: View {
                         .lineLimit(3)
                         .font(.headline)
                         .frame(maxWidth: 140, alignment: .leading)
-
-                    if let birthday = details.birthday {
-                        Text(birthday, format: .dateTime.year()).font(.caption)
-                    }
                 }
                 .padding(.vertical, 4)
             }
@@ -52,7 +48,6 @@ struct ArtistPreviewView_Previews: PreviewProvider {
         ArtistPreviewView(details: ArtistDetails(
             id: 10,
             name: "Brad Pitt",
-            birthday: ArtistDetails.birthdayDateFormatter.date(from: "1963-12-18"),
             imageUrl: URL(string: "https://image.tmdb.org/t/p/h632/1k9MVNS9M3Y4KejBHusNdbGJwRw.jpg")!
         ))
     }

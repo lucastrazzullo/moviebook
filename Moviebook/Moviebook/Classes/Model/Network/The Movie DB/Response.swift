@@ -251,12 +251,6 @@ extension MovieVideo: Decodable {
 }
 
 extension ArtistDetails: Decodable {
-
-    static let birthdayDateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter
-    }()
     
     enum CodingKeys: String, CodingKey {
         case id = "id"
@@ -270,13 +264,6 @@ extension ArtistDetails: Decodable {
         
         id = try container.decode(ArtistDetails.ID.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
-
-        let birthdayDateString = try container.decodeIfPresent(String.self, forKey: .birthday)
-        if let birthdayDateString {
-            birthday = Self.birthdayDateFormatter.date(from: birthdayDateString)
-        } else {
-            birthday = nil
-        }
 
         let imagePath = try container.decode(String.self, forKey: .imagePath)
         imageUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .avatar(path: imagePath, size: .preview))

@@ -10,6 +10,5 @@ import Foundation
 struct ArtistDetails: Identifiable, Equatable, Hashable {
     var id: Artist.ID
     var name: String
-    var birthday: Date?
     var imageUrl: URL?
 }
