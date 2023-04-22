@@ -9,8 +9,18 @@ import SwiftUI
 
 struct ExploreView: View {
 
-    private struct MovieIdentifier: Identifiable {
-        let id: Movie.ID
+    private enum PresentingItem: Identifiable {
+        case movie(movieId: Movie.ID)
+        case artist(artistId: Artist.ID)
+
+        var id: Int {
+            switch self {
+            case .movie(let movieId):
+                return movieId
+            case .artist(let artistId):
+                return artistId
+            }
+        }
     }
 
     @Environment(\.dismiss) private var dismiss
@@ -20,8 +30,8 @@ struct ExploreView: View {
     @StateObject private var searchContent: ExploreSearchContent = ExploreSearchContent()
     @StateObject private var exploreContent: ExploreSectionContent = ExploreSectionContent()
 
-    @State private var movieNavigationPath: NavigationPath = NavigationPath()
-    @State private var presentedMovieIdentifier: MovieIdentifier?
+    @State private var presentedItem: PresentingItem?
+    @State private var presentedItemNavigationPath: NavigationPath = NavigationPath()
 
     var body: some View {
         NavigationView {
@@ -32,8 +42,12 @@ struct ExploreView: View {
                                 error: searchContent.error,
                                 items: searchContent.result,
                                 onMovieSelected: { movieIdentifier in
-                        presentedMovieIdentifier = MovieIdentifier(id: movieIdentifier)
-                    })
+                                    presentedItem = .movie(movieId: movieIdentifier)
+                                },
+                                onArtistSelected: { artistIdentifier in
+                                    presentedItem = .artist(artistId: artistIdentifier)
+                                }
+                    )
                 }
 
                 ForEach(exploreContent.sections) { section in
@@ -42,8 +56,12 @@ struct ExploreView: View {
                                 error: section.error,
                                 items: .movies(section.items),
                                 onMovieSelected: { movieIdentifier in
-                        presentedMovieIdentifier = MovieIdentifier(id: movieIdentifier)
-                    })
+                                    presentedItem = .movie(movieId: movieIdentifier)
+                                },
+                                onArtistSelected: { artistIdentifier in
+                                    presentedItem = .artist(artistId: artistIdentifier)
+                                }
+                    )
                 }
                 .listSectionSeparator(.hidden)
             }
@@ -65,13 +83,22 @@ struct ExploreView: View {
                     Text(scope.rawValue.capitalized)
                 }
             }
-            .sheet(item: $presentedMovieIdentifier) { movieIdentifier in
-                NavigationStack(path: $movieNavigationPath) {
-                    MovieView(movieId: movieIdentifier.id, navigationPath: $movieNavigationPath)
-                        .navigationDestination(for: Movie.ID.self) { movieId in
-                            MovieView(movieId: movieId, navigationPath: $movieNavigationPath)
-                        }
+            .sheet(item: $presentedItem) { presentedItem in
+                NavigationStack(path: $presentedItemNavigationPath) {
+                    switch presentedItem {
+                    case .movie(let movieIdentifier):
+                        MovieView(movieId: movieIdentifier, navigationPath: $presentedItemNavigationPath)
+                            .navigationDestination(for: Movie.ID.self) { movieId in
+                                MovieView(movieId: movieId, navigationPath: $presentedItemNavigationPath)
+                            }
+                    case .artist(let artistIdentifier):
+                        ArtistView(artistId: artistIdentifier, navigationPath: $presentedItemNavigationPath)
+                            .navigationDestination(for: Movie.ID.self) { movieId in
+                                MovieView(movieId: movieId, navigationPath: $presentedItemNavigationPath)
+                            }
+                    }
                 }
+
             }
             .onAppear {
                 searchContent.start(requestManager: requestManager)
@@ -88,6 +115,7 @@ private struct SectionView: View {
     let error: WebServiceError?
     let items: ExploreListItems
     let onMovieSelected: (Movie.ID) -> Void
+    let onArtistSelected: (Artist.ID) -> Void
 
     var body: some View {
         Section(header: header) {
@@ -100,7 +128,9 @@ private struct SectionView: View {
                 }
             case .artists(let artists):
                 ForEach(artists, id: \.self) { artistDetails in
-                    ArtistPreviewView(details: artistDetails)
+                    ArtistPreviewView(details: artistDetails) {
+                        onArtistSelected(artistDetails.id)
+                    }
                 }
             }
         }

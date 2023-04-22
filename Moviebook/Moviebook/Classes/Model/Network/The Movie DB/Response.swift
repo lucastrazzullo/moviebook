@@ -250,6 +250,20 @@ extension MovieVideo: Decodable {
     }
 }
 
+extension Artist: Decodable {
+
+    enum CodingKeys: String, CodingKey {
+        case id = "id"
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+
+        id = try values.decode(Movie.ID.self, forKey: .id)
+        details = try ArtistDetails(from: decoder)
+    }
+}
+
 extension ArtistDetails: Decodable {
     
     enum CodingKeys: String, CodingKey {

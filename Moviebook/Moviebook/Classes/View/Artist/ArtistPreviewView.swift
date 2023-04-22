@@ -10,6 +10,7 @@ import SwiftUI
 struct ArtistPreviewView: View {
 
     let details: ArtistDetails
+    let onSelected: (() -> Void)?
 
     var body: some View {
         HStack(alignment: .center) {
@@ -38,6 +39,7 @@ struct ArtistPreviewView: View {
                 }
                 .padding(.vertical, 4)
             }
+            .onTapGesture(perform: { onSelected?() })
         }
     }
 }
@@ -45,11 +47,7 @@ struct ArtistPreviewView: View {
 #if DEBUG
 struct ArtistPreviewView_Previews: PreviewProvider {
     static var previews: some View {
-        ArtistPreviewView(details: ArtistDetails(
-            id: 10,
-            name: "Brad Pitt",
-            imageUrl: URL(string: "https://image.tmdb.org/t/p/h632/1k9MVNS9M3Y4KejBHusNdbGJwRw.jpg")!
-        ))
+        ArtistPreviewView(details: MockWebService.artist(with: 287).details) {}
     }
 }
 #endif
