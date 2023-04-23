@@ -257,6 +257,11 @@ extension Artist: Decodable {
 
     enum CodingKeys: String, CodingKey {
         case id = "id"
+        case credits = "credits"
+    }
+
+    enum CreditsCodingKeys: String, CodingKey {
+        case cast
     }
 
     init(from decoder: Decoder) throws {
@@ -264,6 +269,9 @@ extension Artist: Decodable {
 
         id = try values.decode(Movie.ID.self, forKey: .id)
         details = try ArtistDetails(from: decoder)
+
+        let creditsContainer = try values.nestedContainer(keyedBy: CreditsCodingKeys.self, forKey: .credits)
+        filmography = try creditsContainer.decodeIfPresent([MovieDetails].self, forKey: .cast) ?? []
     }
 }
 

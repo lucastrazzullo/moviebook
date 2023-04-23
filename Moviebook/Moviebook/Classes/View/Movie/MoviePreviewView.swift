@@ -49,7 +49,7 @@ struct MoviePreviewView: View {
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text(details?.title ?? "Loading")
-                        .lineLimit(3)
+                        .lineLimit(2)
                         .font(.headline)
                         .frame(maxWidth: 140, alignment: .leading)
 

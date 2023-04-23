@@ -12,7 +12,9 @@ struct ArtistWebService {
     enum URLFactory {
 
         static func makeArtistUrl(artistIdentifier: Artist.ID) throws -> URL {
-            return try TheMovieDbDataRequestFactory.makeURL(path: "person/\(artistIdentifier)")
+            return try TheMovieDbDataRequestFactory.makeURL(path: "person/\(artistIdentifier)", queryItems: [
+                URLQueryItem(name: "append_to_response", value: "credits")
+            ])
         }
     }
 

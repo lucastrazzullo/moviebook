@@ -27,6 +27,17 @@ struct ArtistCardView: View {
 
             SpecsView(title: "Specs", items: specs)
                 .padding(.horizontal)
+
+            if !artist.filmography.isEmpty {
+                MovieCollectionView(
+                    title: "Filmography",
+                    movieDetails: artist.filmography,
+                    highlightedMovieId: nil,
+                    onMovieIdentifierSelected: { identifier in
+                        navigationPath.append(identifier)
+                    }
+                )
+            }
         }
         .padding(.vertical)
         .frame(maxWidth: .infinity)
