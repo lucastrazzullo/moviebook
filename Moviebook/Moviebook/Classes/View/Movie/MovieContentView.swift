@@ -16,36 +16,37 @@ struct MovieContentView: View {
     let movie: Movie
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 30) {
+        VStack(alignment: .leading, spacing: 40) {
             HeaderView(details: movie.details)
-                .padding(.horizontal)
 
             MovieWatchlistStateView(
                 movieId: movie.id,
                 movieBackdropPreviewUrl: movie.details.media.backdropPreviewUrl
             )
-            .padding(.horizontal)
 
             if let overview = movie.details.overview, !overview.isEmpty {
-                ExpandibleOverviewView(isExpanded: $isOverviewExpanded, overview: overview)
-                    .padding(.horizontal)
+                ExpandibleOverviewView(
+                    isExpanded: $isOverviewExpanded,
+                    overview: overview
+                )
+            }
+
+            if !specs.isEmpty {
+                SpecsView(title: "Specs", items: specs)
             }
 
             if let collection = movie.collection, let list = collection.list, !list.isEmpty {
                 MovieCollectionView(
                     title: collection.name,
-                    movieDetails: list,
+                    movies: list,
                     highlightedMovieId: movie.id,
                     onMovieIdentifierSelected: { identifier in
                         navigationPath.append(identifier)
                     }
                 )
-                .background(Color.yellow)
             }
-
-            SpecsView(title: "Specs", items: specs)
-                .padding(.horizontal)
         }
+        .padding(4)
         .animation(.default, value: isOverviewExpanded)
     }
 
@@ -56,9 +57,7 @@ struct MovieContentView: View {
             specs.append(.duration(runtime, label: "Runtime"))
         }
 
-        if let releaseDate = movie.details.release {
-            specs.append(.date(releaseDate, label: "Release date"))
-        }
+        specs.append(.date(movie.details.release, label: "Release date"))
 
         if !movie.genres.isEmpty {
             specs.append(.list(movie.genres.map(\.name), label: "Genres"))
@@ -100,55 +99,41 @@ private struct HeaderView: View {
 private struct MovieCollectionView: View {
 
     let title: String
-    let movieDetails: [MovieDetails]
+    let movies: [MovieDetails]
     let highlightedMovieId: Movie.ID?
     let onMovieIdentifierSelected: (Movie.ID) -> Void
 
     var body: some View {
         VStack(alignment: .leading) {
-            Text(title).font(.title2)
-                .padding()
+            Text(title)
+                .font(.title2)
                 .padding(.horizontal)
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack {
-                    Spacer()
-                        .frame(width: 0)
-                        .padding(.leading)
-                        .padding(.leading)
+            LazyVStack(spacing: 24) {
+                ForEach(movies) { movieDetails in
+                    HStack(spacing: 12) {
+                        Text("\((movies.firstIndex(of: movieDetails) ?? 0) + 1)")
+                            .font(.title3.bold())
 
-                    ForEach(movieDetails) { movieDetails in
-                        Group {
-                            AsyncImage(url: movieDetails.media.posterPreviewUrl, content: { image in
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                            }, placeholder: {
-                                Color
-                                    .gray
-                                    .opacity(0.2)
-                            })
-                            .aspectRatio(contentMode: .fit)
-                            .frame(height: 180)
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(movieDetails.id == highlightedMovieId ? Color.black.opacity(0.6) : Color.clear)
-                            )
-                        }
-                        .onTapGesture {
-                            onMovieIdentifierSelected(movieDetails.id)
+                        MoviePreviewView(details: movieDetails) {
+                            if highlightedMovieId != movieDetails.id {
+                                onMovieIdentifierSelected(movieDetails.id)
+                            }
                         }
                     }
-
-                    Spacer()
-                        .frame(width: 0)
-                        .padding(.trailing)
-                        .padding(.trailing)
+                    .padding(8)
+                    .background {
+                        if highlightedMovieId == movieDetails.id {
+                            RoundedRectangle(cornerRadius: 8)
+                                .foregroundStyle(.thinMaterial)
+                        }
+                    }
                 }
-                .padding(.bottom)
             }
-            .padding(.bottom)
+            .padding(8)
+            .padding(.vertical)
+            .background(.yellow)
+            .cornerRadius(12)
         }
     }
 }

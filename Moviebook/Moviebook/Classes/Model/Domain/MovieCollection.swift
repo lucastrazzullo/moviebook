@@ -10,5 +10,11 @@ import Foundation
 struct MovieCollection: Identifiable {
     let id: Int
     let name: String
-    var list: [MovieDetails]?
+    let list: [MovieDetails]?
+
+    init(id: Int, name: String, list: [MovieDetails]?) {
+        self.id = id
+        self.name = name
+        self.list = list?.sorted { $0.release < $1.release }
+    }
 }

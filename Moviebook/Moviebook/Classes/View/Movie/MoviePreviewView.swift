@@ -52,6 +52,7 @@ struct MoviePreviewView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(details?.title ?? "Loading")
                             .lineLimit(3)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                             .font(.headline)
 
                         if let releaseDate = details?.release {
@@ -70,7 +71,7 @@ struct MoviePreviewView: View {
             if let movieId = details?.id {
                 Spacer()
                 IconWatchlistButton(watchlistItem: .movie(id: movieId))
-                    .font(.caption)
+                    .font(.headline)
             }
         }
         .sheet(item: $presentedItem) { item in

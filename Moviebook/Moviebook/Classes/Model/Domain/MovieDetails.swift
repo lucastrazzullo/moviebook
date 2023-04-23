@@ -10,7 +10,7 @@ import Foundation
 struct MovieDetails: Identifiable, Equatable, Hashable {
     let id: Movie.ID
     let title: String
-    let release: Date?
+    let release: Date
     let runtime: TimeInterval?
     let overview: String?
     let budget: MoneyValue?

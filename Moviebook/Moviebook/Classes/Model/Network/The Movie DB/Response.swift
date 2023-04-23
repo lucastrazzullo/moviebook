@@ -9,20 +9,20 @@ import Foundation
 
 // MARK: - Response with results
 
-struct TheMovieDbResponseWithResults<ItemType: Decodable>: Decodable {
+private struct SafeItem<Base: Decodable>: Decodable {
+    public let value: Base?
 
-    struct SafeItem<Base: Decodable>: Decodable {
-        public let value: Base?
-
-        public init(from decoder: Decoder) throws {
-            do {
-                let container = try decoder.singleValueContainer()
-                self.value = try container.decode(Base.self)
-            } catch {
-                self.value = nil
-            }
+    public init(from decoder: Decoder) throws {
+        do {
+            let container = try decoder.singleValueContainer()
+            self.value = try container.decode(Base.self)
+        } catch {
+            self.value = nil
         }
     }
+}
+
+struct TheMovieDbResponseWithResults<ItemType: Decodable>: Decodable {
 
     let results: [ItemType]
 
@@ -68,6 +68,10 @@ extension Movie: Decodable {
 
 extension MovieDetails: Decodable {
 
+    enum Error: Swift.Error {
+        case invalidDate
+    }
+
     enum CodingKeys: String, CodingKey {
         case id = "id"
         case title = "title"
@@ -90,12 +94,11 @@ extension MovieDetails: Decodable {
         rating = Rating(value: try values.decode(Float.self, forKey: .rating), quota: 10.0)
         media = try MovieMedia(from: decoder)
 
-        let releaseDateString = try values.decodeIfPresent(String.self, forKey: .releaseDate)
-        if let releaseDateString = releaseDateString {
-            release = TheMovieDbResponse.dateFormatter.date(from: releaseDateString)
-        } else {
-            release = nil
+        let releaseDateString = try values.decode(String.self, forKey: .releaseDate)
+        guard let releaseDate = TheMovieDbResponse.dateFormatter.date(from: releaseDateString) else {
+            throw Error.invalidDate
         }
+        release = releaseDate
 
         let minutes = try values.decodeIfPresent(Int.self, forKey: .runtime)
         if let minutes = minutes {
@@ -160,9 +163,11 @@ extension MovieCollection: Decodable {
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
 
-        id = try values.decode(MovieCollection.ID.self, forKey: .id)
-        name = try values.decode(String.self, forKey: .name)
-        list = try values.decodeIfPresent([MovieDetails].self, forKey: .list)
+        let id = try values.decode(MovieCollection.ID.self, forKey: .id)
+        let name = try values.decode(String.self, forKey: .name)
+        let list = try values.decodeIfPresent([SafeItem<MovieDetails>].self, forKey: .list)?.compactMap({ $0.value }) ?? []
+
+        self.init(id: id, name: name, list: list)
     }
 }
 
@@ -267,11 +272,13 @@ extension Artist: Decodable {
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
 
-        id = try values.decode(Movie.ID.self, forKey: .id)
-        details = try ArtistDetails(from: decoder)
+        let id = try values.decode(Movie.ID.self, forKey: .id)
+        let details = try ArtistDetails(from: decoder)
 
         let creditsContainer = try values.nestedContainer(keyedBy: CreditsCodingKeys.self, forKey: .credits)
-        filmography = try creditsContainer.decodeIfPresent([MovieDetails].self, forKey: .cast) ?? []
+        let filmography = try creditsContainer.decodeIfPresent([SafeItem<MovieDetails>].self, forKey: .cast)?.compactMap({ $0.value }) ?? []
+
+        self.init(id: id, details: details, filmography: filmography)
     }
 }
 

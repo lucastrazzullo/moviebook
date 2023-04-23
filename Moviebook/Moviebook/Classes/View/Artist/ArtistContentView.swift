@@ -34,7 +34,7 @@ struct ArtistContentView: View {
                 )
             }
         }
-        .padding(.horizontal)
+        .padding(4)
         .animation(.default, value: isOverviewExpanded)
     }
 
@@ -85,16 +85,23 @@ private struct FilmographyView: View {
     var body: some View {
         VStack(alignment: .leading) {
             Text("Filmography").font(.title2)
-                .padding()
+                .padding(.horizontal)
 
             LazyVStack {
                 ForEach(movies) { movie in
-                    MoviePreviewView(details: movie) {
-                        onMovieSelected(movie.id)
+                    Group {
+                        MoviePreviewView(details: movie) {
+                            onMovieSelected(movie.id)
+                        }
                     }
+                    .padding(8)
                 }
             }
+            .padding(8)
+            .background(.yellow)
+            .cornerRadius(12)
         }
+
     }
 }
 
