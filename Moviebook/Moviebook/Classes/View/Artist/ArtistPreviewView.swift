@@ -16,7 +16,7 @@ struct ArtistPreviewView: View {
         HStack(alignment: .center) {
             HStack(alignment: .center, spacing: 8) {
                 ZStack(alignment: .bottomTrailing) {
-                    AsyncImage(url: details.imageUrl, content: { image in
+                    AsyncImage(url: details.imagePreviewUrl, content: { image in
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
@@ -25,7 +25,8 @@ struct ArtistPreviewView: View {
                             .gray
                             .opacity(0.2)
                     })
-                    .frame(width: 160, height: 90)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 120)
                     .clipShape(RoundedRectangle(cornerRadius: 6))
                     .padding(.trailing, 4)
                     .padding(.bottom, 4)

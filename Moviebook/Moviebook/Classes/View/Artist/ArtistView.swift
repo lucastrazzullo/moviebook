@@ -64,7 +64,7 @@ struct ArtistView: View {
                 SlidingCardView(
                     navigationPath: $navigationPath,
                     title: artist.details.name,
-                    posterUrl: artist.details.imageUrl,
+                    posterUrl: artist.details.imageOriginalUrl,
                     trailingHeaderView: {
                         EmptyView()
                     }, content: {

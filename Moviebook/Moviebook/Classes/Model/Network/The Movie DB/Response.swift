@@ -306,6 +306,7 @@ extension ArtistDetails: Decodable {
         }
 
         let imagePath = try container.decode(String.self, forKey: .imagePath)
-        imageUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .avatar(path: imagePath, size: .preview))
+        imagePreviewUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .avatar(path: imagePath, size: .preview))
+        imageOriginalUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .avatar(path: imagePath, size: .original))
     }
 }

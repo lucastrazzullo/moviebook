@@ -134,6 +134,7 @@ private struct SectionView: View {
                 }
             }
         }
+        .listRowSeparator(.hidden)
         .listSectionSeparator(.hidden)
     }
 

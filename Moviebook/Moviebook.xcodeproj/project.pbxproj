@@ -201,10 +201,10 @@
 		812489BE29F149DD004A6BE6 /* Explore */ = {
 			isa = PBXGroup;
 			children = (
-				8169FB5E28C20C420054BCE6 /* ExploreView.swift */,
-				812489C729F15B93004A6BE6 /* ExploreListItem.swift */,
 				812489BF29F152C4004A6BE6 /* ExploreSectionContent.swift */,
 				812489C129F15307004A6BE6 /* ExploreSearchContent.swift */,
+				8169FB5E28C20C420054BCE6 /* ExploreView.swift */,
+				812489C729F15B93004A6BE6 /* ExploreListItem.swift */,
 			);
 			path = Explore;
 			sourceTree = "<group>";

@@ -12,6 +12,7 @@ struct ArtistDetails: Identifiable, Equatable, Hashable {
     let name: String
     let birthday: Date?
     let deathday: Date?
-    let imageUrl: URL?
+    let imagePreviewUrl: URL?
+    let imageOriginalUrl: URL?
     let biography: String?
 }
