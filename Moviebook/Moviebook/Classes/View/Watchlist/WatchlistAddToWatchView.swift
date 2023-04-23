@@ -44,7 +44,7 @@ struct WatchlistAddToWatchView: View {
 
     let item: WatchlistContent.Item
 
-    private var toWatchReason: WatchlistToWatchReason {
+    private var toWatchReason: Watchlist.ToWatchReason {
         let state = watchlist.itemState(item: item)
         switch state {
         case .none:
@@ -134,7 +134,7 @@ struct WatchlistAddToWatchView: View {
         addToWatch(with: .suggestion(from: suggestedByText, comment: commentText))
     }
 
-    private func addToWatch(with reason: WatchlistToWatchReason) {
+    private func addToWatch(with reason: Watchlist.ToWatchReason) {
         watchlist.update(state: .toWatch(reason: reason), for: item)
         presentationMode.wrappedValue.dismiss()
     }

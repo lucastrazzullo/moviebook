@@ -9,8 +9,6 @@ import SwiftUI
 
 struct MoviebookView: View {
 
-    @EnvironmentObject private var watchlist: Watchlist
-
     var body: some View {
         WatchlistView()
     }

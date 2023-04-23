@@ -378,7 +378,7 @@ private struct ContentView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             if let collection = movie.collection, let list = collection.list, !list.isEmpty {
-                MovieCollectionView(
+                ShelfMovieCollectionView(
                     name: collection.name,
                     movieDetails: list,
                     onMovieIdentifierSelected: onMovieIdentifierSelected
@@ -398,7 +398,7 @@ private struct ContentView: View {
     }
 }
 
-private struct MovieCollectionView: View {
+private struct ShelfMovieCollectionView: View {
 
     let name: String
     let movieDetails: [MovieDetails]

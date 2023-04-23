@@ -9,7 +9,7 @@ import Foundation
 
 struct PopularWebService {
 
-    struct URLFactory {
+    enum URLFactory {
 
         static func makePopularMoviesUrl() throws -> URL {
             return try TheMovieDbDataRequestFactory.makeURL(path: "movie/popular")

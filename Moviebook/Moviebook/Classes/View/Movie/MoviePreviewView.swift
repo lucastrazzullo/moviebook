@@ -32,7 +32,7 @@ struct MoviePreviewView: View {
         HStack(alignment: .center) {
             HStack(alignment: .center, spacing: 8) {
                 ZStack(alignment: .bottomTrailing) {
-                    AsyncImage(url: details?.media.backdropPreviewUrl, content: { image in
+                    AsyncImage(url: details?.media.posterPreviewUrl, content: { image in
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
@@ -41,20 +41,23 @@ struct MoviePreviewView: View {
                             .gray
                             .opacity(0.2)
                     })
-                    .frame(width: 160, height: 90)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 120)
                     .clipShape(RoundedRectangle(cornerRadius: 6))
                     .padding(.trailing, 4)
                     .padding(.bottom, 4)
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(details?.title ?? "Loading")
-                        .lineLimit(3)
-                        .font(.subheadline)
-                        .frame(maxWidth: 140, alignment: .leading)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(details?.title ?? "Loading")
+                            .lineLimit(3)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .font(.headline)
 
-                    if let releaseDate = details?.release {
-                        Text(releaseDate, format: .dateTime.year()).font(.caption)
+                        if let releaseDate = details?.release {
+                            Text(releaseDate, format: .dateTime.year()).font(.caption)
+                        }
                     }
 
                     if let rating = details?.rating {
@@ -66,8 +69,9 @@ struct MoviePreviewView: View {
             .onTapGesture(perform: { onSelected?() })
 
             if let movieId = details?.id {
+                Spacer()
                 IconWatchlistButton(watchlistItem: .movie(id: movieId))
-                    .font(.caption)
+                    .font(.headline)
             }
         }
         .sheet(item: $presentedItem) { item in
@@ -139,6 +143,7 @@ private struct WatchlistMenu: View {
 struct MoviePreviewView_Previews: PreviewProvider {
     static var previews: some View {
         MoviePreviewView(details: MockWebService.movie(with: 954).details)
+            .padding()
             .environmentObject(Watchlist(items: [
                 .movie(id: 954): .toWatch(reason: .none),
                 .movie(id: 616037): .toWatch(reason: .none)
