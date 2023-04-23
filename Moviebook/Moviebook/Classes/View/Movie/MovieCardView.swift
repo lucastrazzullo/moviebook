@@ -42,12 +42,8 @@ struct MovieCardView: View {
                 )
             }
 
-            SpecsView(
-                movieDetails: movie.details,
-                movieGenres: movie.genres,
-                movieProduction: movie.production
-            )
-            .padding(.horizontal)
+            SpecsView(title: "Specs", items: specs)
+                .padding(.horizontal)
         }
         .padding(.vertical)
         .frame(maxWidth: .infinity)
@@ -55,6 +51,36 @@ struct MovieCardView: View {
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.12), radius: 4, y: -8)
         .animation(.default, value: isOverviewExpanded)
+    }
+
+    private var specs: [SpecsView.Item] {
+        var specs = [SpecsView.Item]()
+
+        if let runtime = movie.details.runtime {
+            specs.append(.duration(runtime, label: "Runtime"))
+        }
+
+        if let releaseDate = movie.details.release {
+            specs.append(.date(releaseDate, label: "Release date"))
+        }
+
+        if !movie.genres.isEmpty {
+            specs.append(.list(movie.genres.map(\.name), label: "Genres"))
+        }
+
+        if !movie.production.companies.isEmpty {
+            specs.append(.list(movie.production.companies, label: "Production"))
+        }
+
+        if let budget = movie.details.budget, budget.value > 0 {
+            specs.append(.currency(budget.value, code: budget.currencyCode, label: "Budget"))
+        }
+
+        if let revenue = movie.details.revenue, revenue.value > 0 {
+            specs.append(.currency(revenue.value, code: revenue.currencyCode, label: "Incassi"))
+        }
+
+        return specs
     }
 }
 
@@ -153,104 +179,6 @@ private struct CollectionView: View {
         }
         .background(.ultraThickMaterial)
         .background(.primary)
-    }
-}
-
-private struct SpecsView: View {
-
-    private static let formatter: DateComponentsFormatter = {
-        let formatter = DateComponentsFormatter()
-        formatter.unitsStyle = .abbreviated
-        formatter.allowedUnits = [.hour, .minute]
-        return formatter
-    }()
-
-    let movieDetails: MovieDetails
-    let movieGenres: [MovieGenre]
-    let movieProduction: MovieProduction
-
-    var body: some View {
-        VStack(alignment: .leading) {
-            Text("Specs")
-                .font(.title2)
-                .padding(.leading)
-
-            VStack(alignment: .leading, spacing: 12) {
-
-                if let runtime = movieDetails.runtime, let runtimeString = SpecsView.formatter.string(from: runtime) {
-                    SpecsRow(label: "Runtime") {
-                        Text(runtimeString)
-                    }
-
-                    Divider()
-                }
-
-                if let releaseDate = movieDetails.release {
-                    SpecsRow(label: "Release date") {
-                        Text(releaseDate, style: .date)
-                    }
-
-                    Divider()
-                }
-
-                if !movieGenres.isEmpty {
-                    SpecsRow(label: "Genres") {
-                        VStack(alignment: .trailing) {
-                            ForEach(movieGenres) { genre in
-                                Text(genre.name)
-                            }
-                        }
-                    }
-
-                    Divider()
-                }
-
-                SpecsRow(label: "Production") {
-                    VStack(alignment: .trailing) {
-                        ForEach(movieProduction.companies, id: \.self) { companyName in
-                            Text(companyName)
-                        }
-                    }
-                }
-
-                Divider()
-
-                if let budget = movieDetails.budget, budget.value > 0 {
-                    SpecsRow(label: "Budget") {
-                        VStack(alignment: .trailing) {
-                            Text(budget.value, format: .currency(code: budget.currencyCode))
-                        }
-                    }
-
-                    Divider()
-                }
-
-                if let revenue = movieDetails.revenue, revenue.value > 0 {
-                    SpecsRow(label: "Incassi") {
-                        VStack(alignment: .trailing) {
-                            Text(revenue.value, format: .currency(code: revenue.currencyCode))
-                        }
-                    }
-                }
-            }
-            .font(.subheadline)
-            .padding()
-            .background(RoundedRectangle(cornerRadius: 8).fill(.thinMaterial))
-        }
-    }
-}
-
-private struct SpecsRow<ContentType: View>: View {
-
-    let label: String
-    let content: () -> ContentType
-
-    var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 12) {
-            Text(label).bold()
-            Spacer()
-            content()
-        }
     }
 }
 

@@ -25,7 +25,7 @@ struct ArtistCardView: View {
                     .padding(.horizontal)
             }
 
-            SpecsView(artistDetails: artist.details)
+            SpecsView(title: "Specs", items: specs)
                 .padding(.horizontal)
         }
         .padding(.vertical)
@@ -34,6 +34,20 @@ struct ArtistCardView: View {
         .cornerRadius(12)
         .shadow(color: Color.black.opacity(0.12), radius: 4, y: -8)
         .animation(.default, value: isOverviewExpanded)
+    }
+
+    private var specs: [SpecsView.Item] {
+        var items: [SpecsView.Item] = []
+
+        if let birthday = artist.details.birthday {
+            items.append(.date(birthday, label: "Birthday"))
+        }
+
+        if let deathday = artist.details.deathday {
+            items.append(.date(deathday, label: "Death"))
+        }
+
+        return items
     }
 }
 
@@ -82,58 +96,6 @@ private struct OverviewView: View {
             }
         }
         .padding(.horizontal)
-    }
-}
-
-private struct SpecsView: View {
-
-    private static let formatter: DateComponentsFormatter = {
-        let formatter = DateComponentsFormatter()
-        formatter.unitsStyle = .abbreviated
-        formatter.allowedUnits = [.hour, .minute]
-        return formatter
-    }()
-
-    let artistDetails: ArtistDetails
-
-    var body: some View {
-        VStack(alignment: .leading) {
-            Text("Specs")
-                .font(.title2)
-                .padding(.leading)
-
-            VStack(alignment: .leading, spacing: 12) {
-
-                if let birthday = artistDetails.birthday {
-                    SpecsRow(label: "Birthday") {
-                        Text(birthday, style: .date)
-                    }
-                }
-
-                if let deathday = artistDetails.deathday {
-                    SpecsRow(label: "Death") {
-                        Text(deathday, style: .date)
-                    }
-                }
-            }
-            .font(.subheadline)
-            .padding()
-            .background(RoundedRectangle(cornerRadius: 8).fill(.thinMaterial))
-        }
-    }
-}
-
-private struct SpecsRow<ContentType: View>: View {
-
-    let label: String
-    let content: () -> ContentType
-
-    var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 12) {
-            Text(label).bold()
-            Spacer()
-            content()
-        }
     }
 }
 
