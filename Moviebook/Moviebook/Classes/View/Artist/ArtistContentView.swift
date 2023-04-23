@@ -1,5 +1,5 @@
 //
-//  ArtistCardView.swift
+//  ArtistContentView.swift
 //  Moviebook
 //
 //  Created by Luca Strazzullo on 22/04/2023.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ArtistCardView: View {
+struct ArtistContentView: View {
 
     @State private var isOverviewExpanded: Bool = false
 
@@ -18,32 +18,23 @@ struct ArtistCardView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 30) {
             HeaderView(details: artist.details)
-                .padding(.horizontal)
             
             if let biography = artist.details.biography, !biography.isEmpty {
-                OverviewView(isExpanded: $isOverviewExpanded, overview: biography)
-                    .padding(.horizontal)
+                ExpandibleOverviewView(isExpanded: $isOverviewExpanded, overview: biography)
             }
 
             SpecsView(title: "Specs", items: specs)
-                .padding(.horizontal)
 
             if !artist.filmography.isEmpty {
-                MovieCollectionView(
-                    title: "Filmography",
-                    movieDetails: artist.filmography,
-                    highlightedMovieId: nil,
-                    onMovieIdentifierSelected: { identifier in
+                FilmographyView(
+                    movies: artist.filmography,
+                    onMovieSelected: { identifier in
                         navigationPath.append(identifier)
                     }
                 )
             }
         }
-        .padding(.vertical)
-        .frame(maxWidth: .infinity)
-        .background(.background)
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.12), radius: 4, y: -8)
+        .padding(.horizontal)
         .animation(.default, value: isOverviewExpanded)
     }
 
@@ -86,33 +77,36 @@ private struct HeaderView: View {
     }
 }
 
-private struct OverviewView: View {
+private struct FilmographyView: View {
 
-    @Binding var isExpanded: Bool
-
-    let overview: String
+    let movies: [MovieDetails]
+    let onMovieSelected: (Movie.ID) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Overview")
-                .font(.title2)
+        VStack(alignment: .leading) {
+            Text("Filmography").font(.title2)
+                .padding()
 
-            Text(overview)
-                .font(.body)
-                .lineLimit(isExpanded ? nil : 3)
-                .fixedSize(horizontal: false, vertical: true)
-
-            Button(action: { isExpanded.toggle() }) {
-                Text(isExpanded ? "Less" : "More")
+            LazyVStack {
+                ForEach(movies) { movie in
+                    MoviePreviewView(details: movie) {
+                        onMovieSelected(movie.id)
+                    }
+                }
             }
         }
-        .padding(.horizontal)
     }
 }
 
+#if DEBUG
 struct ArtistCardView_Previews: PreviewProvider {
     static var previews: some View {
-        ArtistCardView(navigationPath: .constant(.init()),
-                       artist: MockWebService.artist(with: 287))
+        ScrollView {
+            ArtistContentView(navigationPath: .constant(.init()),
+                              artist: MockWebService.artist(with: 287))
+            .environment(\.requestManager, MockRequestManager())
+            .environmentObject(Watchlist(items: [:]))
+        }
     }
 }
+#endif

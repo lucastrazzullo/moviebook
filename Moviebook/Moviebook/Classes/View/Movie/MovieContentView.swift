@@ -1,5 +1,5 @@
 //
-//  MovieCardView.swift
+//  MovieContentView.swift
 //  Moviebook
 //
 //  Created by Luca Strazzullo on 25/09/2022.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct MovieCardView: View {
+struct MovieContentView: View {
 
     @State private var isOverviewExpanded: Bool = false
 
@@ -27,7 +27,7 @@ struct MovieCardView: View {
             .padding(.horizontal)
 
             if let overview = movie.details.overview, !overview.isEmpty {
-                OverviewView(isExpanded: $isOverviewExpanded, overview: overview)
+                ExpandibleOverviewView(isExpanded: $isOverviewExpanded, overview: overview)
                     .padding(.horizontal)
             }
 
@@ -40,16 +40,12 @@ struct MovieCardView: View {
                         navigationPath.append(identifier)
                     }
                 )
+                .background(Color.yellow)
             }
 
             SpecsView(title: "Specs", items: specs)
                 .padding(.horizontal)
         }
-        .padding(.vertical)
-        .frame(maxWidth: .infinity)
-        .background(.background)
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.12), radius: 4, y: -8)
         .animation(.default, value: isOverviewExpanded)
     }
 
@@ -101,27 +97,59 @@ private struct HeaderView: View {
     }
 }
 
-private struct OverviewView: View {
+private struct MovieCollectionView: View {
 
-    @Binding var isExpanded: Bool
-
-    let overview: String
+    let title: String
+    let movieDetails: [MovieDetails]
+    let highlightedMovieId: Movie.ID?
+    let onMovieIdentifierSelected: (Movie.ID) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Overview")
-                .font(.title2)
+        VStack(alignment: .leading) {
+            Text(title).font(.title2)
+                .padding()
+                .padding(.horizontal)
 
-            Text(overview)
-                .font(.body)
-                .lineLimit(isExpanded ? nil : 3)
-                .fixedSize(horizontal: false, vertical: true)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack {
+                    Spacer()
+                        .frame(width: 0)
+                        .padding(.leading)
+                        .padding(.leading)
 
-            Button(action: { isExpanded.toggle() }) {
-                Text(isExpanded ? "Less" : "More")
+                    ForEach(movieDetails) { movieDetails in
+                        Group {
+                            AsyncImage(url: movieDetails.media.posterPreviewUrl, content: { image in
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                            }, placeholder: {
+                                Color
+                                    .gray
+                                    .opacity(0.2)
+                            })
+                            .aspectRatio(contentMode: .fit)
+                            .frame(height: 180)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(movieDetails.id == highlightedMovieId ? Color.black.opacity(0.6) : Color.clear)
+                            )
+                        }
+                        .onTapGesture {
+                            onMovieIdentifierSelected(movieDetails.id)
+                        }
+                    }
+
+                    Spacer()
+                        .frame(width: 0)
+                        .padding(.trailing)
+                        .padding(.trailing)
+                }
+                .padding(.bottom)
             }
+            .padding(.bottom)
         }
-        .padding(.horizontal)
     }
 }
 
@@ -129,7 +157,7 @@ private struct OverviewView: View {
 struct MovieCardView_Previews: PreviewProvider {
     static var previews: some View {
         ScrollView(showsIndicators: false) {
-            MovieCardView(
+            MovieContentView(
                 navigationPath: .constant(NavigationPath()),
                 movie: MockWebService.movie(with: 954)
             )

@@ -74,7 +74,7 @@ struct MovieView: View {
                             isVideoPresented = video
                         })
                     }, content: {
-                        MovieCardView(navigationPath: $navigationPath, movie: movie)
+                        MovieContentView(navigationPath: $navigationPath, movie: movie)
                     }
                 )
             } else {

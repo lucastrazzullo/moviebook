@@ -50,7 +50,7 @@ struct SlidingCardView<TrailingHeaderView: View, ContentView: View>: View {
                                    : max(0, geometry.size.height - geometry.safeAreaInsets.top)
                             )
 
-                        content()
+                        CardView(content: content)
                     }
                 }
             }
@@ -126,6 +126,22 @@ private struct HeaderView<TrailingView: View>: View {
     }
 }
 
+private struct CardView<Content: View>: View {
+
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 30) {
+            content()
+        }
+        .padding(.vertical)
+        .frame(maxWidth: .infinity)
+        .background(.background)
+        .cornerRadius(12)
+        .shadow(color: Color.black.opacity(0.12), radius: 4, y: -8)
+    }
+}
+
 #if DEBUG
 struct SlidingCardView_Previews: PreviewProvider {
     static let movie: Movie = MockWebService.movie(with: 954)
@@ -140,7 +156,7 @@ struct SlidingCardView_Previews: PreviewProvider {
                 }
             },
             content: {
-                MovieCardView(
+                MovieContentView(
                     navigationPath: .constant(.init()),
                     movie: movie
                 )
