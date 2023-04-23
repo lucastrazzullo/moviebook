@@ -10,15 +10,19 @@ import SwiftUI
 struct SpecsView: View {
 
     enum Item: Hashable {
-        case divider
         case date(_ date: Date, label: String)
         case currency(_ value: Int, code: String, label: String)
         case duration(_ duration: TimeInterval, label: String)
         case list(_ elements: [String], label: String)
     }
 
+    private enum DisplayedItem: Hashable {
+        case divider
+        case item(Item)
+    }
+
     private let title: String
-    private let items: [Item]
+    private let items: [DisplayedItem]
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -32,23 +36,26 @@ struct SpecsView: View {
                     switch item {
                     case .divider:
                         Divider()
-                    case .date(let date, let label):
-                        SpecsRow(label: label) {
-                            Text(date, style: .date)
-                        }
-                    case .currency(let value, let code, let label):
-                        SpecsRow(label: label) {
-                            Text(value, format: .currency(code: code))
-                        }
-                    case .duration(let duration, let label):
-                        SpecsRow(label: label) {
-                            Text(Duration.seconds(duration).formatted(.time(pattern: .hourMinute)))
-                        }
-                    case .list(let elements, let label):
-                        SpecsRow(label: label) {
-                            VStack(alignment: .trailing) {
-                                ForEach(elements, id: \.self) { element in
-                                    Text(element)
+                    case .item(let item):
+                        switch item {
+                        case .date(let date, let label):
+                            SpecsRow(label: label) {
+                                Text(date, style: .date)
+                            }
+                        case .currency(let value, let code, let label):
+                            SpecsRow(label: label) {
+                                Text(value, format: .currency(code: code))
+                            }
+                        case .duration(let duration, let label):
+                            SpecsRow(label: label) {
+                                Text(Duration.seconds(duration).formatted(.time(pattern: .hourMinute)))
+                            }
+                        case .list(let elements, let label):
+                            SpecsRow(label: label) {
+                                VStack(alignment: .trailing) {
+                                    ForEach(elements, id: \.self) { element in
+                                        Text(element)
+                                    }
                                 }
                             }
                         }
@@ -64,12 +71,12 @@ struct SpecsView: View {
     init(title: String, items: [Item]) {
         self.title = title
         self.items = items.enumerated()
-            .reduce([Item]()) { list, item in
+            .reduce([DisplayedItem]()) { list, item in
                 var list = list
                 if item.offset > 0 {
-                    list.append(Item.divider)
+                    list.append(.divider)
                 }
-                list.append(item.element)
+                list.append(.item(item.element))
                 return list
             }
     }
