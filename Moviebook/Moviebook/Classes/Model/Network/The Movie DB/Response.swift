@@ -53,6 +53,11 @@ extension Movie: Decodable {
         case id = "id"
         case genres = "genres"
         case collection = "belongs_to_collection"
+        case credits = "credits"
+    }
+
+    enum CreditsCodingKeys: String, CodingKey {
+        case cast = "cast"
     }
 
     init(from decoder: Decoder) throws {
@@ -63,6 +68,9 @@ extension Movie: Decodable {
         genres = try values.decode([MovieGenre].self, forKey: .genres)
         production = try MovieProduction(from: decoder)
         collection = try values.decodeIfPresent(MovieCollection.self, forKey: .collection)
+
+        let creditsContainer = try values.nestedContainer(keyedBy: CreditsCodingKeys.self, forKey: .credits)
+        cast = try creditsContainer.decode([SafeItem<ArtistDetails>].self, forKey: .cast).compactMap({ $0.value })
     }
 }
 
@@ -288,6 +296,7 @@ extension ArtistDetails: Decodable {
         case id = "id"
         case name = "name"
         case biography = "biography"
+        case character = "character"
         case birthday = "birthday"
         case deathday = "deathday"
         case imagePath = "profile_path"
@@ -299,6 +308,7 @@ extension ArtistDetails: Decodable {
         id = try container.decode(ArtistDetails.ID.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
         biography = try container.decodeIfPresent(String.self, forKey: .biography)
+        character = try container.decodeIfPresent(String.self, forKey: .character)
 
         if let birthdayString = try container.decodeIfPresent(String.self, forKey: .birthday) {
             birthday = TheMovieDbResponse.dateFormatter.date(from: birthdayString)

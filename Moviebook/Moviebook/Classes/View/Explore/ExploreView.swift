@@ -85,17 +85,16 @@ struct ExploreView: View {
             }
             .sheet(item: $presentedItem) { presentedItem in
                 NavigationStack(path: $presentedItemNavigationPath) {
-                    switch presentedItem {
-                    case .movie(let movieIdentifier):
-                        MovieView(movieId: movieIdentifier, navigationPath: $presentedItemNavigationPath)
-                            .navigationDestination(for: Movie.ID.self) { movieId in
-                                MovieView(movieId: movieId, navigationPath: $presentedItemNavigationPath)
-                            }
-                    case .artist(let artistIdentifier):
-                        ArtistView(artistId: artistIdentifier, navigationPath: $presentedItemNavigationPath)
-                            .navigationDestination(for: Movie.ID.self) { movieId in
-                                MovieView(movieId: movieId, navigationPath: $presentedItemNavigationPath)
-                            }
+                    Group {
+                        switch presentedItem {
+                        case .movie(let movieIdentifier):
+                            MovieView(movieId: movieIdentifier, navigationPath: $presentedItemNavigationPath)
+                        case .artist(let artistIdentifier):
+                            ArtistView(artistId: artistIdentifier, navigationPath: $presentedItemNavigationPath)
+                        }
+                    }
+                    .navigationDestination(for: NavigationItem.self) { item in
+                        NavigationDestination(navigationPath: $presentedItemNavigationPath, item: item)
                     }
                 }
 

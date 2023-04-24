@@ -158,7 +158,6 @@ struct WatchlistView: View {
     @EnvironmentObject var watchlist: Watchlist
     @StateObject private var content: Content = Content()
 
-    @State private var watchlistNnavigationPath = NavigationPath()
     @State private var presentedItemNavigationPath = NavigationPath()
 
     @State private var selectedSection: Content.Section = .toWatch
@@ -167,7 +166,7 @@ struct WatchlistView: View {
     @State private var isErrorPresented: Bool = false
 
     var body: some View {
-        NavigationStack(path: $watchlistNnavigationPath) {
+        NavigationView {
             List {
                 ForEach(content.items(for: selectedSection)) { item in
                     switch item {
@@ -183,9 +182,6 @@ struct WatchlistView: View {
             }
             .listStyle(.plain)
             .navigationTitle(NSLocalizedString("WATCHLIST.TITLE", comment: ""))
-            .navigationDestination(for: Movie.ID.self) { movieId in
-                MovieView(movieId: movieId, navigationPath: $watchlistNnavigationPath)
-            }
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Picker("Section", selection: $selectedSection) {
@@ -222,8 +218,8 @@ struct WatchlistView: View {
                             MovieView(movie: movie, navigationPath: $presentedItemNavigationPath)
                         }
                     }
-                    .navigationDestination(for: Movie.ID.self) { movieId in
-                        MovieView(movieId: movieId, navigationPath: $presentedItemNavigationPath)
+                    .navigationDestination(for: NavigationItem.self) { item in
+                        NavigationDestination(navigationPath: $presentedItemNavigationPath, item: item)
                     }
                 }
             }

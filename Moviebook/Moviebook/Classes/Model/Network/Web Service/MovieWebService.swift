@@ -13,7 +13,7 @@ struct MovieWebService {
 
         static func makeMovieUrl(movieIdentifier: Movie.ID) throws -> URL {
             return try TheMovieDbDataRequestFactory.makeURL(path: "movie/\(movieIdentifier)", queryItems: [
-                URLQueryItem(name: "append_to_response", value: "videos")
+                URLQueryItem(name: "append_to_response", value: "credits,videos")
             ])
         }
 

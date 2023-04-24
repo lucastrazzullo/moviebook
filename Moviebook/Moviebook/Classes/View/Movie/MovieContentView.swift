@@ -40,8 +40,17 @@ struct MovieContentView: View {
                     title: "Collection",
                     movies: list,
                     highlightedMovieId: movie.id,
-                    onMovieIdentifierSelected: { identifier in
-                        navigationPath.append(identifier)
+                    onMovieSelected: { identifier in
+                        navigationPath.append(NavigationItem.movie(movieId: identifier))
+                    }
+                )
+            }
+
+            if !movie.cast.isEmpty {
+                CastView(
+                    cast: movie.cast,
+                    onArtistSelected: { identifier in
+                        navigationPath.append(NavigationItem.artist(artistId: identifier))
                     }
                 )
             }
@@ -99,7 +108,7 @@ private struct MovieCollectionView: View {
     let title: String
     let movies: [MovieDetails]
     let highlightedMovieId: Movie.ID?
-    let onMovieIdentifierSelected: (Movie.ID) -> Void
+    let onMovieSelected: (Movie.ID) -> Void
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -122,7 +131,7 @@ private struct MovieCollectionView: View {
 
                         MoviePreviewView(details: movieDetails) {
                             if highlightedMovieId != movieDetails.id {
-                                onMovieIdentifierSelected(movieDetails.id)
+                                onMovieSelected(movieDetails.id)
                             }
                         }
                     }
@@ -140,6 +149,49 @@ private struct MovieCollectionView: View {
         .padding(4)
         .padding(.vertical)
         .background(RoundedRectangle(cornerRadius: 8).fill(.black.opacity(0.8)))
+    }
+}
+
+private struct CastView: View {
+
+    let cast: [ArtistDetails]
+    let onArtistSelected: (Artist.ID) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text("Cast")
+                .font(.title2)
+                .padding(.horizontal)
+
+            LazyVGrid(columns: [GridItem(), GridItem(), GridItem()]) {
+                ForEach(cast) { artistDetails in
+                    ZStack(alignment: .bottomLeading) {
+                        AsyncImage(url: artistDetails.imagePreviewUrl, content: { image in
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        }, placeholder: {
+                            Color
+                                .gray
+                                .opacity(0.2)
+                        })
+                        .aspectRatio(contentMode: .fit)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+
+                        VStack(alignment: .leading) {
+                            if let character = artistDetails.character {
+                                Text(character).font(.caption).bold()
+                            }
+                            Text(artistDetails.name).font(.caption2)
+                        }
+                        .padding(6)
+                        .background(RoundedRectangle(cornerRadius: 4).foregroundStyle(.ultraThinMaterial))
+                        .padding(4)
+                    }
+                    .onTapGesture(perform: { onArtistSelected(artistDetails.id) })
+                }
+            }
+        }
     }
 }
 
