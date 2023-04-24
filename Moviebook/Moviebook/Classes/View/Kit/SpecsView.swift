@@ -64,7 +64,6 @@ struct SpecsView: View {
             }
             .font(.subheadline)
             .padding()
-            .background(RoundedRectangle(cornerRadius: 8).fill(.thinMaterial))
         }
     }
 

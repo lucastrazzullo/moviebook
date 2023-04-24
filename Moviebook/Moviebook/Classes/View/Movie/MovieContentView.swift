@@ -37,7 +37,7 @@ struct MovieContentView: View {
 
             if let collection = movie.collection, let list = collection.list, !list.isEmpty {
                 MovieCollectionView(
-                    title: collection.name,
+                    title: "Collection",
                     movies: list,
                     highlightedMovieId: movie.id,
                     onMovieIdentifierSelected: { identifier in
@@ -107,11 +107,18 @@ private struct MovieCollectionView: View {
                 .font(.title2)
                 .padding(.horizontal)
 
-            LazyVStack(spacing: 24) {
+            LazyVStack(spacing: 0) {
                 ForEach(movies) { movieDetails in
                     HStack(spacing: 12) {
                         Text("\((movies.firstIndex(of: movieDetails) ?? 0) + 1)")
                             .font(.title3.bold())
+                            .padding(8)
+                            .background {
+                                if highlightedMovieId == movieDetails.id {
+                                    Circle()
+                                        .foregroundColor(.green)
+                                }
+                            }
 
                         MoviePreviewView(details: movieDetails) {
                             if highlightedMovieId != movieDetails.id {
@@ -121,18 +128,18 @@ private struct MovieCollectionView: View {
                     }
                     .padding(8)
                     .background {
-                        if highlightedMovieId == movieDetails.id {
+                        if let index = movies.firstIndex(of: movieDetails), index % 2 == 0 {
                             RoundedRectangle(cornerRadius: 8)
-                                .foregroundStyle(.thinMaterial)
+                                .foregroundStyle(.ultraThinMaterial.opacity(0.4))
                         }
                     }
                 }
             }
-            .padding(8)
-            .padding(.vertical)
-            .background(.yellow)
-            .cornerRadius(12)
         }
+        .foregroundColor(.white)
+        .padding(4)
+        .padding(.vertical)
+        .background(RoundedRectangle(cornerRadius: 8).fill(.black.opacity(0.8)))
     }
 }
 

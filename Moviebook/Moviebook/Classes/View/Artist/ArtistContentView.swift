@@ -88,27 +88,33 @@ private struct FilmographyView: View {
                 .padding(.horizontal)
 
             LazyVStack {
-                ForEach(movies) { movie in
+                ForEach(movies) { movieDetails in
                     Group {
-                        MoviePreviewView(details: movie) {
-                            onMovieSelected(movie.id)
+                        MoviePreviewView(details: movieDetails) {
+                            onMovieSelected(movieDetails.id)
                         }
                     }
                     .padding(8)
+                    .background {
+                        if let index = movies.firstIndex(of: movieDetails), index % 2 == 0 {
+                            RoundedRectangle(cornerRadius: 8)
+                                .foregroundStyle(.ultraThinMaterial.opacity(0.4))
+                        }
+                    }
                 }
             }
-            .padding(8)
-            .background(.yellow)
-            .cornerRadius(12)
         }
-
+        .foregroundColor(.white)
+        .padding(4)
+        .padding(.vertical)
+        .background(RoundedRectangle(cornerRadius: 8).fill(.black.opacity(0.8)))
     }
 }
 
 #if DEBUG
 struct ArtistCardView_Previews: PreviewProvider {
     static var previews: some View {
-        ScrollView {
+        ScrollView(showsIndicators: false) {
             ArtistContentView(navigationPath: .constant(.init()),
                               artist: MockWebService.artist(with: 287))
             .environment(\.requestManager, MockRequestManager())
