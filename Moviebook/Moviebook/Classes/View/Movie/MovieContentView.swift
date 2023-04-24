@@ -87,9 +87,7 @@ private struct HeaderView: View {
         VStack(alignment: .leading, spacing: 4) {
             Text(details.title).font(.title)
             RatingView(rating: details.rating)
-            if let releaseDate = details.release {
-                Text(releaseDate, format: .dateTime.year()).font(.caption)
-            }
+            Text(details.release, format: .dateTime.year()).font(.caption)
         }
         .padding(.horizontal)
         .padding(.vertical, 4)
