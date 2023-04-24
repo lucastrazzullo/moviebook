@@ -39,8 +39,10 @@ import SwiftUI
             do {
                 movie = try await MovieWebService(requestManager: requestManager).fetchMovie(with: movieId)
             } catch {
-                self.error = .failedToLoad(id: .init(), retry: { [weak self] in
-                    self?.loadMovie(requestManager: requestManager)
+                self.error = .failedToLoad(id: .init(), retry: { [weak self, weak requestManager] in
+                    if let requestManager {
+                        self?.loadMovie(requestManager: requestManager)
+                    }
                 })
             }
         }
@@ -54,18 +56,45 @@ struct MovieView: View {
     @Binding private var navigationPath: NavigationPath
 
     @StateObject private var content: Content
+
+    @State private var isVideoPresented: MovieVideo? = nil
     @State private var isErrorPresented: Bool = false
 
     var body: some View {
-        ZStack(alignment: .topLeading) {
+        Group {
             if let movie = content.movie {
-                MovieContentView(navigationPath: $navigationPath, movie: movie)
+                SlidingCardView(
+                    navigationPath: $navigationPath,
+                    title: movie.details.title,
+                    posterUrl: movie.details.media.posterUrl,
+                    trailingHeaderView: {
+                        MovieTrailingHeaderView(movieId: movie.details.id,
+                                                videos: movie.details.media.videos,
+                                                onSelected: { video in
+                            isVideoPresented = video
+                        })
+                    }, content: {
+                        MovieContentView(navigationPath: $navigationPath, movie: movie)
+                    }
+                )
             } else {
-                MovieLoaderView()
+                LoaderView()
             }
         }
         .toolbar(.hidden, for: .tabBar)
         .toolbar(.hidden, for: .navigationBar)
+        .fullScreenCover(item: $isVideoPresented) { video in
+            ZStack(alignment: .topLeading) {
+                MovieVideoPlayer(video: video, autoplay: true)
+
+                WatermarkView {
+                    Button(action: { isVideoPresented = nil }) {
+                        Image(systemName: "chevron.down")
+                    }
+                }
+                .padding()
+            }
+        }
         .alert("Error", isPresented: $isErrorPresented) {
             Button("Retry", role: .cancel) {
                 content.error?.retry()
@@ -81,213 +110,62 @@ struct MovieView: View {
 
     // MARK: Obejct life cycle
 
-    init(movieId: Movie.ID, navigationPath: Binding<NavigationPath>? = nil) {
+    init(movieId: Movie.ID, navigationPath: Binding<NavigationPath>) {
         self._content = StateObject(wrappedValue: Content(movieId: movieId))
-        self._navigationPath = navigationPath ?? .constant(NavigationPath())
+        self._navigationPath = navigationPath
     }
 
-    init(movie: Movie, navigationPath: Binding<NavigationPath>? = nil) {
+    init(movie: Movie, navigationPath: Binding<NavigationPath>) {
         self._content = StateObject(wrappedValue: Content(movie: movie))
-        self._navigationPath = navigationPath ?? .constant(NavigationPath())
+        self._navigationPath = navigationPath
     }
 }
 
-private struct MovieLoaderView: View {
+private struct MovieTrailingHeaderView: View {
+
+    let movieId: Movie.ID
+    let videos: [MovieVideo]
+    let onSelected: (MovieVideo) -> Void
 
     var body: some View {
-        Group {
-            ProgressView()
-                .controlSize(.large)
-                .tint(.red)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-}
+        WatermarkView {
+            IconWatchlistButton(watchlistItem: .movie(id: movieId))
 
-private struct MovieContentView: View {
-
-    @State private var headerHeight: CGFloat = 0
-    @State private var contentOffset: CGFloat = 0
-    @State private var contentInset: CGFloat = 0
-    @State private var isImageLoaded: Bool = false
-    @State private var isVideoPresented: MovieVideo? = nil
-
-    private let cardOverlap: CGFloat = 24
-
-    // MARK: Internal properties
-
-    @Binding var navigationPath: NavigationPath
-
-    let movie: Movie
-
-    var body: some View {
-        ZStack(alignment: .top) {
-            GeometryReader { geometry in
-                PosterView(
-                    isImageLoaded: $isImageLoaded,
-                    imageHeight: $contentInset,
-                    contentOffset: contentOffset,
-                    movieMedia: movie.details.media
-                )
-
-                if !isImageLoaded {
-                    MovieLoaderView().onAppear {
-                        contentInset = geometry.size.height
-                    }
+            if !videos.isEmpty {
+                TrailerMenu(videos: videos) { video in
+                    onSelected(video)
                 }
+            }
+        }
+    }
+}
 
-                ObservableScrollView(scrollOffset: $contentOffset, showsIndicators: false) { scrollViewProxy in
-                    VStack {
+private struct TrailerMenu: View {
+
+    let videos: [MovieVideo]
+    let onSelected: (MovieVideo) -> Void
+
+    var body: some View {
+        Menu {
+            ForEach(videos) { video in
+                Button(action: { onSelected(video) }) {
+                    HStack {
+                        switch video.type {
+                        case .trailer:
+                            Text("Trailer: \(video.name)")
+                        case .teaser:
+                            Text("Teaser: \(video.name)")
+                        case .behindTheScenes:
+                            Text("Behind the scenes: \(video.name)")
+                        }
                         Spacer()
-                            .frame(height: isImageLoaded
-                                   ? max(0, contentInset - geometry.safeAreaInsets.top - cardOverlap)
-                                   : max(0, geometry.size.height - geometry.safeAreaInsets.top)
-                            )
-
-                        MovieCardView(navigationPath: $navigationPath, movie: movie)
+                        Image(systemName: "play")
                     }
                 }
             }
+        } label: {
+            Image(systemName: "play.fill")
         }
-        .animation(.default, value: isImageLoaded)
-        .safeAreaInset(edge: .top) {
-            HeaderView(
-                navigationPath: $navigationPath,
-                headerHeight: $headerHeight,
-                isVideoPresented: $isVideoPresented,
-                movieDetails: movie.details,
-                shouldShowHeader: isImageLoaded && contentOffset - contentInset + headerHeight > 0
-            )
-        }
-        .fullScreenCover(item: $isVideoPresented) { video in
-            ZStack(alignment: .topLeading) {
-                MovieVideoPlayer(video: video, autoplay: true)
-
-                WatermarkView {
-                    Button(action: { isVideoPresented = nil }) {
-                        Image(systemName: "chevron.down")
-                    }
-                }
-                .padding()
-            }
-        }
-    }
-}
-
-private struct PosterView: View {
-
-    @Binding var isImageLoaded: Bool
-    @Binding var imageHeight: CGFloat
-
-    let contentOffset: CGFloat
-    let movieMedia: MovieMedia
-
-    var body: some View {
-        GeometryReader { mainGeometry in
-            AsyncImage(
-                url: movieMedia.posterUrl,
-                content: { image in
-                    image
-                        .resizable()
-                        .background(GeometryReader { imageGeometry in Color.clear.onAppear {
-                            let imageRatio = imageGeometry.size.width / imageGeometry.size.height
-                            imageHeight = mainGeometry.size.width / imageRatio
-                            isImageLoaded = true
-                        }})
-                        .aspectRatio(contentMode: .fill)
-                },
-                placeholder: { Color.black }
-            )
-            .frame(
-                width: UIScreen.main.bounds.width,
-                height: max(0, isImageLoaded ? imageHeight - contentOffset : mainGeometry.size.height)
-            )
-            .clipped()
-            .ignoresSafeArea(.all, edges: .top)
-        }
-    }
-}
-
-private struct HeaderView: View {
-
-    @Environment(\.dismiss) private var dismiss
-
-    @Binding var navigationPath: NavigationPath
-    @Binding var headerHeight: CGFloat
-    @Binding var isVideoPresented: MovieVideo?
-
-    let movieDetails: MovieDetails
-    let shouldShowHeader: Bool
-
-    var body: some View {
-        ZStack(alignment: .bottom) {
-            HStack(alignment: .center) {
-                WatermarkView {
-                    if !navigationPath.isEmpty {
-                        Button(action: { navigationPath.removeLast() }) {
-                            Image(systemName: "chevron.left")
-                        }
-                    } else {
-                        Button(action: dismiss.callAsFunction) {
-                            Image(systemName: "chevron.down")
-                        }
-                    }
-                }
-
-                if shouldShowHeader {
-                    Text(movieDetails.title)
-                        .lineLimit(2)
-                        .font(.headline)
-                        .transition(.opacity.combined(with: .move(edge: .bottom)))
-                        .frame(maxWidth: .infinity)
-                } else {
-                    Spacer()
-                }
-
-                WatermarkView {
-                    IconWatchlistButton(watchlistItem: .movie(id: movieDetails.id))
-
-                    if !movieDetails.media.videos.isEmpty {
-                        Menu {
-                            ForEach(movieDetails.media.videos) { video in
-                                Button(action: { isVideoPresented = video }) {
-                                    HStack {
-                                        switch video.type {
-                                        case .trailer:
-                                            Text("Trailer: \(video.name)")
-                                        case .teaser:
-                                            Text("Teaser: \(video.name)")
-                                        case .behindTheScenes:
-                                            Text("Behind the scenes: \(video.name)")
-                                        }
-                                        Spacer()
-                                        Image(systemName: "play")
-                                    }
-                                }
-                            }
-                        } label: {
-                            Image(systemName: "play.fill")
-                        }
-
-                    }
-                }
-            }
-            .padding(.horizontal)
-        }
-        .padding(.vertical, 20)
-        .background(
-            GeometryReader { geometry in
-                Rectangle()
-                    .fill(.background.opacity(0.2))
-                    .background(.regularMaterial)
-                    .opacity(shouldShowHeader ? 1 : 0)
-                    .onAppear {
-                        headerHeight = geometry.size.height
-                    }
-            }
-        )
-        .transition(.opacity)
-        .animation(.easeOut(duration: 0.2), value: shouldShowHeader)
     }
 }
 
@@ -295,8 +173,10 @@ private struct HeaderView: View {
 struct MovieView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            MovieView(movieId: 954)
-                .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
+            MovieView(movieId: 954, navigationPath: .constant(NavigationPath()))
+                .environmentObject(Watchlist(items: [
+                    .movie(id: 954): .toWatch(reason: .suggestion(from: "Valerio", comment: "This is really nice"))
+                ]))
                 .environment(\.requestManager, MockRequestManager())
         }
     }

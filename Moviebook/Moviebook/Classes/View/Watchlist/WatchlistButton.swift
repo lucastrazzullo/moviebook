@@ -9,48 +9,110 @@ import SwiftUI
 
 struct WatchlistButton<LabelType>: View where LabelType: View  {
 
+    enum PresentedItem: Identifiable {
+        case addToWatch(item: WatchlistContent.Item)
+        case addToWatched(item: WatchlistContent.Item)
+
+        var id: AnyHashable {
+            switch self {
+            case .addToWatch(let item):
+                return item.id
+            case .addToWatched(let item):
+                return item.id
+            }
+        }
+    }
+
+    @State private var presentedItem: PresentedItem?
+
     @EnvironmentObject var watchlist: Watchlist
 
-    @ViewBuilder let label: (Watchlist.WatchlistItemState) -> LabelType
+    @ViewBuilder let label: (WatchlistContent.ItemState) -> LabelType
 
-    let watchlistItem: Watchlist.WatchlistItem
+    let watchlistItem: WatchlistContent.Item
 
     var body: some View {
         Menu {
-            Button { watchlist.update(state: .toWatch, for: watchlistItem) } label: {
+            Button(action: { presentedItem = .addToWatch(item: watchlistItem) }) {
                 Label("Add to watchlist", systemImage: "plus")
             }
-            .disabled(watchlist.itemState(item: watchlistItem) == .toWatch)
+            .disabled(isAddToWatchlistDisabled)
 
-            Button { watchlist.update(state: .watched, for: watchlistItem) } label: {
+            Button { presentedItem = .addToWatched(item: watchlistItem) } label: {
                 Label("Mark as watched", systemImage: "checkmark")
             }
-            .disabled(watchlist.itemState(item: watchlistItem) == .watched)
+            .disabled(isMarkAsWatchedDisabled)
 
             Button { watchlist.update(state: .none, for: watchlistItem) } label: {
                 Label("Remove from watchlist", systemImage: "minus")
             }
-            .disabled(watchlist.itemState(item: watchlistItem) == .none)
+            .disabled(isRemoveFromWatchlistDisabled)
 
         } label: {
             label(watchlist.itemState(item: watchlistItem))
         }
+        .sheet(item: $presentedItem) { item in
+            switch item {
+            case .addToWatch(let item):
+                WatchlistAddToWatchView(item: item)
+            case .addToWatched(let item):
+                WatchlistAddToWatchedView(item: item)
+            }
+        }
     }
 
-    init(watchlistItem: Watchlist.WatchlistItem, @ViewBuilder label: @escaping (Watchlist.WatchlistItemState) -> LabelType) {
+    init(watchlistItem: WatchlistContent.Item, @ViewBuilder label: @escaping (WatchlistContent.ItemState) -> LabelType) {
         self.watchlistItem = watchlistItem
         self.label = label
+    }
+
+    // MARK: Private helper methods
+
+    private var isAddToWatchlistDisabled: Bool {
+        guard case .toWatch = watchlist.itemState(item: watchlistItem) else {
+            return false
+        }
+        return true
+    }
+
+    private var isMarkAsWatchedDisabled: Bool {
+        guard case .watched = watchlist.itemState(item: watchlistItem) else {
+            return false
+        }
+        return true
+    }
+
+    private var isRemoveFromWatchlistDisabled: Bool {
+        guard case .none = watchlist.itemState(item: watchlistItem) else {
+            return false
+        }
+        return true
     }
 }
 
 // MARK: - Common Views
 
+enum WatchlistViewState {
+    case toWatch, watched, none
+
+    init(itemState: WatchlistContent.ItemState) {
+        switch itemState {
+        case .none:
+            self = .none
+        case .toWatch:
+            self = .toWatch
+        case .watched:
+            self = .watched
+        }
+    }
+}
+
 struct WatchlistIcon: View {
 
-    let itemState: Watchlist.WatchlistItemState
+    let state: WatchlistViewState
 
     var body: some View {
-        switch itemState {
+        switch state {
         case .toWatch:
             Image(systemName: "books.vertical.fill")
         case .watched:
@@ -59,14 +121,22 @@ struct WatchlistIcon: View {
             Image(systemName: "plus")
         }
     }
+
+    init(itemState: WatchlistContent.ItemState) {
+        self.state = WatchlistViewState(itemState: itemState)
+    }
+
+    init(state: WatchlistViewState) {
+        self.state = state
+    }
 }
 
 struct WatchlistText: View {
 
-    let itemState: Watchlist.WatchlistItemState
+    let state: WatchlistViewState
 
     var body: some View {
-        switch itemState {
+        switch state {
         case .toWatch:
             Text("In watchlist")
         case .watched:
@@ -75,18 +145,34 @@ struct WatchlistText: View {
             Text("Add")
         }
     }
+
+    init(itemState: WatchlistContent.ItemState) {
+        self.state = WatchlistViewState(itemState: itemState)
+    }
+
+    init(state: WatchlistViewState) {
+        self.state = state
+    }
 }
 
 struct WatchlistLabel: View {
 
-    let itemState: Watchlist.WatchlistItemState
+    let state: WatchlistViewState
 
     var body: some View {
         HStack {
-            WatchlistIcon(itemState: itemState)
-            WatchlistText(itemState: itemState)
+            WatchlistIcon(state: state)
+            WatchlistText(state: state)
                 .fixedSize(horizontal: true, vertical: false)
         }
+    }
+
+    init(itemState: WatchlistContent.ItemState) {
+        self.state = WatchlistViewState(itemState: itemState)
+    }
+
+    init(state: WatchlistViewState) {
+        self.state = state
     }
 }
 
@@ -94,18 +180,19 @@ struct WatchlistLabel: View {
 
 struct IconWatchlistButton: View {
 
-    let watchlistItem: Watchlist.WatchlistItem
+    let watchlistItem: WatchlistContent.Item
 
     var body: some View {
         WatchlistButton(watchlistItem: watchlistItem) { state in
             WatchlistIcon(itemState: state)
+                .padding(8)
         }
     }
 }
 
 struct WatermarkWatchlistButton: View {
 
-    let watchlistItem: Watchlist.WatchlistItem
+    let watchlistItem: WatchlistContent.Item
 
     var body: some View {
         WatchlistButton(watchlistItem: watchlistItem) { state in
@@ -121,10 +208,14 @@ struct WatchlistButton_Previews: PreviewProvider {
     static var previews: some View {
         VStack(spacing: 44) {
             IconWatchlistButton(watchlistItem: .movie(id: 954))
-                .environmentObject(Watchlist(moviesToWatch: [954]))
+                .environmentObject(Watchlist(items: [
+                    .movie(id: 954): .toWatch(reason: .none)
+                ]))
 
             WatermarkWatchlistButton(watchlistItem: .movie(id: 954))
-                .environmentObject(Watchlist(watchedMovies: [954]))
+                .environmentObject(Watchlist(items: [
+                    .movie(id: 954): .watched(reason: .none, rating: 6),
+                ]))
         }
     }
 }

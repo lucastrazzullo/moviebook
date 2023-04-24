@@ -7,13 +7,13 @@
 
 import Foundation
 
-struct MovieVideo: Equatable, Identifiable {
+struct MovieVideo: Equatable, Hashable, Identifiable {
 
-    enum Source: Equatable {
+    enum Source: Equatable, Hashable {
         case youtube(id: String)
     }
 
-    enum MediaType {
+    enum MediaType: Hashable {
         case teaser
         case trailer
         case behindTheScenes

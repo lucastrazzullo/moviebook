@@ -14,10 +14,10 @@ struct WatermarkView<Content: View>: View {
     var body: some View {
         HStack(alignment: .center, spacing: 16) {
             content()
-                .frame(height: 16, alignment: .center)
+                .frame(width: 18, height: 18, alignment: .center)
                 .font(.footnote)
         }
-        .padding(.horizontal, 12)
+        .padding(.horizontal, 8)
         .padding(.vertical, 8)
         .background(.black.opacity(0.8))
         .foregroundColor(.white)

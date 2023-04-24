@@ -7,11 +7,11 @@
 
 import Foundation
 
-protocol RequestManager {
+protocol RequestManager: AnyObject {
     func request(from url: URL) async throws -> Data
 }
 
-final class DefaultRequestManager: RequestManager {
+actor DefaultRequestManager: RequestManager {
 
     enum Logging {
         case disabled

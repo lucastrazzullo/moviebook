@@ -356,9 +356,7 @@ private struct HeaderView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(movieDetails.title)
                 RatingView(rating: movieDetails.rating)
-                if let releaseDate = movieDetails.release {
-                    Text(releaseDate, format: .dateTime.year()).font(.caption)
-                }
+                Text(movieDetails.release, format: .dateTime.year()).font(.caption)
             }
             .frame(width: 200, alignment: .leading)
 
@@ -378,7 +376,7 @@ private struct ContentView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             if let collection = movie.collection, let list = collection.list, !list.isEmpty {
-                MovieCollectionView(
+                ShelfMovieCollectionView(
                     name: collection.name,
                     movieDetails: list,
                     onMovieIdentifierSelected: onMovieIdentifierSelected
@@ -394,6 +392,46 @@ private struct ContentView: View {
                     .padding(.vertical, 6)
             }
             .buttonStyle(.borderedProminent)
+        }
+    }
+}
+
+private struct ShelfMovieCollectionView: View {
+
+    let name: String
+    let movieDetails: [MovieDetails]
+    let onMovieIdentifierSelected: (Movie.ID) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text("Belong to:")
+            Text(name).font(.title2)
+
+            ScrollView(.horizontal) {
+                HStack {
+                    ForEach(movieDetails) { movieDetails in
+                        Group {
+                            AsyncImage(url: movieDetails.media.posterPreviewUrl, content: { image in
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                            }, placeholder: {
+                                Color
+                                    .gray
+                                    .opacity(0.2)
+                            })
+                            .frame(height: 120)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                        }
+                        .padding(.trailing, 4)
+                        .padding(.bottom, 4)
+                        .onTapGesture {
+                            onMovieIdentifierSelected(movieDetails.id)
+                        }
+                    }
+                }
+                .padding(.vertical)
+            }
         }
     }
 }
@@ -439,7 +477,10 @@ struct ShelfView_Previews: PreviewProvider {
             onOpenMovieWithIdentifier: { _ in }
         )
         .environment(\.requestManager, MockRequestManager())
-        .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
+        .environmentObject(Watchlist(items: [
+            .movie(id: 954): .toWatch(reason: .none),
+            .movie(id: 616037): .toWatch(reason: .none)
+        ]))
     }
 }
 #endif

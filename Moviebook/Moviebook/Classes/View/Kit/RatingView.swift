@@ -15,7 +15,7 @@ struct RatingView: View {
         HStack(spacing: 2) {
             ForEach(1...5, id: \.self) { index in
                 Image(systemName: index <= Int(rating.percentage*5) ? "star.fill" : "star")
-                    .foregroundColor(index <= Int(rating.percentage*5) ? .accentColor : nil)
+                    .foregroundColor(.accentColor)
                     .font(.caption2)
             }
         }

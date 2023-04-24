@@ -12,7 +12,7 @@ import Combine
 
     // MARK: Types
 
-    enum Section: Identifiable, CaseIterable {
+    enum Section: Identifiable, Hashable, CaseIterable {
         case toWatch
         case watched
 
@@ -30,17 +30,20 @@ import Combine
         }
     }
 
-    struct Item: Identifiable {
-        var id: Movie.ID {
-            return movie.id
-        }
+    enum Item: Identifiable {
+        case movie(id: Movie.ID, movie: Movie?)
 
-        let movie: Movie
+        var id: Movie.ID {
+            switch self {
+            case .movie(let id, _):
+                return id
+            }
+        }
     }
 
     // MARK: Instance Properties
 
-    @Published var items: [Section.ID: [Item]] = [:]
+    @Published var items: [Content.Section: [Item]] = [:]
     @Published var error: WebServiceError?
 
     var sections: [Section] {
@@ -49,81 +52,104 @@ import Combine
 
     private var subscriptions: Set<AnyCancellable> = []
 
+    // MARK: Object life cycle
+
+    init() {
+        sections.forEach { section in
+            items[section] = []
+        }
+    }
+
     // MARK: Internal methods
 
     func start(watchlist: Watchlist, requestManager: RequestManager) {
         subscriptions.forEach({ $0.cancel() })
 
-        watchlist.$toWatch.sink { [weak self] watchlistItems in
-            self?.loadItems(from: watchlistItems, inSectionWith: Section.toWatch.id, requestManager: requestManager)
-        }
-        .store(in: &subscriptions)
-
-        watchlist.$watched.sink { [weak self] watchlistItems in
-            self?.loadItems(from: watchlistItems, inSectionWith: Section.watched.id, requestManager: requestManager)
-        }
-        .store(in: &subscriptions)
+        watchlist.$content
+            .map(\.items)
+            .sink { [weak self, requestManager] items in
+                self?.update(watchlistItems: items, requestManager: requestManager)
+            }
+            .store(in: &subscriptions)
     }
 
-    func items(forSectionWith identifier: Section.ID) -> [Item] {
-        return items[identifier] ?? []
+    func items(for section: Content.Section) -> [Item] {
+        return items[section] ?? []
     }
 
     // MARK: Private helper methods
 
-    private func loadItems(from watchlistItems: [Watchlist.WatchlistItem], inSectionWith identifier: Section.ID, requestManager: RequestManager) {
-        Task { [weak self] in
-            do {
-                self?.items[identifier] = try await self?.loadItems(watchlistItems: watchlistItems, requestManager: requestManager)
-                self?.error = nil
-            } catch {
-                self?.error = .failedToLoad(id: .init(), retry: { [weak self] in
-                    self?.loadItems(from: watchlistItems, inSectionWith: identifier, requestManager: requestManager)
-                })
+    private func section(for watchlistState: Moviebook.WatchlistContent.ItemState) -> Content.Section? {
+        switch watchlistState {
+        case .toWatch:
+            return .toWatch
+        case .watched:
+            return .watched
+        default:
+            return nil
+        }
+    }
+
+    private func update(watchlistItems: [Moviebook.WatchlistContent.Item: Moviebook.WatchlistContent.ItemState], requestManager: RequestManager) {
+        watchlistItems.forEach { itemTuple in
+            let watchlistItemState = itemTuple.value
+            let watchlistItem = itemTuple.key
+
+            guard let itemSection = section(for: watchlistItemState) else {
+                return
+            }
+
+            switch watchlistItem {
+            case .movie(let id):
+                switchOrAdd(movieWith: id, toSection: itemSection, requestManager: requestManager)
             }
         }
     }
 
-    private func loadItems(watchlistItems: [Watchlist.WatchlistItem], requestManager: RequestManager) async throws -> [Item] {
-        let movies = try await loadMovies(watchlistItems: watchlistItems, requestManager: requestManager)
-        return movies.map(Item.init(movie:))
-    }
+    private func switchOrAdd(movieWith id: Movie.ID, toSection: Content.Section, requestManager: RequestManager) {
+        sections.forEach { section in
+            if section == toSection {
+                guard !items(for: section).contains(where: { $0.id == id }) else {
+                    return
+                }
 
-    private func loadMovies(watchlistItems: [Watchlist.WatchlistItem], requestManager: RequestManager) async throws -> [Movie] {
-        return try await watchlistItems
-            .compactMap({ self.movieIdentifiers($0) })
-            .concurrentMap { movieIdentifier -> Movie in
-                let webService = MovieWebService(requestManager: requestManager)
-                return try await webService.fetchMovie(with: movieIdentifier)
+                items[section]?.append(.movie(id: id, movie: nil))
+                load(movieWith: id, in: section, requestManager: requestManager)
+            } else {
+                guard let index = items(for: section).firstIndex(where: { $0.id == id }) else {
+                    return
+                }
+
+                items[section]?.remove(at: index)
             }
+        }
     }
 
-    private func movieIdentifiers(_ watchlistItem: Watchlist.WatchlistItem) -> Movie.ID? {
-        if case .movie(let id) = watchlistItem {
-            return id
-        } else {
-            return nil
+    private func load(movieWith id: Movie.ID, in section: Content.Section, requestManager: RequestManager) {
+        let webService = MovieWebService(requestManager: requestManager)
+        Task {
+            do {
+                if let index = items[section]?.firstIndex(where: { $0.id == id }) {
+                    let movie = try await webService.fetchMovie(with: id)
+                    items[section]?.remove(at: index)
+                    items[section]?.insert(.movie(id: id, movie: movie), at: index)
+                }
+            } catch {
+                print("FAILED movie with id: \(id)", error)
+            }
         }
     }
 }
 
 struct WatchlistView: View {
 
-    enum WatchlistLayout: Equatable {
-        case shelf
-        case list
-    }
-
     enum PresentedItem: Identifiable {
         case movie(Movie)
-        case movieWithIdentifier(Movie.ID)
 
         var id: AnyHashable {
             switch self {
             case .movie(let movie):
                 return movie.id
-            case .movieWithIdentifier(let id):
-                return id
             }
         }
     }
@@ -132,48 +158,30 @@ struct WatchlistView: View {
     @EnvironmentObject var watchlist: Watchlist
     @StateObject private var content: Content = Content()
 
-    @State private var watchlistNnavigationPath = NavigationPath()
     @State private var presentedItemNavigationPath = NavigationPath()
 
-    @State private var selectedLayout: WatchlistLayout = .shelf
     @State private var selectedSection: Content.Section = .toWatch
     @State private var isExplorePresented: Bool = false
     @State private var isItemPresented: PresentedItem? = nil
     @State private var isErrorPresented: Bool = false
 
     var body: some View {
-        NavigationStack(path: $watchlistNnavigationPath) {
-            ZStack {
-                switch selectedLayout {
-                case .shelf:
-                    ShelfView(
-                        movies: content.items(forSectionWith: selectedSection.id).map(\.movie),
-                        cornerRadius: isExplorePresented ? 0 : 16,
-                        onOpenMovie: { movie in
-                            isItemPresented = .movie(movie)
-                        },
-                        onOpenMovieWithIdentifier: { movieIdentifier in
-                            isItemPresented = .movieWithIdentifier(movieIdentifier)
-                        }
-                    )
-                    .id(selectedSection.id)
-                    .padding(.top)
-                case .list:
-                    List {
-                        ForEach(content.items(forSectionWith: selectedSection.id)) { item in
-                            MoviePreviewView(details: item.movie.details) {
-                                isItemPresented = .movie(item.movie)
+        NavigationView {
+            List {
+                ForEach(content.items(for: selectedSection)) { item in
+                    switch item {
+                    case .movie(_, let movie):
+                        MoviePreviewView(details: movie?.details) {
+                            if let movie = movie {
+                                isItemPresented = .movie(movie)
                             }
                         }
-                        .listRowSeparator(.hidden)
                     }
-                    .listStyle(.plain)
                 }
+                .listRowSeparator(.hidden)
             }
-            .navigationTitle(selectedLayout == .list ? NSLocalizedString("WATCHLIST.TITLE", comment: "") : "")
-            .navigationDestination(for: Movie.ID.self) { movieId in
-                MovieView(movieId: movieId, navigationPath: $watchlistNnavigationPath)
-            }
+            .listStyle(.plain)
+            .navigationTitle(NSLocalizedString("WATCHLIST.TITLE", comment: ""))
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Picker("Section", selection: $selectedSection) {
@@ -183,15 +191,10 @@ struct WatchlistView: View {
                     }
                     .pickerStyle(.segmented)
                     .onAppear {
-                        switch selectedLayout {
-                        case .shelf:
-                            UISegmentedControl.appearance().backgroundColor = UIColor(Color.black.opacity(0.8))
-                            UISegmentedControl.appearance().selectedSegmentTintColor = .white
-                            UISegmentedControl.appearance().setTitleTextAttributes([.foregroundColor: UIColor.black], for: .selected)
-                            UISegmentedControl.appearance().setTitleTextAttributes([.foregroundColor: UIColor.white], for: .normal)
-                        case .list:
-                            break
-                        }
+                        UISegmentedControl.appearance().backgroundColor = UIColor(Color.black.opacity(0.8))
+                        UISegmentedControl.appearance().selectedSegmentTintColor = .white
+                        UISegmentedControl.appearance().setTitleTextAttributes([.foregroundColor: UIColor.black], for: .selected)
+                        UISegmentedControl.appearance().setTitleTextAttributes([.foregroundColor: UIColor.white], for: .normal)
                     }
                 }
 
@@ -201,22 +204,6 @@ struct WatchlistView: View {
                             .onTapGesture {
                                 isExplorePresented = true
                             }
-
-                        Menu {
-                            Button { selectedLayout = .shelf } label: {
-                                Label("Shelf", systemImage: "square.stack")
-                            }
-                            Button { selectedLayout = .list } label: {
-                                Label("List", systemImage: "list.star")
-                            }
-                        } label: {
-                            switch selectedLayout {
-                            case .shelf:
-                                Image(systemName: "square.stack")
-                            case .list:
-                                Image(systemName: "list.star")
-                            }
-                        }
                     }
                 }
             }
@@ -229,12 +216,10 @@ struct WatchlistView: View {
                         switch item {
                         case .movie(let movie):
                             MovieView(movie: movie, navigationPath: $presentedItemNavigationPath)
-                        case .movieWithIdentifier(let id):
-                            MovieView(movieId: id, navigationPath: $presentedItemNavigationPath)
                         }
                     }
-                    .navigationDestination(for: Movie.ID.self) { movieId in
-                        MovieView(movieId: movieId, navigationPath: $presentedItemNavigationPath)
+                    .navigationDestination(for: NavigationItem.self) { item in
+                        NavigationDestination(navigationPath: $presentedItemNavigationPath, item: item)
                     }
                 }
             }
@@ -274,7 +259,10 @@ struct WatchlistView_Previews: PreviewProvider {
     static var previews: some View {
         WatchlistView()
             .environment(\.requestManager, MockRequestManager())
-            .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
+            .environmentObject(Watchlist(items: [
+                .movie(id: 954): .toWatch(reason: .none),
+                .movie(id: 616037): .toWatch(reason: .none)
+            ]))
     }
 }
 #endif

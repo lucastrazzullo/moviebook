@@ -11,11 +11,19 @@ struct SearchWebService {
 
     let requestManager: RequestManager
 
-    func fetchMovie(with keyword: String) async throws -> [MovieDetails] {
+    func fetchMovies(with keyword: String) async throws -> [MovieDetails] {
         let searchQueryItem = URLQueryItem(name: "query", value: keyword)
         let url = try TheMovieDbDataRequestFactory.makeURL(path: "search/movie", queryItems: [searchQueryItem])
         let data = try await requestManager.request(from: url)
         let parsedResponse = try JSONDecoder().decode(TheMovieDbResponseWithResults<MovieDetails>.self, from: data)
+        return parsedResponse.results
+    }
+
+    func fetchArtists(with keyword: String) async throws -> [ArtistDetails] {
+        let searchQueryItem = URLQueryItem(name: "query", value: keyword)
+        let url = try TheMovieDbDataRequestFactory.makeURL(path: "search/person", queryItems: [searchQueryItem])
+        let data = try await requestManager.request(from: url)
+        let parsedResponse = try JSONDecoder().decode(TheMovieDbResponseWithResults<ArtistDetails>.self, from: data)
         return parsedResponse.results
     }
 }

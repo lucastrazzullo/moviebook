@@ -9,14 +9,30 @@ import SwiftUI
 
 struct MoviePreviewView: View {
 
-    let details: MovieDetails
+    enum PresentedItem: Identifiable {
+        case addToWatch(item: WatchlistContent.Item)
+        case addToWatched(item: WatchlistContent.Item)
+
+        var id: AnyHashable {
+            switch self {
+            case .addToWatch(let item):
+                return item.id
+            case .addToWatched(let item):
+                return item.id
+            }
+        }
+    }
+
+    @State private var presentedItem: PresentedItem?
+
+    let details: MovieDetails?
     let onSelected: (() -> Void)?
 
     var body: some View {
         HStack(alignment: .center) {
             HStack(alignment: .center, spacing: 8) {
                 ZStack(alignment: .bottomTrailing) {
-                    AsyncImage(url: details.media.backdropPreviewUrl, content: { image in
+                    AsyncImage(url: details?.media.posterPreviewUrl, content: { image in
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
@@ -25,37 +41,62 @@ struct MoviePreviewView: View {
                             .gray
                             .opacity(0.2)
                     })
-                    .frame(width: 160, height: 90)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 120)
                     .clipShape(RoundedRectangle(cornerRadius: 6))
                     .padding(.trailing, 4)
                     .padding(.bottom, 4)
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(details.title)
-                        .lineLimit(3)
-                        .font(.subheadline)
-                        .frame(maxWidth: 140, alignment: .leading)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(details?.title ?? "Loading")
+                            .lineLimit(3)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .font(.headline)
 
-                    if let releaseDate = details.release {
-                        Text(releaseDate, format: .dateTime.year()).font(.caption)
+                        if let releaseDate = details?.release {
+                            Text(releaseDate, format: .dateTime.year()).font(.caption)
+                        }
                     }
 
-                    RatingView(rating: details.rating)
+                    if let rating = details?.rating {
+                        RatingView(rating: rating)
+                    }
                 }
                 .padding(.vertical, 4)
             }
             .onTapGesture(perform: { onSelected?() })
 
-            IconWatchlistButton(watchlistItem: .movie(id: details.id))
-                .font(.caption)
+            if let movieId = details?.id {
+                Spacer()
+                IconWatchlistButton(watchlistItem: .movie(id: movieId))
+                    .font(.headline)
+            }
+        }
+        .sheet(item: $presentedItem) { item in
+            switch item {
+            case .addToWatch(let item):
+                WatchlistAddToWatchView(item: item)
+            case .addToWatched(let item):
+                WatchlistAddToWatchedView(item: item)
+            }
         }
         .contextMenu {
-            WatchlistMenu(watchlistItem: Watchlist.WatchlistItem.movie(id: details.id))
+            if let movieId = details?.id {
+                WatchlistMenu(
+                    watchlistItem: WatchlistContent.Item.movie(id: movieId),
+                    shouldAddToWatch: { item in
+                        presentedItem = .addToWatch(item: item)
+                    },
+                    shouldAddToWatched: { item in
+                        presentedItem = .addToWatched(item: item)
+                    })
+            }
         }
     }
 
-    init(details: MovieDetails, onSelected: (() -> Void)? = nil) {
+    init(details: MovieDetails?, onSelected: (() -> Void)? = nil) {
         self.details = details
         self.onSelected = onSelected
     }
@@ -65,30 +106,34 @@ private struct WatchlistMenu: View {
 
     @EnvironmentObject var watchlist: Watchlist
 
-    let watchlistItem: Watchlist.WatchlistItem
+    let watchlistItem: WatchlistContent.Item
+    let shouldAddToWatch: (WatchlistContent.Item) -> Void
+    let shouldAddToWatched: (WatchlistContent.Item) -> Void
 
     var body: some View {
-        switch watchlist.itemState(item: watchlistItem) {
-        case .toWatch:
-            Button { watchlist.update(state: .none, for: watchlistItem) } label: {
-                Label("Remove from watchlist", systemImage: "minus")
-            }
-            Button { watchlist.update(state: .watched, for: watchlistItem) } label: {
-                Label("Mark as watched", systemImage: "checkmark")
-            }
-        case .watched:
-            Button { watchlist.update(state: .toWatch, for: watchlistItem) } label: {
-                Label("Move to watchlist", systemImage: "star")
-            }
-            Button { watchlist.update(state: .none, for: watchlistItem) } label: {
-                Label("Remove from watchlist", systemImage: "minus")
-            }
-        case .none:
-            Button { watchlist.update(state: .toWatch, for: watchlistItem) } label: {
-                Label("Add to watchlist", systemImage: "plus")
-            }
-            Button { watchlist.update(state: .watched, for: watchlistItem) } label: {
-                Label("Mark as watched", systemImage: "checkmark")
+        Group {
+            switch watchlist.itemState(item: watchlistItem) {
+            case .toWatch:
+                Button { watchlist.update(state: .none, for: watchlistItem) } label: {
+                    Label("Remove from watchlist", systemImage: "minus")
+                }
+                Button { shouldAddToWatched(watchlistItem) } label: {
+                    Label("Mark as watched", systemImage: "checkmark")
+                }
+            case .watched:
+                Button(action: { shouldAddToWatch(watchlistItem) }) {
+                    Label("Move to watchlist", systemImage: "star")
+                }
+                Button { watchlist.update(state: .none, for: watchlistItem) } label: {
+                    Label("Remove from watchlist", systemImage: "minus")
+                }
+            case .none:
+                Button(action: { shouldAddToWatch(watchlistItem) }) {
+                    Label("Add to watchlist", systemImage: "plus")
+                }
+                Button { shouldAddToWatched(watchlistItem) } label: {
+                    Label("Mark as watched", systemImage: "checkmark")
+                }
             }
         }
     }
@@ -98,7 +143,11 @@ private struct WatchlistMenu: View {
 struct MoviePreviewView_Previews: PreviewProvider {
     static var previews: some View {
         MoviePreviewView(details: MockWebService.movie(with: 954).details)
-            .environmentObject(Watchlist(moviesToWatch: [954, 616037]))
+            .padding()
+            .environmentObject(Watchlist(items: [
+                .movie(id: 954): .toWatch(reason: .none),
+                .movie(id: 616037): .toWatch(reason: .none)
+            ]))
     }
 }
 #endif
