@@ -199,11 +199,31 @@ private struct CastView: View {
 struct MovieCardView_Previews: PreviewProvider {
     static var previews: some View {
         ScrollView(showsIndicators: false) {
-            MovieContentView(
-                navigationPath: .constant(NavigationPath()),
-                movie: MockWebService.movie(with: 954)
-            )
-            .environmentObject(Watchlist(items: [:]))
+            MovieCardViewPreview()
+                .environmentObject(Watchlist(items: [:]))
+        }
+    }
+}
+
+private struct MovieCardViewPreview: View {
+
+    @Environment(\.requestManager) var requestManager
+    @State var movie: Movie?
+
+    var body: some View {
+        Group {
+            if let movie {
+                MovieContentView(
+                    navigationPath: .constant(NavigationPath()),
+                    movie: movie
+                )
+            } else {
+                LoaderView()
+            }
+        }
+        .task {
+            let webService = MovieWebService(requestManager: requestManager)
+            movie = try! await webService.fetchMovie(with: 954)
         }
     }
 }

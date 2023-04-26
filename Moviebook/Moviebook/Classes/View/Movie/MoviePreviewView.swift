@@ -142,12 +142,34 @@ private struct WatchlistMenu: View {
 #if DEBUG
 struct MoviePreviewView_Previews: PreviewProvider {
     static var previews: some View {
-        MoviePreviewView(details: MockWebService.movie(with: 954).details)
-            .padding()
-            .environmentObject(Watchlist(items: [
-                .movie(id: 954): .toWatch(reason: .none),
-                .movie(id: 616037): .toWatch(reason: .none)
-            ]))
+        ScrollView {
+            MoviePreviewViewPreview()
+                .environmentObject(Watchlist(items: [
+                    .movie(id: 954): .toWatch(reason: .none),
+                    .movie(id: 616037): .toWatch(reason: .none)
+                ]))
+        }
+    }
+}
+
+private struct MoviePreviewViewPreview: View {
+
+    @Environment(\.requestManager) var requestManager
+    @State var movie: Movie?
+
+    var body: some View {
+        Group {
+            if let movie {
+                MoviePreviewView(details: movie.details)
+                    .padding()
+            } else {
+                LoaderView()
+            }
+        }
+        .task {
+            let webService = MovieWebService(requestManager: requestManager)
+            movie = try! await webService.fetchMovie(with: 954)
+        }
     }
 }
 #endif

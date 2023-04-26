@@ -12,7 +12,6 @@
 		8112AF0529152FA80041475D /* MovieVideoPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8112AF0429152FA80041475D /* MovieVideoPlayer.swift */; };
 		8112AF0729153EA60041475D /* WatermarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8112AF0629153EA60041475D /* WatermarkView.swift */; };
 		8112AF0B2916DF5D0041475D /* MovieWatchlistStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8112AF0A2916DF5D0041475D /* MovieWatchlistStateView.swift */; };
-		81242FF2291826F700AEB69A /* MockWebService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81242FF1291826F700AEB69A /* MockWebService.swift */; };
 		812489BD29F04E85004A6BE6 /* WebServiceError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 812489BC29F04E85004A6BE6 /* WebServiceError.swift */; };
 		812489C029F152C4004A6BE6 /* ExploreSectionContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 812489BF29F152C4004A6BE6 /* ExploreSectionContent.swift */; };
 		812489C229F15307004A6BE6 /* ExploreSearchContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 812489C129F15307004A6BE6 /* ExploreSearchContent.swift */; };
@@ -93,7 +92,6 @@
 		8112AF0429152FA80041475D /* MovieVideoPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieVideoPlayer.swift; sourceTree = "<group>"; };
 		8112AF0629153EA60041475D /* WatermarkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatermarkView.swift; sourceTree = "<group>"; };
 		8112AF0A2916DF5D0041475D /* MovieWatchlistStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieWatchlistStateView.swift; sourceTree = "<group>"; };
-		81242FF1291826F700AEB69A /* MockWebService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockWebService.swift; sourceTree = "<group>"; };
 		812489BC29F04E85004A6BE6 /* WebServiceError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebServiceError.swift; sourceTree = "<group>"; };
 		812489BF29F152C4004A6BE6 /* ExploreSectionContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreSectionContent.swift; sourceTree = "<group>"; };
 		812489C129F15307004A6BE6 /* ExploreSearchContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreSearchContent.swift; sourceTree = "<group>"; };
@@ -233,7 +231,6 @@
 			children = (
 				814D46E428C23999000D7ABD /* MockRequestManager.swift */,
 				814D46E028C2391D000D7ABD /* MockServer.swift */,
-				81242FF1291826F700AEB69A /* MockWebService.swift */,
 			);
 			path = Mocks;
 			sourceTree = "<group>";
@@ -599,7 +596,6 @@
 				8169FB1F28C204450054BCE6 /* WatchlistView.swift in Sources */,
 				81CDE62329150D3000A34BBC /* MovieVideo.swift in Sources */,
 				814D46E128C2391D000D7ABD /* MockServer.swift in Sources */,
-				81242FF2291826F700AEB69A /* MockWebService.swift in Sources */,
 				812489BD29F04E85004A6BE6 /* WebServiceError.swift in Sources */,
 				8169FB6628C215AB0054BCE6 /* PopularWebService.swift in Sources */,
 				81A69CC5290C398200724FB9 /* Rating.swift in Sources */,
