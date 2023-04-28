@@ -13,7 +13,7 @@ struct ExploreView: View {
         case movie(movieId: Movie.ID)
         case artist(artistId: Artist.ID)
 
-        var id: Int {
+        var id: AnyHashable {
             switch self {
             case .movie(let movieId):
                 return movieId
@@ -169,7 +169,7 @@ struct ExploreView_Previews: PreviewProvider {
         Group {
             ExploreView()
                 .environment(\.requestManager, MockRequestManager())
-                .environmentObject(Watchlist(items: [
+                .environmentObject(Watchlist(inMemoryItems: [
                     .movie(id: 954): .toWatch(reason: .none),
                     .movie(id: 616037): .toWatch(reason: .none)
                 ]))

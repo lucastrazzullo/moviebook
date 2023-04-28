@@ -10,22 +10,22 @@ import SwiftUI
 struct WatchlistButton<LabelType>: View where LabelType: View  {
 
     enum PresentedItem: Identifiable {
-        case addToWatch(item: WatchlistContent.Item)
-        case addToWatched(item: WatchlistContent.Item)
+        case addToWatchReason(item: WatchlistContent.Item)
+        case addRating(item: WatchlistContent.Item)
 
         var id: AnyHashable {
             switch self {
-            case .addToWatch(let item):
+            case .addToWatchReason(let item):
                 return item.id
-            case .addToWatched(let item):
+            case .addRating(let item):
                 return item.id
             }
         }
     }
 
-    @State private var presentedItem: PresentedItem?
-
     @EnvironmentObject var watchlist: Watchlist
+
+    @State private var presentedItem: PresentedItem?
 
     @ViewBuilder let label: (WatchlistContent.ItemState) -> LabelType
 
@@ -33,30 +33,49 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
 
     var body: some View {
         Menu {
-            Button(action: { presentedItem = .addToWatch(item: watchlistItem) }) {
-                Label("Add to watchlist", systemImage: "plus")
+            switch watchlist.itemState(item: watchlistItem) {
+            case .toWatch(let reason):
+                if reason == .none {
+                    Button { presentedItem = .addToWatchReason(item: watchlistItem) } label: {
+                        Label("Add reason to watch", systemImage: "quote.opening")
+                    }
+                }
+                Button { watchlist.update(state: .none, for: watchlistItem) } label: {
+                    Label("Remove from watchlist", systemImage: "minus")
+                }
+                Button { watchlist.update(state: .watched(reason: reason, rating: .none, date: .now), for: watchlistItem) } label: {
+                    Label("Mark as watched", systemImage: "checkmark")
+                }
+            case .watched(let reason, let rating, _):
+                if rating == .none {
+                    Button { presentedItem = .addRating(item: watchlistItem) } label: {
+                        Label("Add rating", systemImage: "plus")
+                    }
+                }
+                Button(action: { watchlist.update(state: .toWatch(reason: reason), for: watchlistItem) }) {
+                    Label("Move to watchlist", systemImage: "star")
+                }
+                Button { watchlist.update(state: .none, for: watchlistItem) } label: {
+                    Label("Remove from watchlist", systemImage: "minus")
+                }
+            case .none:
+                Button(action: { watchlist.update(state: .toWatch(reason: .none), for: watchlistItem) }) {
+                    Label("Add to watchlist", systemImage: "plus")
+                }
+                Button { watchlist.update(state: .watched(reason: .none, rating: .none, date: .now), for: watchlistItem) } label: {
+                    Label("Mark as watched", systemImage: "checkmark")
+                }
             }
-            .disabled(isAddToWatchlistDisabled)
-
-            Button { presentedItem = .addToWatched(item: watchlistItem) } label: {
-                Label("Mark as watched", systemImage: "checkmark")
-            }
-            .disabled(isMarkAsWatchedDisabled)
-
-            Button { watchlist.update(state: .none, for: watchlistItem) } label: {
-                Label("Remove from watchlist", systemImage: "minus")
-            }
-            .disabled(isRemoveFromWatchlistDisabled)
 
         } label: {
             label(watchlist.itemState(item: watchlistItem))
         }
         .sheet(item: $presentedItem) { item in
             switch item {
-            case .addToWatch(let item):
-                WatchlistAddToWatchView(item: item)
-            case .addToWatched(let item):
-                WatchlistAddToWatchedView(item: item)
+            case .addToWatchReason(let item):
+                NewToWatchSuggestionView(item: item)
+            case .addRating(let item):
+                NewWatchedRatingView(item: item)
             }
         }
     }
@@ -64,29 +83,6 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
     init(watchlistItem: WatchlistContent.Item, @ViewBuilder label: @escaping (WatchlistContent.ItemState) -> LabelType) {
         self.watchlistItem = watchlistItem
         self.label = label
-    }
-
-    // MARK: Private helper methods
-
-    private var isAddToWatchlistDisabled: Bool {
-        guard case .toWatch = watchlist.itemState(item: watchlistItem) else {
-            return false
-        }
-        return true
-    }
-
-    private var isMarkAsWatchedDisabled: Bool {
-        guard case .watched = watchlist.itemState(item: watchlistItem) else {
-            return false
-        }
-        return true
-    }
-
-    private var isRemoveFromWatchlistDisabled: Bool {
-        guard case .none = watchlist.itemState(item: watchlistItem) else {
-            return false
-        }
-        return true
     }
 }
 
@@ -196,9 +192,12 @@ struct WatermarkWatchlistButton: View {
 
     var body: some View {
         WatchlistButton(watchlistItem: watchlistItem) { state in
-            WatermarkView {
-                WatchlistLabel(itemState: state)
-            }
+            WatchlistLabel(itemState: state)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 8)
+                .background(.black.opacity(0.8))
+                .foregroundColor(.white)
+                .cornerRadius(8, antialiased: true)
         }
     }
 }
@@ -208,13 +207,13 @@ struct WatchlistButton_Previews: PreviewProvider {
     static var previews: some View {
         VStack(spacing: 44) {
             IconWatchlistButton(watchlistItem: .movie(id: 954))
-                .environmentObject(Watchlist(items: [
+                .environmentObject(Watchlist(inMemoryItems: [
                     .movie(id: 954): .toWatch(reason: .none)
                 ]))
 
             WatermarkWatchlistButton(watchlistItem: .movie(id: 954))
-                .environmentObject(Watchlist(items: [
-                    .movie(id: 954): .watched(reason: .none, rating: 6),
+                .environmentObject(Watchlist(inMemoryItems: [
+                    .movie(id: 954): .watched(reason: .none, rating: .value(6), date: .now),
                 ]))
         }
     }

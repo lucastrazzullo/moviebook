@@ -9,21 +9,7 @@ import SwiftUI
 
 struct MoviePreviewView: View {
 
-    enum PresentedItem: Identifiable {
-        case addToWatch(item: WatchlistContent.Item)
-        case addToWatched(item: WatchlistContent.Item)
-
-        var id: AnyHashable {
-            switch self {
-            case .addToWatch(let item):
-                return item.id
-            case .addToWatched(let item):
-                return item.id
-            }
-        }
-    }
-
-    @State private var presentedItem: PresentedItem?
+    @EnvironmentObject var watchlist: Watchlist
 
     let details: MovieDetails?
     let onSelected: (() -> Void)?
@@ -74,26 +60,6 @@ struct MoviePreviewView: View {
                     .font(.headline)
             }
         }
-        .sheet(item: $presentedItem) { item in
-            switch item {
-            case .addToWatch(let item):
-                WatchlistAddToWatchView(item: item)
-            case .addToWatched(let item):
-                WatchlistAddToWatchedView(item: item)
-            }
-        }
-        .contextMenu {
-            if let movieId = details?.id {
-                WatchlistMenu(
-                    watchlistItem: WatchlistContent.Item.movie(id: movieId),
-                    shouldAddToWatch: { item in
-                        presentedItem = .addToWatch(item: item)
-                    },
-                    shouldAddToWatched: { item in
-                        presentedItem = .addToWatched(item: item)
-                    })
-            }
-        }
     }
 
     init(details: MovieDetails?, onSelected: (() -> Void)? = nil) {
@@ -102,49 +68,12 @@ struct MoviePreviewView: View {
     }
 }
 
-private struct WatchlistMenu: View {
-
-    @EnvironmentObject var watchlist: Watchlist
-
-    let watchlistItem: WatchlistContent.Item
-    let shouldAddToWatch: (WatchlistContent.Item) -> Void
-    let shouldAddToWatched: (WatchlistContent.Item) -> Void
-
-    var body: some View {
-        Group {
-            switch watchlist.itemState(item: watchlistItem) {
-            case .toWatch:
-                Button { watchlist.update(state: .none, for: watchlistItem) } label: {
-                    Label("Remove from watchlist", systemImage: "minus")
-                }
-                Button { shouldAddToWatched(watchlistItem) } label: {
-                    Label("Mark as watched", systemImage: "checkmark")
-                }
-            case .watched:
-                Button(action: { shouldAddToWatch(watchlistItem) }) {
-                    Label("Move to watchlist", systemImage: "star")
-                }
-                Button { watchlist.update(state: .none, for: watchlistItem) } label: {
-                    Label("Remove from watchlist", systemImage: "minus")
-                }
-            case .none:
-                Button(action: { shouldAddToWatch(watchlistItem) }) {
-                    Label("Add to watchlist", systemImage: "plus")
-                }
-                Button { shouldAddToWatched(watchlistItem) } label: {
-                    Label("Mark as watched", systemImage: "checkmark")
-                }
-            }
-        }
-    }
-}
-
 #if DEBUG
 struct MoviePreviewView_Previews: PreviewProvider {
     static var previews: some View {
         ScrollView {
             MoviePreviewViewPreview()
-                .environmentObject(Watchlist(items: [
+                .environmentObject(Watchlist(inMemoryItems: [
                     .movie(id: 954): .toWatch(reason: .none),
                     .movie(id: 616037): .toWatch(reason: .none)
                 ]))

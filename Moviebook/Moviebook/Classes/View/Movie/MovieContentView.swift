@@ -200,7 +200,7 @@ struct MovieCardView_Previews: PreviewProvider {
     static var previews: some View {
         ScrollView(showsIndicators: false) {
             MovieCardViewPreview()
-                .environmentObject(Watchlist(items: [:]))
+                .environmentObject(Watchlist(inMemoryItems: [:]))
         }
     }
 }

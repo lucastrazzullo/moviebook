@@ -1,5 +1,5 @@
 //
-//  WatchlistAddToWatchedView.swift
+//  NewWatchedRatingView.swift
 //  Moviebook
 //
 //  Created by Luca Strazzullo on 17/12/2022.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct WatchlistAddToWatchedView: View {
+struct NewWatchedRatingView: View {
 
     @Environment(\.presentationMode) var presentationMode
 
@@ -24,14 +24,14 @@ struct WatchlistAddToWatchedView: View {
             return .none
         case .toWatch(let reason):
             return reason
-        case .watched(let reason, _):
+        case .watched(let reason, _, _):
             return reason
         }
     }
 
     var body: some View {
         VStack {
-            Text("Add to watched")
+            Text("Add your rating")
                 .font(.title)
 
             Form {
@@ -61,34 +61,49 @@ struct WatchlistAddToWatchedView: View {
 
                 Section() {
                     VStack(spacing: 32) {
-                        Text("Your rating")
-                            .font(.title2)
                         CircularRatingView(rating: rating, label: "Your vote", style: .prominent)
                             .frame(height: 200)
+                            .animation(.default, value: rating)
+
                         Slider(value: $rating, in: 0...CircularRatingView.ratingQuota, step: 0.5)
                     }
                 }
-
-                Section() {
-                    Button(action: save) {
-                        Text("Save")
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .frame(maxWidth: .infinity)
-                }
             }
             .scrollContentBackground(.hidden)
+
+            VStack(spacing: 24) {
+                Button(action: save) {
+                    Text("Save").frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+
+                Button(action: dismiss) {
+                    Text("Cancel")
+                }
+                .buttonStyle(.plain)
+            }
         }
+        .padding(.top)
+        .padding()
+        .foregroundColor(nil)
+        .font(.body)
     }
 
     private func save() {
-        watchlist.update(state: .watched(reason: toWatchReason, rating: rating), for: item)
+        watchlist.update(state: .watched(reason: toWatchReason, rating: .value(rating), date: .now), for: item)
+        dismiss()
+    }
+
+    private func dismiss() {
         presentationMode.wrappedValue.dismiss()
     }
 }
 
 struct WatchlistAddToWatchedView_Previews: PreviewProvider {
     static var previews: some View {
-        WatchlistAddToWatchedView(item: .movie(id: 954))
+        NewWatchedRatingView(item: .movie(id: 954))
+            .environmentObject(Watchlist(inMemoryItems: [
+                .movie(id: 954): .watched(reason: .suggestion(from: "Valerio", comment: "Molto bello"), rating: .value(6), date: .now),
+            ]))
     }
 }

@@ -25,10 +25,10 @@ struct WatchlistContent: Codable {
         }
     }
 
-    enum ItemState: Hashable, Codable {
+    enum ItemState: Hashable, Codable, Equatable {
         case none
         case toWatch(reason: Watchlist.ToWatchReason)
-        case watched(reason: Watchlist.ToWatchReason, rating: Double)
+        case watched(reason: Watchlist.ToWatchReason, rating: Watchlist.WatchedRating, date: Date)
     }
 
     var items: [Item: ItemState]
@@ -48,6 +48,11 @@ struct WatchlistContent: Codable {
 
     enum ToWatchReason: Codable, Hashable, Equatable {
         case suggestion(from: String, comment: String)
+        case none
+    }
+
+    enum WatchedRating: Codable, Hashable, Equatable {
+        case value(_ value: Double)
         case none
     }
 
@@ -141,8 +146,8 @@ final class InMemoryStorage: WatchlistStorage {
 
 extension Watchlist {
 
-    convenience init(items: [WatchlistContent.Item: WatchlistContent.ItemState]) {
-        let content = WatchlistContent(items: items)
+    convenience init(inMemoryItems: [WatchlistContent.Item: WatchlistContent.ItemState]) {
+        let content = WatchlistContent(items: inMemoryItems)
         self.init(storage: InMemoryStorage(content: content))
     }
 }
