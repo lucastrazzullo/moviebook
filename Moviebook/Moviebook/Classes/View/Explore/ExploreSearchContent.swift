@@ -30,6 +30,12 @@ import Combine
 
     private var subscriptions: Set<AnyCancellable> = []
 
+    init(query: String?) {
+        if let query {
+            searchKeyword = query
+        }
+    }
+
     // MARK: Search
 
     func start(requestManager: RequestManager) {

@@ -27,8 +27,8 @@ struct ExploreView: View {
     @Environment(\.requestManager) var requestManager
     @EnvironmentObject var watchlist: Watchlist
 
-    @StateObject private var searchContent: ExploreSearchContent = ExploreSearchContent()
-    @StateObject private var exploreContent: ExploreSectionContent = ExploreSectionContent()
+    @StateObject private var searchContent: ExploreSearchContent
+    @StateObject private var exploreContent: ExploreSectionContent
 
     @State private var presentedItem: PresentingItem?
     @State private var presentedItemNavigationPath: NavigationPath = NavigationPath()
@@ -105,6 +105,11 @@ struct ExploreView: View {
             }
         }
     }
+
+    init(searchQuery: String?) {
+        self._searchContent = StateObject(wrappedValue: ExploreSearchContent(query: searchQuery))
+        self._exploreContent = StateObject(wrappedValue: ExploreSectionContent())
+    }
 }
 
 private struct SectionView: View {
@@ -167,7 +172,7 @@ private struct SectionView: View {
 struct ExploreView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
-            ExploreView()
+            ExploreView(searchQuery: nil)
                 .environment(\.requestManager, MockRequestManager())
                 .environmentObject(Watchlist(inMemoryItems: [
                     .movie(id: 954): .toWatch(reason: .none),
