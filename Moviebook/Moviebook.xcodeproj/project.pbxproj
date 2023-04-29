@@ -140,6 +140,7 @@
 		8169FB6528C215AB0054BCE6 /* PopularWebService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopularWebService.swift; sourceTree = "<group>"; };
 		817C42A629FC190C00FB3FD6 /* WatchlistViewContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistViewContent.swift; sourceTree = "<group>"; };
 		817C42A829FC66EB00FB3FD6 /* Deeplink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Deeplink.swift; sourceTree = "<group>"; };
+		817C42AB29FD2D5200FB3FD6 /* Moviebook.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Moviebook.entitlements; sourceTree = "<group>"; };
 		81828AC928DDB736006D696C /* MovieView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieView.swift; sourceTree = "<group>"; };
 		81828ACB28DDC7A4006D696C /* ObservableScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObservableScrollView.swift; sourceTree = "<group>"; };
 		81A395D029F402CE00800F7E /* ArtistWebService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistWebService.swift; sourceTree = "<group>"; };
@@ -279,6 +280,7 @@
 		8169FB1B28C204450054BCE6 /* Moviebook */ = {
 			isa = PBXGroup;
 			children = (
+				817C42AB29FD2D5200FB3FD6 /* Moviebook.entitlements */,
 				81A69CC6290E7AC000724FB9 /* Info.plist */,
 				8169FB4E28C205BF0054BCE6 /* Classes */,
 				8169FB5028C205D30054BCE6 /* Data */,
@@ -800,10 +802,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = Moviebook/MoviebookDebug.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Moviebook/Preview Content\"";
-				DEVELOPMENT_TEAM = UC9U5RZ8UF;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = UC9U5RZ8UF;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Moviebook/Info.plist;
@@ -817,9 +822,11 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = it.lucastrazzullo.beta.moviebook;
+				MARKETING_VERSION = 3.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = it.lucastrazzullo.ios.moviebook;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Moviebook - Development";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
@@ -834,10 +841,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_ENTITLEMENTS = Moviebook/Moviebook.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Moviebook/Preview Content\"";
-				DEVELOPMENT_TEAM = UC9U5RZ8UF;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = UC9U5RZ8UF;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Moviebook/Info.plist;
@@ -851,9 +861,11 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = it.lucastrazzullo.beta.moviebook;
+				MARKETING_VERSION = 3.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = it.lucastrazzullo.ios.moviebook;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Moviebook - Distribution";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = YES;
