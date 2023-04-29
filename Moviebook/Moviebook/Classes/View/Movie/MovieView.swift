@@ -68,8 +68,7 @@ struct MovieView: View {
                     title: movie.details.title,
                     posterUrl: movie.details.media.posterUrl,
                     trailingHeaderView: {
-                        MovieTrailingHeaderView(movieId: movie.details.id,
-                                                videos: movie.details.media.videos,
+                        MovieTrailingHeaderView(movieDetails: movie.details,
                                                 onSelected: { video in
                             isVideoPresented = video
                         })
@@ -123,19 +122,30 @@ struct MovieView: View {
 
 private struct MovieTrailingHeaderView: View {
 
-    let movieId: Movie.ID
-    let videos: [MovieVideo]
+    let movieDetails: MovieDetails
     let onSelected: (MovieVideo) -> Void
 
     var body: some View {
         WatermarkView {
-            IconWatchlistButton(watchlistItem: .movie(id: movieId))
+            IconWatchlistButton(watchlistItem: .movie(id: movieDetails.id))
+            ShareButton(movieDetails: movieDetails)
 
-            if !videos.isEmpty {
-                TrailerMenu(videos: videos) { video in
+            if !movieDetails.media.videos.isEmpty {
+                TrailerMenu(videos: movieDetails.media.videos) { video in
                     onSelected(video)
                 }
             }
+        }
+    }
+}
+
+private struct ShareButton: View {
+
+    let movieDetails: MovieDetails
+
+    var body: some View {
+        ShareLink(item: Deeplink.movie(identifier: movieDetails.id).rawValue) {
+            Image(systemName: "square.and.arrow.up")
         }
     }
 }
@@ -173,9 +183,9 @@ private struct TrailerMenu: View {
 struct MovieView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            MovieView(movieId: 954, navigationPath: .constant(NavigationPath()))
+            MovieView(movieId: 353081, navigationPath: .constant(NavigationPath()))
                 .environmentObject(Watchlist(inMemoryItems: [
-                    .movie(id: 954): .toWatch(reason: .suggestion(from: "Valerio", comment: "This is really nice"))
+                    .movie(id: 353081): .toWatch(reason: .suggestion(from: "Valerio", comment: "This is really nice"))
                 ]))
                 .environment(\.requestManager, MockRequestManager())
         }
