@@ -99,6 +99,7 @@ struct NewWatchedRatingView: View {
     }
 }
 
+#if DEBUG
 struct WatchlistAddToWatchedView_Previews: PreviewProvider {
     static var previews: some View {
         NewWatchedRatingView(item: .movie(id: 954))
@@ -107,3 +108,4 @@ struct WatchlistAddToWatchedView_Previews: PreviewProvider {
             ]))
     }
 }
+#endif
