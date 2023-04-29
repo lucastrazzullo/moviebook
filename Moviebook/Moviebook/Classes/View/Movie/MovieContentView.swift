@@ -196,16 +196,16 @@ private struct CastView: View {
 }
 
 #if DEBUG
-struct MovieCardView_Previews: PreviewProvider {
+struct MovieContentView_Previews: PreviewProvider {
     static var previews: some View {
         ScrollView(showsIndicators: false) {
-            MovieCardViewPreview()
+            MovieContentViewPreview()
                 .environmentObject(Watchlist(inMemoryItems: [:]))
         }
     }
 }
 
-private struct MovieCardViewPreview: View {
+private struct MovieContentViewPreview: View {
 
     @Environment(\.requestManager) var requestManager
     @State var movie: Movie?

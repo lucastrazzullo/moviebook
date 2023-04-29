@@ -156,6 +156,7 @@ struct MovieWatchlistStateView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
         .background(RoundedRectangle(cornerRadius: 8).stroke(.orange))
+        .background(.thinMaterial)
         .sheet(item: $presentedItem) { item in
             switch item {
             case .addToWatchReason(let item):
