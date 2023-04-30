@@ -10,7 +10,7 @@ import SwiftUI
 struct MoviebookView: View {
 
     enum PresentedItem: Identifiable {
-        case explore(query: String?)
+        case explore(scope: ExploreSearchViewModel.Scope, query: String?)
         case movie(_ movie: Movie)
         case movieWithIdentifier(_ id: Movie.ID)
         case artistWithIdentifier(_ id: Artist.ID)
@@ -35,7 +35,7 @@ struct MoviebookView: View {
     var body: some View {
         NavigationView {
             WatchlistView(onExploreSelected: {
-                presentedItem = .explore(query: nil)
+                presentedItem = .explore(scope: .movie, query: nil)
             }, onMovieSelected: { movie in
                 presentedItem = .movie(movie)
             })
@@ -45,8 +45,8 @@ struct MoviebookView: View {
                 switch deeplink {
                 case .watchlist:
                     presentedItem = nil
-                case .search(let query):
-                    presentedItem = .explore(query: query)
+                case .search(let scope, let query):
+                    presentedItem = .explore(scope: scope, query: query)
                 case .movie(let identifier):
                     presentedItem = .movieWithIdentifier(identifier)
                 case .artist(let identifier):
@@ -58,8 +58,8 @@ struct MoviebookView: View {
             NavigationStack(path: $presentedItemNavigationPath) {
                 Group {
                     switch item {
-                    case .explore(let query):
-                        ExploreView(searchQuery: query)
+                    case .explore(let scope, let query):
+                        ExploreView(searchScope: scope, searchQuery: query)
                     case .movie(let movie):
                         MovieView(movie: movie, navigationPath: $presentedItemNavigationPath)
                     case .movieWithIdentifier(let id):

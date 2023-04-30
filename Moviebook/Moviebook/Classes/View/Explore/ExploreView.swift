@@ -106,8 +106,8 @@ struct ExploreView: View {
         }
     }
 
-    init(searchQuery: String?) {
-        self._searchViewModel = StateObject(wrappedValue: ExploreSearchViewModel(query: searchQuery))
+    init(searchScope: ExploreSearchViewModel.Scope, searchQuery: String?) {
+        self._searchViewModel = StateObject(wrappedValue: ExploreSearchViewModel(scope: searchScope, query: searchQuery))
         self._exploreViewModel = StateObject(wrappedValue: ExploreSectionViewModel())
     }
 }
@@ -172,7 +172,7 @@ private struct SectionView: View {
 struct ExploreView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
-            ExploreView(searchQuery: nil)
+            ExploreView(searchScope: .movie, searchQuery: nil)
                 .environment(\.requestManager, MockRequestManager())
                 .environmentObject(Watchlist(inMemoryItems: [
                     .movie(id: 954): .toWatch(reason: .none),

@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import CoreSpotlight
 
 @MainActor final class ExploreSearchViewModel: ObservableObject {
 
@@ -30,9 +31,11 @@ import Combine
 
     private var subscriptions: Set<AnyCancellable> = []
 
-    init(query: String?) {
+    init(scope: Scope, query: String?) {
+        self.searchScope = scope
+
         if let query {
-            searchKeyword = query
+            self.searchKeyword = query
         }
     }
 
