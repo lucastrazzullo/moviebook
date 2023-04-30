@@ -66,7 +66,7 @@ struct ArtistView: View {
                     title: artist.details.name,
                     posterUrl: artist.details.imageOriginalUrl,
                     trailingHeaderView: {
-                        EmptyView()
+                        ArtistTrailingHeaderView(artistDetails: artist.details)
                     }, content: {
                         ArtistContentView(navigationPath: $navigationPath, artist: artist)
                     }
@@ -95,6 +95,28 @@ struct ArtistView: View {
     init(artistId: Artist.ID, navigationPath: Binding<NavigationPath>) {
         self._content = StateObject(wrappedValue: Content(artistId: artistId))
         self._navigationPath = navigationPath
+    }
+}
+
+private struct ArtistTrailingHeaderView: View {
+
+    let artistDetails: ArtistDetails
+
+    var body: some View {
+        WatermarkView {
+            ShareButton(artistDetails: artistDetails)
+        }
+    }
+}
+
+private struct ShareButton: View {
+
+    let artistDetails: ArtistDetails
+
+    var body: some View {
+        ShareLink(item: Deeplink.artist(identifier: artistDetails.id).rawValue) {
+            Image(systemName: "square.and.arrow.up")
+        }
     }
 }
 
