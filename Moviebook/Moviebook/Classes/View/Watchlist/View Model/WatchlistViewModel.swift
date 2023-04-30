@@ -1,5 +1,5 @@
 //
-//  WatchlistViewContent.swift
+//  WatchlistViewModel.swift
 //  Moviebook
 //
 //  Created by Luca Strazzullo on 28/04/2023.
@@ -8,7 +8,7 @@
 import Foundation
 import Combine
 
-@MainActor final class WatchlistViewContent: ObservableObject {
+@MainActor final class WatchlistViewModel: ObservableObject {
 
     // MARK: Types
 

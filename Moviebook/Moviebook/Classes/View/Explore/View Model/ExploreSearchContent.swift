@@ -1,5 +1,5 @@
 //
-//  ExploreSearchContent.swift
+//  ExploreSearchViewModel.swift
 //  Moviebook
 //
 //  Created by Luca Strazzullo on 20/04/2023.
@@ -8,7 +8,7 @@
 import Foundation
 import Combine
 
-@MainActor final class ExploreSearchContent: ObservableObject {
+@MainActor final class ExploreSearchViewModel: ObservableObject {
 
     enum Scope: String, CaseIterable {
         case movie

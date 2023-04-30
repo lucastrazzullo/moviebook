@@ -27,8 +27,8 @@ struct ExploreView: View {
     @Environment(\.requestManager) var requestManager
     @EnvironmentObject var watchlist: Watchlist
 
-    @StateObject private var searchContent: ExploreSearchContent
-    @StateObject private var exploreContent: ExploreSectionContent
+    @StateObject private var searchViewModel: ExploreSearchViewModel
+    @StateObject private var exploreViewModel: ExploreSectionViewModel
 
     @State private var presentedItem: PresentingItem?
     @State private var presentedItemNavigationPath: NavigationPath = NavigationPath()
@@ -36,11 +36,11 @@ struct ExploreView: View {
     var body: some View {
         NavigationView {
             List {
-                if searchContent.isLoading || !searchContent.searchKeyword.isEmpty {
-                    SectionView(title: searchContent.title,
-                                isLoading: searchContent.isLoading,
-                                error: searchContent.error,
-                                items: searchContent.result,
+                if searchViewModel.isLoading || !searchViewModel.searchKeyword.isEmpty {
+                    SectionView(title: searchViewModel.title,
+                                isLoading: searchViewModel.isLoading,
+                                error: searchViewModel.error,
+                                items: searchViewModel.result,
                                 onMovieSelected: { movieIdentifier in
                                     presentedItem = .movie(movieId: movieIdentifier)
                                 },
@@ -50,7 +50,7 @@ struct ExploreView: View {
                     )
                 }
 
-                ForEach(exploreContent.sections) { section in
+                ForEach(exploreViewModel.sections) { section in
                     SectionView(title: section.name,
                                 isLoading: section.isLoading,
                                 error: section.error,
@@ -75,11 +75,11 @@ struct ExploreView: View {
                 }
             }
             .searchable(
-                text: $searchContent.searchKeyword,
+                text: $searchViewModel.searchKeyword,
                 prompt: NSLocalizedString("EXPLORE.SEARCH.PROMPT", comment: "")
             )
-            .searchScopes($searchContent.searchScope) {
-                ForEach(ExploreSearchContent.Scope.allCases, id: \.self) { scope in
+            .searchScopes($searchViewModel.searchScope) {
+                ForEach(ExploreSearchViewModel.Scope.allCases, id: \.self) { scope in
                     Text(scope.rawValue.capitalized)
                 }
             }
@@ -100,15 +100,15 @@ struct ExploreView: View {
 
             }
             .onAppear {
-                searchContent.start(requestManager: requestManager)
-                exploreContent.start(requestManager: requestManager)
+                searchViewModel.start(requestManager: requestManager)
+                exploreViewModel.start(requestManager: requestManager)
             }
         }
     }
 
     init(searchQuery: String?) {
-        self._searchContent = StateObject(wrappedValue: ExploreSearchContent(query: searchQuery))
-        self._exploreContent = StateObject(wrappedValue: ExploreSectionContent())
+        self._searchViewModel = StateObject(wrappedValue: ExploreSearchViewModel(query: searchQuery))
+        self._exploreViewModel = StateObject(wrappedValue: ExploreSectionViewModel())
     }
 }
 

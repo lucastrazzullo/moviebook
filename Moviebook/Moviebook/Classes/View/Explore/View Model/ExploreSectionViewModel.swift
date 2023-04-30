@@ -1,5 +1,5 @@
 //
-//  ExploreContent.swift
+//  ExploreSectionViewModel.swift
 //  Moviebook
 //
 //  Created by Luca Strazzullo on 20/04/2023.
@@ -8,7 +8,7 @@
 import Foundation
 import Combine
 
-@MainActor final class ExploreSectionContent: ObservableObject {
+@MainActor final class ExploreSectionViewModel: ObservableObject {
 
     // MARK: Types
 

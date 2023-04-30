@@ -12,7 +12,7 @@ struct WatchlistView: View {
     @Environment(\.requestManager) var requestManager
     @EnvironmentObject var watchlist: Watchlist
 
-    @StateObject private var content: WatchlistViewContent = WatchlistViewContent()
+    @StateObject private var content: WatchlistViewModel = WatchlistViewModel()
 
     let onExploreSelected: () -> Void
     let onMovieSelected: (Movie) -> Void
