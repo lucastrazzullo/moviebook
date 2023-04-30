@@ -10,14 +10,20 @@ import SwiftUI
 struct MovieContentView: View {
 
     @State private var isOverviewExpanded: Bool = false
+    @State private var shouldShowTrailers: Bool = false
 
     @Binding var navigationPath: NavigationPath
 
     let movie: Movie
+    let onVideoSelected: (MovieVideo) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 40) {
-            HeaderView(details: movie.details)
+            HeaderView(
+                shouldShowTrailers: $shouldShowTrailers,
+                details: movie.details,
+                onVideoSelected: onVideoSelected
+            )
 
             MovieWatchlistStateView(
                 movieId: movie.id,
@@ -57,6 +63,7 @@ struct MovieContentView: View {
         }
         .padding(4)
         .animation(.default, value: isOverviewExpanded)
+        .animation(.default, value: shouldShowTrailers)
     }
 
     private var specs: [SpecsView.Item] {
@@ -90,16 +97,129 @@ struct MovieContentView: View {
 
 private struct HeaderView: View {
 
+    @Binding var shouldShowTrailers: Bool
+
     let details: MovieDetails
+    let onVideoSelected: (MovieVideo) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(details.title).font(.title)
-            RatingView(rating: details.rating)
-            Text(details.release, format: .dateTime.year()).font(.caption)
+        HeaderContainer(
+            isPresentingTrailers: shouldShowTrailers,
+            headerContent: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(details.title).font(.title)
+                    RatingView(rating: details.rating)
+                    Text(details.release, format: .dateTime.year()).font(.caption)
+                }
+            },
+            trailerContent: {
+                MovieTrailersView(
+                    shouldShowTrailers: $shouldShowTrailers,
+                    movieDetails: details,
+                    onVideoSelected: onVideoSelected
+                )
+                .tint(.black)
+                .background(RoundedRectangle(cornerRadius: 24).fill(.yellow))
+            }
+        )
+    }
+}
+
+private struct HeaderContainer<HeaderContent: View, TrailerContent: View>: View {
+
+    let isPresentingTrailers: Bool
+
+    @ViewBuilder let headerContent: () -> HeaderContent
+    @ViewBuilder let trailerContent: () -> TrailerContent
+
+    var body: some View {
+        if isPresentingTrailers {
+            VStack(alignment: .leading, spacing: 24) {
+                trailerContent()
+                    .padding(.horizontal, 4)
+                    .padding(.vertical, 4)
+
+                headerContent()
+                    .padding(.horizontal)
+                    .padding(.vertical, 4)
+            }
+        } else {
+            HStack(alignment: .firstTextBaseline) {
+                headerContent()
+                Spacer()
+                trailerContent()
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 4)
         }
-        .padding(.horizontal)
-        .padding(.vertical, 4)
+    }
+}
+
+private struct MovieTrailersView: View {
+
+    @Binding var shouldShowTrailers: Bool
+
+    let movieDetails: MovieDetails
+    let onVideoSelected: (MovieVideo) -> Void
+
+    var body: some View {
+        VStack {
+            if shouldShowTrailers {
+                VStack(alignment: .leading) {
+                    HStack {
+                        Image(systemName: "play.fill")
+                        Text("Trailers")
+                        Spacer()
+                        Button(action: { withAnimation { shouldShowTrailers = false }}) {
+                            Image(systemName: "xmark.circle.fill")
+                        }
+                    }
+                    .font(.title2)
+                    .padding()
+
+                    AsyncImage(url: movieDetails.media.backdropPreviewUrl, content: { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                    }, placeholder: {
+                        Color
+                            .gray
+                            .opacity(0.2)
+                    })
+                    .cornerRadius(12)
+
+                    VStack(alignment: .leading, spacing: 12) {
+                        ForEach(movieDetails.media.videos) { video in
+                            if case .trailer = video.type {
+                                Button(action: { onVideoSelected(video) }) {
+                                    HStack {
+                                        Image(systemName: "play.fill")
+                                            .padding(8)
+                                            .foregroundColor(.white)
+                                            .background(Color.accentColor, in: Circle())
+                                        Text(video.name)
+                                    }
+                                    .multilineTextAlignment(.leading)
+                                    .font(.subheadline.bold())
+                                }
+                            }
+                        }
+                    }
+                    .padding(8)
+                }
+                .padding(.horizontal, 4)
+                .padding(.vertical, 12)
+            } else {
+                Button(action: { withAnimation { shouldShowTrailers = true } }) {
+                    HStack {
+                        Image(systemName: "play.fill")
+                        Text("Trailer")
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+            }
+        }
     }
 }
 
@@ -215,7 +335,8 @@ private struct MovieContentViewPreview: View {
             if let movie {
                 MovieContentView(
                     navigationPath: .constant(NavigationPath()),
-                    movie: movie
+                    movie: movie,
+                    onVideoSelected: { _ in }
                 )
             } else {
                 LoaderView()
@@ -223,7 +344,7 @@ private struct MovieContentViewPreview: View {
         }
         .task {
             let webService = MovieWebService(requestManager: requestManager)
-            movie = try! await webService.fetchMovie(with: 954)
+            movie = try! await webService.fetchMovie(with: 353081)
         }
     }
 }

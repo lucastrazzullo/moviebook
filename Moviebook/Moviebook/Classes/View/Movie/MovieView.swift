@@ -26,12 +26,17 @@ struct MovieView: View {
                     title: movie.details.title,
                     posterUrl: movie.details.media.posterUrl,
                     trailingHeaderView: {
-                        MovieTrailingHeaderView(movieDetails: movie.details,
-                                                onSelected: { video in
-                            isVideoPresented = video
-                        })
+                        MovieTrailingHeaderView(
+                            movieDetails: movie.details
+                        )
                     }, content: {
-                        MovieContentView(navigationPath: $navigationPath, movie: movie)
+                        MovieContentView(
+                            navigationPath: $navigationPath,
+                            movie: movie,
+                            onVideoSelected: { video in
+                                isVideoPresented = video
+                            }
+                        )
                     }
                 )
             } else {
@@ -81,18 +86,11 @@ struct MovieView: View {
 private struct MovieTrailingHeaderView: View {
 
     let movieDetails: MovieDetails
-    let onSelected: (MovieVideo) -> Void
 
     var body: some View {
         WatermarkView {
             IconWatchlistButton(watchlistItem: .movie(id: movieDetails.id))
             ShareButton(movieDetails: movieDetails)
-
-            if !movieDetails.media.videos.isEmpty {
-                TrailerMenu(videos: movieDetails.media.videos) { video in
-                    onSelected(video)
-                }
-            }
         }
     }
 }
@@ -104,35 +102,6 @@ private struct ShareButton: View {
     var body: some View {
         ShareLink(item: Deeplink.movie(identifier: movieDetails.id).rawValue) {
             Image(systemName: "square.and.arrow.up")
-        }
-    }
-}
-
-private struct TrailerMenu: View {
-
-    let videos: [MovieVideo]
-    let onSelected: (MovieVideo) -> Void
-
-    var body: some View {
-        Menu {
-            ForEach(videos) { video in
-                Button(action: { onSelected(video) }) {
-                    HStack {
-                        switch video.type {
-                        case .trailer:
-                            Text("Trailer: \(video.name)")
-                        case .teaser:
-                            Text("Teaser: \(video.name)")
-                        case .behindTheScenes:
-                            Text("Behind the scenes: \(video.name)")
-                        }
-                        Spacer()
-                        Image(systemName: "play")
-                    }
-                }
-            }
-        } label: {
-            Image(systemName: "play.fill")
         }
     }
 }
