@@ -12,14 +12,14 @@ struct WatchlistView: View {
     @Environment(\.requestManager) var requestManager
     @EnvironmentObject var watchlist: Watchlist
 
-    @StateObject private var content: WatchlistViewModel = WatchlistViewModel()
+    @StateObject private var viewModel: WatchlistViewModel = WatchlistViewModel()
 
     let onExploreSelected: () -> Void
     let onMovieSelected: (Movie) -> Void
 
     var body: some View {
         List {
-            ForEach(content.items) { item in
+            ForEach(viewModel.items) { item in
                 switch item {
                 case .movie(let movie, _):
                     MoviePreviewView(details: movie.details) {
@@ -33,9 +33,9 @@ struct WatchlistView: View {
         .navigationTitle(NSLocalizedString("WATCHLIST.TITLE", comment: ""))
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                Picker("Section", selection: $content.currentSection) {
-                    ForEach(content.sectionIdentifiers, id: \.self) { section in
-                        if let name = content.sections[section]?.name {
+                Picker("Section", selection: $viewModel.currentSection) {
+                    ForEach(viewModel.sectionIdentifiers, id: \.self) { section in
+                        if let name = viewModel.sections[section]?.name {
                             Text(name)
                         }
                     }
@@ -59,7 +59,7 @@ struct WatchlistView: View {
             }
         }
         .onAppear {
-            content.start(watchlist: watchlist, requestManager: requestManager)
+            viewModel.start(watchlist: watchlist, requestManager: requestManager)
         }
     }
 }

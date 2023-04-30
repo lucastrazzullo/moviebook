@@ -54,6 +54,8 @@
 		817C42A929FC66EB00FB3FD6 /* Deeplink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 817C42A829FC66EB00FB3FD6 /* Deeplink.swift */; };
 		81828ACA28DDB736006D696C /* MovieView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81828AC928DDB736006D696C /* MovieView.swift */; };
 		81828ACC28DDC7A4006D696C /* ObservableScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81828ACB28DDC7A4006D696C /* ObservableScrollView.swift */; };
+		8194DF6029FE746D00A3FC2D /* MovieViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8194DF5F29FE746D00A3FC2D /* MovieViewModel.swift */; };
+		8194DF6329FE754800A3FC2D /* ArtistViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8194DF6229FE754800A3FC2D /* ArtistViewModel.swift */; };
 		81A395D129F402CE00800F7E /* ArtistWebService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A395D029F402CE00800F7E /* ArtistWebService.swift */; };
 		81A395D329F40B8700800F7E /* ArtistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A395D229F40B8700800F7E /* ArtistView.swift */; };
 		81A395D529F40CD200800F7E /* LoaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A395D429F40CD200800F7E /* LoaderView.swift */; };
@@ -143,6 +145,8 @@
 		817C42AB29FD2D5200FB3FD6 /* Moviebook.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Moviebook.entitlements; sourceTree = "<group>"; };
 		81828AC928DDB736006D696C /* MovieView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieView.swift; sourceTree = "<group>"; };
 		81828ACB28DDC7A4006D696C /* ObservableScrollView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ObservableScrollView.swift; sourceTree = "<group>"; };
+		8194DF5F29FE746D00A3FC2D /* MovieViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieViewModel.swift; sourceTree = "<group>"; };
+		8194DF6229FE754800A3FC2D /* ArtistViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistViewModel.swift; sourceTree = "<group>"; };
 		81A395D029F402CE00800F7E /* ArtistWebService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistWebService.swift; sourceTree = "<group>"; };
 		81A395D229F40B8700800F7E /* ArtistView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistView.swift; sourceTree = "<group>"; };
 		81A395D429F40CD200800F7E /* LoaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoaderView.swift; sourceTree = "<group>"; };
@@ -191,6 +195,7 @@
 		8112AF082916DF010041475D /* Movie */ = {
 			isa = PBXGroup;
 			children = (
+				8194DF5E29FE746200A3FC2D /* View Model */,
 				81828AC928DDB736006D696C /* MovieView.swift */,
 				8128AB1528E0BECF002FD343 /* MovieContentView.swift */,
 				8128AB1728E0C1D9002FD343 /* MoviePreviewView.swift */,
@@ -213,6 +218,7 @@
 		812489C929F15EAE004A6BE6 /* Artist */ = {
 			isa = PBXGroup;
 			children = (
+				8194DF6429FE754C00A3FC2D /* View Model */,
 				81A395D229F40B8700800F7E /* ArtistView.swift */,
 				81A395DA29F4191A00800F7E /* ArtistContentView.swift */,
 				812489CA29F15EC1004A6BE6 /* ArtistPreviewView.swift */,
@@ -442,6 +448,22 @@
 			path = "View Model";
 			sourceTree = "<group>";
 		};
+		8194DF5E29FE746200A3FC2D /* View Model */ = {
+			isa = PBXGroup;
+			children = (
+				8194DF5F29FE746D00A3FC2D /* MovieViewModel.swift */,
+			);
+			path = "View Model";
+			sourceTree = "<group>";
+		};
+		8194DF6429FE754C00A3FC2D /* View Model */ = {
+			isa = PBXGroup;
+			children = (
+				8194DF6229FE754800A3FC2D /* ArtistViewModel.swift */,
+			);
+			path = "View Model";
+			sourceTree = "<group>";
+		};
 		81C7A5F428D4621E00AA24E3 /* Web Service */ = {
 			isa = PBXGroup;
 			children = (
@@ -603,6 +625,7 @@
 				8169FB6228C2107D0054BCE6 /* UpcomingWebService.swift in Sources */,
 				812489C829F15B93004A6BE6 /* ExploreListItem.swift in Sources */,
 				81A395D929F4104B00800F7E /* SlidingCardView.swift in Sources */,
+				8194DF6329FE754800A3FC2D /* ArtistViewModel.swift in Sources */,
 				814A13E728F0488100477126 /* WatchlistButton.swift in Sources */,
 				814D46D228C22347000D7ABD /* Request.swift in Sources */,
 				814D46DF28C23062000D7ABD /* RequestManager.swift in Sources */,
@@ -613,6 +636,7 @@
 				81A395D729F40E0D00800F7E /* PosterView.swift in Sources */,
 				81A395DF29F528FA00800F7E /* SpecsView.swift in Sources */,
 				81A395D129F402CE00800F7E /* ArtistWebService.swift in Sources */,
+				8194DF6029FE746D00A3FC2D /* MovieViewModel.swift in Sources */,
 				8128AB1C28F00CB6002FD343 /* RatingView.swift in Sources */,
 				817C42A929FC66EB00FB3FD6 /* Deeplink.swift in Sources */,
 				81CDE621291508CC00A34BBC /* Configuration.swift in Sources */,

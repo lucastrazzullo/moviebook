@@ -7,60 +7,18 @@
 
 import SwiftUI
 
-@MainActor private final class Content: ObservableObject {
-
-    // MARK: Instance Properties
-
-    @Published var artist: Artist?
-    @Published var error: WebServiceError?
-
-    private let artistId: Artist.ID
-
-    // MARK: Object life cycle
-
-    init(artistId: Artist.ID) {
-        self.artistId = artistId
-    }
-
-    init(artist: Artist) {
-        self.artistId = artist.id
-        self.artist = artist
-    }
-
-    // MARK: Instance methods
-
-    func start(requestManager: RequestManager) {
-        guard artist == nil else { return }
-        loadArtist(requestManager: requestManager)
-    }
-
-    private func loadArtist(requestManager: RequestManager) {
-        Task {
-            do {
-                artist = try await ArtistWebService(requestManager: requestManager).fetchArtist(with: artistId)
-            } catch {
-                self.error = .failedToLoad(id: .init(), retry: { [weak self, weak requestManager] in
-                    if let requestManager {
-                        self?.loadArtist(requestManager: requestManager)
-                    }
-                })
-            }
-        }
-    }
-}
-
 struct ArtistView: View {
 
     @Environment(\.requestManager) var requestManager
 
     @Binding private var navigationPath: NavigationPath
 
-    @StateObject private var content: Content
+    @StateObject private var viewModel: ArtistViewModel
     @State private var isErrorPresented: Bool = false
 
     var body: some View {
         Group {
-            if let artist = content.artist {
+            if let artist = viewModel.artist {
                 SlidingCardView(
                     navigationPath: $navigationPath,
                     title: artist.details.name,
@@ -79,21 +37,21 @@ struct ArtistView: View {
         .toolbar(.hidden, for: .navigationBar)
         .alert("Error", isPresented: $isErrorPresented) {
             Button("Retry", role: .cancel) {
-                content.error?.retry()
+                viewModel.error?.retry()
             }
         }
-        .onChange(of: content.error) { error in
+        .onChange(of: viewModel.error) { error in
             isErrorPresented = error != nil
         }
         .onAppear {
-            content.start(requestManager: requestManager)
+            viewModel.start(requestManager: requestManager)
         }
     }
 
     // MARK: Obejct life cycle
 
     init(artistId: Artist.ID, navigationPath: Binding<NavigationPath>) {
-        self._content = StateObject(wrappedValue: Content(artistId: artistId))
+        self._viewModel = StateObject(wrappedValue: ArtistViewModel(artistId: artistId))
         self._navigationPath = navigationPath
     }
 }

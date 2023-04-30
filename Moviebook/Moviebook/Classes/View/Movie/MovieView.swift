@@ -7,62 +7,20 @@
 
 import SwiftUI
 
-@MainActor private final class Content: ObservableObject {
-
-    // MARK: Instance Properties
-
-    @Published var movie: Movie?
-    @Published var error: WebServiceError?
-
-    private let movieId: Movie.ID
-
-    // MARK: Object life cycle
-
-    init(movieId: Movie.ID) {
-        self.movieId = movieId
-    }
-
-    init(movie: Movie) {
-        self.movieId = movie.id
-        self.movie = movie
-    }
-
-    // MARK: Instance methods
-
-    func start(requestManager: RequestManager) {
-        guard movie == nil else { return }
-        loadMovie(requestManager: requestManager)
-    }
-
-    private func loadMovie(requestManager: RequestManager) {
-        Task {
-            do {
-                movie = try await MovieWebService(requestManager: requestManager).fetchMovie(with: movieId)
-            } catch {
-                self.error = .failedToLoad(id: .init(), retry: { [weak self, weak requestManager] in
-                    if let requestManager {
-                        self?.loadMovie(requestManager: requestManager)
-                    }
-                })
-            }
-        }
-    }
-}
-
 struct MovieView: View {
 
     @Environment(\.requestManager) var requestManager
 
     @Binding private var navigationPath: NavigationPath
 
-    @StateObject private var content: Content
+    @StateObject private var viewModel: MovieViewModel
 
     @State private var isVideoPresented: MovieVideo? = nil
     @State private var isErrorPresented: Bool = false
 
     var body: some View {
         Group {
-            if let movie = content.movie {
+            if let movie = viewModel.movie {
                 SlidingCardView(
                     navigationPath: $navigationPath,
                     title: movie.details.title,
@@ -96,26 +54,26 @@ struct MovieView: View {
         }
         .alert("Error", isPresented: $isErrorPresented) {
             Button("Retry", role: .cancel) {
-                content.error?.retry()
+                viewModel.error?.retry()
             }
         }
-        .onChange(of: content.error) { error in
+        .onChange(of: viewModel.error) { error in
             isErrorPresented = error != nil
         }
         .onAppear {
-            content.start(requestManager: requestManager)
+            viewModel.start(requestManager: requestManager)
         }
     }
 
     // MARK: Obejct life cycle
 
     init(movieId: Movie.ID, navigationPath: Binding<NavigationPath>) {
-        self._content = StateObject(wrappedValue: Content(movieId: movieId))
+        self._viewModel = StateObject(wrappedValue: MovieViewModel(movieId: movieId))
         self._navigationPath = navigationPath
     }
 
     init(movie: Movie, navigationPath: Binding<NavigationPath>) {
-        self._content = StateObject(wrappedValue: Content(movie: movie))
+        self._viewModel = StateObject(wrappedValue: MovieViewModel(movie: movie))
         self._navigationPath = navigationPath
     }
 }
