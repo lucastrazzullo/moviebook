@@ -10,7 +10,6 @@ import SwiftUI
 struct MovieContentView: View {
 
     @State private var isOverviewExpanded: Bool = false
-    @State private var shouldShowTrailers: Bool = false
 
     @Binding var navigationPath: NavigationPath
 
@@ -20,9 +19,8 @@ struct MovieContentView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 40) {
             HeaderView(
-                shouldShowTrailers: $shouldShowTrailers,
                 details: movie.details,
-                onVideoSelected: onVideoSelected
+                onPlayTrailer: onVideoSelected
             )
 
             MovieWatchlistStateView(
@@ -63,7 +61,6 @@ struct MovieContentView: View {
         }
         .padding(4)
         .animation(.default, value: isOverviewExpanded)
-        .animation(.default, value: shouldShowTrailers)
     }
 
     private var specs: [SpecsView.Item] {
@@ -97,120 +94,21 @@ struct MovieContentView: View {
 
 private struct HeaderView: View {
 
-    @Binding var shouldShowTrailers: Bool
-
     let details: MovieDetails
-    let onVideoSelected: (MovieVideo) -> Void
+    let onPlayTrailer: (MovieVideo) -> Void
 
     var body: some View {
-        HeaderContainer(
-            isPresentingTrailers: shouldShowTrailers,
-            headerContent: {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(details.title).font(.title)
-                    RatingView(rating: details.rating)
-                    Text(details.release, format: .dateTime.year()).font(.caption)
-                }
-            },
-            trailerContent: {
-                MovieTrailersView(
-                    shouldShowTrailers: $shouldShowTrailers,
-                    movieDetails: details,
-                    onVideoSelected: onVideoSelected
-                )
-                .tint(.black)
-                .background(RoundedRectangle(cornerRadius: 24).fill(.yellow))
+        HStack(alignment: .firstTextBaseline) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(details.title).font(.title)
+                RatingView(rating: details.rating)
+                Text(details.release, format: .dateTime.year()).font(.caption)
             }
-        )
-    }
-}
 
-private struct HeaderContainer<HeaderContent: View, TrailerContent: View>: View {
+            Spacer()
 
-    let isPresentingTrailers: Bool
-
-    @ViewBuilder let headerContent: () -> HeaderContent
-    @ViewBuilder let trailerContent: () -> TrailerContent
-
-    var body: some View {
-        if isPresentingTrailers {
-            VStack(alignment: .leading, spacing: 24) {
-                trailerContent()
-                    .padding(.horizontal, 4)
-                    .padding(.vertical, 4)
-
-                headerContent()
-                    .padding(.horizontal)
-                    .padding(.vertical, 4)
-            }
-        } else {
-            HStack(alignment: .firstTextBaseline) {
-                headerContent()
-                Spacer()
-                trailerContent()
-            }
-            .padding(.horizontal)
-            .padding(.vertical, 4)
-        }
-    }
-}
-
-private struct MovieTrailersView: View {
-
-    @Binding var shouldShowTrailers: Bool
-
-    let movieDetails: MovieDetails
-    let onVideoSelected: (MovieVideo) -> Void
-
-    var body: some View {
-        VStack {
-            if shouldShowTrailers {
-                VStack(alignment: .leading) {
-                    HStack {
-                        Image(systemName: "play.fill")
-                        Text("Trailers")
-                        Spacer()
-                        Button(action: { withAnimation { shouldShowTrailers = false }}) {
-                            Image(systemName: "xmark.circle.fill")
-                        }
-                    }
-                    .font(.title2)
-                    .padding()
-
-                    AsyncImage(url: movieDetails.media.backdropPreviewUrl, content: { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                    }, placeholder: {
-                        Color
-                            .gray
-                            .opacity(0.2)
-                    })
-                    .cornerRadius(12)
-
-                    VStack(alignment: .leading, spacing: 12) {
-                        ForEach(movieDetails.media.videos) { video in
-                            if case .trailer = video.type {
-                                Button(action: { onVideoSelected(video) }) {
-                                    HStack {
-                                        Image(systemName: "play.fill")
-                                            .padding(8)
-                                            .foregroundColor(.white)
-                                            .background(Color.accentColor, in: Circle())
-                                        Text(video.name)
-                                    }
-                                    .multilineTextAlignment(.leading)
-                                    .font(.subheadline.bold())
-                                }
-                            }
-                        }
-                    }
-                    .padding(8)
-                }
-                .padding(.horizontal, 4)
-                .padding(.vertical, 12)
-            } else {
-                Button(action: { withAnimation { shouldShowTrailers = true } }) {
+            if let trailer = details.media.videos.first(where: { $0.type == .trailer }) {
+                Button(action: { onPlayTrailer(trailer) }) {
                     HStack {
                         Image(systemName: "play.fill")
                         Text("Trailer")
@@ -218,8 +116,12 @@ private struct MovieTrailersView: View {
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
+                .tint(.black)
+                .background(RoundedRectangle(cornerRadius: 24).fill(.yellow))
             }
         }
+        .padding(.horizontal)
+        .padding(.vertical, 4)
     }
 }
 
