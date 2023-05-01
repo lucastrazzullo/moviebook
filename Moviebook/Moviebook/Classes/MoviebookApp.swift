@@ -17,6 +17,10 @@ struct MoviebookApp: App {
     var body: some Scene {
         WindowGroup {
             MoviebookView()
+                .onAppear {
+                    URLCache.shared.memoryCapacity = 10_000_000
+                    URLCache.shared.diskCapacity = 1_000_000_000
+                }
                 .environment(\.requestManager, requestManager)
                 .environmentObject(watchlist)
         }
