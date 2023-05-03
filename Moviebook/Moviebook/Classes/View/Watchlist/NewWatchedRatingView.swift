@@ -15,17 +15,17 @@ struct NewWatchedRatingView: View {
 
     @State private var rating: Double = 6
 
-    let item: WatchlistContent.Item
+    let itemIdentifier: WatchlistItemIdentifier
 
-    private var toWatchReason: Watchlist.ToWatchReason {
-        let state = watchlist.itemState(item: item)
+    private var toWatchSuggestion: WatchlistItemSuggestion? {
+        guard let state = watchlist.itemState(id: itemIdentifier) else {
+            return nil
+        }
         switch state {
-        case .none:
-            return .none
-        case .toWatch(let reason):
-            return reason
-        case .watched(let reason, _, _):
-            return reason
+        case .toWatch(let suggestion):
+            return suggestion
+        case .watched(let info):
+            return info.suggestion
         }
     }
 
@@ -35,19 +35,18 @@ struct NewWatchedRatingView: View {
                 .font(.title)
 
             Form {
-                switch toWatchReason {
-                case .suggestion(let from, let comment):
+                if let toWatchSuggestion {
                     HStack(alignment: .top, spacing: 8) {
                         Image(systemName: "quote.opening").font(.title)
                             .foregroundColor(.accentColor)
 
                         VStack(alignment: .leading, spacing: 24) {
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("Suggested by \(from).")
+                                Text("Suggested by \(toWatchSuggestion.owner).")
                                     .font(.subheadline)
                                     .foregroundColor(.secondary)
 
-                                Text(comment)
+                                Text(toWatchSuggestion.comment)
                                     .fixedSize(horizontal: false, vertical: true)
                                     .font(.body)
                             }
@@ -55,7 +54,7 @@ struct NewWatchedRatingView: View {
 
                         Spacer()
                     }
-                case .none:
+                } else {
                     EmptyView()
                 }
 
@@ -90,7 +89,7 @@ struct NewWatchedRatingView: View {
     }
 
     private func save() {
-        watchlist.update(state: .watched(reason: toWatchReason, rating: .value(rating), date: .now), for: item)
+        watchlist.update(state: .watched(info: WatchlistItemWatchedInfo(suggestion: toWatchSuggestion, rating: rating, date: .now)), forItemWith: itemIdentifier)
         dismiss()
     }
 
@@ -102,9 +101,9 @@ struct NewWatchedRatingView: View {
 #if DEBUG
 struct WatchlistAddToWatchedView_Previews: PreviewProvider {
     static var previews: some View {
-        NewWatchedRatingView(item: .movie(id: 954))
+        NewWatchedRatingView(itemIdentifier: .movie(id: 954))
             .environmentObject(Watchlist(inMemoryItems: [
-                .movie(id: 954): .watched(reason: .suggestion(from: "Valerio", comment: "Molto bello"), rating: .value(6), date: .now),
+                WatchlistItem(id: .movie(id: 954), state: .watched(info: WatchlistItemWatchedInfo(suggestion: WatchlistItemSuggestion(owner: "Valerio", comment: "Molto bello"), rating: 6, date: .now)))
             ]))
     }
 }

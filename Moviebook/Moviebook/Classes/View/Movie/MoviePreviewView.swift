@@ -56,7 +56,7 @@ struct MoviePreviewView: View {
 
             if let movieId = details?.id {
                 Spacer()
-                IconWatchlistButton(watchlistItem: .movie(id: movieId))
+                IconWatchlistButton(watchlistItemIdentifier: .movie(id: movieId))
                     .font(.headline)
             }
         }
@@ -74,8 +74,8 @@ struct MoviePreviewView_Previews: PreviewProvider {
         ScrollView {
             MoviePreviewViewPreview()
                 .environmentObject(Watchlist(inMemoryItems: [
-                    .movie(id: 954): .toWatch(reason: .none),
-                    .movie(id: 616037): .toWatch(reason: .none)
+                    WatchlistItem(id: .movie(id: 954), state: .toWatch(suggestion: nil)),
+                    WatchlistItem(id: .movie(id: 616037), state: .toWatch(suggestion: nil))
                 ]))
         }
     }

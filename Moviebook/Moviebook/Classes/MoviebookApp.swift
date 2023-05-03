@@ -10,7 +10,7 @@ import SwiftUI
 @main
 struct MoviebookApp: App {
 
-    @StateObject var watchlist = Watchlist(storage: FileBasedWatchlistStorage())
+    @StateObject var watchlist = Watchlist()
 
     let requestManager = DefaultRequestManager(logging: .disabled)
 
