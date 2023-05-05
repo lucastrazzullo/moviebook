@@ -29,7 +29,7 @@ enum WatchlistItemState {
     case watched(info: WatchlistItemWatchedInfo)
 }
 
-enum WatchlistItemIdentifier: Identifiable, Hashable, Equatable {
+enum WatchlistItemIdentifier: Identifiable, Hashable, Equatable, Codable {
     case movie(id: Movie.ID)
 
     var id: AnyHashable {
@@ -45,15 +45,9 @@ enum WatchlistItemIdentifier: Identifiable, Hashable, Equatable {
     @Published private(set) var toWatchItems: [WatchlistItemIdentifier: WatchlistItemToWatchInfo]
     @Published private(set) var watchedItems: [WatchlistItemIdentifier: WatchlistItemWatchedInfo]
 
-    private let storage: Storage = Storage()
-
     init() {
         self.toWatchItems = [:]
         self.watchedItems = [:]
-
-        Task {
-            try await storage.load()
-        }
     }
 
     // MARK: Internal methods
