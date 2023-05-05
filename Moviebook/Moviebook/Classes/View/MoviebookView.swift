@@ -82,8 +82,8 @@ struct MoviebookView_Previews: PreviewProvider {
         MoviebookView()
             .environment(\.requestManager, MockRequestManager())
             .environmentObject(Watchlist(inMemoryItems: [
-                WatchlistItem(id: .movie(id: 954), state: .toWatch(suggestion: nil)),
-                WatchlistItem(id: .movie(id: 616037), state: .toWatch(suggestion: nil))
+                WatchlistInMemoryItem(id: .movie(id: 954), state: .toWatch(info: .init(suggestion: nil))),
+                WatchlistInMemoryItem(id: .movie(id: 616037), state: .toWatch(info: .init(suggestion: nil)))
             ]))
     }
 }

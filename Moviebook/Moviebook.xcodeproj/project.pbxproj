@@ -57,6 +57,7 @@
 		8194DF6029FE746D00A3FC2D /* MovieViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8194DF5F29FE746D00A3FC2D /* MovieViewModel.swift */; };
 		8194DF6329FE754800A3FC2D /* ArtistViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8194DF6229FE754800A3FC2D /* ArtistViewModel.swift */; };
 		8194DF6F29FFF33F00A3FC2D /* CloudkitWatchlistStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8194DF6E29FFF33F00A3FC2D /* CloudkitWatchlistStorage.swift */; };
+		8194DF722A04FACD00A3FC2D /* Storage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8194DF712A04FACD00A3FC2D /* Storage.swift */; };
 		81A395D129F402CE00800F7E /* ArtistWebService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A395D029F402CE00800F7E /* ArtistWebService.swift */; };
 		81A395D329F40B8700800F7E /* ArtistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A395D229F40B8700800F7E /* ArtistView.swift */; };
 		81A395D529F40CD200800F7E /* LoaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A395D429F40CD200800F7E /* LoaderView.swift */; };
@@ -149,6 +150,7 @@
 		8194DF5F29FE746D00A3FC2D /* MovieViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieViewModel.swift; sourceTree = "<group>"; };
 		8194DF6229FE754800A3FC2D /* ArtistViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistViewModel.swift; sourceTree = "<group>"; };
 		8194DF6E29FFF33F00A3FC2D /* CloudkitWatchlistStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudkitWatchlistStorage.swift; sourceTree = "<group>"; };
+		8194DF712A04FACD00A3FC2D /* Storage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Storage.swift; sourceTree = "<group>"; };
 		81A395D029F402CE00800F7E /* ArtistWebService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistWebService.swift; sourceTree = "<group>"; };
 		81A395D229F40B8700800F7E /* ArtistView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistView.swift; sourceTree = "<group>"; };
 		81A395D429F40CD200800F7E /* LoaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoaderView.swift; sourceTree = "<group>"; };
@@ -378,6 +380,7 @@
 				8169FB6328C210820054BCE6 /* Domain */,
 				81714096292FDC6000DE3FB2 /* Application */,
 				8169FB6428C2108A0054BCE6 /* Network */,
+				8194DF702A04FABB00A3FC2D /* Storage */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -473,6 +476,14 @@
 				8194DF6E29FFF33F00A3FC2D /* CloudkitWatchlistStorage.swift */,
 			);
 			path = Watchlist;
+			sourceTree = "<group>";
+		};
+		8194DF702A04FABB00A3FC2D /* Storage */ = {
+			isa = PBXGroup;
+			children = (
+				8194DF712A04FACD00A3FC2D /* Storage.swift */,
+			);
+			path = Storage;
 			sourceTree = "<group>";
 		};
 		81C7A5F428D4621E00AA24E3 /* Web Service */ = {
@@ -636,6 +647,7 @@
 				812489C229F15307004A6BE6 /* ExploreSearchViewModel.swift in Sources */,
 				8169FB6228C2107D0054BCE6 /* UpcomingWebService.swift in Sources */,
 				812489C829F15B93004A6BE6 /* ExploreListItem.swift in Sources */,
+				8194DF722A04FACD00A3FC2D /* Storage.swift in Sources */,
 				81A395D929F4104B00800F7E /* SlidingCardView.swift in Sources */,
 				8194DF6329FE754800A3FC2D /* ArtistViewModel.swift in Sources */,
 				814A13E728F0488100477126 /* WatchlistButton.swift in Sources */,

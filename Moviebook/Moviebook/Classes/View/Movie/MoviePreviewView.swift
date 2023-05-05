@@ -27,8 +27,8 @@ struct MoviePreviewView: View {
                             .gray
                             .opacity(0.2)
                     })
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 120)
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 120, height: 180)
                     .clipShape(RoundedRectangle(cornerRadius: 6))
                     .padding(.trailing, 4)
                     .padding(.bottom, 4)
@@ -74,8 +74,8 @@ struct MoviePreviewView_Previews: PreviewProvider {
         ScrollView {
             MoviePreviewViewPreview()
                 .environmentObject(Watchlist(inMemoryItems: [
-                    WatchlistItem(id: .movie(id: 954), state: .toWatch(suggestion: nil)),
-                    WatchlistItem(id: .movie(id: 616037), state: .toWatch(suggestion: nil))
+                    WatchlistInMemoryItem(id: .movie(id: 954), state: .toWatch(info: .init(suggestion: nil))),
+                    WatchlistInMemoryItem(id: .movie(id: 616037), state: .toWatch(info: .init(suggestion: nil)))
                 ]))
         }
     }

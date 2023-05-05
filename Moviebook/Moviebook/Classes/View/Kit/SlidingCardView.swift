@@ -148,7 +148,7 @@ struct SlidingCardView_Previews: PreviewProvider {
         NavigationView {
             SlidingCardViewPreview()
                 .environmentObject(Watchlist(inMemoryItems: [
-                    WatchlistItem(id: .movie(id: 954), state: .toWatch(suggestion: WatchlistItemSuggestion(owner: "Valerio", comment: "This is really nice")))
+                    WatchlistInMemoryItem(id: .movie(id: 954), state: .toWatch(info: WatchlistItemToWatchInfo(suggestion: .init(owner: "Valerio", comment: "This is really nice"))))
                 ]))
                 .environment(\.requestManager, MockRequestManager())
         }

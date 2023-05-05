@@ -42,7 +42,7 @@ struct MovieWatchlistStateView: View {
         Group {
             if let state = watchlist.itemState(id: .movie(id: movieId)) {
                 switch state {
-                case .toWatch(let suggestion):
+                case .toWatch(let info):
                     VStack(alignment: .center, spacing: 24) {
                         HStack(alignment: .firstTextBaseline) {
                             WatchlistIcon(state: .toWatch)
@@ -52,13 +52,13 @@ struct MovieWatchlistStateView: View {
 
                         Text("This movie is in your watchlist")
 
-                        Button(action: { watchlist.update(state: .watched(info: WatchlistItemWatchedInfo(suggestion: suggestion, rating: nil, date: .now)), forItemWith: .movie(id: movieId)) }) {
+                        Button(action: { watchlist.update(state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: info, rating: nil, date: .now)), forItemWith: .movie(id: movieId)) }) {
                             WatchlistIcon(state: .watched)
                             Text("Mark as watched").font(.headline)
                         }
                         .buttonStyle(.borderedProminent)
 
-                        if let suggestion {
+                        if let suggestion = info.suggestion {
                             SuggestionView(from: suggestion.owner, comment: suggestion.comment)
                         } else {
                             Button(action: { presentedItem = .addToWatchReason(itemIdentifier: .movie(id: movieId)) }) {
@@ -116,7 +116,7 @@ struct MovieWatchlistStateView: View {
                         .background(Color.black)
                         .cornerRadius(12)
 
-                        if let suggestion = info.suggestion {
+                        if let suggestion = info.toWatchInfo.suggestion {
                             SuggestionView(from: suggestion.owner, comment: suggestion.comment)
                         }
                     }
@@ -130,7 +130,7 @@ struct MovieWatchlistStateView: View {
                     .font(.title)
 
                     VStack(spacing: 16) {
-                        Button(action: { watchlist.update(state: .toWatch(suggestion: nil), forItemWith: .movie(id: movieId)) }) {
+                        Button(action: { watchlist.update(state: .toWatch(info: .init(suggestion: nil)), forItemWith: .movie(id: movieId)) }) {
                             HStack {
                                 WatchlistIcon(state: .none)
                                 Text("Add to watchlist").font(.headline)
@@ -138,7 +138,7 @@ struct MovieWatchlistStateView: View {
                         }
                         .buttonStyle(.borderedProminent)
 
-                        Button(action: { watchlist.update(state: .watched(info: WatchlistItemWatchedInfo(suggestion: nil, rating: nil, date: .now)), forItemWith: .movie(id: movieId)) }) {
+                        Button(action: { watchlist.update(state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: .init(suggestion: nil), rating: nil, date: .now)), forItemWith: .movie(id: movieId)) }) {
                             HStack {
                                 WatchlistIcon(state: .watched)
                                 Text("Mark as watched").underline()
@@ -218,8 +218,8 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
         )
         .padding(24)
         .environmentObject(Watchlist(inMemoryItems: [
-            WatchlistItem(id: .movie(id: 954), state: .toWatch(suggestion: nil)),
-            WatchlistItem(id: .movie(id: 616037), state: .toWatch(suggestion: nil))
+            WatchlistInMemoryItem(id: .movie(id: 954), state: .toWatch(info: .init(suggestion: nil))),
+            WatchlistInMemoryItem(id: .movie(id: 616037), state: .toWatch(info: .init(suggestion: nil)))
         ]))
 
         MovieWatchlistStateView(
@@ -233,8 +233,8 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
         )
         .padding(24)
         .environmentObject(Watchlist(inMemoryItems: [
-            WatchlistItem(id: .movie(id: 954), state: .toWatch(suggestion: WatchlistItemSuggestion(owner: "Valerio", comment: "This is really nice"))),
-            WatchlistItem(id: .movie(id: 616037), state: .toWatch(suggestion: nil))
+            WatchlistInMemoryItem(id: .movie(id: 954), state: .toWatch(info: WatchlistItemToWatchInfo(suggestion: .init(owner: "Valerio", comment: "This is really nice")))),
+            WatchlistInMemoryItem(id: .movie(id: 616037), state: .toWatch(info: .init(suggestion: nil)))
         ]))
 
         MovieWatchlistStateView(
@@ -248,7 +248,7 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
         )
         .padding(24)
         .environmentObject(Watchlist(inMemoryItems: [
-            WatchlistItem(id: .movie(id: 954), state: .watched(info: WatchlistItemWatchedInfo(suggestion: WatchlistItemSuggestion(owner: "Valerio", comment: "This is really nice"), rating: nil, date: .now))),
+            WatchlistInMemoryItem(id: .movie(id: 954), state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: WatchlistItemToWatchInfo(suggestion: .init(owner: "Valerio", comment: "This is really nice")), rating: nil, date: .now))),
         ]))
 
         MovieWatchlistStateView(
@@ -262,7 +262,7 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
         )
         .padding(24)
         .environmentObject(Watchlist(inMemoryItems: [
-            WatchlistItem(id: .movie(id: 954), state: .watched(info: WatchlistItemWatchedInfo(suggestion: WatchlistItemSuggestion(owner: "Valerio", comment: "This is really nice"), rating: 6, date: .now))),
+            WatchlistInMemoryItem(id: .movie(id: 954), state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: WatchlistItemToWatchInfo(suggestion: .init(owner: "Valerio", comment: "This is really nice")), rating: 6, date: .now))),
         ]))
     }
 }

@@ -19,15 +19,6 @@ import Combine
         var id: String {
             return self.rawValue
         }
-
-        init?(watchlistState: WatchlistItemState) {
-            switch watchlistState {
-            case .toWatch:
-                self = .toWatch
-            case .watched:
-                self = .watched
-            }
-        }
     }
 
     enum SectionItem: Identifiable {
@@ -126,34 +117,20 @@ import Combine
     // MARK: Internal methods
 
     func start(watchlist: Watchlist, requestManager: RequestManager) {
-        watchlist.$items
+        watchlist.$toWatchItems
             .sink { [weak self, weak requestManager] items in
                 if let requestManager {
-                    self?.update(watchlistItems: items, requestManager: requestManager)
+                    self?.sections[.toWatch]?.set(items: Array(items.keys), requestManager: requestManager)
                 }
             }
             .store(in: &subscriptions)
-    }
 
-    // MARK: Private helper methods
-
-    private func update(watchlistItems: [WatchlistItem], requestManager: RequestManager) {
-        var items = [Section: [WatchlistItemIdentifier]]()
-
-        sectionIdentifiers.forEach { section in
-            items[section] = []
-        }
-
-        watchlistItems.forEach { item in
-            if let section = Section(watchlistState: item.state) {
-                items[section]?.append(item.id)
+        watchlist.$watchedItems
+            .sink { [weak self, weak requestManager] items in
+                if let requestManager {
+                    self?.sections[.watched]?.set(items: Array(items.keys), requestManager: requestManager)
+                }
             }
-        }
-
-        sectionIdentifiers.forEach { section in
-            if let items = items[section] {
-                sections[section]?.set(items: items, requestManager: requestManager)
-            }
-        }
+            .store(in: &subscriptions)
     }
 }

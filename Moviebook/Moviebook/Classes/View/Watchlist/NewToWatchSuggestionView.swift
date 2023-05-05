@@ -46,15 +46,15 @@ struct NewToWatchSuggestionView: View {
 
     let itemIdentifier: WatchlistItemIdentifier
 
-    private var toWatchSuggestion: WatchlistItemSuggestion? {
+    private var toWatchSuggestion: WatchlistItemToWatchInfo.Suggestion? {
         guard let state = watchlist.itemState(id: itemIdentifier) else {
             return nil
         }
         switch state {
-        case .toWatch(let suggestion):
-            return suggestion
-        case .watched(let info):
+        case .toWatch(let info):
             return info.suggestion
+        case .watched(let info):
+            return info.toWatchInfo.suggestion
         }
     }
 
@@ -136,8 +136,8 @@ struct NewToWatchSuggestionView: View {
             return
         }
 
-        let suggestion = WatchlistItemSuggestion(owner: suggestedByText, comment: commentText)
-        watchlist.update(state: .toWatch(suggestion: suggestion), forItemWith: itemIdentifier)
+        let info = WatchlistItemToWatchInfo(suggestion: .init(owner: suggestedByText, comment: commentText))
+        watchlist.update(state: .toWatch(info: info), forItemWith: itemIdentifier)
         dismiss()
     }
 

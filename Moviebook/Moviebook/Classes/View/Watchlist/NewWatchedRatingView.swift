@@ -17,15 +17,15 @@ struct NewWatchedRatingView: View {
 
     let itemIdentifier: WatchlistItemIdentifier
 
-    private var toWatchSuggestion: WatchlistItemSuggestion? {
+    private var toWatchSuggestion: WatchlistItemToWatchInfo.Suggestion? {
         guard let state = watchlist.itemState(id: itemIdentifier) else {
             return nil
         }
         switch state {
-        case .toWatch(let suggestion):
-            return suggestion
-        case .watched(let info):
+        case .toWatch(let info):
             return info.suggestion
+        case .watched(let info):
+            return info.toWatchInfo.suggestion
         }
     }
 
@@ -89,7 +89,7 @@ struct NewWatchedRatingView: View {
     }
 
     private func save() {
-        watchlist.update(state: .watched(info: WatchlistItemWatchedInfo(suggestion: toWatchSuggestion, rating: rating, date: .now)), forItemWith: itemIdentifier)
+        watchlist.update(state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: .init(suggestion: toWatchSuggestion), rating: rating, date: .now)), forItemWith: itemIdentifier)
         dismiss()
     }
 
@@ -103,7 +103,7 @@ struct WatchlistAddToWatchedView_Previews: PreviewProvider {
     static var previews: some View {
         NewWatchedRatingView(itemIdentifier: .movie(id: 954))
             .environmentObject(Watchlist(inMemoryItems: [
-                WatchlistItem(id: .movie(id: 954), state: .watched(info: WatchlistItemWatchedInfo(suggestion: WatchlistItemSuggestion(owner: "Valerio", comment: "Molto bello"), rating: 6, date: .now)))
+                WatchlistInMemoryItem(id: .movie(id: 954), state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: WatchlistItemToWatchInfo(suggestion: .init(owner: "Valerio", comment: "Molto bello")), rating: 6, date: .now)))
             ]))
     }
 }

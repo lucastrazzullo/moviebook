@@ -6,24 +6,30 @@
 //
 
 import Foundation
+import Combine
 
-struct WatchlistItemSuggestion: Hashable, Equatable {
-    let owner: String
-    let comment: String
+struct WatchlistItemToWatchInfo: Hashable, Equatable {
+
+    struct Suggestion: Hashable, Equatable {
+        let owner: String
+        let comment: String
+    }
+
+    let suggestion: Suggestion?
 }
 
 struct WatchlistItemWatchedInfo: Hashable, Equatable {
-    let suggestion: WatchlistItemSuggestion?
+    let toWatchInfo: WatchlistItemToWatchInfo
     let rating: Double?
     let date: Date
 }
 
 enum WatchlistItemState {
-    case toWatch(suggestion: WatchlistItemSuggestion?)
+    case toWatch(info: WatchlistItemToWatchInfo)
     case watched(info: WatchlistItemWatchedInfo)
 }
 
-enum WatchlistItemIdentifier: Identifiable, Equatable {
+enum WatchlistItemIdentifier: Identifiable, Hashable, Equatable {
     case movie(id: Movie.ID)
 
     var id: AnyHashable {
@@ -34,46 +40,77 @@ enum WatchlistItemIdentifier: Identifiable, Equatable {
     }
 }
 
-struct WatchlistItem {
-    let id: WatchlistItemIdentifier
-    var state: WatchlistItemState
-}
-
 @MainActor final class Watchlist: ObservableObject {
 
-    @Published private(set) var items: [WatchlistItem]
+    @Published private(set) var toWatchItems: [WatchlistItemIdentifier: WatchlistItemToWatchInfo]
+    @Published private(set) var watchedItems: [WatchlistItemIdentifier: WatchlistItemWatchedInfo]
+
+    private let storage: Storage = Storage()
 
     init() {
-        self.items = []
+        self.toWatchItems = [:]
+        self.watchedItems = [:]
+
+        Task {
+            try await storage.load()
+        }
     }
 
     // MARK: Internal methods
 
     func itemState(id: WatchlistItemIdentifier) -> WatchlistItemState? {
-        return items.first(where: { $0.id == id })?.state
+        if let info = toWatchItems[id] {
+            return .toWatch(info: info)
+        }
+        if let info = watchedItems[id] {
+            return .watched(info: info)
+        }
+
+        return nil
     }
 
     func update(state: WatchlistItemState, forItemWith id: WatchlistItemIdentifier) {
-        if let index = items.firstIndex(where: { $0.id == id }) {
-            items[index].state = state
-        } else {
-            items.append(WatchlistItem(id: id, state: state))
+        remove(itemWith: id)
+
+        switch state {
+        case .toWatch(let info):
+            toWatchItems[id] = info
+        case .watched(let info):
+            watchedItems[id] = info
         }
     }
 
     func remove(itemWith id: WatchlistItemIdentifier) {
-        if let index = items.firstIndex(where: { $0.id == id }) {
-            items.remove(at: index)
-        }
+        toWatchItems[id] = nil
+        watchedItems[id] = nil
     }
 }
 
 #if DEBUG
+struct WatchlistInMemoryItem {
+
+    let id: WatchlistItemIdentifier
+    let state: WatchlistItemState
+
+    init(id: WatchlistItemIdentifier, state: WatchlistItemState) {
+        self.id = id
+        self.state = state
+    }
+}
+
 extension Watchlist {
 
-    convenience init(inMemoryItems: [WatchlistItem]) {
+    convenience init(inMemoryItems: [WatchlistInMemoryItem]) {
         self.init()
-        self.items = inMemoryItems
+
+        inMemoryItems.forEach { item in
+            switch item.state {
+            case .toWatch(let info):
+                self.toWatchItems[item.id] = info
+            case .watched(let info):
+                self.watchedItems[item.id] = info
+            }
+        }
     }
 }
 #endif
