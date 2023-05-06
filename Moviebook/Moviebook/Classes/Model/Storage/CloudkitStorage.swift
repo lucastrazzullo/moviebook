@@ -13,13 +13,14 @@ actor CloudkitStorage {
     private let persistentContainer: NSPersistentContainer
 
     init() {
-        persistentContainer = NSPersistentContainer(name: "Moviebook")
+        persistentContainer = NSPersistentCloudKitContainer(name: "Moviebook")
     }
 
     // MARK: - Internal methods
 
     func load() async throws {
         try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<Void, Error>) in
+            persistentContainer.persistentStoreDescriptions.first?.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
             persistentContainer.loadPersistentStores(completionHandler: { description, error in
                 if let error = error {
                     continuation.resume(throwing: error)

@@ -53,6 +53,8 @@ struct MoviebookApp: App {
                     RetriableErrorView {
                         Task { await application.start() }
                     }
+                } else {
+                    LoaderView()
                 }
             }
             .task { await application.start() }
