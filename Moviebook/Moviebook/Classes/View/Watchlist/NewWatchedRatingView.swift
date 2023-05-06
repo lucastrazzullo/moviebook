@@ -102,8 +102,8 @@ struct NewWatchedRatingView: View {
 struct WatchlistAddToWatchedView_Previews: PreviewProvider {
     static var previews: some View {
         NewWatchedRatingView(itemIdentifier: .movie(id: 954))
-            .environmentObject(Watchlist(inMemoryItems: [
-                WatchlistInMemoryItem(id: .movie(id: 954), state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: WatchlistItemToWatchInfo(suggestion: .init(owner: "Valerio", comment: "Molto bello")), rating: 6, date: .now)))
+            .environmentObject(Watchlist(items: [
+                WatchlistItem(id: .movie(id: 954), state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: WatchlistItemToWatchInfo(suggestion: .init(owner: "Valerio", comment: "Molto bello")), rating: 6, date: .now)))
             ]))
     }
 }

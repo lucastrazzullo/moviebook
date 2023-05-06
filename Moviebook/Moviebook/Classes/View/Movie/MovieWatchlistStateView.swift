@@ -205,7 +205,7 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
         )
         .padding(24)
         .fixedSize(horizontal: false, vertical: true)
-        .environmentObject(Watchlist(inMemoryItems: []))
+        .environmentObject(Watchlist(items: []))
 
         MovieWatchlistStateView(
             movieId: 954,
@@ -217,9 +217,9 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
             )
         )
         .padding(24)
-        .environmentObject(Watchlist(inMemoryItems: [
-            WatchlistInMemoryItem(id: .movie(id: 954), state: .toWatch(info: .init(suggestion: nil))),
-            WatchlistInMemoryItem(id: .movie(id: 616037), state: .toWatch(info: .init(suggestion: nil)))
+        .environmentObject(Watchlist(items: [
+            WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(suggestion: nil))),
+            WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(suggestion: nil)))
         ]))
 
         MovieWatchlistStateView(
@@ -232,9 +232,9 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
             )
         )
         .padding(24)
-        .environmentObject(Watchlist(inMemoryItems: [
-            WatchlistInMemoryItem(id: .movie(id: 954), state: .toWatch(info: WatchlistItemToWatchInfo(suggestion: .init(owner: "Valerio", comment: "This is really nice")))),
-            WatchlistInMemoryItem(id: .movie(id: 616037), state: .toWatch(info: .init(suggestion: nil)))
+        .environmentObject(Watchlist(items: [
+            WatchlistItem(id: .movie(id: 954), state: .toWatch(info: WatchlistItemToWatchInfo(suggestion: .init(owner: "Valerio", comment: "This is really nice")))),
+            WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(suggestion: nil)))
         ]))
 
         MovieWatchlistStateView(
@@ -247,8 +247,8 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
             )
         )
         .padding(24)
-        .environmentObject(Watchlist(inMemoryItems: [
-            WatchlistInMemoryItem(id: .movie(id: 954), state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: WatchlistItemToWatchInfo(suggestion: .init(owner: "Valerio", comment: "This is really nice")), rating: nil, date: .now))),
+        .environmentObject(Watchlist(items: [
+            WatchlistItem(id: .movie(id: 954), state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: WatchlistItemToWatchInfo(suggestion: .init(owner: "Valerio", comment: "This is really nice")), rating: nil, date: .now))),
         ]))
 
         MovieWatchlistStateView(
@@ -261,8 +261,8 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
             )
         )
         .padding(24)
-        .environmentObject(Watchlist(inMemoryItems: [
-            WatchlistInMemoryItem(id: .movie(id: 954), state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: WatchlistItemToWatchInfo(suggestion: .init(owner: "Valerio", comment: "This is really nice")), rating: 6, date: .now))),
+        .environmentObject(Watchlist(items: [
+            WatchlistItem(id: .movie(id: 954), state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: WatchlistItemToWatchInfo(suggestion: .init(owner: "Valerio", comment: "This is really nice")), rating: 6, date: .now))),
         ]))
     }
 }

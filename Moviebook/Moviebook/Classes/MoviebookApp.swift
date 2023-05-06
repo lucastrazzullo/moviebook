@@ -9,21 +9,21 @@ import SwiftUI
 
 @MainActor final class Moviebook: ObservableObject {
 
-    let watchlist: Watchlist
+    @Published var watchlist: Watchlist?
+    @Published var error: Error?
 
     private let storage: Storage
 
     init() {
-        self.watchlist = Watchlist()
-        self.storage = Storage(watchlist: watchlist)
+        self.storage = Storage()
         self.setupCache()
     }
 
     func start() async {
         do {
-            try await storage.load()
+            self.watchlist = try await storage.loadWatchlist()
         } catch {
-            print(error)
+            self.error = error
         }
     }
 
@@ -44,10 +44,18 @@ struct MoviebookApp: App {
 
     var body: some Scene {
         WindowGroup {
-            MoviebookView()
-                .environment(\.requestManager, requestManager)
-                .environmentObject(application.watchlist)
-                .task { await application.start() }
+            Group {
+                if let watchlist = application.watchlist {
+                    MoviebookView()
+                        .environment(\.requestManager, requestManager)
+                        .environmentObject(watchlist)
+                } else if let _ = application.error {
+                    RetriableErrorView {
+                        Task { await application.start() }
+                    }
+                }
+            }
+            .task { await application.start() }
         }
     }
 }

@@ -174,9 +174,9 @@ struct ExploreView_Previews: PreviewProvider {
         Group {
             ExploreView(searchScope: .movie, searchQuery: nil)
                 .environment(\.requestManager, MockRequestManager())
-                .environmentObject(Watchlist(inMemoryItems: [
-                    WatchlistInMemoryItem(id: .movie(id: 954), state: .toWatch(info: .init(suggestion: nil))),
-                    WatchlistInMemoryItem(id: .movie(id: 616037), state: .toWatch(info: .init(suggestion: nil)))
+                .environmentObject(Watchlist(items: [
+                    WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(suggestion: nil))),
+                    WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(suggestion: nil)))
                 ]))
         }
     }

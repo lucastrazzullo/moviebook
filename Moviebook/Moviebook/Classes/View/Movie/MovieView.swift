@@ -111,8 +111,8 @@ struct MovieView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
             MovieView(movieId: 353081, navigationPath: .constant(NavigationPath()))
-                .environmentObject(Watchlist(inMemoryItems: [
-                    WatchlistInMemoryItem(id: .movie(id: 353081), state: .toWatch(info: WatchlistItemToWatchInfo(suggestion: .init(owner: "Valerio", comment: "This is really nice"))))
+                .environmentObject(Watchlist(items: [
+                    WatchlistItem(id: .movie(id: 353081), state: .toWatch(info: WatchlistItemToWatchInfo(suggestion: .init(owner: "Valerio", comment: "This is really nice"))))
                 ]))
                 .environment(\.requestManager, MockRequestManager())
         }

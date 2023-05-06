@@ -8,6 +8,17 @@
 import Foundation
 import Combine
 
+struct WatchlistItem {
+
+    let id: WatchlistItemIdentifier
+    let state: WatchlistItemState
+
+    init(id: WatchlistItemIdentifier, state: WatchlistItemState) {
+        self.id = id
+        self.state = state
+    }
+}
+
 struct WatchlistItemToWatchInfo: Hashable, Equatable {
 
     struct Suggestion: Hashable, Equatable {
@@ -42,12 +53,15 @@ enum WatchlistItemIdentifier: Identifiable, Hashable, Equatable, Codable {
 
 @MainActor final class Watchlist: ObservableObject {
 
+    let didUpdatePublisher = PassthroughSubject<[WatchlistItem], Never>()
+
     @Published private(set) var toWatchItems: [WatchlistItemIdentifier: WatchlistItemToWatchInfo]
     @Published private(set) var watchedItems: [WatchlistItemIdentifier: WatchlistItemWatchedInfo]
 
-    init() {
+    init(items: [WatchlistItem]) {
         self.toWatchItems = [:]
         self.watchedItems = [:]
+        self.set(items: items)
     }
 
     // MARK: Internal methods
@@ -64,47 +78,53 @@ enum WatchlistItemIdentifier: Identifiable, Hashable, Equatable, Codable {
     }
 
     func update(state: WatchlistItemState, forItemWith id: WatchlistItemIdentifier) {
-        remove(itemWith: id)
-
         switch state {
         case .toWatch(let info):
             toWatchItems[id] = info
+            watchedItems[id] = nil
         case .watched(let info):
+            toWatchItems[id] = nil
             watchedItems[id] = info
         }
+
+        didUpdatePublisher.send(makeItems())
     }
 
     func remove(itemWith id: WatchlistItemIdentifier) {
         toWatchItems[id] = nil
         watchedItems[id] = nil
+
+        didUpdatePublisher.send(makeItems())
     }
-}
 
-#if DEBUG
-struct WatchlistInMemoryItem {
+    // MARK: Private helper methods
 
-    let id: WatchlistItemIdentifier
-    let state: WatchlistItemState
-
-    init(id: WatchlistItemIdentifier, state: WatchlistItemState) {
-        self.id = id
-        self.state = state
-    }
-}
-
-extension Watchlist {
-
-    convenience init(inMemoryItems: [WatchlistInMemoryItem]) {
-        self.init()
-
-        inMemoryItems.forEach { item in
+    private func set(items: [WatchlistItem]) {
+        items.forEach { item in
             switch item.state {
             case .toWatch(let info):
-                self.toWatchItems[item.id] = info
+                toWatchItems[item.id] = info
             case .watched(let info):
-                self.watchedItems[item.id] = info
+                watchedItems[item.id] = info
             }
         }
     }
+
+    private func makeItems() -> [WatchlistItem] {
+        var result = [WatchlistItem]()
+
+        for toWatchIdentifier in toWatchItems.keys {
+            if let info = toWatchItems[toWatchIdentifier] {
+                result.append(WatchlistItem(id: toWatchIdentifier, state: .toWatch(info: info)))
+            }
+        }
+
+        for watchedIdentifier in watchedItems.keys {
+            if let info = watchedItems[watchedIdentifier] {
+                result.append(WatchlistItem(id: watchedIdentifier, state: .watched(info: info)))
+            }
+        }
+
+        return result
+    }
 }
-#endif

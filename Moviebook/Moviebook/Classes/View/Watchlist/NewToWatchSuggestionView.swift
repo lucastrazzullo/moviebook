@@ -150,7 +150,7 @@ struct NewToWatchSuggestionView: View {
 struct NewToWatchSuggestionView_Previews: PreviewProvider {
     static var previews: some View {
         NewToWatchSuggestionView(itemIdentifier: .movie(id: 954))
-            .environmentObject(Watchlist(inMemoryItems: []))
+            .environmentObject(Watchlist(items: []))
     }
 }
 #endif

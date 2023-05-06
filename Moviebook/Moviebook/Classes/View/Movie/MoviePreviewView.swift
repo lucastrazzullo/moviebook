@@ -73,9 +73,9 @@ struct MoviePreviewView_Previews: PreviewProvider {
     static var previews: some View {
         ScrollView {
             MoviePreviewViewPreview()
-                .environmentObject(Watchlist(inMemoryItems: [
-                    WatchlistInMemoryItem(id: .movie(id: 954), state: .toWatch(info: .init(suggestion: nil))),
-                    WatchlistInMemoryItem(id: .movie(id: 616037), state: .toWatch(info: .init(suggestion: nil)))
+                .environmentObject(Watchlist(items: [
+                    WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(suggestion: nil))),
+                    WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(suggestion: nil)))
                 ]))
         }
     }
