@@ -32,46 +32,42 @@ actor CloudkitStorage {
 
     // MARK: - Fetch
 
-    func fetchWatchlistItems() throws -> [WatchlistItem] {
+    func fetchWatchlistItems() async throws -> [WatchlistItem] {
         var result = [WatchlistItem]()
 
-        let storedItemsToWatch = try fetchStoredItemsToWatch()
-        let itemsToWatch: [WatchlistItemIdentifier: WatchlistItemToWatchInfo] = try fetch(storedItems: storedItemsToWatch)
+        let storedItemsToWatch = try await fetchStoredItemsToWatch()
+        let itemsToWatch = try parse(storedItems: storedItemsToWatch)
         for itemToWatchIdentifier in itemsToWatch.keys {
-            if let info = itemsToWatch[itemToWatchIdentifier] {
-                result.append(WatchlistItem(id: itemToWatchIdentifier, state: .toWatch(info: info)))
+            if let state = itemsToWatch[itemToWatchIdentifier] {
+                result.append(WatchlistItem(id: itemToWatchIdentifier, state: state))
             }
         }
 
-        let storedWatchedItems = try fetchStoredWatchedItems()
-        let watchedItems: [WatchlistItemIdentifier: WatchlistItemWatchedInfo] = try fetch(storedItems: storedWatchedItems)
+        let storedWatchedItems = try await fetchStoredWatchedItems()
+        let watchedItems = try parse(storedItems: storedWatchedItems)
         for watchedItemIdentifier in watchedItems.keys {
-            if let info = watchedItems[watchedItemIdentifier] {
-                result.append(WatchlistItem(id: watchedItemIdentifier, state: .watched(info: info)))
+            if let state = watchedItems[watchedItemIdentifier] {
+                result.append(WatchlistItem(id: watchedItemIdentifier, state: state))
             }
         }
 
         return result
     }
 
-    private func fetchStoredItemsToWatch() throws -> [ManagedItemToWatch] {
-        let fetchRequest: NSFetchRequest<ManagedItemToWatch> = ManagedItemToWatch.fetchRequest()
-        return try persistentContainer.viewContext.fetch(fetchRequest)
-    }
-
-    private func fetchStoredWatchedItems() throws -> [ManagedWatchedItem] {
-        let fetchRequest: NSFetchRequest<ManagedWatchedItem> = ManagedWatchedItem.fetchRequest()
-        return try persistentContainer.viewContext.fetch(fetchRequest)
-    }
-
-    private func fetch<WatchlistInfo>(storedItems: [any ManagedWatchlistItem]) throws -> [WatchlistItemIdentifier: WatchlistInfo] {
-        var result = [WatchlistItemIdentifier: WatchlistInfo]()
+    private func parse(storedItems: [any ManagedWatchlistItem]) throws -> [WatchlistItemIdentifier: WatchlistItemState] {
+        var result = [WatchlistItemIdentifier: WatchlistItemState]()
 
         for storedItem in storedItems {
             guard let identifier = storedItem.watchlistItemIdentifier else { continue }
             guard let watchlistInfo = storedItem.watchlistInfo else { continue }
 
-            result[identifier] = watchlistInfo as? WatchlistInfo
+            if let itemToWatchInfo = watchlistInfo as? WatchlistItemToWatchInfo {
+                result[identifier] = .toWatch(info: itemToWatchInfo)
+            }
+
+            if let watchedItemInfo = watchlistInfo as? WatchlistItemWatchedInfo {
+                result[identifier] = .watched(info: watchedItemInfo)
+            }
         }
 
         return result
@@ -79,7 +75,7 @@ actor CloudkitStorage {
 
     // MARK: - Store
 
-    func store(items: [WatchlistItem]) throws {
+    func store(items: [WatchlistItem]) async throws {
         var itemsToWatch = [WatchlistItemIdentifier: WatchlistItemToWatchInfo]()
         var watchedItems = [WatchlistItemIdentifier: WatchlistItemWatchedInfo]()
 
@@ -92,19 +88,12 @@ actor CloudkitStorage {
             }
         }
 
-        try store(itemsToWatch: itemsToWatch)
-        try store(watchedItems: watchedItems)
-    }
+        let storedItemsToWatch = try await fetchStoredItemsToWatch()
+        try store(watchlistItems: itemsToWatch, storedItems: storedItemsToWatch, managedItemType: ManagedItemToWatch.self)
 
-    private func store(itemsToWatch: [WatchlistItemIdentifier: WatchlistItemToWatchInfo]) throws {
-        let storedItems = try fetchStoredItemsToWatch()
-        try store(watchlistItems: itemsToWatch, storedItems: storedItems, managedItemType: ManagedItemToWatch.self)
-        save()
-    }
+        let storedWatchedItems = try await fetchStoredWatchedItems()
+        try store(watchlistItems: watchedItems, storedItems: storedWatchedItems, managedItemType: ManagedWatchedItem.self)
 
-    private func store(watchedItems: [WatchlistItemIdentifier: WatchlistItemWatchedInfo]) throws {
-        let storedItems = try fetchStoredWatchedItems()
-        try store(watchlistItems: watchedItems, storedItems: storedItems, managedItemType: ManagedWatchedItem.self)
         save()
     }
 
@@ -131,7 +120,25 @@ actor CloudkitStorage {
         }
     }
 
-    // MARK: - Private helper methods
+    // MARK: - Cloudkit methods
+
+    private func fetchStoredItemsToWatch() async throws -> [ManagedItemToWatch] {
+        let task = Task { @MainActor in
+            let fetchRequest: NSFetchRequest<ManagedItemToWatch> = ManagedItemToWatch.fetchRequest()
+            return try persistentContainer.viewContext.fetch(fetchRequest)
+        }
+
+        return try await task.value
+    }
+
+    private func fetchStoredWatchedItems() async throws -> [ManagedWatchedItem] {
+        let task = Task { @MainActor in
+            let fetchRequest: NSFetchRequest<ManagedWatchedItem> = ManagedWatchedItem.fetchRequest()
+            return try persistentContainer.viewContext.fetch(fetchRequest)
+        }
+
+        return try await task.value
+    }
 
     private func delete(storedWatchlistItem: any ManagedWatchlistItem) {
         Task { @MainActor in
