@@ -25,11 +25,9 @@ actor Storage {
         let watchlistItems = try await underlyingStorage.fetchWatchlistItems()
         let watchlist = await Watchlist(items: watchlistItems)
 
-        watchlist.didUpdatePublisher
+        await watchlist.$items
             .sink(receiveValue: { items in
-                Task {
-                    try await self.underlyingStorage.store(items: items)
-                }
+                Task { try await self.underlyingStorage.store(items: items) }
             })
             .store(in: &subscriptions)
 

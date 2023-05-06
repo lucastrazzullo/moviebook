@@ -11,7 +11,7 @@ import Combine
 struct WatchlistItem {
 
     let id: WatchlistItemIdentifier
-    let state: WatchlistItemState
+    var state: WatchlistItemState
 
     init(id: WatchlistItemIdentifier, state: WatchlistItemState) {
         self.id = id
@@ -53,78 +53,29 @@ enum WatchlistItemIdentifier: Identifiable, Hashable, Equatable, Codable {
 
 @MainActor final class Watchlist: ObservableObject {
 
-    let didUpdatePublisher = PassthroughSubject<[WatchlistItem], Never>()
-
-    @Published private(set) var toWatchItems: [WatchlistItemIdentifier: WatchlistItemToWatchInfo]
-    @Published private(set) var watchedItems: [WatchlistItemIdentifier: WatchlistItemWatchedInfo]
+    @Published private(set) var items: [WatchlistItem] = []
 
     init(items: [WatchlistItem]) {
-        self.toWatchItems = [:]
-        self.watchedItems = [:]
-        self.set(items: items)
+        self.items = items
     }
 
     // MARK: Internal methods
 
     func itemState(id: WatchlistItemIdentifier) -> WatchlistItemState? {
-        if let info = toWatchItems[id] {
-            return .toWatch(info: info)
-        }
-        if let info = watchedItems[id] {
-            return .watched(info: info)
-        }
-
-        return nil
+        return items.first(where: { $0.id == id })?.state
     }
 
     func update(state: WatchlistItemState, forItemWith id: WatchlistItemIdentifier) {
-        switch state {
-        case .toWatch(let info):
-            toWatchItems[id] = info
-            watchedItems[id] = nil
-        case .watched(let info):
-            toWatchItems[id] = nil
-            watchedItems[id] = info
+        if let index = items.firstIndex(where: { $0.id == id }) {
+            items[index].state = state
+        } else {
+            items.append(WatchlistItem(id: id, state: state))
         }
-
-        didUpdatePublisher.send(makeItems())
     }
 
     func remove(itemWith id: WatchlistItemIdentifier) {
-        toWatchItems[id] = nil
-        watchedItems[id] = nil
-
-        didUpdatePublisher.send(makeItems())
-    }
-
-    // MARK: Private helper methods
-
-    private func set(items: [WatchlistItem]) {
-        items.forEach { item in
-            switch item.state {
-            case .toWatch(let info):
-                toWatchItems[item.id] = info
-            case .watched(let info):
-                watchedItems[item.id] = info
-            }
+        if let index = items.firstIndex(where: { $0.id == id }) {
+            items.remove(at: index)
         }
-    }
-
-    private func makeItems() -> [WatchlistItem] {
-        var result = [WatchlistItem]()
-
-        for toWatchIdentifier in toWatchItems.keys {
-            if let info = toWatchItems[toWatchIdentifier] {
-                result.append(WatchlistItem(id: toWatchIdentifier, state: .toWatch(info: info)))
-            }
-        }
-
-        for watchedIdentifier in watchedItems.keys {
-            if let info = watchedItems[watchedIdentifier] {
-                result.append(WatchlistItem(id: watchedIdentifier, state: .watched(info: info)))
-            }
-        }
-
-        return result
     }
 }

@@ -117,18 +117,23 @@ import Combine
     // MARK: Internal methods
 
     func start(watchlist: Watchlist, requestManager: RequestManager) {
-        watchlist.$toWatchItems
+        watchlist.$items
             .sink { [weak self, weak requestManager] items in
-                if let requestManager {
-                    self?.sections[.toWatch]?.set(items: Array(items.keys), requestManager: requestManager)
-                }
-            }
-            .store(in: &subscriptions)
+                var itemsToWatch = [WatchlistItemIdentifier]()
+                var watchedItems = [WatchlistItemIdentifier]()
 
-        watchlist.$watchedItems
-            .sink { [weak self, weak requestManager] items in
+                for item in items {
+                    switch item.state {
+                    case .toWatch:
+                        itemsToWatch.append(item.id)
+                    case .watched:
+                        watchedItems.append(item.id)
+                    }
+                }
+
                 if let requestManager {
-                    self?.sections[.watched]?.set(items: Array(items.keys), requestManager: requestManager)
+                    self?.sections[.toWatch]?.set(items: itemsToWatch, requestManager: requestManager)
+                    self?.sections[.watched]?.set(items: watchedItems, requestManager: requestManager)
                 }
             }
             .store(in: &subscriptions)
