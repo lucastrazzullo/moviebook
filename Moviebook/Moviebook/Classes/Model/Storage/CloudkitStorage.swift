@@ -7,6 +7,7 @@
 
 import Foundation
 import CoreData
+import Combine
 
 actor CloudkitStorage {
 
@@ -20,7 +21,10 @@ actor CloudkitStorage {
 
     func load() async throws {
         try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<Void, Error>) in
-            persistentContainer.persistentStoreDescriptions.first?.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+            if let description = persistentContainer.persistentStoreDescriptions.first {
+                description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+                description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
+            }
             persistentContainer.loadPersistentStores(completionHandler: { description, error in
                 if let error = error {
                     continuation.resume(throwing: error)
@@ -31,6 +35,27 @@ actor CloudkitStorage {
         }
     }
 
+    func updatesPublisher() -> AnyPublisher<[WatchlistItem], Never> {
+        return NotificationCenter.default.publisher(
+            for: NSNotification.Name.NSPersistentStoreRemoteChange,
+            object: persistentContainer.persistentStoreCoordinator
+        )
+        .compactMap { $0.name == NSNotification.Name.NSPersistentStoreRemoteChange ? $0 : nil }
+        .flatMap { _ in
+            Future<[WatchlistItem], Error> { promise in
+                Task {
+                    do {
+                        promise(.success(try await self.fetchWatchlistItems()))
+                    } catch {
+                        promise(.failure(error))
+                    }
+                }
+            }
+        }
+        .replaceError(with: [])
+        .eraseToAnyPublisher()
+    }
+
     // MARK: - Fetch
 
     func fetchWatchlistItems() async throws -> [WatchlistItem] {
@@ -38,36 +63,28 @@ actor CloudkitStorage {
 
         let storedItemsToWatch = try await fetchStoredItemsToWatch()
         let itemsToWatch = try parse(storedItems: storedItemsToWatch)
-        for itemToWatchIdentifier in itemsToWatch.keys {
-            if let state = itemsToWatch[itemToWatchIdentifier] {
-                result.append(WatchlistItem(id: itemToWatchIdentifier, state: state))
-            }
-        }
+        result.append(contentsOf: itemsToWatch)
 
         let storedWatchedItems = try await fetchStoredWatchedItems()
         let watchedItems = try parse(storedItems: storedWatchedItems)
-        for watchedItemIdentifier in watchedItems.keys {
-            if let state = watchedItems[watchedItemIdentifier] {
-                result.append(WatchlistItem(id: watchedItemIdentifier, state: state))
-            }
-        }
+        result.append(contentsOf: watchedItems)
 
         return result
     }
 
-    private func parse(storedItems: [any ManagedWatchlistItem]) throws -> [WatchlistItemIdentifier: WatchlistItemState] {
-        var result = [WatchlistItemIdentifier: WatchlistItemState]()
+    private func parse(storedItems: [any ManagedWatchlistItem]) throws -> [WatchlistItem] {
+        var result = [WatchlistItem]()
 
         for storedItem in storedItems {
             guard let identifier = storedItem.watchlistItemIdentifier else { continue }
             guard let watchlistInfo = storedItem.watchlistInfo else { continue }
 
             if let itemToWatchInfo = watchlistInfo as? WatchlistItemToWatchInfo {
-                result[identifier] = .toWatch(info: itemToWatchInfo)
+                result.append(WatchlistItem(id: identifier, state: .toWatch(info: itemToWatchInfo)))
             }
 
             if let watchedItemInfo = watchlistInfo as? WatchlistItemWatchedInfo {
-                result[identifier] = .watched(info: watchedItemInfo)
+                result.append(WatchlistItem(id: identifier, state: .watched(info: watchedItemInfo)))
             }
         }
 
@@ -77,45 +94,34 @@ actor CloudkitStorage {
     // MARK: - Store
 
     func store(items: [WatchlistItem]) async throws {
-        var itemsToWatch = [WatchlistItemIdentifier: WatchlistItemToWatchInfo]()
-        var watchedItems = [WatchlistItemIdentifier: WatchlistItemWatchedInfo]()
-
-        for item in items {
-            switch item.state {
-            case .toWatch(let info):
-                itemsToWatch[item.id] = info
-            case .watched(let info):
-                watchedItems[item.id] = info
-            }
-        }
-
         let storedItemsToWatch = try await fetchStoredItemsToWatch()
-        try store(watchlistItems: itemsToWatch, storedItems: storedItemsToWatch, managedItemType: ManagedItemToWatch.self)
+        let watchlistItemsToWatch = items.filter { if case .toWatch = $0.state { return true } else { return false }}
+        try store(watchlistItems: watchlistItemsToWatch, storedItems: storedItemsToWatch, managedItemType: ManagedItemToWatch.self)
 
         let storedWatchedItems = try await fetchStoredWatchedItems()
-        try store(watchlistItems: watchedItems, storedItems: storedWatchedItems, managedItemType: ManagedWatchedItem.self)
+        let watchlistWatchedItems = items.filter { if case .watched = $0.state { return true } else { return false }}
+        try store(watchlistItems: watchlistWatchedItems, storedItems: storedWatchedItems, managedItemType: ManagedWatchedItem.self)
 
         save()
     }
 
-    private func store(watchlistItems: [WatchlistItemIdentifier: StoreableWatchlistItem],
+    private func store(watchlistItems: [WatchlistItem],
                        storedItems: [any ManagedWatchlistItem],
                        managedItemType: any ManagedWatchlistItem.Type) throws {
 
         // Remove items that were deleted from watchlist
         for storedItem in storedItems {
-            guard let identifier = storedItem.watchlistItemIdentifier, watchlistItems.keys.contains(identifier) else {
+            guard let identifier = storedItem.watchlistItemIdentifier, watchlistItems.contains(where: { $0.id == identifier }) else {
                 delete(storedWatchlistItem: storedItem)
                 continue
             }
         }
 
         // Add or modify existing items
-        for itemIdentifier in watchlistItems.keys {
-            guard let itemToStore = watchlistItems[itemIdentifier] else { continue }
-            guard let storeableIdentifier = itemIdentifier.storeableIdentifier else { continue }
+        for itemToStore in watchlistItems {
+            guard let storeableIdentifier = itemToStore.storeableIdentifier else { continue }
 
-            let managedItemToStore = storedItems.first(where: { $0.hasIdentifier(watchlistItemIdentifier: itemIdentifier) }) ?? managedItemType.init(context: persistentContainer.viewContext)
+            let managedItemToStore = storedItems.first(where: { $0.identifier == storeableIdentifier }) ?? managedItemType.init(context: persistentContainer.viewContext)
 
             itemToStore.store(in: managedItemToStore, with: storeableIdentifier)
         }
@@ -176,26 +182,35 @@ private extension ManagedWatchlistItem {
         guard let identifier = identifier else { return nil }
         return try? JSONDecoder().decode(WatchlistItemIdentifier.self, from: identifier)
     }
-
-    func hasIdentifier(watchlistItemIdentifier: WatchlistItemIdentifier) -> Bool {
-        guard let storedItemIdentifier = self.watchlistItemIdentifier else { return false }
-        return storedItemIdentifier == watchlistItemIdentifier
-    }
 }
 
-private protocol StoreableWatchlistItem {
-
-    func store(in storeableWatchlistItem: any ManagedWatchlistItem, with identifier: Data)
-}
-
-private extension WatchlistItemIdentifier {
+private extension WatchlistItem {
 
     var storeableIdentifier: Data? {
-        return try? JSONEncoder().encode(self)
+        return try? JSONEncoder().encode(id)
+    }
+
+    func store(in managedWatchlistItem: any ManagedWatchlistItem, with identifier: Data) {
+        managedWatchlistItem.identifier = identifier
+
+        switch state {
+        case .toWatch(let info):
+            if let itemToWatch = managedWatchlistItem as? ManagedItemToWatch {
+                itemToWatch.suggestionOwner = info.suggestion?.owner
+                itemToWatch.suggestionComment = info.suggestion?.comment
+            }
+        case .watched(let info):
+            if let watchedItem = managedWatchlistItem as? ManagedWatchedItem {
+                watchedItem.date = info.date
+                watchedItem.rating = info.rating ?? -1
+                watchedItem.suggestionOwner = info.toWatchInfo.suggestion?.owner
+                watchedItem.suggestionComment = info.toWatchInfo.suggestion?.comment
+            }
+        }
     }
 }
 
-// MARK: To watch Item entities
+// MARK: Managed Items
 
 extension ManagedItemToWatch: ManagedWatchlistItem {
 
@@ -208,20 +223,6 @@ extension ManagedItemToWatch: ManagedWatchlistItem {
         return WatchlistItemToWatchInfo(suggestion: toWatchSuggestion)
     }
 }
-
-extension WatchlistItemToWatchInfo: StoreableWatchlistItem {
-
-    fileprivate func store(in storeableWatchlistItem: any ManagedWatchlistItem, with identifier: Data) {
-        storeableWatchlistItem.identifier = identifier
-
-        if let itemToWatch = storeableWatchlistItem as? ManagedItemToWatch {
-            itemToWatch.suggestionOwner = suggestion?.owner
-            itemToWatch.suggestionComment = suggestion?.comment
-        }
-    }
-}
-
-// MARK: Watched Item entities
 
 extension ManagedWatchedItem: ManagedWatchlistItem {
 
@@ -237,19 +238,5 @@ extension ManagedWatchedItem: ManagedWatchlistItem {
         let rating = rating > -1 ? rating : nil
 
         return WatchlistItemWatchedInfo(toWatchInfo: toWatchInfo, rating: rating, date: date)
-    }
-}
-
-extension WatchlistItemWatchedInfo: StoreableWatchlistItem {
-
-    fileprivate func store(in storeableWatchlistItem: any ManagedWatchlistItem, with identifier: Data) {
-        storeableWatchlistItem.identifier = identifier
-
-        if let watchedItem = storeableWatchlistItem as? ManagedWatchedItem {
-            watchedItem.date = date
-            watchedItem.rating = rating ?? -1
-            watchedItem.suggestionOwner = toWatchInfo.suggestion?.owner
-            watchedItem.suggestionComment = toWatchInfo.suggestion?.comment
-        }
     }
 }

@@ -29,6 +29,7 @@ struct WatchlistView: View {
             }
             .listRowSeparator(.hidden)
         }
+        .scrollIndicators(.hidden)
         .listStyle(.plain)
         .navigationTitle(NSLocalizedString("WATCHLIST.TITLE", comment: ""))
         .toolbar {

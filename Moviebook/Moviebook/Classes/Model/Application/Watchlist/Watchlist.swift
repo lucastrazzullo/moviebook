@@ -8,7 +8,7 @@
 import Foundation
 import Combine
 
-struct WatchlistItem {
+struct WatchlistItem: Equatable {
 
     let id: WatchlistItemIdentifier
     var state: WatchlistItemState
@@ -35,7 +35,7 @@ struct WatchlistItemWatchedInfo: Hashable, Equatable {
     let date: Date
 }
 
-enum WatchlistItemState {
+enum WatchlistItemState: Equatable {
     case toWatch(info: WatchlistItemToWatchInfo)
     case watched(info: WatchlistItemWatchedInfo)
 }
@@ -55,8 +55,11 @@ enum WatchlistItemIdentifier: Identifiable, Hashable, Equatable, Codable {
 
     @Published private(set) var items: [WatchlistItem] = []
 
+    let objectDidChange: PassthroughSubject<[WatchlistItem], Never>
+
     init(items: [WatchlistItem]) {
         self.items = items
+        self.objectDidChange = PassthroughSubject<[WatchlistItem], Never>()
     }
 
     // MARK: Internal methods
@@ -71,11 +74,19 @@ enum WatchlistItemIdentifier: Identifiable, Hashable, Equatable, Codable {
         } else {
             items.append(WatchlistItem(id: id, state: state))
         }
+
+        objectDidChange.send(items)
     }
 
     func remove(itemWith id: WatchlistItemIdentifier) {
         if let index = items.firstIndex(where: { $0.id == id }) {
             items.remove(at: index)
         }
+
+        objectDidChange.send(items)
+    }
+
+    func set(items: [WatchlistItem]) {
+        self.items = items
     }
 }

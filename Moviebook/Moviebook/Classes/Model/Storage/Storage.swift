@@ -25,10 +25,14 @@ actor Storage {
         let watchlistItems = try await underlyingStorage.fetchWatchlistItems()
         let watchlist = await Watchlist(items: watchlistItems)
 
-        await watchlist.$items
-            .sink(receiveValue: { items in
-                Task { try await self.underlyingStorage.store(items: items) }
-            })
+        watchlist.objectDidChange
+            .removeDuplicates()
+            .sink { items in Task { try await self.underlyingStorage.store(items: items) }}
+            .store(in: &subscriptions)
+
+        await underlyingStorage.updatesPublisher()
+            .removeDuplicates()
+            .sink { items in Task { await watchlist.set(items: items) }}
             .store(in: &subscriptions)
 
         return watchlist
