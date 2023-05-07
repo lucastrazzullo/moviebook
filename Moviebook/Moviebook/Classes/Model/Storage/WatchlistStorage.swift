@@ -1,5 +1,5 @@
 //
-//  CloudkitStorage.swift
+//  WatchlistStorage.swift
 //  Moviebook
 //
 //  Created by Luca Strazzullo on 05/05/2023.
@@ -9,33 +9,32 @@ import Foundation
 import CoreData
 import Combine
 
-actor CloudkitStorage {
+actor WatchlistStorage {
 
     private let persistentContainer: NSPersistentContainer
 
-    init() {
+    init() async throws {
         persistentContainer = NSPersistentCloudKitContainer(name: "Moviebook")
+        try await load()
     }
 
     // MARK: - Internal methods
 
-    func load() async throws {
-        try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<Void, Error>) in
-            if let description = persistentContainer.persistentStoreDescriptions.first {
-                description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
-                description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
-            }
-            persistentContainer.loadPersistentStores(completionHandler: { description, error in
-                if let error = error {
-                    continuation.resume(throwing: error)
-                } else {
-                    continuation.resume()
-                }
-            })
-        }
+    func fetchWatchlistItems() async throws -> [WatchlistItem] {
+        var result = [WatchlistItem]()
+
+        let storedItemsToWatch = try await fetchStoredItemsToWatch()
+        let itemsToWatch = try parse(storedItems: storedItemsToWatch)
+        result.append(contentsOf: itemsToWatch)
+
+        let storedWatchedItems = try await fetchStoredWatchedItems()
+        let watchedItems = try parse(storedItems: storedWatchedItems)
+        result.append(contentsOf: watchedItems)
+
+        return result
     }
 
-    func updatesPublisher() -> AnyPublisher<[WatchlistItem], Never> {
+    func remoteUpdatesPublisher() -> AnyPublisher<[WatchlistItem], Never> {
         return NotificationCenter.default.publisher(
             for: NSNotification.Name.NSPersistentStoreRemoteChange,
             object: persistentContainer.persistentStoreCoordinator
@@ -56,21 +55,19 @@ actor CloudkitStorage {
         .eraseToAnyPublisher()
     }
 
-    // MARK: - Fetch
-
-    func fetchWatchlistItems() async throws -> [WatchlistItem] {
-        var result = [WatchlistItem]()
-
+    func store(items: [WatchlistItem]) async throws {
         let storedItemsToWatch = try await fetchStoredItemsToWatch()
-        let itemsToWatch = try parse(storedItems: storedItemsToWatch)
-        result.append(contentsOf: itemsToWatch)
+        let watchlistItemsToWatch = items.filter { if case .toWatch = $0.state { return true } else { return false }}
+        try store(watchlistItems: watchlistItemsToWatch, storedItems: storedItemsToWatch, managedItemType: ManagedItemToWatch.self)
 
         let storedWatchedItems = try await fetchStoredWatchedItems()
-        let watchedItems = try parse(storedItems: storedWatchedItems)
-        result.append(contentsOf: watchedItems)
+        let watchlistWatchedItems = items.filter { if case .watched = $0.state { return true } else { return false }}
+        try store(watchlistItems: watchlistWatchedItems, storedItems: storedWatchedItems, managedItemType: ManagedWatchedItem.self)
 
-        return result
+        save()
     }
+
+    // MARK: - Private methods
 
     private func parse(storedItems: [any ManagedWatchlistItem]) throws -> [WatchlistItem] {
         var result = [WatchlistItem]()
@@ -91,18 +88,20 @@ actor CloudkitStorage {
         return result
     }
 
-    // MARK: - Store
-
-    func store(items: [WatchlistItem]) async throws {
-        let storedItemsToWatch = try await fetchStoredItemsToWatch()
-        let watchlistItemsToWatch = items.filter { if case .toWatch = $0.state { return true } else { return false }}
-        try store(watchlistItems: watchlistItemsToWatch, storedItems: storedItemsToWatch, managedItemType: ManagedItemToWatch.self)
-
-        let storedWatchedItems = try await fetchStoredWatchedItems()
-        let watchlistWatchedItems = items.filter { if case .watched = $0.state { return true } else { return false }}
-        try store(watchlistItems: watchlistWatchedItems, storedItems: storedWatchedItems, managedItemType: ManagedWatchedItem.self)
-
-        save()
+    private func load() async throws {
+        try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<Void, Error>) in
+            if let description = persistentContainer.persistentStoreDescriptions.first {
+                description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+                description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
+            }
+            persistentContainer.loadPersistentStores(completionHandler: { description, error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume()
+                }
+            })
+        }
     }
 
     private func store(watchlistItems: [WatchlistItem],

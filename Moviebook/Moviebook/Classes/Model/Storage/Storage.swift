@@ -8,29 +8,37 @@
 import Foundation
 import Combine
 
+//    let legacyStorage = LegacyWatchlistStorage()
+//    let legacyWatchlistItems = try await legacyStorage.fetchWatchlistItems()
+
 actor Storage {
 
-    private let underlyingStorage: CloudkitStorage
     private var subscriptions: Set<AnyCancellable> = []
-
-    init() {
-        self.underlyingStorage = CloudkitStorage()
-    }
 
     // MARK: Internal methods
 
     func loadWatchlist() async throws -> Watchlist {
-        try await underlyingStorage.load()
+        let watchlistStorage = try await WatchlistStorage()
 
-        let watchlistItems = try await underlyingStorage.fetchWatchlistItems()
+        // Migrate from legacy storage
+        let legacyWatchlistStorage = LegacyWatchlistStorage()
+        if let legacyItems = try? await legacyWatchlistStorage.fetchWatchlistItems(), !legacyItems.isEmpty {
+            try await watchlistStorage.store(items: legacyItems)
+            try await legacyWatchlistStorage.deleteAllMovies()
+        }
+
+        // Load items and watchlist
+        let watchlistItems = try await watchlistStorage.fetchWatchlistItems()
         let watchlist = await Watchlist(items: watchlistItems)
 
+        // Listen for watchlist updates
         watchlist.objectDidChange
             .removeDuplicates()
-            .sink { items in Task { try await self.underlyingStorage.store(items: items) }}
+            .sink { items in Task { try await watchlistStorage.store(items: items) }}
             .store(in: &subscriptions)
 
-        await underlyingStorage.updatesPublisher()
+        // Listen for remote updates
+        await watchlistStorage.remoteUpdatesPublisher()
             .removeDuplicates()
             .sink { items in Task { await watchlist.set(items: items) }}
             .store(in: &subscriptions)
