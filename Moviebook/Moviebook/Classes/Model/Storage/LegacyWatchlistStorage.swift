@@ -100,13 +100,8 @@ actor LegacyWatchlistStorage {
     }
 
     private func fetchZoneOrCreateIfNeeded(_ zone: String) async throws -> CKRecordZone.ID {
-        do {
-            return try await fetchZoneID(for: zone)
-        } catch {
-            return try await createZoneID(for: zone)
-        }
+        return try await fetchZoneID(for: zone)
     }
-
 
     private func fetchZoneID(for zone: String) async throws -> CKRecordZone.ID {
         let zones = try await database.allRecordZones()
@@ -116,27 +111,6 @@ actor LegacyWatchlistStorage {
         }
 
         return recordZone.zoneID
-    }
-
-    private func createZoneID(for zone: String) async throws -> CKRecordZone.ID {
-        let recordZoneID = CKRecordZone.ID(zoneName: zone, ownerName: CKCurrentUserDefaultName)
-        let customZone = CKRecordZone(zoneID: recordZoneID)
-
-        let createZoneOperation = CKModifyRecordZonesOperation(recordZonesToSave: [customZone], recordZoneIDsToDelete: [])
-        createZoneOperation.qualityOfService = .userInitiated
-
-        return try await withCheckedThrowingContinuation { continuation in
-            createZoneOperation.modifyRecordZonesResultBlock = { result in
-                switch result {
-                case .success:
-                    continuation.resume(returning: recordZoneID)
-                case .failure(let error):
-                    continuation.resume(throwing: error)
-                }
-            }
-
-            database.add(createZoneOperation)
-        }
     }
 }
 

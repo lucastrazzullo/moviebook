@@ -8,9 +8,6 @@
 import Foundation
 import Combine
 
-//    let legacyStorage = LegacyWatchlistStorage()
-//    let legacyWatchlistItems = try await legacyStorage.fetchWatchlistItems()
-
 actor Storage {
 
     private var subscriptions: Set<AnyCancellable> = []
