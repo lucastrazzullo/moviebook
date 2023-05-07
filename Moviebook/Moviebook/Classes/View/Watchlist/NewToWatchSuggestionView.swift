@@ -44,17 +44,17 @@ struct NewToWatchSuggestionView: View {
     @State private var commentText: String = ""
     @State private var commentError: FieldError?
 
-    let item: WatchlistContent.Item
+    let itemIdentifier: WatchlistItemIdentifier
 
-    private var toWatchReason: Watchlist.ToWatchReason {
-        let state = watchlist.itemState(item: item)
+    private var toWatchSuggestion: WatchlistItemToWatchInfo.Suggestion? {
+        guard let state = watchlist.itemState(id: itemIdentifier) else {
+            return nil
+        }
         switch state {
-        case .none:
-            return .none
-        case .toWatch(let reason):
-            return reason
-        case .watched(let reason, _, _):
-            return reason
+        case .toWatch(let info):
+            return info.suggestion
+        case .watched(let info):
+            return info.toWatchInfo.suggestion
         }
     }
 
@@ -113,16 +113,13 @@ struct NewToWatchSuggestionView: View {
         .foregroundColor(nil)
         .font(.body)
         .onAppear {
-            switch toWatchReason {
-            case .suggestion(let from, let comment):
-                suggestedByText = from
-                commentText = comment
-            case .none:
-                break
+            if let toWatchSuggestion {
+                suggestedByText = toWatchSuggestion.owner
+                commentText = toWatchSuggestion.comment
             }
         }
         .task {
-            switch item {
+            switch itemIdentifier {
             case .movie(let id):
                 let webService = MovieWebService(requestManager: requestManager)
                 let movie = try? await webService.fetchMovie(with: id)
@@ -139,8 +136,8 @@ struct NewToWatchSuggestionView: View {
             return
         }
 
-        let reason = Watchlist.ToWatchReason.suggestion(from: suggestedByText, comment: commentText)
-        watchlist.update(state: .toWatch(reason: reason), for: item)
+        let info = WatchlistItemToWatchInfo(suggestion: .init(owner: suggestedByText, comment: commentText))
+        watchlist.update(state: .toWatch(info: info), forItemWith: itemIdentifier)
         dismiss()
     }
 
@@ -152,8 +149,8 @@ struct NewToWatchSuggestionView: View {
 #if DEBUG
 struct NewToWatchSuggestionView_Previews: PreviewProvider {
     static var previews: some View {
-        NewToWatchSuggestionView(item: .movie(id: 954))
-            .environmentObject(Watchlist(inMemoryItems: [:]))
+        NewToWatchSuggestionView(itemIdentifier: .movie(id: 954))
+            .environmentObject(Watchlist(items: []))
     }
 }
 #endif

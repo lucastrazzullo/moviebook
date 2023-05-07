@@ -19,17 +19,6 @@ import Combine
         var id: String {
             return self.rawValue
         }
-
-        init?(watchlistState: WatchlistContent.ItemState) {
-            switch watchlistState {
-            case .toWatch:
-                self = .toWatch
-            case .watched:
-                self = .watched
-            default:
-                return nil
-            }
-        }
     }
 
     enum SectionItem: Identifiable {
@@ -66,7 +55,7 @@ import Combine
             self.section = section
         }
 
-        func set(items: [WatchlistContent.Item], requestManager: RequestManager) {
+        func set(items: [WatchlistItemIdentifier], requestManager: RequestManager) {
             Task {
                 let section = self.section
                 self.items = await withThrowingTaskGroup(of: SectionItem.self) { group in
@@ -128,38 +117,25 @@ import Combine
     // MARK: Internal methods
 
     func start(watchlist: Watchlist, requestManager: RequestManager) {
-        watchlist.$content
-            .map(\.items)
+        watchlist.$items
             .sink { [weak self, weak requestManager] items in
+                var itemsToWatch = [WatchlistItemIdentifier]()
+                var watchedItems = [WatchlistItemIdentifier]()
+
+                for item in items {
+                    switch item.state {
+                    case .toWatch:
+                        itemsToWatch.append(item.id)
+                    case .watched:
+                        watchedItems.append(item.id)
+                    }
+                }
+
                 if let requestManager {
-                    self?.update(watchlistItems: items, requestManager: requestManager)
+                    self?.sections[.toWatch]?.set(items: itemsToWatch, requestManager: requestManager)
+                    self?.sections[.watched]?.set(items: watchedItems, requestManager: requestManager)
                 }
             }
             .store(in: &subscriptions)
-    }
-
-    // MARK: Private helper methods
-
-    private func update(watchlistItems: [WatchlistContent.Item: WatchlistContent.ItemState], requestManager: RequestManager) {
-        var items = [Section: [WatchlistContent.Item]]()
-
-        sectionIdentifiers.forEach { section in
-            items[section] = []
-        }
-
-        watchlistItems.forEach { itemTuple in
-            let watchlistItemState = itemTuple.value
-            let watchlistItem = itemTuple.key
-
-            if let section = Section(watchlistState: watchlistItemState) {
-                items[section]?.append(watchlistItem)
-            }
-        }
-
-        sectionIdentifiers.forEach { section in
-            if let items = items[section] {
-                sections[section]?.set(items: items, requestManager: requestManager)
-            }
-        }
     }
 }

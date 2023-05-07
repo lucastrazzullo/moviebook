@@ -6,149 +6,87 @@
 //
 
 import Foundation
+import Combine
 
-protocol WatchlistStorage {
-    func save(content: WatchlistContent)
-    func load() -> WatchlistContent
+struct WatchlistItem: Equatable {
+
+    let id: WatchlistItemIdentifier
+    var state: WatchlistItemState
+
+    init(id: WatchlistItemIdentifier, state: WatchlistItemState) {
+        self.id = id
+        self.state = state
+    }
 }
 
-struct WatchlistContent: Codable {
+struct WatchlistItemToWatchInfo: Hashable, Equatable {
 
-    enum Item: Hashable, Codable, Identifiable {
-        case movie(id: Movie.ID)
+    struct Suggestion: Hashable, Equatable {
+        let owner: String
+        let comment: String
+    }
 
-        var id: AnyHashable {
-            switch self {
-            case .movie(let id):
-                return id
-            }
+    let suggestion: Suggestion?
+}
+
+struct WatchlistItemWatchedInfo: Hashable, Equatable {
+    let toWatchInfo: WatchlistItemToWatchInfo
+    let rating: Double?
+    let date: Date
+}
+
+enum WatchlistItemState: Equatable {
+    case toWatch(info: WatchlistItemToWatchInfo)
+    case watched(info: WatchlistItemWatchedInfo)
+}
+
+enum WatchlistItemIdentifier: Identifiable, Hashable, Equatable, Codable {
+    case movie(id: Movie.ID)
+
+    var id: AnyHashable {
+        switch self {
+        case .movie(let id):
+            return id
         }
-    }
-
-    enum ItemState: Hashable, Codable, Equatable {
-        case none
-        case toWatch(reason: Watchlist.ToWatchReason)
-        case watched(reason: Watchlist.ToWatchReason, rating: Watchlist.WatchedRating, date: Date)
-    }
-
-    var items: [Item: ItemState]
-
-    // MARK: Object life cycle
-
-    static var empty: WatchlistContent {
-        return WatchlistContent(items: [:])
-    }
-
-    init(items: [Item: ItemState]) {
-        self.items = items
     }
 }
 
 @MainActor final class Watchlist: ObservableObject {
 
-    enum ToWatchReason: Codable, Hashable, Equatable {
-        case suggestion(from: String, comment: String)
-        case none
-    }
+    @Published private(set) var items: [WatchlistItem] = []
 
-    enum WatchedRating: Codable, Hashable, Equatable {
-        case value(_ value: Double)
-        case none
-    }
+    let objectDidChange: PassthroughSubject<[WatchlistItem], Never>
 
-    @Published private(set) var content: WatchlistContent = WatchlistContent.empty
-
-    private let storage: WatchlistStorage
-
-    // MARK: Object life cycle
-
-    init(storage: WatchlistStorage) {
-        self.storage = storage
-        self.content = storage.load()
+    init(items: [WatchlistItem]) {
+        self.items = items
+        self.objectDidChange = PassthroughSubject<[WatchlistItem], Never>()
     }
 
     // MARK: Internal methods
 
-    func itemState(item: WatchlistContent.Item) -> WatchlistContent.ItemState {
-        guard let itemState = content.items[item] else {
-            return .none
-        }
-        return itemState
+    func itemState(id: WatchlistItemIdentifier) -> WatchlistItemState? {
+        return items.first(where: { $0.id == id })?.state
     }
 
-    func update(state: WatchlistContent.ItemState, for item: WatchlistContent.Item) {
-        Task { [weak self] in
-            guard let self = self else { return }
-            self.content.items[item] = state
-            self.storage.save(content: self.content)
+    func update(state: WatchlistItemState, forItemWith id: WatchlistItemIdentifier) {
+        if let index = items.firstIndex(where: { $0.id == id }) {
+            items[index].state = state
+        } else {
+            items.append(WatchlistItem(id: id, state: state))
         }
+
+        objectDidChange.send(items)
+    }
+
+    func remove(itemWith id: WatchlistItemIdentifier) {
+        if let index = items.firstIndex(where: { $0.id == id }) {
+            items.remove(at: index)
+        }
+
+        objectDidChange.send(items)
+    }
+
+    func set(items: [WatchlistItem]) {
+        self.items = items
     }
 }
-
-final class FileBasedWatchlistStorage: WatchlistStorage {
-
-    private let fileName: String = "watchlist-v00"
-
-    func save(content: WatchlistContent) {
-        do {
-            let data = try JSONEncoder().encode(content)
-            try storeToFile(data, fileName: fileName)
-        } catch {
-            print("FileBased Storage -> Failed to save with error:", error)
-        }
-    }
-
-    func load() -> WatchlistContent {
-        do {
-            let data = try readFromFile(fileName: fileName)
-            return try JSONDecoder().decode(WatchlistContent.self, from: data)
-        } catch {
-            print("FileBased Storage -> Failed to load with error:", error)
-            return WatchlistContent.empty
-        }
-    }
-
-    // MARK: Private helper methods
-
-    private func storeToFile(_ data: Data, fileName: String) throws {
-        let url = itemUrl(fileName: fileName)
-        try data.write(to: url)
-    }
-
-    private func readFromFile(fileName: String) throws -> Data {
-        let url = itemUrl(fileName: fileName)
-        return try Data(contentsOf: url)
-    }
-
-    private func itemUrl(fileName: String) -> URL {
-        let directory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
-        return directory[0].appendingPathComponent(fileName)
-    }
-}
-
-#if DEBUG
-final class InMemoryStorage: WatchlistStorage {
-
-    private var content: WatchlistContent
-
-    init(content: WatchlistContent) {
-        self.content = content
-    }
-
-    func save(content: WatchlistContent) {
-        self.content = content
-    }
-
-    func load() -> WatchlistContent {
-        return content
-    }
-}
-
-extension Watchlist {
-
-    convenience init(inMemoryItems: [WatchlistContent.Item: WatchlistContent.ItemState]) {
-        let content = WatchlistContent(items: inMemoryItems)
-        self.init(storage: InMemoryStorage(content: content))
-    }
-}
-#endif

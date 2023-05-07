@@ -27,8 +27,8 @@ struct MoviePreviewView: View {
                             .gray
                             .opacity(0.2)
                     })
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 120)
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 120, height: 180)
                     .clipShape(RoundedRectangle(cornerRadius: 6))
                     .padding(.trailing, 4)
                     .padding(.bottom, 4)
@@ -56,7 +56,7 @@ struct MoviePreviewView: View {
 
             if let movieId = details?.id {
                 Spacer()
-                IconWatchlistButton(watchlistItem: .movie(id: movieId))
+                IconWatchlistButton(watchlistItemIdentifier: .movie(id: movieId))
                     .font(.headline)
             }
         }
@@ -73,9 +73,9 @@ struct MoviePreviewView_Previews: PreviewProvider {
     static var previews: some View {
         ScrollView {
             MoviePreviewViewPreview()
-                .environmentObject(Watchlist(inMemoryItems: [
-                    .movie(id: 954): .toWatch(reason: .none),
-                    .movie(id: 616037): .toWatch(reason: .none)
+                .environmentObject(Watchlist(items: [
+                    WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(suggestion: nil))),
+                    WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(suggestion: nil)))
                 ]))
         }
     }

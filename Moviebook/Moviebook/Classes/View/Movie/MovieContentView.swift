@@ -222,7 +222,7 @@ struct MovieContentView_Previews: PreviewProvider {
     static var previews: some View {
         ScrollView(showsIndicators: false) {
             MovieContentViewPreview()
-                .environmentObject(Watchlist(inMemoryItems: [:]))
+                .environmentObject(Watchlist(items: []))
         }
     }
 }
