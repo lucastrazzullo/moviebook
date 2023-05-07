@@ -39,7 +39,7 @@ actor LegacyWatchlistStorage {
     // MARK: - Internal methods
 
     func fetchWatchlistItems() async throws -> [WatchlistItem] {
-        let zone = try await fetchZoneOrCreateIfNeeded(zone)
+        let zone = try await fetchZoneID(for: zone)
         let movieRecords = try await fetchMovieRecords(inZoneWith: zone)
         return movieRecords
             .compactMap { record in return record.object(forKey: "id") as? Int }
@@ -48,7 +48,7 @@ actor LegacyWatchlistStorage {
     }
 
     func deleteAllMovies() async throws {
-        let zone = try await fetchZoneOrCreateIfNeeded(zone)
+        let zone = try await fetchZoneID(for: zone)
         let movieRecords = try await fetchMovieRecords(inZoneWith: zone)
         try await delete(movieRecords: movieRecords)
     }
@@ -97,10 +97,6 @@ actor LegacyWatchlistStorage {
 
             database.add(operation)
         }
-    }
-
-    private func fetchZoneOrCreateIfNeeded(_ zone: String) async throws -> CKRecordZone.ID {
-        return try await fetchZoneID(for: zone)
     }
 
     private func fetchZoneID(for zone: String) async throws -> CKRecordZone.ID {
