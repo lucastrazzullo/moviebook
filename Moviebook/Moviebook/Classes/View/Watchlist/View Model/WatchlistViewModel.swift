@@ -22,12 +22,19 @@ import Combine
     }
 
     enum SectionItem: Identifiable {
-        case movie(movie: Movie, section: Section)
+        case movie(movie: Movie, section: Section, watchlistIdentifier: WatchlistItemIdentifier)
 
         var id: String {
             switch self {
-            case .movie(let movie, let section):
+            case .movie(let movie, let section, _):
                 return "\(movie.id): \(section.id)"
+            }
+        }
+
+        var watchlistIdentifier: WatchlistItemIdentifier {
+            switch self {
+            case .movie(_, _, let watchlistIdentifier):
+                return watchlistIdentifier
             }
         }
     }
@@ -55,31 +62,36 @@ import Combine
             self.section = section
         }
 
-        func set(items: [WatchlistItemIdentifier], requestManager: RequestManager) {
+        func set(identifiers: [WatchlistItemIdentifier], requestManager: RequestManager) {
             Task {
                 let section = self.section
-                self.items = await withThrowingTaskGroup(of: SectionItem.self) { group in
-                    for item in items {
+                self.items = try await withThrowingTaskGroup(of: SectionItem.self) { group in
+                    var result = [WatchlistItemIdentifier: SectionItem]()
+                    result.reserveCapacity(identifiers.count)
+
+                    for identifier in identifiers {
                         group.addTask {
-                            switch item {
+                            switch identifier {
                             case .movie(let id):
                                 let webService = MovieWebService(requestManager: requestManager)
                                 let movie = try await webService.fetchMovie(with: id)
-                                return SectionItem.movie(movie: movie, section: section)
+                                return SectionItem.movie(movie: movie, section: section, watchlistIdentifier: identifier)
                             }
                         }
                     }
 
-                    var results = [SectionItem]()
-                    while let result = await group.nextResult() {
-                        switch result {
-                        case .success(let item):
-                            results.append(item)
-                        case .failure:
-                            break
+                    for try await item in group {
+                        result[item.watchlistIdentifier] = item
+                    }
+
+                    var items = [SectionItem]()
+                    for identifier in identifiers {
+                        if let item = result[identifier] {
+                            items.append(item)
                         }
                     }
-                    return results
+
+                    return items
                 }
             }
         }
@@ -132,8 +144,8 @@ import Combine
                 }
 
                 if let requestManager {
-                    self?.sections[.toWatch]?.set(items: itemsToWatch, requestManager: requestManager)
-                    self?.sections[.watched]?.set(items: watchedItems, requestManager: requestManager)
+                    self?.sections[.toWatch]?.set(identifiers: itemsToWatch, requestManager: requestManager)
+                    self?.sections[.watched]?.set(identifiers: watchedItems, requestManager: requestManager)
                 }
             }
             .store(in: &subscriptions)

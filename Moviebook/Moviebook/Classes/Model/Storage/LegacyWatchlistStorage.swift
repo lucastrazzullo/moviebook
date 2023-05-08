@@ -41,10 +41,17 @@ actor LegacyWatchlistStorage {
     func fetchWatchlistItems() async throws -> [WatchlistItem] {
         let zone = try await fetchZoneID(for: zone)
         let movieRecords = try await fetchMovieRecords(inZoneWith: zone)
-        return movieRecords
-            .compactMap { record in return record.object(forKey: "id") as? Int }
-            .map { movieId in return WatchlistItemIdentifier.movie(id: Movie.ID(movieId)) }
-            .map { watchlistId in WatchlistItem(id: watchlistId, state: .toWatch(info: WatchlistItemToWatchInfo(suggestion: nil))) }
+        return movieRecords.enumerated()
+            .compactMap { index, record -> WatchlistItem? in
+                guard let rawMovieId = record.object(forKey: "id") as? Int else {
+                    return nil
+                }
+
+                let id = WatchlistItemIdentifier.movie(id: Movie.ID(rawMovieId))
+                let date = Date.now.addingTimeInterval(TimeInterval(index))
+                let info = WatchlistItemToWatchInfo(date: date, suggestion: nil)
+                return WatchlistItem(id: id, state: .toWatch(info: info))
+            }
     }
 
     func deleteAllMovies() async throws {

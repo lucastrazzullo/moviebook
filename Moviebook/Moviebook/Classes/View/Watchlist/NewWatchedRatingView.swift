@@ -17,15 +17,16 @@ struct NewWatchedRatingView: View {
 
     let itemIdentifier: WatchlistItemIdentifier
 
-    private var toWatchSuggestion: WatchlistItemToWatchInfo.Suggestion? {
-        guard let state = watchlist.itemState(id: itemIdentifier) else {
+    private var toWatchInfo: WatchlistItemToWatchInfo? {
+        guard let watchlistState = watchlist.itemState(id: itemIdentifier) else {
             return nil
         }
-        switch state {
+
+        switch watchlistState {
         case .toWatch(let info):
-            return info.suggestion
+            return info
         case .watched(let info):
-            return info.toWatchInfo.suggestion
+            return info.toWatchInfo
         }
     }
 
@@ -35,7 +36,7 @@ struct NewWatchedRatingView: View {
                 .font(.title)
 
             Form {
-                if let toWatchSuggestion {
+                if let toWatchSuggestion = toWatchInfo?.suggestion {
                     HStack(alignment: .top, spacing: 8) {
                         Image(systemName: "quote.opening").font(.title)
                             .foregroundColor(.accentColor)
@@ -89,7 +90,18 @@ struct NewWatchedRatingView: View {
     }
 
     private func save() {
-        watchlist.update(state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: .init(suggestion: toWatchSuggestion), rating: rating, date: .now)), forItemWith: itemIdentifier)
+        guard let watchlistState = watchlist.itemState(id: itemIdentifier) else {
+            return
+        }
+
+        switch watchlistState {
+        case .toWatch(let info):
+            watchlist.update(state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: info, rating: rating, date: .now)), forItemWith: itemIdentifier)
+        case .watched(var info):
+            info.rating = rating
+            watchlist.update(state: .watched(info: info), forItemWith: itemIdentifier)
+        }
+
         dismiss()
     }
 
@@ -103,7 +115,7 @@ struct WatchlistAddToWatchedView_Previews: PreviewProvider {
     static var previews: some View {
         NewWatchedRatingView(itemIdentifier: .movie(id: 954))
             .environmentObject(Watchlist(items: [
-                WatchlistItem(id: .movie(id: 954), state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: WatchlistItemToWatchInfo(suggestion: .init(owner: "Valerio", comment: "Molto bello")), rating: 6, date: .now)))
+                WatchlistItem(id: .movie(id: 954), state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: .init(date: .now, suggestion: .init(owner: "Valerio", comment: "Molto bello")), rating: 6, date: .now)))
             ]))
     }
 }

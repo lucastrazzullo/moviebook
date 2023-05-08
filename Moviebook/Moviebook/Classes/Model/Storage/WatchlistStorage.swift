@@ -88,22 +88,6 @@ actor WatchlistStorage {
         return result
     }
 
-    private func load() async throws {
-        try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<Void, Error>) in
-            if let description = persistentContainer.persistentStoreDescriptions.first {
-                description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
-                description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
-            }
-            persistentContainer.loadPersistentStores(completionHandler: { description, error in
-                if let error = error {
-                    continuation.resume(throwing: error)
-                } else {
-                    continuation.resume()
-                }
-            })
-        }
-    }
-
     private func store(watchlistItems: [WatchlistItem],
                        storedItems: [any ManagedWatchlistItem],
                        managedItemType: any ManagedWatchlistItem.Type) throws {
@@ -128,9 +112,26 @@ actor WatchlistStorage {
 
     // MARK: - Cloudkit methods
 
+    private func load() async throws {
+        try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<Void, Error>) in
+            if let description = persistentContainer.persistentStoreDescriptions.first {
+                description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+                description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
+            }
+            persistentContainer.loadPersistentStores(completionHandler: { description, error in
+                if let error = error {
+                    continuation.resume(throwing: error)
+                } else {
+                    continuation.resume()
+                }
+            })
+        }
+    }
+
     private func fetchStoredItemsToWatch() async throws -> [ManagedItemToWatch] {
         let task = Task { @MainActor in
             let fetchRequest: NSFetchRequest<ManagedItemToWatch> = ManagedItemToWatch.fetchRequest()
+            fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \ManagedItemToWatch.date, ascending: true)]
             return try persistentContainer.viewContext.fetch(fetchRequest)
         }
 
@@ -140,6 +141,7 @@ actor WatchlistStorage {
     private func fetchStoredWatchedItems() async throws -> [ManagedWatchedItem] {
         let task = Task { @MainActor in
             let fetchRequest: NSFetchRequest<ManagedWatchedItem> = ManagedWatchedItem.fetchRequest()
+            fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \ManagedWatchedItem.date, ascending: true)]
             return try persistentContainer.viewContext.fetch(fetchRequest)
         }
 
@@ -164,7 +166,36 @@ actor WatchlistStorage {
     }
 }
 
-// MARK: - Private extensions
+// MARK: - Watchlist Item
+
+private extension WatchlistItem {
+
+    var storeableIdentifier: Data? {
+        return try? JSONEncoder().encode(id)
+    }
+
+    func store(in managedWatchlistItem: any ManagedWatchlistItem, with identifier: Data) {
+        managedWatchlistItem.identifier = identifier
+
+        switch state {
+        case .toWatch(let info):
+            if let itemToWatch = managedWatchlistItem as? ManagedItemToWatch {
+                itemToWatch.date = info.date
+                itemToWatch.suggestionOwner = info.suggestion?.owner
+                itemToWatch.suggestionComment = info.suggestion?.comment
+            }
+        case .watched(let info):
+            if let watchedItem = managedWatchlistItem as? ManagedWatchedItem {
+                watchedItem.date = info.date
+                watchedItem.rating = info.rating ?? -1
+                watchedItem.suggestionOwner = info.toWatchInfo.suggestion?.owner
+                watchedItem.suggestionComment = info.toWatchInfo.suggestion?.comment
+            }
+        }
+    }
+}
+
+// MARK: Managed Items
 
 private protocol ManagedWatchlistItem: NSManagedObject {
     associatedtype WatchlistInfo
@@ -183,43 +214,17 @@ private extension ManagedWatchlistItem {
     }
 }
 
-private extension WatchlistItem {
-
-    var storeableIdentifier: Data? {
-        return try? JSONEncoder().encode(id)
-    }
-
-    func store(in managedWatchlistItem: any ManagedWatchlistItem, with identifier: Data) {
-        managedWatchlistItem.identifier = identifier
-
-        switch state {
-        case .toWatch(let info):
-            if let itemToWatch = managedWatchlistItem as? ManagedItemToWatch {
-                itemToWatch.suggestionOwner = info.suggestion?.owner
-                itemToWatch.suggestionComment = info.suggestion?.comment
-            }
-        case .watched(let info):
-            if let watchedItem = managedWatchlistItem as? ManagedWatchedItem {
-                watchedItem.date = info.date
-                watchedItem.rating = info.rating ?? -1
-                watchedItem.suggestionOwner = info.toWatchInfo.suggestion?.owner
-                watchedItem.suggestionComment = info.toWatchInfo.suggestion?.comment
-            }
-        }
-    }
-}
-
-// MARK: Managed Items
-
 extension ManagedItemToWatch: ManagedWatchlistItem {
 
     var watchlistInfo: WatchlistItemToWatchInfo? {
+        guard let date = date else { return nil }
+
         var toWatchSuggestion: WatchlistItemToWatchInfo.Suggestion? = nil
         if let owner = suggestionOwner, let comment = suggestionComment {
             toWatchSuggestion = WatchlistItemToWatchInfo.Suggestion(owner: owner, comment: comment)
         }
 
-        return WatchlistItemToWatchInfo(suggestion: toWatchSuggestion)
+        return WatchlistItemToWatchInfo(date: date, suggestion: toWatchSuggestion)
     }
 }
 
@@ -233,7 +238,7 @@ extension ManagedWatchedItem: ManagedWatchlistItem {
             toWatchSuggestion = WatchlistItemToWatchInfo.Suggestion(owner: owner, comment: comment)
         }
 
-        let toWatchInfo = WatchlistItemToWatchInfo(suggestion: toWatchSuggestion)
+        let toWatchInfo = WatchlistItemToWatchInfo(date: date, suggestion: toWatchSuggestion)
         let rating = rating > -1 ? rating : nil
 
         return WatchlistItemWatchedInfo(toWatchInfo: toWatchInfo, rating: rating, date: date)

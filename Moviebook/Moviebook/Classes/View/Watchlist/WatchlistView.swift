@@ -21,7 +21,7 @@ struct WatchlistView: View {
         List {
             ForEach(viewModel.items) { item in
                 switch item {
-                case .movie(let movie, _):
+                case .movie(let movie, _, _):
                     MoviePreviewView(details: movie.details) {
                         onMovieSelected(movie)
                     }
@@ -88,8 +88,8 @@ struct WatchlistView_Previews: PreviewProvider {
             WatchlistView(onExploreSelected: {}, onMovieSelected: { _ in })
                 .environment(\.requestManager, MockRequestManager())
                 .environmentObject(Watchlist(items: [
-                    WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(suggestion: nil))),
-                    WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(suggestion: nil)))
+                    WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
+                    WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: nil)))
                 ]))
         }
     }

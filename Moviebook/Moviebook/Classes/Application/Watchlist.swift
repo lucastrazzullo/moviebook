@@ -13,6 +13,15 @@ struct WatchlistItem: Equatable {
     let id: WatchlistItemIdentifier
     var state: WatchlistItemState
 
+    var date: Date {
+        switch state {
+        case .toWatch(let info):
+            return info.date
+        case .watched(let info):
+            return info.date
+        }
+    }
+
     init(id: WatchlistItemIdentifier, state: WatchlistItemState) {
         self.id = id
         self.state = state
@@ -26,12 +35,13 @@ struct WatchlistItemToWatchInfo: Hashable, Equatable {
         let comment: String
     }
 
-    let suggestion: Suggestion?
+    let date: Date
+    var suggestion: Suggestion?
 }
 
 struct WatchlistItemWatchedInfo: Hashable, Equatable {
     let toWatchInfo: WatchlistItemToWatchInfo
-    let rating: Double?
+    var rating: Double?
     let date: Date
 }
 

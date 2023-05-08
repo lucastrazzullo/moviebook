@@ -112,7 +112,7 @@ struct MovieView_Previews: PreviewProvider {
         NavigationView {
             MovieView(movieId: 353081, navigationPath: .constant(NavigationPath()))
                 .environmentObject(Watchlist(items: [
-                    WatchlistItem(id: .movie(id: 353081), state: .toWatch(info: WatchlistItemToWatchInfo(suggestion: .init(owner: "Valerio", comment: "This is really nice"))))
+                    WatchlistItem(id: .movie(id: 353081), state: .toWatch(info: .init(date: .now, suggestion: .init(owner: "Valerio", comment: "This is really nice"))))
                 ]))
                 .environment(\.requestManager, MockRequestManager())
         }

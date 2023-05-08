@@ -61,10 +61,10 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
                     }
                 }
             } else {
-                Button { watchlist.update(state: .toWatch(info: .init(suggestion: nil)), forItemWith: watchlistItemIdentifier) } label: {
+                Button { watchlist.update(state: .toWatch(info: .init(date: .now, suggestion: nil)), forItemWith: watchlistItemIdentifier) } label: {
                     Label("Add to watchlist", systemImage: "plus")
                 }
-                Button { watchlist.update(state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: .init(suggestion: nil), rating: nil, date: .now)), forItemWith: watchlistItemIdentifier) } label: {
+                Button { watchlist.update(state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: .init(date: .now, suggestion: nil), rating: nil, date: .now)), forItemWith: watchlistItemIdentifier) } label: {
                     Label("Mark as watched", systemImage: "checkmark")
                 }
             }
@@ -211,12 +211,12 @@ struct WatchlistButton_Previews: PreviewProvider {
         VStack(spacing: 44) {
             IconWatchlistButton(watchlistItemIdentifier: .movie(id: 954))
                 .environmentObject(Watchlist(items: [
-                    WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(suggestion: nil)))
+                    WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil)))
                 ]))
 
             WatermarkWatchlistButton(watchlistItemIdentifier: .movie(id: 954))
                 .environmentObject(Watchlist(items: [
-                    WatchlistItem(id: .movie(id: 954), state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: .init(suggestion: nil), rating: 6, date: .now)))
+                    WatchlistItem(id: .movie(id: 954), state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: .init(date: .now, suggestion: nil), rating: 6, date: .now)))
                 ]))
         }
     }

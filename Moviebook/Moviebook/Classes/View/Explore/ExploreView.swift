@@ -175,8 +175,8 @@ struct ExploreView_Previews: PreviewProvider {
             ExploreView(searchScope: .movie, searchQuery: nil)
                 .environment(\.requestManager, MockRequestManager())
                 .environmentObject(Watchlist(items: [
-                    WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(suggestion: nil))),
-                    WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(suggestion: nil)))
+                    WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
+                    WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: nil)))
                 ]))
         }
     }
