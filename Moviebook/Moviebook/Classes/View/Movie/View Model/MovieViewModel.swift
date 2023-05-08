@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import CoreSpotlight
 
 @MainActor final class MovieViewModel: ObservableObject {
 
@@ -25,8 +24,7 @@ import CoreSpotlight
 
     init(movie: Movie) {
         self.movieId = movie.id
-        self.movie = movie
-        self.index(movie: movie)
+        self.setMovie(movie)
     }
 
     // MARK: Instance methods
@@ -39,9 +37,7 @@ import CoreSpotlight
     private func loadMovie(requestManager: RequestManager) {
         Task {
             do {
-                let movie = try await MovieWebService(requestManager: requestManager).fetchMovie(with: movieId)
-                self.movie = movie
-                index(movie: movie)
+                setMovie(try await MovieWebService(requestManager: requestManager).fetchMovie(with: movieId))
             } catch {
                 self.error = .failedToLoad(id: .init(), retry: { [weak self, weak requestManager] in
                     if let requestManager {
@@ -52,13 +48,8 @@ import CoreSpotlight
         }
     }
 
-    private func index(movie: Movie) {
-        let attributeSet = CSSearchableItemAttributeSet(contentType: .content)
-        attributeSet.displayName = movie.details.title
-
-        let url = Deeplink.movie(identifier: movie.id).rawValue
-        let searchableItem = CSSearchableItem(uniqueIdentifier: url.absoluteString, domainIdentifier: "movie", attributeSet: attributeSet)
-
-        CSSearchableIndex.default().indexSearchableItems([searchableItem])
+    private func setMovie(_ movie: Movie) {
+        self.movie = movie
+        Spotlight.index(movie: movie)
     }
 }

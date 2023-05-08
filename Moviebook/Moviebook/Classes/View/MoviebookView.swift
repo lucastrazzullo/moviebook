@@ -46,10 +46,8 @@ struct MoviebookView: View {
                 open(deeplink: deeplink)
             }
         }
-        .onContinueUserActivity(CSSearchableItemActionType) { spotlight in
-            if let uniqueIdentifier = spotlight.userInfo?[CSSearchableItemActivityIdentifier] as? String,
-                let url = URL(string: uniqueIdentifier),
-                let deeplink = Deeplink(rawValue: url) {
+        .onContinueUserActivity(CSSearchableItemActionType) { userActivity in
+            if let deeplink = Spotlight.deeplink(from: userActivity) {
                 open(deeplink: deeplink)
             }
         }
