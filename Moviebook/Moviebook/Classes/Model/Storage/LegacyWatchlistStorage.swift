@@ -100,13 +100,20 @@ actor LegacyWatchlistStorage {
     }
 
     private func fetchZoneID(for zone: String) async throws -> CKRecordZone.ID {
-        let zones = try await database.allRecordZones()
-        let recordZoneIdComparison = CKRecordZone.ID(zoneName: zone, ownerName: CKCurrentUserDefaultName)
-        guard let recordZone = zones.first(where: { $0.zoneID == recordZoneIdComparison }) else {
-            throw Error.zoneFetching(zone)
+        return try await withCheckedThrowingContinuation { continuation in
+            database.fetchAllRecordZones { zones, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else {
+                    let recordZoneIdComparison = CKRecordZone.ID(zoneName: zone, ownerName: CKCurrentUserDefaultName)
+                    if let recordZone = zones?.first(where: { $0.zoneID == recordZoneIdComparison }) {
+                        continuation.resume(returning: recordZone.zoneID)
+                    } else {
+                        continuation.resume(throwing: Error.zoneFetching(zone))
+                    }
+                }
+            }
         }
-
-        return recordZone.zoneID
     }
 }
 
