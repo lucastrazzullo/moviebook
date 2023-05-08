@@ -19,15 +19,19 @@ struct WatchlistView: View {
 
     var body: some View {
         List {
-            ForEach(viewModel.items) { item in
-                switch item {
-                case .movie(let movie, _, _):
-                    MoviePreviewView(details: movie.details) {
-                        onMovieSelected(movie)
+            if viewModel.isLoading {
+                LoaderView()
+            } else {
+                ForEach(viewModel.items) { item in
+                    switch item {
+                    case .movie(let movie, _, _):
+                        MoviePreviewView(details: movie.details) {
+                            onMovieSelected(movie)
+                        }
                     }
                 }
+                .listRowSeparator(.hidden)
             }
-            .listRowSeparator(.hidden)
         }
         .scrollIndicators(.hidden)
         .listStyle(.plain)

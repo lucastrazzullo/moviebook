@@ -62,43 +62,42 @@ import Combine
             self.section = section
         }
 
-        func set(identifiers: [WatchlistItemIdentifier], requestManager: RequestManager) {
-            Task {
-                let section = self.section
-                self.items = try await withThrowingTaskGroup(of: SectionItem.self) { group in
-                    var result = [WatchlistItemIdentifier: SectionItem]()
-                    result.reserveCapacity(identifiers.count)
+        func set(identifiers: [WatchlistItemIdentifier], requestManager: RequestManager) async throws {
+            let section = self.section
+            self.items = try await withThrowingTaskGroup(of: SectionItem.self) { group in
+                var result = [WatchlistItemIdentifier: SectionItem]()
+                result.reserveCapacity(identifiers.count)
 
-                    for identifier in identifiers {
-                        group.addTask {
-                            switch identifier {
-                            case .movie(let id):
-                                let webService = MovieWebService(requestManager: requestManager)
-                                let movie = try await webService.fetchMovie(with: id)
-                                return SectionItem.movie(movie: movie, section: section, watchlistIdentifier: identifier)
-                            }
+                for identifier in identifiers {
+                    group.addTask {
+                        switch identifier {
+                        case .movie(let id):
+                            let webService = MovieWebService(requestManager: requestManager)
+                            let movie = try await webService.fetchMovie(with: id)
+                            return SectionItem.movie(movie: movie, section: section, watchlistIdentifier: identifier)
                         }
                     }
-
-                    for try await item in group {
-                        result[item.watchlistIdentifier] = item
-                    }
-
-                    var items = [SectionItem]()
-                    for identifier in identifiers {
-                        if let item = result[identifier] {
-                            items.append(item)
-                        }
-                    }
-
-                    return items
                 }
+
+                for try await item in group {
+                    result[item.watchlistIdentifier] = item
+                }
+
+                var items = [SectionItem]()
+                for identifier in identifiers {
+                    if let item = result[identifier] {
+                        items.append(item)
+                    }
+                }
+
+                return items
             }
         }
     }
 
     // MARK: Instance Properties
 
+    @Published var isLoading: Bool = true
     @Published var sections: [Section: SectionContent] = [:]
     @Published var currentSection: Section = .toWatch
 
@@ -144,8 +143,12 @@ import Combine
                 }
 
                 if let requestManager {
-                    self?.sections[.toWatch]?.set(identifiers: itemsToWatch, requestManager: requestManager)
-                    self?.sections[.watched]?.set(identifiers: watchedItems, requestManager: requestManager)
+                    Task {
+                        try await self?.sections[.toWatch]?.set(identifiers: itemsToWatch, requestManager: requestManager)
+                        try await self?.sections[.watched]?.set(identifiers: watchedItems, requestManager: requestManager)
+
+                        self?.isLoading = false
+                    }
                 }
             }
             .store(in: &subscriptions)
