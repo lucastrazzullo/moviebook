@@ -24,7 +24,7 @@ import Foundation
 
     init(movie: Movie) {
         self.movieId = movie.id
-        self.movie = movie
+        self.setMovie(movie)
     }
 
     // MARK: Instance methods
@@ -37,7 +37,7 @@ import Foundation
     private func loadMovie(requestManager: RequestManager) {
         Task {
             do {
-                movie = try await MovieWebService(requestManager: requestManager).fetchMovie(with: movieId)
+                setMovie(try await MovieWebService(requestManager: requestManager).fetchMovie(with: movieId))
             } catch {
                 self.error = .failedToLoad(id: .init(), retry: { [weak self, weak requestManager] in
                     if let requestManager {
@@ -46,5 +46,10 @@ import Foundation
                 })
             }
         }
+    }
+
+    private func setMovie(_ movie: Movie) {
+        self.movie = movie
+        Spotlight.index(movie: movie)
     }
 }

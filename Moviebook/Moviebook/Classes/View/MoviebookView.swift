@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CoreSpotlight
 
 struct MoviebookView: View {
 
@@ -42,16 +43,12 @@ struct MoviebookView: View {
         }
         .onOpenURL { url in
             if let deeplink = Deeplink(rawValue: url) {
-                switch deeplink {
-                case .watchlist:
-                    presentedItem = nil
-                case .search(let scope, let query):
-                    presentedItem = .explore(scope: scope, query: query)
-                case .movie(let identifier):
-                    presentedItem = .movieWithIdentifier(identifier)
-                case .artist(let identifier):
-                    presentedItem = .artistWithIdentifier(identifier)
-                }
+                open(deeplink: deeplink)
+            }
+        }
+        .onContinueUserActivity(CSSearchableItemActionType) { userActivity in
+            if let deeplink = Spotlight.deeplink(from: userActivity) {
+                open(deeplink: deeplink)
             }
         }
         .sheet(item: $presentedItem) { item in
@@ -72,6 +69,21 @@ struct MoviebookView: View {
                     NavigationDestination(navigationPath: $presentedItemNavigationPath, item: item)
                 }
             }
+        }
+    }
+
+    // MARK: Private helper methods
+
+    private func open(deeplink: Deeplink) {
+        switch deeplink {
+        case .watchlist:
+            presentedItem = nil
+        case .search(let scope, let query):
+            presentedItem = .explore(scope: scope, query: query)
+        case .movie(let identifier):
+            presentedItem = .movieWithIdentifier(identifier)
+        case .artist(let identifier):
+            presentedItem = .artistWithIdentifier(identifier)
         }
     }
 }

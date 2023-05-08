@@ -24,7 +24,7 @@ import Foundation
 
     init(artist: Artist) {
         self.artistId = artist.id
-        self.artist = artist
+        self.setArtist(artist)
     }
 
     // MARK: Instance methods
@@ -37,7 +37,7 @@ import Foundation
     private func loadArtist(requestManager: RequestManager) {
         Task {
             do {
-                artist = try await ArtistWebService(requestManager: requestManager).fetchArtist(with: artistId)
+                setArtist(try await ArtistWebService(requestManager: requestManager).fetchArtist(with: artistId))
             } catch {
                 self.error = .failedToLoad(id: .init(), retry: { [weak self, weak requestManager] in
                     if let requestManager {
@@ -46,5 +46,10 @@ import Foundation
                 })
             }
         }
+    }
+
+    private func setArtist(_ artist: Artist) {
+        self.artist = artist
+        Spotlight.index(artist: artist)
     }
 }
