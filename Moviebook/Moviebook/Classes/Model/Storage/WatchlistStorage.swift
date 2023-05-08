@@ -69,28 +69,21 @@ actor WatchlistStorage {
 
     // MARK: - Private methods
 
-    private func parse(storedItems: [any ManagedWatchlistItem]) throws -> [WatchlistItem] {
+    private func parse(storedItems: [ManagedWatchlistItem]) throws -> [WatchlistItem] {
         var result = [WatchlistItem]()
 
         for storedItem in storedItems {
             guard let identifier = storedItem.watchlistItemIdentifier else { continue }
-            guard let watchlistInfo = storedItem.watchlistInfo else { continue }
-
-            if let itemToWatchInfo = watchlistInfo as? WatchlistItemToWatchInfo {
-                result.append(WatchlistItem(id: identifier, state: .toWatch(info: itemToWatchInfo)))
-            }
-
-            if let watchedItemInfo = watchlistInfo as? WatchlistItemWatchedInfo {
-                result.append(WatchlistItem(id: identifier, state: .watched(info: watchedItemInfo)))
-            }
+            guard let state = storedItem.watchlistState else { continue }
+            result.append(WatchlistItem(id: identifier, state: state))
         }
 
         return result
     }
 
     private func store(watchlistItems: [WatchlistItem],
-                       storedItems: [any ManagedWatchlistItem],
-                       managedItemType: any ManagedWatchlistItem.Type) throws {
+                       storedItems: [ManagedWatchlistItem],
+                       managedItemType: ManagedWatchlistItem.Type) throws {
 
         // Remove items that were deleted from watchlist
         for storedItem in storedItems {
@@ -148,7 +141,7 @@ actor WatchlistStorage {
         return try await task.value
     }
 
-    private func delete(storedWatchlistItem: any ManagedWatchlistItem) {
+    private func delete(storedWatchlistItem: ManagedWatchlistItem) {
         Task { @MainActor in
             persistentContainer.viewContext.delete(storedWatchlistItem)
         }
@@ -174,7 +167,7 @@ private extension WatchlistItem {
         return try? JSONEncoder().encode(id)
     }
 
-    func store(in managedWatchlistItem: any ManagedWatchlistItem, with identifier: Data) {
+    func store(in managedWatchlistItem: ManagedWatchlistItem, with identifier: Data) {
         managedWatchlistItem.identifier = identifier
 
         switch state {
@@ -198,12 +191,10 @@ private extension WatchlistItem {
 // MARK: Managed Items
 
 private protocol ManagedWatchlistItem: NSManagedObject {
-    associatedtype WatchlistInfo
-
     var identifier: Data? { get set }
 
     var watchlistItemIdentifier: WatchlistItemIdentifier? { get }
-    var watchlistInfo: WatchlistInfo? { get }
+    var watchlistState: WatchlistItemState? { get }
 }
 
 private extension ManagedWatchlistItem {
@@ -216,7 +207,7 @@ private extension ManagedWatchlistItem {
 
 extension ManagedItemToWatch: ManagedWatchlistItem {
 
-    var watchlistInfo: WatchlistItemToWatchInfo? {
+    var watchlistState: WatchlistItemState? {
         guard let date = date else { return nil }
 
         var toWatchSuggestion: WatchlistItemToWatchInfo.Suggestion? = nil
@@ -224,13 +215,13 @@ extension ManagedItemToWatch: ManagedWatchlistItem {
             toWatchSuggestion = WatchlistItemToWatchInfo.Suggestion(owner: owner, comment: comment)
         }
 
-        return WatchlistItemToWatchInfo(date: date, suggestion: toWatchSuggestion)
+        return .toWatch(info: WatchlistItemToWatchInfo(date: date, suggestion: toWatchSuggestion))
     }
 }
 
 extension ManagedWatchedItem: ManagedWatchlistItem {
 
-    var watchlistInfo: WatchlistItemWatchedInfo? {
+    var watchlistState: WatchlistItemState? {
         guard let date = date else { return nil }
 
         var toWatchSuggestion: WatchlistItemToWatchInfo.Suggestion? = nil
@@ -241,6 +232,6 @@ extension ManagedWatchedItem: ManagedWatchlistItem {
         let toWatchInfo = WatchlistItemToWatchInfo(date: date, suggestion: toWatchSuggestion)
         let rating = rating > -1 ? rating : nil
 
-        return WatchlistItemWatchedInfo(toWatchInfo: toWatchInfo, rating: rating, date: date)
+        return .watched(info: WatchlistItemWatchedInfo(toWatchInfo: toWatchInfo, rating: rating, date: date))
     }
 }
