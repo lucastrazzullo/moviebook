@@ -25,6 +25,7 @@ enum Spotlight {
     static func index(movie: Movie) {
         let attributeSet = CSSearchableItemAttributeSet(contentType: .content)
         attributeSet.displayName = movie.details.title
+        attributeSet.thumbnailURL = movie.details.media.posterPreviewUrl
 
         let url = Deeplink.movie(identifier: movie.id).rawValue
         let searchableItem = CSSearchableItem(uniqueIdentifier: url.absoluteString, domainIdentifier: "movie", attributeSet: attributeSet)
@@ -35,6 +36,7 @@ enum Spotlight {
     static func index(artist: Artist) {
         let attributeSet = CSSearchableItemAttributeSet(contentType: .content)
         attributeSet.displayName = artist.details.name
+        attributeSet.thumbnailURL = artist.details.imagePreviewUrl
 
         let url = Deeplink.artist(identifier: artist.id).rawValue
         let searchableItem = CSSearchableItem(uniqueIdentifier: url.absoluteString, domainIdentifier: "movie", attributeSet: attributeSet)
