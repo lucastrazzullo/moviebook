@@ -22,7 +22,7 @@ private struct SafeItem<Base: Decodable>: Decodable {
     }
 }
 
-struct TheMovieDbResponseWithResults<ItemType: Decodable>: Decodable {
+struct TheMovieDbResponseWithListResults<ItemType: Decodable>: Decodable {
 
     let results: [ItemType]
 
@@ -33,6 +33,20 @@ struct TheMovieDbResponseWithResults<ItemType: Decodable>: Decodable {
     init(from decoder: Decoder) throws {
         let container: KeyedDecodingContainer<CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
         self.results = try container.decode([SafeItem<ItemType>].self, forKey: CodingKeys.results).compactMap({ $0.value })
+    }
+}
+
+struct TheMovieDbResponseWithDictionaryResults<ItemType: Decodable>: Decodable {
+
+    let results: [String: ItemType]
+
+    enum CodingKeys: CodingKey {
+        case results
+    }
+
+    init(from decoder: Decoder) throws {
+        let container: KeyedDecodingContainer<CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
+        self.results = try container.decode([String: ItemType].self, forKey: CodingKeys.results)
     }
 }
 
@@ -71,6 +85,8 @@ extension Movie: Decodable {
 
         let creditsContainer = try values.nestedContainer(keyedBy: CreditsCodingKeys.self, forKey: .credits)
         cast = try creditsContainer.decode([SafeItem<ArtistDetails>].self, forKey: .cast).compactMap({ $0.value })
+
+        watch = WatchProviderCollection()
     }
 }
 
@@ -116,13 +132,13 @@ extension MovieDetails: Decodable {
         }
 
         if let budgetValue = try values.decodeIfPresent(Int.self, forKey: .budget) {
-            budget = MoneyValue(value: budgetValue, currencyCode: TheMovieDbConfiguration.currency)
+            budget = MoneyValue(value: budgetValue, currencyCode: Configuration.currency)
         } else {
             budget = nil
         }
 
         if let revenueValue = try values.decodeIfPresent(Int.self, forKey: .revenue) {
-            revenue = MoneyValue(value: revenueValue, currencyCode: TheMovieDbConfiguration.currency)
+            revenue = MoneyValue(value: revenueValue, currencyCode: Configuration.currency)
         } else {
             revenue = nil
         }
@@ -207,7 +223,7 @@ extension MovieMedia: Decodable {
             backdropPreviewUrl = nil
         }
 
-        if let videoResults = try? container.decodeIfPresent(TheMovieDbResponseWithResults<MovieVideo>.self, forKey: .videos)?.results {
+        if let videoResults = try? container.decodeIfPresent(TheMovieDbResponseWithListResults<MovieVideo>.self, forKey: .videos)?.results {
             videos = videoResults
         } else {
             videos = []
@@ -325,5 +341,39 @@ extension ArtistDetails: Decodable {
         let imagePath = try container.decode(String.self, forKey: .imagePath)
         imagePreviewUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .avatar(path: imagePath, size: .preview))
         imageOriginalUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .avatar(path: imagePath, size: .original))
+    }
+}
+
+extension WatchProviderCollection: Decodable {
+
+    enum CodingKeys: CodingKey {
+        case buy
+        case rent
+        case flatrate
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        self.free = try container.decodeIfPresent([WatchProvider].self, forKey: .flatrate) ?? []
+        self.rent = try container.decodeIfPresent([WatchProvider].self, forKey: .rent) ?? []
+        self.buy = try container.decodeIfPresent([WatchProvider].self, forKey: .buy) ?? []
+    }
+}
+
+extension WatchProvider: Decodable {
+
+    enum CodingKeys: String, CodingKey {
+        case name = "provider_name"
+        case logoPath = "logo_path"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        self.name = try container.decode(String.self, forKey: .name)
+
+        let logoPath = try container.decode(String.self, forKey: .logoPath)
+        self.iconUrl = try TheMovieDbImageRequestFactory.makeURL(format: .logo(path: logoPath, size: .preview))
     }
 }

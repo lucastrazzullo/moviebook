@@ -20,6 +20,10 @@ struct MovieWebService {
         static func makeMovieCollectionUrl(collectionIdentifier: MovieCollection.ID) throws -> URL {
             return try TheMovieDbDataRequestFactory.makeURL(path: "collection/\(collectionIdentifier)")
         }
+
+        static func makeMovieWatchProviders(movieIdentifier: Movie.ID) throws -> URL {
+            return try TheMovieDbDataRequestFactory.makeURL(path: "movie/\(movieIdentifier)/watch/providers")
+        }
     }
 
     enum Parser {
@@ -30,6 +34,16 @@ struct MovieWebService {
 
         static func parseCollection(data: Data) throws -> MovieCollection {
             return try JSONDecoder().decode(MovieCollection.self, from: data)
+        }
+
+        static func parseWatchProviders(data: Data) throws -> WatchProviderCollection {
+            let results = try JSONDecoder().decode(TheMovieDbResponseWithDictionaryResults<WatchProviderCollection>.self, from: data).results
+
+            guard let region = Configuration.region, let collection = results[region] else {
+                return WatchProviderCollection()
+            }
+
+            return collection
         }
     }
 
@@ -44,6 +58,10 @@ struct MovieWebService {
             movie.collection = collection
         }
 
+        if let watchProviders = try? await fetchWatchProviders(with: identifier) {
+            movie.watch = watchProviders
+        }
+
         return movie
     }
 
@@ -51,6 +69,13 @@ struct MovieWebService {
         let url = try URLFactory.makeMovieCollectionUrl(collectionIdentifier: identifier)
         let data = try await requestManager.request(from: url)
         let parsedResponse = try Parser.parseCollection(data: data)
+        return parsedResponse
+    }
+
+    private func fetchWatchProviders(with movieIdentifier: Movie.ID) async throws -> WatchProviderCollection {
+        let url = try URLFactory.makeMovieWatchProviders(movieIdentifier: movieIdentifier)
+        let data = try await requestManager.request(from: url)
+        let parsedResponse = try Parser.parseWatchProviders(data: data)
         return parsedResponse
     }
 }

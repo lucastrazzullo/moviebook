@@ -13,5 +13,6 @@ struct Movie: Identifiable {
     let genres: [MovieGenre]
     let cast: [ArtistDetails]
     let production: MovieProduction
+    var watch: WatchProviderCollection
     var collection: MovieCollection?
 }

@@ -14,7 +14,7 @@ struct UpcomingWebService {
     func fetch() async throws -> [MovieDetails] {
         let url = try TheMovieDbDataRequestFactory.makeURL(path: "movie/upcoming")
         let data = try await requestManager.request(from: url)
-        let parsedResponse = try JSONDecoder().decode(TheMovieDbResponseWithResults<MovieDetails>.self, from: data)
+        let parsedResponse = try JSONDecoder().decode(TheMovieDbResponseWithListResults<MovieDetails>.self, from: data)
         return parsedResponse.results
     }
 }

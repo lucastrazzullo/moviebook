@@ -7,8 +7,8 @@
 
 import Foundation
 
-enum TheMovieDbConfiguration {
+enum Configuration {
     static var language: String { Locale.current.identifier }
-    static var region: String { Locale.current.region?.identifier ?? "en-GB" }
+    static var region: String? { Locale.current.region?.identifier }
     static var currency: String { Locale.current.currency?.identifier ?? "EUR" }
 }

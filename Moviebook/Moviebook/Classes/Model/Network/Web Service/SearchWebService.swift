@@ -15,7 +15,7 @@ struct SearchWebService {
         let searchQueryItem = URLQueryItem(name: "query", value: keyword)
         let url = try TheMovieDbDataRequestFactory.makeURL(path: "search/movie", queryItems: [searchQueryItem])
         let data = try await requestManager.request(from: url)
-        let parsedResponse = try JSONDecoder().decode(TheMovieDbResponseWithResults<MovieDetails>.self, from: data)
+        let parsedResponse = try JSONDecoder().decode(TheMovieDbResponseWithListResults<MovieDetails>.self, from: data)
         return parsedResponse.results
     }
 
@@ -23,7 +23,7 @@ struct SearchWebService {
         let searchQueryItem = URLQueryItem(name: "query", value: keyword)
         let url = try TheMovieDbDataRequestFactory.makeURL(path: "search/person", queryItems: [searchQueryItem])
         let data = try await requestManager.request(from: url)
-        let parsedResponse = try JSONDecoder().decode(TheMovieDbResponseWithResults<ArtistDetails>.self, from: data)
+        let parsedResponse = try JSONDecoder().decode(TheMovieDbResponseWithListResults<ArtistDetails>.self, from: data)
         return parsedResponse.results
     }
 }
