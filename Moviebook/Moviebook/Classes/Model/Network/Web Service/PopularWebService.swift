@@ -9,19 +9,11 @@ import Foundation
 
 struct PopularWebService {
 
-    enum URLFactory {
-
-        static func makePopularMoviesUrl() throws -> URL {
-            return try TheMovieDbDataRequestFactory.makeURL(path: "movie/popular")
-        }
-    }
-
     let requestManager: RequestManager
 
     func fetch() async throws -> [MovieDetails] {
-        let url = try URLFactory.makePopularMoviesUrl()
+        let url = try TheMovieDbDataRequestFactory.makeURL(path: "movie/popular")
         let data = try await requestManager.request(from: url)
-        let parsedResponse = try JSONDecoder().decode(TheMovieDbResponseWithResults<MovieDetails>.self, from: data)
-        return parsedResponse.results
+        return try JSONDecoder().decode(TMDBResponseWithListResults<TMDBMovieDetailsResponse>.self, from: data).results.map(\.result)
     }
 }

@@ -35,6 +35,10 @@ struct MovieContentView: View {
                 )
             }
 
+            if !movie.watch.isEmpty {
+                WatchProvidersView(watch: movie.watch)
+            }
+
             if !specs.isEmpty {
                 SpecsView(title: "Specs", items: specs)
             }
@@ -122,6 +126,49 @@ private struct HeaderView: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 4)
+    }
+}
+
+private struct WatchProvidersView: View {
+
+    let watch: WatchProviderCollection
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            Text("Watch providers")
+                .font(.title2)
+
+
+            if !watch.free.isEmpty {
+                VStack(alignment: .leading) {
+                    Text("Free").font(.headline)
+                    providerList(providers: watch.free)
+                }
+            }
+
+            if !(watch.rent + watch.buy).isEmpty {
+                VStack(alignment: .leading) {
+                    Text("Rent or Buy").font(.headline)
+                    providerList(providers: watch.rent + watch.buy)
+                }
+            }
+        }
+        .padding()
+        .background(.yellow)
+        .cornerRadius(8)
+    }
+
+    @ViewBuilder private func providerList(providers: [WatchProvider]) -> some View {
+        LazyVGrid(columns: [GridItem(), GridItem(), GridItem(), GridItem()]) {
+            ForEach(providers, id: \.name) { provider in
+                AsyncImage(url: provider.iconUrl, content: { image in
+                    image.resizable().aspectRatio(contentMode: .fit)
+                }, placeholder: {
+                    Rectangle().fill(.thinMaterial)
+                })
+                .cornerRadius(8)
+            }
+        }
     }
 }
 

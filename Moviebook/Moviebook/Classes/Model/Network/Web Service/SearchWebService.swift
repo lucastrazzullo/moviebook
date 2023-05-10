@@ -15,15 +15,13 @@ struct SearchWebService {
         let searchQueryItem = URLQueryItem(name: "query", value: keyword)
         let url = try TheMovieDbDataRequestFactory.makeURL(path: "search/movie", queryItems: [searchQueryItem])
         let data = try await requestManager.request(from: url)
-        let parsedResponse = try JSONDecoder().decode(TheMovieDbResponseWithResults<MovieDetails>.self, from: data)
-        return parsedResponse.results
+        return try JSONDecoder().decode(TMDBResponseWithListResults<TMDBMovieDetailsResponse>.self, from: data).results.map(\.result)
     }
 
     func fetchArtists(with keyword: String) async throws -> [ArtistDetails] {
         let searchQueryItem = URLQueryItem(name: "query", value: keyword)
         let url = try TheMovieDbDataRequestFactory.makeURL(path: "search/person", queryItems: [searchQueryItem])
         let data = try await requestManager.request(from: url)
-        let parsedResponse = try JSONDecoder().decode(TheMovieDbResponseWithResults<ArtistDetails>.self, from: data)
-        return parsedResponse.results
+        return try JSONDecoder().decode(TMDBResponseWithListResults<TMDBArtistDetailsResponse>.self, from: data).results.map(\.result)
     }
 }
