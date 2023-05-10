@@ -46,13 +46,13 @@ import CoreSpotlight
             .debounce(for: .seconds(1), scheduler: DispatchQueue.main)
             .sink(receiveValue: { [weak self, weak requestManager] keyword, scope in
                 if let requestManager {
-                    self?.fetchMovies(for: keyword, scope: scope, requestManager: requestManager)
+                    self?.fetchResults(for: keyword, scope: scope, requestManager: requestManager)
                 }
             })
             .store(in: &subscriptions)
     }
 
-    private func fetchMovies(for keyword: String, scope: Scope, requestManager: RequestManager) {
+    private func fetchResults(for keyword: String, scope: Scope, requestManager: RequestManager) {
         Task {
             do {
                 error = nil
@@ -61,10 +61,14 @@ import CoreSpotlight
                 case .movie:
                     let movies = try await SearchWebService(requestManager: requestManager)
                         .fetchMovies(with: keyword)
+                        .sorted(by: { $0.release > $1.release })
+
                     result = ExploreListItems.movies(movies)
                 case .artist:
                     let artists = try await SearchWebService(requestManager: requestManager)
                         .fetchArtists(with: keyword)
+                        .sorted(by: { $0.popularity > $1.popularity })
+
                     result = ExploreListItems.artists(artists)
                 }
                 isLoading = false
@@ -72,7 +76,7 @@ import CoreSpotlight
                 self.isLoading = false
                 self.error = .failedToLoad(id: .init()) { [weak self, weak requestManager] in
                     if let requestManager {
-                        self?.fetchMovies(for: keyword, scope: scope, requestManager: requestManager)
+                        self?.fetchResults(for: keyword, scope: scope, requestManager: requestManager)
                     }
                 }
             }

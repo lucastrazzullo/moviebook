@@ -56,6 +56,7 @@ struct TMDBArtistDetailsResponse: Decodable {
         case id = "id"
         case name = "name"
         case biography = "biography"
+        case popularity = "popularity"
         case character = "character"
         case birthday = "birthday"
         case deathday = "deathday"
@@ -71,6 +72,7 @@ struct TMDBArtistDetailsResponse: Decodable {
         let name = try container.decode(String.self, forKey: .name)
         let biography = try container.decodeIfPresent(String.self, forKey: .biography)
         let character = try container.decodeIfPresent(String.self, forKey: .character)
+        let popularity = try container.decodeIfPresent(Float.self, forKey: .popularity) ?? 0
 
         var birthday: Date?
         if let birthdayString = try container.decodeIfPresent(String.self, forKey: .birthday) {
@@ -93,6 +95,7 @@ struct TMDBArtistDetailsResponse: Decodable {
                                     imagePreviewUrl: imagePreviewUrl,
                                     imageOriginalUrl: imageOriginalUrl,
                                     biography: biography,
-                                    character: character)
+                                    character: character,
+                                    popularity: popularity)
     }
 }

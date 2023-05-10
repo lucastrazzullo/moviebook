@@ -16,4 +16,5 @@ struct ArtistDetails: Identifiable, Equatable, Hashable {
     let imageOriginalUrl: URL?
     let biography: String?
     let character: String?
+    let popularity: Float
 }
