@@ -7,6 +7,6 @@
 
 import Foundation
 
-struct MovieProduction {
+struct MovieProduction: Equatable {
     let companies: [String]
 }

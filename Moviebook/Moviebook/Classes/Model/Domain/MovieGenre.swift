@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct MovieGenre: Identifiable {
+struct MovieGenre: Identifiable, Equatable {
     let id: Int
     let name: String
 }

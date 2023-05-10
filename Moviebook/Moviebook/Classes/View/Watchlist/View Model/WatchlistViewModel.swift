@@ -19,15 +19,24 @@ import Combine
         var id: String {
             return self.rawValue
         }
+
+        var name: String {
+            switch self {
+            case .toWatch:
+                return NSLocalizedString("WATCHLIST.TO_WATCH.TITLE", comment: "")
+            case .watched:
+                return NSLocalizedString("WATCHLIST.WATCHED.TITLE", comment: "")
+            }
+        }
     }
 
-    enum SectionItem: Identifiable {
+    enum SectionItem: Identifiable, Equatable {
         case movie(movie: Movie, section: Section, watchlistIdentifier: WatchlistItemIdentifier)
 
         var id: String {
             switch self {
             case .movie(let movie, let section, _):
-                return "\(movie.id): \(section.id)"
+                return "\(movie.id): \(section.name)"
             }
         }
 
@@ -45,15 +54,6 @@ import Combine
 
         var id: Section.ID {
             return section.id
-        }
-
-        var name: String {
-            switch section {
-            case .toWatch:
-                return NSLocalizedString("WATCHLIST.TO_WATCH.TITLE", comment: "")
-            case .watched:
-                return NSLocalizedString("WATCHLIST.WATCHED.TITLE", comment: "")
-            }
         }
 
         @Published private(set) var items: [SectionItem] = []
