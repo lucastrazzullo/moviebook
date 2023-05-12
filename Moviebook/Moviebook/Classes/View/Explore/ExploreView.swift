@@ -66,6 +66,7 @@ struct ExploreView: View {
                 .listSectionSeparator(.hidden)
             }
             .listStyle(.inset)
+            .scrollDismissesKeyboard(.immediately)
             .navigationTitle(NSLocalizedString("EXPLORE.TITLE", comment: ""))
             .toolbar {
                 ToolbarItem {
