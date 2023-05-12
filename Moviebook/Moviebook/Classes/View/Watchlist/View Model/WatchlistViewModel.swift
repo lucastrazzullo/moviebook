@@ -40,6 +40,13 @@ import Combine
             }
         }
 
+        var section: Section {
+            switch self {
+            case .movie(_, let section, _):
+                return section
+            }
+        }
+
         var watchlistIdentifier: WatchlistItemIdentifier {
             switch self {
             case .movie(_, _, let watchlistIdentifier):
@@ -58,13 +65,18 @@ import Combine
 
         @Published private(set) var items: [SectionItem] = []
 
+        private var hiddenItemIndex: Int?
+
         init(section: Section) {
             self.section = section
         }
 
+        // MARK: Internal methods
+
         func set(identifiers: [WatchlistItemIdentifier], requestManager: RequestManager) async throws {
-            let section = self.section
-            self.items = try await withThrowingTaskGroup(of: SectionItem.self) { group in
+            hiddenItemIndex = nil
+
+            items = try await withThrowingTaskGroup(of: SectionItem.self) { group in
                 var result = [WatchlistItemIdentifier: SectionItem]()
                 result.reserveCapacity(identifiers.count)
 
@@ -74,7 +86,7 @@ import Combine
                         case .movie(let id):
                             let webService = MovieWebService(requestManager: requestManager)
                             let movie = try await webService.fetchMovie(with: id)
-                            return SectionItem.movie(movie: movie, section: section, watchlistIdentifier: identifier)
+                            return SectionItem.movie(movie: movie, section: self.section, watchlistIdentifier: identifier)
                         }
                     }
                 }
@@ -93,14 +105,36 @@ import Combine
                 return items
             }
         }
+
+        func hide(item: SectionItem) {
+            guard let index = items.firstIndex(of: item) else {
+                return
+            }
+
+            hiddenItemIndex = index
+            items.remove(at: index)
+        }
+
+        func unhide(item: SectionItem) {
+            guard let index = hiddenItemIndex else {
+                return
+            }
+
+            items.insert(item, at: index)
+            hiddenItemIndex = nil
+        }
     }
 
     // MARK: Instance Properties
 
-    @Published var isLoading: Bool = true
-    @Published var sections: [Section: SectionContent] = [:]
+    @Published private(set) var isLoading: Bool = true
+    @Published private(set) var sections: [Section: SectionContent] = [:]
+    @Published private(set) var itemToRemove: SectionItem?
+    @Published private(set) var undoTimeRemaining: TimeInterval = 0
+    
     @Published var currentSection: Section = .toWatch
 
+    private var undoTimer: Publishers.Autoconnect<Timer.TimerPublisher>?
     private var subscriptions: Set<AnyCancellable> = []
 
     var sectionIdentifiers: [Section] {
@@ -152,5 +186,39 @@ import Combine
                 }
             }
             .store(in: &subscriptions)
+    }
+
+    func remove(item: SectionItem, from watchlist: Watchlist) {
+        sections[item.section]?.hide(item: item)
+
+        itemToRemove = item
+        undoTimeRemaining = 5
+
+        undoTimer = Timer.publish(every: 0.1, on: .main, in: .default).autoconnect()
+        undoTimer?
+            .sink { date in
+                self.undoTimeRemaining -= 0.1
+
+                if self.undoTimeRemaining <= -1 {
+                    self.undoTimeRemaining = -1
+                    self.itemToRemove = nil
+                    self.undoTimer?.upstream.connect().cancel()
+
+                    watchlist.remove(itemWith: item.watchlistIdentifier)
+                }
+            }
+            .store(in: &subscriptions)
+    }
+
+    func undo() {
+        guard let itemToRemove else {
+            return
+        }
+
+        self.sections[itemToRemove.section]?.unhide(item: itemToRemove)
+
+        self.undoTimeRemaining = -1
+        self.itemToRemove = nil
+        self.undoTimer?.upstream.connect().cancel()
     }
 }

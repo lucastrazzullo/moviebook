@@ -14,9 +14,6 @@ struct WatchlistView: View {
 
     @StateObject private var viewModel: WatchlistViewModel = WatchlistViewModel()
 
-    @State private var itemToRemove: WatchlistViewModel.SectionItem?
-    @State private var undoTimeRemaining: TimeInterval = 0
-
     let onExploreSelected: () -> Void
     let onMovieSelected: (Movie) -> Void
 
@@ -32,9 +29,8 @@ struct WatchlistView: View {
                             MoviePreviewView(details: movie.details) {
                                 onMovieSelected(movie)
                             }
-                            .opacity(item == itemToRemove ? 0.4 : 1.0)
                             .swipeActions {
-                                Button(action: { itemToRemove = item }) {
+                                Button(action: { viewModel.remove(item: item, from: watchlist) }) {
                                     HStack {
                                         Image(systemName: "minus")
                                         Text("Remove")
@@ -50,9 +46,9 @@ struct WatchlistView: View {
             .scrollIndicators(.hidden)
             .listStyle(.plain)
 
-            if let itemToRemove {
+            if let itemToRemove = viewModel.itemToRemove {
                 switch itemToRemove {
-                case .movie(let movie, let section, let watchlistIdentifier):
+                case .movie(let movie, let section, _):
                     HStack(spacing: 24) {
                         HStack {
                             AsyncImage(url: movie.details.media.posterPreviewUrl) { image in
@@ -75,12 +71,12 @@ struct WatchlistView: View {
 
                         Spacer()
 
-                        Button(action: { self.itemToRemove = nil }) {
+                        Button(action: { viewModel.undo() }) {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("Undo")
-                                ProgressView(value: undoTimeRemaining, total: 5)
+                                ProgressView(value: viewModel.undoTimeRemaining, total: 5)
                                     .progressViewStyle(.linear)
-                                    .animation(.linear, value: undoTimeRemaining)
+                                    .animation(.linear, value: viewModel.undoTimeRemaining)
                             }
                         }
                         .tint(Color.accentColor)
@@ -89,20 +85,6 @@ struct WatchlistView: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                     .padding()
                     .background(Rectangle().fill(.background))
-                    .onAppear {
-                        self.undoTimeRemaining = 5
-                        Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
-                            self.undoTimeRemaining -= 0.1
-
-                            if undoTimeRemaining <= 0 {
-                                self.undoTimeRemaining = 0
-                                self.itemToRemove = nil
-                                timer.invalidate()
-
-                                self.watchlist.remove(itemWith: watchlistIdentifier)
-                            }
-                        }
-                    }
                 }
             }
         }
@@ -114,7 +96,7 @@ struct WatchlistView: View {
         .onAppear {
             viewModel.start(watchlist: watchlist, requestManager: requestManager)
         }
-        .animation(.easeInOut(duration: 0.8), value: itemToRemove)
+        .animation(.easeInOut(duration: 0.8), value: viewModel.itemToRemove)
     }
 
     // MARK: Private factory methods
