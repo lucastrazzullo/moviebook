@@ -36,7 +36,7 @@ struct ExploreView: View {
     var body: some View {
         NavigationView {
             List {
-                if searchViewModel.isLoading || !searchViewModel.searchKeyword.isEmpty {
+                if !searchViewModel.searchKeyword.isEmpty {
                     SectionView(title: searchViewModel.title,
                                 isLoading: searchViewModel.isLoading,
                                 error: searchViewModel.error,
