@@ -17,7 +17,6 @@
 		812489C229F15307004A6BE6 /* ExploreSearchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 812489C129F15307004A6BE6 /* ExploreSearchViewModel.swift */; };
 		812489C429F15847004A6BE6 /* ArtistDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = 812489C329F15847004A6BE6 /* ArtistDetails.swift */; };
 		812489C629F1586A004A6BE6 /* Artist.swift in Sources */ = {isa = PBXBuildFile; fileRef = 812489C529F1586A004A6BE6 /* Artist.swift */; };
-		812489C829F15B93004A6BE6 /* ExploreListItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 812489C729F15B93004A6BE6 /* ExploreListItem.swift */; };
 		812489CB29F15EC1004A6BE6 /* ArtistPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 812489CA29F15EC1004A6BE6 /* ArtistPreviewView.swift */; };
 		8127B5472A07C07B00FE0DBC /* LegacyWatchlistStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8127B5462A07C07B00FE0DBC /* LegacyWatchlistStorage.swift */; };
 		8128AB1428DF106C002FD343 /* SearchWebService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8128AB1328DF106C002FD343 /* SearchWebService.swift */; };
@@ -109,7 +108,6 @@
 		812489C129F15307004A6BE6 /* ExploreSearchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreSearchViewModel.swift; sourceTree = "<group>"; };
 		812489C329F15847004A6BE6 /* ArtistDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistDetails.swift; sourceTree = "<group>"; };
 		812489C529F1586A004A6BE6 /* Artist.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Artist.swift; sourceTree = "<group>"; };
-		812489C729F15B93004A6BE6 /* ExploreListItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreListItem.swift; sourceTree = "<group>"; };
 		812489CA29F15EC1004A6BE6 /* ArtistPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistPreviewView.swift; sourceTree = "<group>"; };
 		8127B5462A07C07B00FE0DBC /* LegacyWatchlistStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyWatchlistStorage.swift; sourceTree = "<group>"; };
 		8128AB1328DF106C002FD343 /* SearchWebService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchWebService.swift; sourceTree = "<group>"; };
@@ -463,7 +461,6 @@
 		8194DF5D29FE668F00A3FC2D /* View Model */ = {
 			isa = PBXGroup;
 			children = (
-				812489C729F15B93004A6BE6 /* ExploreListItem.swift */,
 				812489BF29F152C4004A6BE6 /* ExploreSectionViewModel.swift */,
 				812489C129F15307004A6BE6 /* ExploreSearchViewModel.swift */,
 			);
@@ -657,7 +654,6 @@
 				81A395D529F40CD200800F7E /* LoaderView.swift in Sources */,
 				812489C229F15307004A6BE6 /* ExploreSearchViewModel.swift in Sources */,
 				8169FB6228C2107D0054BCE6 /* UpcomingWebService.swift in Sources */,
-				812489C829F15B93004A6BE6 /* ExploreListItem.swift in Sources */,
 				8194DF722A04FACD00A3FC2D /* Storage.swift in Sources */,
 				81A395D929F4104B00800F7E /* SlidingCardView.swift in Sources */,
 				8194DF6329FE754800A3FC2D /* ArtistViewModel.swift in Sources */,

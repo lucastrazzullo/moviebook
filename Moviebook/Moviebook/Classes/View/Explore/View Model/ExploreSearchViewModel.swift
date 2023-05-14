@@ -16,6 +16,22 @@ import CoreSpotlight
         case artist
     }
 
+    enum SearchItems {
+        case movies([MovieDetails])
+        case artists([ArtistDetails])
+
+        func appending(items: SearchItems) -> Self {
+            switch (self, items) {
+            case (let .movies(movies), let .movies(newMovies)):
+                return .movies(movies + newMovies)
+            case (let .artists(artists), let .artists(newArtists)):
+                return .artists(artists + newArtists)
+            default:
+                return items
+            }
+        }
+    }
+
     // MARK: Instance Properties
 
     var title: String {
@@ -25,7 +41,7 @@ import CoreSpotlight
     @Published var searchKeyword: String = ""
     @Published var searchScope: Scope = .movie
 
-    @Published var result: ExploreListItems = .movies([])
+    @Published var result: SearchItems = .movies([])
     @Published var isLoading: Bool = false
     @Published var error: WebServiceError? = nil
     @Published var fetchNextPage: (() -> Void)?
@@ -61,22 +77,25 @@ import CoreSpotlight
                 fetchNextPage = nil
 
                 let webService = SearchWebService(requestManager: requestManager)
+                let nextPage: Int?
+                let items: SearchItems
                 switch scope {
                 case .movie:
                     let response = try await webService.fetchMovies(with: keyword, page: page)
-                    let movies = response.results.sorted(by: { $0.release > $1.release })
-                    if let nextPage = response.nextPage {
-                        fetchNextPage = { [weak self] in
-                            self?.fetchResults(for: keyword, scope: scope, page: nextPage, requestManager: requestManager)
-                        }
-                    }
-                    result = result.appending(items: .movies(movies))
+                    nextPage = response.nextPage
+                    items = .movies(response.results.sorted(by: { $0.release > $1.release }))
                 case .artist:
-                    let response = try await webService.fetchArtists(with: keyword)
-                    let artists = response.sorted(by: { $0.popularity > $1.popularity })
-                    result = ExploreListItems.artists(artists)
+                    let response = try await webService.fetchArtists(with: keyword, page: page)
+                    nextPage = response.nextPage
+                    items = .artists(response.results.sorted(by: { $0.popularity > $1.popularity }))
                 }
 
+                if let nextPage {
+                    fetchNextPage = { [weak self] in
+                        self?.fetchResults(for: keyword, scope: scope, page: nextPage, requestManager: requestManager)
+                    }
+                }
+                result = result.appending(items: items)
                 isLoading = false
 
             } catch {

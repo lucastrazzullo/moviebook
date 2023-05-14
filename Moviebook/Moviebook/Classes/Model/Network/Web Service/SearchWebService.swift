@@ -22,10 +22,14 @@ struct SearchWebService {
         return (results: response.results.map(\.result), nextPage: response.nextPage)
     }
 
-    func fetchArtists(with keyword: String) async throws -> [ArtistDetails] {
-        let searchQueryItem = URLQueryItem(name: "query", value: keyword)
-        let url = try TheMovieDbDataRequestFactory.makeURL(path: "search/person", queryItems: [searchQueryItem])
+    func fetchArtists(with keyword: String, page: Int? = nil) async throws -> (results: [ArtistDetails], nextPage: Int?) {
+        var queryItems = [URLQueryItem(name: "query", value: keyword)]
+        if let page {
+            queryItems.append(URLQueryItem(name: "page", value: String(page)))
+        }
+        let url = try TheMovieDbDataRequestFactory.makeURL(path: "search/person", queryItems: queryItems)
         let data = try await requestManager.request(from: url)
-        return try JSONDecoder().decode(TMDBResponseWithListResults<TMDBArtistDetailsResponse>.self, from: data).results.map(\.result)
+        let response = try JSONDecoder().decode(TMDBResponseWithListResults<TMDBArtistDetailsResponse>.self, from: data)
+        return (results: response.results.map(\.result), nextPage: response.nextPage)
     }
 }
