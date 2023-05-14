@@ -37,33 +37,41 @@ struct ExploreView: View {
         NavigationView {
             List {
                 if !searchViewModel.searchKeyword.isEmpty {
-                    SectionView(title: searchViewModel.title,
-                                isLoading: searchViewModel.isLoading,
-                                error: searchViewModel.error,
-                                items: searchViewModel.result,
-                                onMovieSelected: { movieIdentifier in
-                                    presentedItem = .movie(movieId: movieIdentifier)
-                                },
-                                onArtistSelected: { artistIdentifier in
-                                    presentedItem = .artist(artistId: artistIdentifier)
+                    SectionView(
+                        title: searchViewModel.title,
+                        isLoading: searchViewModel.isLoading,
+                        error: searchViewModel.error,
+                        loadMore: searchViewModel.fetchNextPage) {
+                            switch searchViewModel.result {
+                            case .movies(let movies):
+                                ForEach(movies, id: \.self) { movieDetails in
+                                    MoviePreviewView(details: movieDetails) {
+                                        presentedItem = .movie(movieId: movieDetails.id)
+                                    }
                                 }
-                    )
-                }
-
-                ForEach(exploreViewModel.sections) { section in
-                    SectionView(title: section.name,
-                                isLoading: section.isLoading,
-                                error: section.error,
-                                items: .movies(section.items),
-                                onMovieSelected: { movieIdentifier in
-                                    presentedItem = .movie(movieId: movieIdentifier)
-                                },
-                                onArtistSelected: { artistIdentifier in
-                                    presentedItem = .artist(artistId: artistIdentifier)
+                            case .artists(let artists):
+                                ForEach(artists, id: \.self) { artistDetails in
+                                    ArtistPreviewView(details: artistDetails) {
+                                        presentedItem = .artist(artistId: artistDetails.id)
+                                    }
                                 }
-                    )
+                            }
+                        }
+                } else {
+                    ForEach(exploreViewModel.sections) { section in
+                        SectionView(
+                            title: section.name,
+                            isLoading: section.isLoading,
+                            error: section.error,
+                            loadMore: nil) {
+                                ForEach(section.items, id: \.self) { movieDetails in
+                                    MoviePreviewView(details: movieDetails) {
+                                        presentedItem = .movie(movieId: movieDetails.id)
+                                    }
+                                }
+                            }
+                    }
                 }
-                .listSectionSeparator(.hidden)
             }
             .listStyle(.inset)
             .scrollDismissesKeyboard(.immediately)
@@ -113,37 +121,38 @@ struct ExploreView: View {
     }
 }
 
-private struct SectionView: View {
+private struct SectionView<Content: View>: View {
 
     let title: String
     let isLoading: Bool
     let error: WebServiceError?
-    let items: ExploreListItems
-    let onMovieSelected: (Movie.ID) -> Void
-    let onArtistSelected: (Artist.ID) -> Void
+    let loadMore: (() -> Void)?
+
+    @ViewBuilder let content: () -> Content
 
     var body: some View {
-        Section(header: header) {
-            switch items {
-            case .movies(let movies):
-                ForEach(movies, id: \.self) { movieDetails in
-                    MoviePreviewView(details: movieDetails) {
-                        onMovieSelected(movieDetails.id)
-                    }
-                }
-            case .artists(let artists):
-                ForEach(artists, id: \.self) { artistDetails in
-                    ArtistPreviewView(details: artistDetails) {
-                        onArtistSelected(artistDetails.id)
-                    }
-                }
+        Section(header: HeaderView(title: title, isLoading: isLoading)) {
+            if let error {
+                ErrorView(error: error)
+            }
+
+            content()
+
+            if let loadMore {
+                LoadMoreView(action: loadMore)
             }
         }
         .listRowSeparator(.hidden)
         .listSectionSeparator(.hidden)
     }
+}
 
-    private var header: some View {
+private struct HeaderView: View {
+
+    let title: String
+    let isLoading: Bool
+
+    var body: some View {
         HStack(spacing: 4) {
             Text(title)
                 .font(.title3)
@@ -152,19 +161,43 @@ private struct SectionView: View {
             if isLoading {
                 ProgressView()
             }
-            if let error = error {
-                HStack {
-                    Spacer()
-                    Text("Something went wrong")
-                        .foregroundColor(.primary)
-                        .underline()
+        }
+    }
+}
 
-                    Button(action: error.retry) {
-                        Text("Retry")
-                    }
-                    .buttonStyle(.borderless)
+private struct LoadMoreView: View {
+
+    let action: () -> Void
+
+    var body: some View {
+        Group {
+            Button(action: action) {
+                HStack {
+                    Text("Load more")
+                    Image(systemName: "arrow.down.square.fill")
                 }
             }
+            .buttonStyle(.borderedProminent)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+    }
+}
+
+private struct ErrorView: View {
+
+    let error: WebServiceError
+
+    var body: some View {
+        VStack {
+            Text("Something went wrong")
+                .foregroundColor(.primary)
+                .underline()
+
+            Button(action: error.retry) {
+                Text("Retry")
+            }
+            .buttonStyle(.borderless)
         }
     }
 }
@@ -179,6 +212,15 @@ struct ExploreView_Previews: PreviewProvider {
                     WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
                     WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: nil)))
                 ]))
+
+            List {
+                Section {
+                    LoadMoreView(action: {})
+                }
+                .listRowSeparator(.hidden)
+                .listSectionSeparator(.hidden)
+            }
+            .listStyle(.inset)
         }
     }
 }

@@ -17,9 +17,6 @@ enum TheMovieDbDataRequestFactory {
         let version = 3
 
         var queryItems = queryItems
-        if let region = Configuration.region {
-            queryItems.append(URLQueryItem(name: "region", value: region))
-        }
         if let page = page {
             queryItems.append(URLQueryItem(name: "page", value: String(page)))
         }

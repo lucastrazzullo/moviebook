@@ -28,6 +28,7 @@ import CoreSpotlight
     @Published var result: ExploreListItems = .movies([])
     @Published var isLoading: Bool = false
     @Published var error: WebServiceError? = nil
+    @Published var fetchNextPage: (() -> Void)?
 
     private var subscriptions: Set<AnyCancellable> = []
 
@@ -46,37 +47,43 @@ import CoreSpotlight
             .debounce(for: .seconds(1), scheduler: DispatchQueue.main)
             .sink(receiveValue: { [weak self, weak requestManager] keyword, scope in
                 if let requestManager {
-                    self?.fetchResults(for: keyword, scope: scope, requestManager: requestManager)
+                    self?.fetchResults(for: keyword, scope: scope, page: nil, requestManager: requestManager)
                 }
             })
             .store(in: &subscriptions)
     }
 
-    private func fetchResults(for keyword: String, scope: Scope, requestManager: RequestManager) {
+    private func fetchResults(for keyword: String, scope: Scope, page: Int?, requestManager: RequestManager) {
         Task {
             do {
-                error = nil
                 isLoading = true
+                error = nil
+                fetchNextPage = nil
+
+                let webService = SearchWebService(requestManager: requestManager)
                 switch scope {
                 case .movie:
-                    let movies = try await SearchWebService(requestManager: requestManager)
-                        .fetchMovies(with: keyword)
-                        .sorted(by: { $0.release > $1.release })
-
-                    result = ExploreListItems.movies(movies)
+                    let response = try await webService.fetchMovies(with: keyword, page: page)
+                    let movies = response.results.sorted(by: { $0.release > $1.release })
+                    if let nextPage = response.nextPage {
+                        fetchNextPage = { [weak self] in
+                            self?.fetchResults(for: keyword, scope: scope, page: nextPage, requestManager: requestManager)
+                        }
+                    }
+                    result = result.appending(items: .movies(movies))
                 case .artist:
-                    let artists = try await SearchWebService(requestManager: requestManager)
-                        .fetchArtists(with: keyword)
-                        .sorted(by: { $0.popularity > $1.popularity })
-
+                    let response = try await webService.fetchArtists(with: keyword)
+                    let artists = response.sorted(by: { $0.popularity > $1.popularity })
                     result = ExploreListItems.artists(artists)
                 }
+
                 isLoading = false
+
             } catch {
                 self.isLoading = false
                 self.error = .failedToLoad(id: .init()) { [weak self, weak requestManager] in
                     if let requestManager {
-                        self?.fetchResults(for: keyword, scope: scope, requestManager: requestManager)
+                        self?.fetchResults(for: keyword, scope: scope, page: page, requestManager: requestManager)
                     }
                 }
             }
