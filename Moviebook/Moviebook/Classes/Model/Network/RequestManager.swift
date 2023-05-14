@@ -11,7 +11,7 @@ protocol RequestManager: AnyObject {
     func request(from url: URL) async throws -> Data
 }
 
-actor DefaultRequestManager: RequestManager {
+final class DefaultRequestManager: RequestManager {
 
     enum Logging {
         case disabled
