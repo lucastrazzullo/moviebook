@@ -13,8 +13,10 @@ import Combine
     // MARK: Types
 
     enum Section: String, Identifiable, CaseIterable {
-        case popular
+        case nowPlaying
         case upcoming
+        case popular
+        case topRated
 
         var id: String {
             return rawValue
@@ -31,10 +33,14 @@ import Combine
 
         var name: String {
             switch section {
+            case .nowPlaying:
+                return NSLocalizedString("MOVIE.NOW_PLAYING", comment: "")
             case .upcoming:
                 return NSLocalizedString("MOVIE.UPCOMING", comment: "")
             case .popular:
                 return NSLocalizedString("MOVIE.POPULAR", comment: "")
+            case .topRated:
+                return NSLocalizedString("MOVIE.TOP_RATED", comment: "")
             }
         }
 
@@ -75,17 +81,21 @@ import Combine
 
         private func fetchMovies(requestManager: RequestManager, page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?) {
             switch section {
-            case .popular:
-                return try await PopularWebService(requestManager: requestManager).fetch(page: page)
+            case .nowPlaying:
+                return try await MovieWebService(requestManager: requestManager).fetchNowPlaying(page: page)
             case .upcoming:
-                return try await UpcomingWebService(requestManager: requestManager).fetch(page: page)
+                return try await MovieWebService(requestManager: requestManager).fetchUpcoming(page: page)
+            case .popular:
+                return try await MovieWebService(requestManager: requestManager).fetchPopular(page: page)
+            case .topRated:
+                return try await MovieWebService(requestManager: requestManager).fetchTopRated(page: page)
             }
         }
     }
 
     // MARK: Instance Properties
 
-    @Published var currentSection: Section = .popular
+    @Published var currentSection: Section = Section.allCases[0]
     @Published var sections: [SectionContent] = Section.allCases.map { SectionContent(section: $0) }
 
     private var subscriptions: Set<AnyCancellable> = []

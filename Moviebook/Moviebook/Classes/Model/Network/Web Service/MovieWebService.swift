@@ -11,6 +11,8 @@ struct MovieWebService {
 
     let requestManager: RequestManager
 
+    // MARK: - Movie
+
     func fetchMovie(with identifier: Movie.ID) async throws -> Movie {
         let url = try TheMovieDbDataRequestFactory.makeURL(path: "movie/\(identifier)", queryItems: [
             URLQueryItem(name: "append_to_response", value: "credits,videos")
@@ -39,6 +41,36 @@ struct MovieWebService {
         let url = try TheMovieDbDataRequestFactory.makeURL(path: "movie/\(movieIdentifier)/watch/providers")
         let data = try await requestManager.request(from: url)
         return try JSONDecoder().decode(TMDBWatchProviderCollectionResponse.self, from: data).result
+    }
+
+    // MARK: - Movie lists
+
+    func fetchPopular(page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?) {
+        return try await fetchMovies(path: "movie/popular", page: page)
+    }
+
+    func fetchUpcoming(page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?) {
+        return try await fetchMovies(path: "movie/upcoming", page: page)
+    }
+
+    func fetchTopRated(page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?) {
+        return try await fetchMovies(path: "movie/top_rated", page: page)
+    }
+
+    func fetchNowPlaying(page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?) {
+        return try await fetchMovies(path: "movie/now_playing", page: page)
+    }
+
+    private func fetchMovies(path: String, page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?) {
+        var queryItems = [URLQueryItem]()
+        if let page {
+            queryItems.append(URLQueryItem(name: "page", value: String(page)))
+        }
+        let url = try TheMovieDbDataRequestFactory.makeURL(path: path, queryItems: queryItems)
+        let data = try await requestManager.request(from: url)
+        let response = try JSONDecoder().decode(TMDBResponseWithListResults<TMDBMovieDetailsResponse>.self, from: data)
+
+        return (results: response.results.map(\.result), nextPage: response.nextPage)
     }
 }
 

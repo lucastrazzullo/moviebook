@@ -49,8 +49,6 @@
 		8169FB5B28C207A40054BCE6 /* Movie.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8169FB5A28C207A40054BCE6 /* Movie.swift */; };
 		8169FB5D28C207ED0054BCE6 /* Watchlist.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8169FB5C28C207ED0054BCE6 /* Watchlist.swift */; };
 		8169FB5F28C20C420054BCE6 /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8169FB5E28C20C420054BCE6 /* ExploreView.swift */; };
-		8169FB6228C2107D0054BCE6 /* UpcomingWebService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8169FB6128C2107D0054BCE6 /* UpcomingWebService.swift */; };
-		8169FB6628C215AB0054BCE6 /* PopularWebService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8169FB6528C215AB0054BCE6 /* PopularWebService.swift */; };
 		8175D6412A0940E3006BEE8E /* WatchProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8175D6402A0940E3006BEE8E /* WatchProvider.swift */; };
 		8175D6432A095150006BEE8E /* WatchProviderCollection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8175D6422A095150006BEE8E /* WatchProviderCollection.swift */; };
 		817C42A729FC190C00FB3FD6 /* WatchlistViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 817C42A629FC190C00FB3FD6 /* WatchlistViewModel.swift */; };
@@ -147,8 +145,6 @@
 		8169FB5A28C207A40054BCE6 /* Movie.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Movie.swift; sourceTree = "<group>"; };
 		8169FB5C28C207ED0054BCE6 /* Watchlist.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Watchlist.swift; sourceTree = "<group>"; };
 		8169FB5E28C20C420054BCE6 /* ExploreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreView.swift; sourceTree = "<group>"; };
-		8169FB6128C2107D0054BCE6 /* UpcomingWebService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpcomingWebService.swift; sourceTree = "<group>"; };
-		8169FB6528C215AB0054BCE6 /* PopularWebService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PopularWebService.swift; sourceTree = "<group>"; };
 		8175D6402A0940E3006BEE8E /* WatchProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchProvider.swift; sourceTree = "<group>"; };
 		8175D6422A095150006BEE8E /* WatchProviderCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchProviderCollection.swift; sourceTree = "<group>"; };
 		817C42A629FC190C00FB3FD6 /* WatchlistViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistViewModel.swift; sourceTree = "<group>"; };
@@ -500,8 +496,6 @@
 			isa = PBXGroup;
 			children = (
 				812489BC29F04E85004A6BE6 /* WebServiceError.swift */,
-				8169FB6128C2107D0054BCE6 /* UpcomingWebService.swift */,
-				8169FB6528C215AB0054BCE6 /* PopularWebService.swift */,
 				8128AB1328DF106C002FD343 /* SearchWebService.swift */,
 				814D46EA28C26E6B000D7ABD /* MovieWebService.swift */,
 				81A395D029F402CE00800F7E /* ArtistWebService.swift */,
@@ -656,7 +650,6 @@
 				8175D6432A095150006BEE8E /* WatchProviderCollection.swift in Sources */,
 				81A395D529F40CD200800F7E /* LoaderView.swift in Sources */,
 				812489C229F15307004A6BE6 /* ExploreSearchViewModel.swift in Sources */,
-				8169FB6228C2107D0054BCE6 /* UpcomingWebService.swift in Sources */,
 				8194DF722A04FACD00A3FC2D /* Storage.swift in Sources */,
 				81A395D929F4104B00800F7E /* SlidingCardView.swift in Sources */,
 				8194DF6329FE754800A3FC2D /* ArtistViewModel.swift in Sources */,
@@ -685,7 +678,6 @@
 				81CDE62329150D3000A34BBC /* MovieVideo.swift in Sources */,
 				814D46E128C2391D000D7ABD /* MockServer.swift in Sources */,
 				812489BD29F04E85004A6BE6 /* WebServiceError.swift in Sources */,
-				8169FB6628C215AB0054BCE6 /* PopularWebService.swift in Sources */,
 				81A69CC5290C398200724FB9 /* Rating.swift in Sources */,
 				814D46D028C2224A000D7ABD /* Response.swift in Sources */,
 				81989ED42A08F9DD00547584 /* Moviebook.swift in Sources */,
