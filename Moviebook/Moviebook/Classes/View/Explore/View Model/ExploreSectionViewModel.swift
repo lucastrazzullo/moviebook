@@ -23,7 +23,7 @@ import Combine
 
     final class SectionContent: ObservableObject, Identifiable {
 
-        private let section: Section
+        let section: Section
 
         var id: Section.ID {
             return section.id
@@ -85,6 +85,7 @@ import Combine
 
     // MARK: Instance Properties
 
+    @Published var currentSection: Section = .popular
     @Published var sections: [SectionContent] = Section.allCases.map { SectionContent(section: $0) }
 
     private var subscriptions: Set<AnyCancellable> = []

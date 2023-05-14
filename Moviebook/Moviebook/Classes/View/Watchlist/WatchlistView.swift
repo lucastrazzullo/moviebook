@@ -119,13 +119,7 @@ struct WatchlistView: View {
                     Text(section.name)
                 }
             }
-            .pickerStyle(.segmented)
-            .onAppear {
-                UISegmentedControl.appearance().backgroundColor = UIColor(Color.black.opacity(0.8))
-                UISegmentedControl.appearance().selectedSegmentTintColor = .white
-                UISegmentedControl.appearance().setTitleTextAttributes([.foregroundColor: UIColor.black], for: .selected)
-                UISegmentedControl.appearance().setTitleTextAttributes([.foregroundColor: UIColor.white], for: .normal)
-            }
+            .segmentedStyled()
         }
     }
 }

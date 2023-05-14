@@ -12,12 +12,21 @@ struct RetriableErrorView: View {
     let retry: () -> Void
 
     var body: some View {
-        VStack {
+        VStack(spacing: 12) {
             Text("An error occoured")
+                .foregroundColor(.primary)
+                .font(.title2)
+
             Button(action: retry) {
                 Text("Retry")
             }
+            .buttonStyle(.borderedProminent)
         }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal)
+        .padding(.vertical, 40)
+        .background(.thinMaterial)
+        .cornerRadius(12)
     }
 }
 

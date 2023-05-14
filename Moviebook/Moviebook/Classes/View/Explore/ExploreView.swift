@@ -58,7 +58,7 @@ struct ExploreView: View {
                             }
                         }
                 } else {
-                    ForEach(exploreViewModel.sections) { section in
+                    if let section = exploreViewModel.sections.first(where: { $0.section == exploreViewModel.currentSection }) {
                         SectionView(
                             title: section.name,
                             isLoading: section.isLoading,
@@ -77,9 +77,20 @@ struct ExploreView: View {
             .scrollDismissesKeyboard(.immediately)
             .navigationTitle(NSLocalizedString("EXPLORE.TITLE", comment: ""))
             .toolbar {
-                ToolbarItem {
+                ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: dismiss.callAsFunction) {
                         Text(NSLocalizedString("NAVIGATION.ACTION.DONE", comment: ""))
+                    }
+                }
+
+                if searchViewModel.searchKeyword.isEmpty {
+                    ToolbarItem(placement: .bottomBar) {
+                        Picker("Section", selection: $exploreViewModel.currentSection) {
+                            ForEach(exploreViewModel.sections, id: \.section) { section in
+                                Text(section.name)
+                            }
+                        }
+                        .segmentedStyled()
                     }
                 }
             }
@@ -133,7 +144,7 @@ private struct SectionView<Content: View>: View {
     var body: some View {
         Section(header: HeaderView(title: title, isLoading: isLoading)) {
             if let error {
-                ErrorView(error: error)
+                RetriableErrorView(retry: error.retry)
             }
 
             content()
@@ -155,7 +166,7 @@ private struct HeaderView: View {
     var body: some View {
         HStack(spacing: 4) {
             Text(title)
-                .font(.title3)
+                .font(.title)
                 .foregroundColor(.primary)
 
             if isLoading {
@@ -181,24 +192,6 @@ private struct LoadMoreView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)
-    }
-}
-
-private struct ErrorView: View {
-
-    let error: WebServiceError
-
-    var body: some View {
-        VStack {
-            Text("Something went wrong")
-                .foregroundColor(.primary)
-                .underline()
-
-            Button(action: error.retry) {
-                Text("Retry")
-            }
-            .buttonStyle(.borderless)
-        }
     }
 }
 
