@@ -345,7 +345,6 @@
 			isa = PBXGroup;
 			children = (
 				8169FB1C28C204450054BCE6 /* MoviebookApp.swift */,
-				81714096292FDC6000DE3FB2 /* Application */,
 				8169FB5728C207750054BCE6 /* Model */,
 				8169FB5528C207680054BCE6 /* View */,
 			);
@@ -387,14 +386,15 @@
 		8169FB5728C207750054BCE6 /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				8169FB6328C210820054BCE6 /* Domain */,
+				81714096292FDC6000DE3FB2 /* Application */,
+				8169FB6328C210820054BCE6 /* Entities */,
 				8169FB6428C2108A0054BCE6 /* Network */,
 				8194DF702A04FABB00A3FC2D /* Storage */,
 			);
 			path = Model;
 			sourceTree = "<group>";
 		};
-		8169FB6328C210820054BCE6 /* Domain */ = {
+		8169FB6328C210820054BCE6 /* Entities */ = {
 			isa = PBXGroup;
 			children = (
 				812489C529F1586A004A6BE6 /* Artist.swift */,
@@ -411,7 +411,7 @@
 				8175D6422A095150006BEE8E /* WatchProviderCollection.swift */,
 				8175D6402A0940E3006BEE8E /* WatchProvider.swift */,
 			);
-			path = Domain;
+			path = Entities;
 			sourceTree = "<group>";
 		};
 		8169FB6428C2108A0054BCE6 /* Network */ = {
