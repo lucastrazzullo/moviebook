@@ -39,20 +39,29 @@ import Combine
         }
 
         @Published var items: [MovieDetails] = []
-        @Published var error: WebServiceError? = nil
         @Published var isLoading: Bool = false
+        @Published var error: WebServiceError? = nil
+        @Published var fetchNextPage: (() -> Void)?
 
         init(section: Section) {
             self.section = section
         }
 
-        func fetch(requestManager: RequestManager) {
+        func fetch(requestManager: RequestManager, page: Int? = nil) {
             Task {
                 do {
-                    error = nil
                     isLoading = true
-                    items = try await fetchMovies(requestManager: requestManager)
+                    error = nil
+                    fetchNextPage = nil
+
+                    let result = try await fetchMovies(requestManager: requestManager, page: page)
+                    if let nextPage = result.nextPage {
+                        fetchNextPage = { [weak self] in self?.fetch(requestManager: requestManager, page: nextPage) }
+                    }
+
+                    items = items + result.results
                     isLoading = false
+
                 } catch {
                     self.isLoading = false
                     self.error = .failedToLoad(id: .init()) { [weak self, weak requestManager] in
@@ -64,12 +73,12 @@ import Combine
             }
         }
 
-        private func fetchMovies(requestManager: RequestManager) async throws -> [MovieDetails] {
+        private func fetchMovies(requestManager: RequestManager, page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?) {
             switch section {
             case .popular:
-                return try await PopularWebService(requestManager: requestManager).fetch()
+                return try await PopularWebService(requestManager: requestManager).fetch(page: page)
             case .upcoming:
-                return try await UpcomingWebService(requestManager: requestManager).fetch()
+                return try await UpcomingWebService(requestManager: requestManager).fetch(page: page)
             }
         }
     }

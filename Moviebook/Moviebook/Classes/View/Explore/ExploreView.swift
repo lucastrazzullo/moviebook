@@ -63,7 +63,7 @@ struct ExploreView: View {
                             title: section.name,
                             isLoading: section.isLoading,
                             error: section.error,
-                            loadMore: nil) {
+                            loadMore: section.fetchNextPage) {
                                 ForEach(section.items, id: \.self) { movieDetails in
                                     MoviePreviewView(details: movieDetails) {
                                         presentedItem = .movie(movieId: movieDetails.id)

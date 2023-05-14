@@ -11,9 +11,15 @@ struct UpcomingWebService {
 
     let requestManager: RequestManager
 
-    func fetch() async throws -> [MovieDetails] {
-        let url = try TheMovieDbDataRequestFactory.makeURL(path: "movie/upcoming")
+    func fetch(page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?) {
+        var queryItems = [URLQueryItem]()
+        if let page {
+            queryItems.append(URLQueryItem(name: "page", value: String(page)))
+        }
+        let url = try TheMovieDbDataRequestFactory.makeURL(path: "movie/upcoming", queryItems: queryItems)
         let data = try await requestManager.request(from: url)
-        return try JSONDecoder().decode(TMDBResponseWithListResults<TMDBMovieDetailsResponse>.self, from: data).results.map(\.result)
+        let response = try JSONDecoder().decode(TMDBResponseWithListResults<TMDBMovieDetailsResponse>.self, from: data)
+
+        return (results: response.results.map(\.result), nextPage: response.nextPage)
     }
 }
