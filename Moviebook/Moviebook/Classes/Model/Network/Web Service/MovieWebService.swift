@@ -37,10 +37,11 @@ struct MovieWebService {
         return try JSONDecoder().decode(TMDBMovieCollectionResponse.self, from: data).result
     }
 
-    private func fetchWatchProviders(with movieIdentifier: Movie.ID) async throws -> WatchProviderCollection {
+    private func fetchWatchProviders(with movieIdentifier: Movie.ID) async throws -> WatchProviders {
         let url = try TheMovieDbDataRequestFactory.makeURL(path: "movie/\(movieIdentifier)/watch/providers")
         let data = try await requestManager.request(from: url)
-        return try JSONDecoder().decode(TMDBWatchProviderCollectionResponse.self, from: data).result
+        let results = try JSONDecoder().decode(TheMovieDbResponseWithDictionaryResults<TMDBWatchProviderCollectionResponse>.self, from: data).results.map { key, value in (key, value.result) }
+        return WatchProviders(collections: Dictionary(uniqueKeysWithValues: results))
     }
 
     // MARK: - Movie lists
@@ -98,7 +99,7 @@ struct TMDBMovieResponse: Decodable {
         let details = try TMDBMovieDetailsResponse(from: decoder).result
         let genres = try values.decode([TMDBMovieGenreResponse].self, forKey: .genres).map(\.result)
         let production = try TMDBMovieProductionResponse(from: decoder).result
-        let watch = WatchProviderCollection()
+        let watch = WatchProviders(collections: [:])
         let collection = try values.decodeIfPresent(TMDBMovieCollectionResponse.self, forKey: .collection)?.result
 
         let creditsContainer = try values.nestedContainer(keyedBy: CreditsCodingKeys.self, forKey: .credits)
@@ -155,14 +156,15 @@ struct TMDBMovieDetailsResponse: Decodable {
             runtime = TimeInterval(minutes*60)
         }
 
+        let currency = Locale.current.currency?.identifier ?? "EUR"
         var budget: MoneyValue?
         if let budgetValue = try values.decodeIfPresent(Int.self, forKey: .budget) {
-            budget = MoneyValue(value: budgetValue, currencyCode: Configuration.currency)
+            budget = MoneyValue(value: budgetValue, currencyCode: currency)
         }
 
         var revenue: MoneyValue?
         if let revenueValue = try values.decodeIfPresent(Int.self, forKey: .revenue) {
-            revenue = MoneyValue(value: revenueValue, currencyCode: Configuration.currency)
+            revenue = MoneyValue(value: revenueValue, currencyCode: currency)
         }
 
         self.result = MovieDetails(id: id,

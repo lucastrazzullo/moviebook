@@ -131,25 +131,41 @@ private struct HeaderView: View {
 
 private struct WatchProvidersView: View {
 
-    let watch: WatchProviderCollection
+    @State private var currentRegion: String
+
+    let watch: WatchProviders
 
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
-            Text("Watch providers")
-                .font(.title2)
-
-
-            if !watch.free.isEmpty {
-                VStack(alignment: .leading) {
-                    Text("Free").font(.headline)
-                    providerList(providers: watch.free)
+            HStack {
+                Text("Watch providers")
+                Spacer()
+                Picker("Region", selection: $currentRegion) {
+                    ForEach(watch.regions, id: \.self) { region in
+                        Text(region)
+                    }
                 }
             }
+            .tint(.black)
+            .font(.title2)
 
-            if !(watch.rent + watch.buy).isEmpty {
-                VStack(alignment: .leading) {
-                    Text("Rent or Buy").font(.headline)
-                    providerList(providers: watch.rent + watch.buy)
+            if let collection = watch.collection(for: currentRegion) {
+                if !collection.free.isEmpty {
+                    VStack(alignment: .leading) {
+                        Text("Free").font(.headline)
+                        providerList(providers: collection.free)
+                    }
+                }
+
+                if !(collection.rent + collection.buy).isEmpty {
+                    VStack(alignment: .leading) {
+                        Text("Rent or Buy").font(.headline)
+                        providerList(providers: collection.rent + collection.buy)
+                    }
+                }
+            } else {
+                VStack {
+                    Text("This movie has no watch providers yet")
                 }
             }
         }
@@ -169,6 +185,13 @@ private struct WatchProvidersView: View {
                 .cornerRadius(8)
             }
         }
+    }
+
+    init(watch: WatchProviders) {
+        self.watch = watch
+
+        let initialRegion = Locale.current.region?.identifier ?? watch.regions.first ?? "US"
+        self._currentRegion = State(initialValue: initialRegion)
     }
 }
 

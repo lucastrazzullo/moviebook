@@ -13,6 +13,6 @@ struct Movie: Identifiable, Equatable {
     let genres: [MovieGenre]
     let cast: [ArtistDetails]
     let production: MovieProduction
-    var watch: WatchProviderCollection
+    var watch: WatchProviders
     var collection: MovieCollection?
 }

@@ -33,7 +33,7 @@ enum TheMovieDbDataRequestFactory {
     }
 
     private static func defaultURLComponents() -> URLComponents {
-        let language = Configuration.language
+        let language = Locale.current.identifier
 
         var components = URLComponents()
         components.scheme = "https"

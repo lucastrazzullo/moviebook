@@ -21,8 +21,4 @@ struct WatchProviderCollection: Equatable {
         self.rent = rent
         self.buy = buy
     }
-
-    init() {
-        self.init(free: [], rent: [], buy: [])
-    }
 }
