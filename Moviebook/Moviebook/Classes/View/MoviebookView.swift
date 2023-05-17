@@ -11,7 +11,7 @@ import CoreSpotlight
 struct MoviebookView: View {
 
     enum PresentedItem: Identifiable {
-        case explore(scope: ExploreSearchViewModel.Scope, query: String?)
+        case explore(scope: SearchViewModel.Scope, query: String?)
         case movie(_ movie: Movie)
         case movieWithIdentifier(_ id: Movie.ID)
         case artistWithIdentifier(_ id: Artist.ID)

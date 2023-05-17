@@ -14,7 +14,7 @@ enum Deeplink: RawRepresentable {
     // MARK: Cases
 
     case watchlist
-    case search(scope: ExploreSearchViewModel.Scope, query: String?)
+    case search(scope: SearchViewModel.Scope, query: String?)
     case movie(identifier: Movie.ID)
     case artist(identifier: Artist.ID)
 
@@ -87,8 +87,8 @@ enum Deeplink: RawRepresentable {
         switch screen {
         case .watchlist, .feed:
             self = .watchlist
-        case .search where identifier != nil && ExploreSearchViewModel.Scope(rawValue: identifier!) != nil:
-            self = .search(scope: ExploreSearchViewModel.Scope(rawValue: identifier!)!, query: parameter)
+        case .search where identifier != nil && SearchViewModel.Scope(rawValue: identifier!) != nil:
+            self = .search(scope: SearchViewModel.Scope(rawValue: identifier!)!, query: parameter)
         case .movie where identifier != nil && Movie.ID(identifier!) != nil:
             self = .movie(identifier: Movie.ID(identifier!)!)
         case .artist where identifier != nil && Artist.ID(identifier!) != nil,

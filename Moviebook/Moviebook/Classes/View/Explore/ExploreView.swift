@@ -27,8 +27,8 @@ struct ExploreView: View {
     @Environment(\.requestManager) var requestManager
     @EnvironmentObject var watchlist: Watchlist
 
-    @StateObject private var searchViewModel: ExploreSearchViewModel
-    @StateObject private var exploreViewModel: ExploreSectionViewModel
+    @StateObject private var searchViewModel: SearchViewModel
+    @StateObject private var exploreViewModel: ExploreViewModel
 
     @State private var presentedItem: PresentingItem?
     @State private var presentedItemNavigationPath: NavigationPath = NavigationPath()
@@ -37,43 +37,19 @@ struct ExploreView: View {
         NavigationView {
             List {
                 if !searchViewModel.searchKeyword.isEmpty {
-                    SectionView(
-                        title: searchViewModel.title,
-                        isLoading: searchViewModel.isLoading,
-                        error: searchViewModel.error,
-                        loadMore: searchViewModel.fetchNextPage) {
-                            switch searchViewModel.result {
-                            case .movies(let movies):
-                                ForEach(movies, id: \.self) { movieDetails in
-                                    MoviePreviewView(details: movieDetails) {
-                                        presentedItem = .movie(movieId: movieDetails.id)
-                                    }
-                                }
-                            case .artists(let artists):
-                                ForEach(artists, id: \.self) { artistDetails in
-                                    ArtistPreviewView(details: artistDetails) {
-                                        presentedItem = .artist(artistId: artistDetails.id)
-                                    }
-                                }
-                            }
-                        }
+                    ExploreVerticalSectionView(viewModel: searchViewModel.content, onItemSelected: { movieId in
+                        presentedItem = .movie(movieId: movieId)
+                    })
                 } else {
-                    if let section = exploreViewModel.sections.first(where: { $0.section == exploreViewModel.currentSection }) {
-                        SectionView(
-                            title: section.name,
-                            isLoading: section.isLoading,
-                            error: section.error,
-                            loadMore: section.fetchNextPage) {
-                                ForEach(section.items, id: \.self) { movieDetails in
-                                    MoviePreviewView(details: movieDetails) {
-                                        presentedItem = .movie(movieId: movieDetails.id)
-                                    }
-                                }
-                            }
+                    ForEach(exploreViewModel.sections) { sectionViewModel in
+                        ExploreHorizontalSectionView(viewModel: sectionViewModel) { movieId in
+                            presentedItem = .movie(movieId: movieId)
+                        }
                     }
                 }
             }
             .listStyle(.inset)
+            .scrollIndicators(.hidden)
             .scrollDismissesKeyboard(.immediately)
             .navigationTitle(NSLocalizedString("EXPLORE.TITLE", comment: ""))
             .toolbar {
@@ -82,24 +58,13 @@ struct ExploreView: View {
                         Text(NSLocalizedString("NAVIGATION.ACTION.DONE", comment: ""))
                     }
                 }
-
-                if searchViewModel.searchKeyword.isEmpty {
-                    ToolbarItem(placement: .bottomBar) {
-                        Picker("Section", selection: $exploreViewModel.currentSection) {
-                            ForEach(exploreViewModel.sections, id: \.section) { section in
-                                Text(section.name)
-                            }
-                        }
-                        .segmentedStyled()
-                    }
-                }
             }
             .searchable(
                 text: $searchViewModel.searchKeyword,
                 prompt: NSLocalizedString("EXPLORE.SEARCH.PROMPT", comment: "")
             )
             .searchScopes($searchViewModel.searchScope) {
-                ForEach(ExploreSearchViewModel.Scope.allCases, id: \.self) { scope in
+                ForEach(SearchViewModel.Scope.allCases, id: \.self) { scope in
                     Text(scope.rawValue.capitalized)
                 }
             }
@@ -126,72 +91,9 @@ struct ExploreView: View {
         }
     }
 
-    init(searchScope: ExploreSearchViewModel.Scope, searchQuery: String?) {
-        self._searchViewModel = StateObject(wrappedValue: ExploreSearchViewModel(scope: searchScope, query: searchQuery))
-        self._exploreViewModel = StateObject(wrappedValue: ExploreSectionViewModel())
-    }
-}
-
-private struct SectionView<Content: View>: View {
-
-    let title: String
-    let isLoading: Bool
-    let error: WebServiceError?
-    let loadMore: (() -> Void)?
-
-    @ViewBuilder let content: () -> Content
-
-    var body: some View {
-        Section(header: HeaderView(title: title, isLoading: isLoading)) {
-            if let error {
-                RetriableErrorView(retry: error.retry)
-            }
-
-            content()
-
-            if let loadMore {
-                LoadMoreView(action: loadMore)
-            }
-        }
-        .listRowSeparator(.hidden)
-        .listSectionSeparator(.hidden)
-    }
-}
-
-private struct HeaderView: View {
-
-    let title: String
-    let isLoading: Bool
-
-    var body: some View {
-        HStack(spacing: 4) {
-            Text(title)
-                .font(.title)
-                .foregroundColor(.primary)
-
-            if isLoading {
-                ProgressView()
-            }
-        }
-    }
-}
-
-private struct LoadMoreView: View {
-
-    let action: () -> Void
-
-    var body: some View {
-        Group {
-            Button(action: action) {
-                HStack {
-                    Text("Load more")
-                    Image(systemName: "arrow.down.square.fill")
-                }
-            }
-            .buttonStyle(.borderedProminent)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
+    init(searchScope: SearchViewModel.Scope, searchQuery: String?) {
+        self._searchViewModel = StateObject(wrappedValue: SearchViewModel(scope: searchScope, query: searchQuery))
+        self._exploreViewModel = StateObject(wrappedValue: ExploreViewModel())
     }
 }
 
@@ -205,15 +107,6 @@ struct ExploreView_Previews: PreviewProvider {
                     WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
                     WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: nil)))
                 ]))
-
-            List {
-                Section {
-                    LoadMoreView(action: {})
-                }
-                .listRowSeparator(.hidden)
-                .listSectionSeparator(.hidden)
-            }
-            .listStyle(.inset)
         }
     }
 }

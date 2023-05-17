@@ -9,8 +9,14 @@ import SwiftUI
 
 struct MoviePreviewView: View {
 
+    enum Style {
+        case poster
+        case backdrop
+    }
+
     @EnvironmentObject var watchlist: Watchlist
 
+    let style: Style
     let details: MovieDetails?
     let onSelected: (() -> Void)?
 
@@ -18,7 +24,7 @@ struct MoviePreviewView: View {
         HStack(alignment: .center) {
             HStack(alignment: .center, spacing: 8) {
                 ZStack(alignment: .bottomTrailing) {
-                    AsyncImage(url: details?.media.posterPreviewUrl, content: { image in
+                    AsyncImage(url: imageUrl, content: { image in
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
@@ -28,7 +34,7 @@ struct MoviePreviewView: View {
                             .opacity(0.2)
                     })
                     .aspectRatio(contentMode: .fill)
-                    .frame(width: 120, height: 180)
+                    .frame(width: imageFrame.width, height: imageFrame.height)
                     .clipShape(RoundedRectangle(cornerRadius: 6))
                     .padding(.trailing, 4)
                     .padding(.bottom, 4)
@@ -62,9 +68,28 @@ struct MoviePreviewView: View {
         }
     }
 
-    init(details: MovieDetails?, onSelected: (() -> Void)? = nil) {
+    init(details: MovieDetails?, style: Style = .poster, onSelected: (() -> Void)? = nil) {
         self.details = details
+        self.style = style
         self.onSelected = onSelected
+    }
+
+    private var imageUrl: URL? {
+        switch style {
+        case .backdrop:
+            return details?.media.backdropPreviewUrl
+        case .poster:
+            return details?.media.posterPreviewUrl
+        }
+    }
+
+    private var imageFrame: CGSize {
+        switch style {
+        case .backdrop:
+            return CGSize(width: 120, height: 100)
+        case .poster:
+            return CGSize(width: 120, height: 180)
+        }
     }
 }
 
@@ -72,11 +97,14 @@ struct MoviePreviewView: View {
 struct MoviePreviewView_Previews: PreviewProvider {
     static var previews: some View {
         ScrollView {
-            MoviePreviewViewPreview()
-                .environmentObject(Watchlist(items: [
-                    WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
-                    WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: nil)))
-                ]))
+            VStack {
+                MoviePreviewViewPreview(movieId: 954, style: .poster)
+                MoviePreviewViewPreview(movieId: 616037, style: .backdrop)
+            }
+            .environmentObject(Watchlist(items: [
+                WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
+                WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: nil)))
+            ]))
         }
     }
 }
@@ -86,18 +114,20 @@ private struct MoviePreviewViewPreview: View {
     @Environment(\.requestManager) var requestManager
     @State var movie: Movie?
 
+    let movieId: Movie.ID
+    let style: MoviePreviewView.Style
+
     var body: some View {
         Group {
             if let movie {
-                MoviePreviewView(details: movie.details)
-                    .padding()
+                MoviePreviewView(details: movie.details, style: style).padding()
             } else {
                 LoaderView()
             }
         }
         .task {
             let webService = MovieWebService(requestManager: requestManager)
-            movie = try! await webService.fetchMovie(with: 954)
+            movie = try! await webService.fetchMovie(with: movieId)
         }
     }
 }
