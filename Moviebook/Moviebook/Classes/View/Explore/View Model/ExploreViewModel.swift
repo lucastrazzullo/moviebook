@@ -37,16 +37,18 @@ import Combine
 
         var fetchResults: ExploreContentViewModel.FetchResults {
             return { requestManager, page in
+                let response: (results: [MovieDetails], nextPage: Int?)
                 switch self {
                 case .nowPlaying:
-                    return try await MovieWebService(requestManager: requestManager).fetchNowPlaying(page: page)
+                    response = try await MovieWebService(requestManager: requestManager).fetchNowPlaying(page: page)
                 case .upcoming:
-                    return try await MovieWebService(requestManager: requestManager).fetchUpcoming(page: page)
+                    response = try await MovieWebService(requestManager: requestManager).fetchUpcoming(page: page)
                 case .popular:
-                    return try await MovieWebService(requestManager: requestManager).fetchPopular(page: page)
+                    response = try await MovieWebService(requestManager: requestManager).fetchPopular(page: page)
                 case .topRated:
-                    return try await MovieWebService(requestManager: requestManager).fetchTopRated(page: page)
+                    response = try await MovieWebService(requestManager: requestManager).fetchTopRated(page: page)
                 }
+                return (results: .movies(response.results), nextPage: response.nextPage)
             }
         }
     }

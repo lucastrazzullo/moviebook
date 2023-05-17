@@ -16,8 +16,7 @@ struct ExploreHorizontalSectionView: View {
     ]
 
     @ObservedObject var viewModel: ExploreContentViewModel
-
-    let onItemSelected: (Movie.ID) -> Void
+    @Binding var presentedItem: ExplorePresentingItem?
 
     var body: some View {
         Section(header: HeaderView(title: viewModel.title, isLoading: viewModel.isLoading, shouldShowAll: viewModel.error == nil, destination: viewAllDestination)) {
@@ -26,11 +25,21 @@ struct ExploreHorizontalSectionView: View {
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHGrid(rows: rows) {
-                        ForEach(viewModel.items, id: \.self) { movieDetails in
-                            MoviePreviewView(details: movieDetails, style: .backdrop) {
-                                onItemSelected(movieDetails.id)
+                        switch viewModel.items {
+                        case .movies(let movies):
+                            ForEach(movies, id: \.self) { movieDetails in
+                                MoviePreviewView(details: movieDetails, style: .backdrop) {
+                                    presentedItem = .movie(movieId: movieDetails.id)
+                                }
+                                .frame(width: 300)
                             }
-                            .frame(width: 300)
+                        case .artists(let artists):
+                            ForEach(artists, id: \.self) { artistDetails in
+                                ArtistPreviewView(details: artistDetails) {
+                                    presentedItem = .artist(artistId: artistDetails.id)
+                                }
+                                .frame(width: 300)
+                            }
                         }
                     }
                 }
@@ -42,7 +51,7 @@ struct ExploreHorizontalSectionView: View {
 
     @ViewBuilder private func viewAllDestination() -> some View {
         List {
-            ExploreVerticalSectionView(viewModel: viewModel, onItemSelected: onItemSelected)
+            ExploreVerticalSectionView(viewModel: viewModel, presentedItem: $presentedItem)
         }
         .listStyle(.inset)
         .scrollIndicators(.hidden)
@@ -101,14 +110,18 @@ private struct ExploreHorizontalSectionViewPreview: View {
 
     var body: some View {
         List {
-            ExploreHorizontalSectionView(viewModel: viewModel, onItemSelected: { _ in })
+            ExploreHorizontalSectionView(viewModel: viewModel, presentedItem: .constant(nil))
         }
         .listStyle(.inset)
+        .onAppear {
+            viewModel.fetch(requestManager: requestManager)
+        }
     }
 
     init() {
         _viewModel = StateObject(wrappedValue: ExploreContentViewModel(title: "Title", fetchResults: { requestManager, page in
-            return try await MovieWebService(requestManager: requestManager).fetchPopular(page: page)
+            let response = try await MovieWebService(requestManager: requestManager).fetchPopular(page: page)
+            return (results: .movies(response.results), nextPage: response.nextPage)
         }))
     }
 }

@@ -10,12 +10,28 @@ import Foundation
 @MainActor
 final class ExploreContentViewModel: ObservableObject, Identifiable {
 
-    typealias FetchResults = (RequestManager, Int?) async throws -> (results: [MovieDetails], nextPage: Int?)
+    typealias FetchResults = (RequestManager, Int?) async throws -> (results: FetchedItems, nextPage: Int?)
+
+    enum FetchedItems {
+        case movies([MovieDetails])
+        case artists([ArtistDetails])
+
+        func appending(items: FetchedItems) -> Self {
+            switch (self, items) {
+            case (let .movies(movies), let .movies(newMovies)):
+                return .movies(movies + newMovies)
+            case (let .artists(artists), let .artists(newArtists)):
+                return .artists(artists + newArtists)
+            default:
+                return items
+            }
+        }
+    }
 
     var fetchResults: FetchResults
 
     @Published var title: String
-    @Published var items: [MovieDetails] = []
+    @Published var items: FetchedItems = FetchedItems.movies([])
     @Published var isLoading: Bool = false
     @Published var error: WebServiceError? = nil
     @Published var fetchNextPage: (() -> Void)?
@@ -37,7 +53,7 @@ final class ExploreContentViewModel: ObservableObject, Identifiable {
                     fetchNextPage = { [weak self] in self?.fetch(requestManager: requestManager, page: nextPage) }
                 }
 
-                items = items + result.results
+                items = items.appending(items: result.results)
                 isLoading = false
 
             } catch {

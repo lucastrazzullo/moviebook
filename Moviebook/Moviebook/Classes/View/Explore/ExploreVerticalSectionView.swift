@@ -10,8 +10,7 @@ import SwiftUI
 struct ExploreVerticalSectionView: View {
 
     @ObservedObject var viewModel: ExploreContentViewModel
-
-    let onItemSelected: (Movie.ID) -> Void
+    @Binding var presentedItem: ExplorePresentingItem?
 
     var body: some View {
         Section {
@@ -19,9 +18,18 @@ struct ExploreVerticalSectionView: View {
                 RetriableErrorView(retry: error.retry)
             }
 
-            ForEach(viewModel.items) { details in
-                MoviePreviewView(details: details) {
-                    onItemSelected(details.id)
+            switch viewModel.items {
+            case .movies(let movies):
+                ForEach(movies) { movieDetails in
+                    MoviePreviewView(details: movieDetails) {
+                        presentedItem = .movie(movieId: movieDetails.id)
+                    }
+                }
+            case .artists(let artists):
+                ForEach(artists, id: \.self) { artistDetails in
+                    ArtistPreviewView(details: artistDetails) {
+                        presentedItem = .artist(artistId: artistDetails.id)
+                    }
                 }
             }
 
@@ -30,7 +38,7 @@ struct ExploreVerticalSectionView: View {
             }
 
             if viewModel.isLoading {
-                ProgressView()
+                LoaderView()
             }
         }
         .listRowSeparator(.hidden)
@@ -77,14 +85,18 @@ private struct ExploreSectionViewPreview: View {
 
     var body: some View {
         List {
-            ExploreVerticalSectionView(viewModel: viewModel, onItemSelected: { _ in })
+            ExploreVerticalSectionView(viewModel: viewModel, presentedItem: .constant(nil))
         }
         .listStyle(.inset)
+        .onAppear {
+            viewModel.fetch(requestManager: requestManager)
+        }
     }
 
     init() {
         viewModel = ExploreContentViewModel(title: "Title", fetchResults: { requestManager, page in
-            return try await MovieWebService(requestManager: requestManager).fetchPopular(page: page)
+            let response = try await MovieWebService(requestManager: requestManager).fetchPopular(page: page)
+            return (results: .movies(response.results), nextPage: response.nextPage)
         })
     }
 }

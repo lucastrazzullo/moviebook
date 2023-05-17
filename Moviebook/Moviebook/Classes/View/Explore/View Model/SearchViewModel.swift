@@ -16,22 +16,6 @@ import CoreSpotlight
         case artist
     }
 
-//    enum SearchItems {
-//        case movies([MovieDetails])
-//        case artists([ArtistDetails])
-//
-//        func appending(items: SearchItems) -> Self {
-//            switch (self, items) {
-//            case (let .movies(movies), let .movies(newMovies)):
-//                return .movies(movies + newMovies)
-//            case (let .artists(artists), let .artists(newArtists)):
-//                return .artists(artists + newArtists)
-//            default:
-//                return items
-//            }
-//        }
-//    }
-
     // MARK: Instance Properties
 
     var title: String {
@@ -44,10 +28,11 @@ import CoreSpotlight
             let webService = SearchWebService(requestManager: requestManager)
             switch self.searchScope {
             case .movie:
-                return try await webService.fetchMovies(with: searchKeyword, page: page)
+                let response = try await webService.fetchMovies(with: searchKeyword, page: page)
+                return (results: .movies(response.results), nextPage: response.nextPage)
             case .artist:
-                return (results: [], nextPage: nil)
-//                return try await webService.fetchArtists(with: searchKeyword, page: page)
+                let response = try await webService.fetchArtists(with: searchKeyword, page: page)
+                return (results: .artists(response.results), nextPage: response.nextPage)
             }
         }
     }
@@ -59,7 +44,7 @@ import CoreSpotlight
     private var subscriptions: Set<AnyCancellable> = []
 
     private static let defaultTitle: String = NSLocalizedString("EXPLORE.SEARCH.RESULTS", comment: "")
-    private static let defaultFetchResults: ExploreContentViewModel.FetchResults = { _, _ in (results: [], nextPage: nil) }
+    private static let defaultFetchResults: ExploreContentViewModel.FetchResults = { _, _ in (results: .movies([]), nextPage: nil) }
 
     init(scope: Scope, query: String?) {
         self.content = ExploreContentViewModel(title: Self.defaultTitle, fetchResults: Self.defaultFetchResults)

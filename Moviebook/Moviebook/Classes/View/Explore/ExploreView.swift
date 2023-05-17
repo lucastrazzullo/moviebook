@@ -7,21 +7,21 @@
 
 import SwiftUI
 
-struct ExploreView: View {
+enum ExplorePresentingItem: Identifiable {
+    case movie(movieId: Movie.ID)
+    case artist(artistId: Artist.ID)
 
-    private enum PresentingItem: Identifiable {
-        case movie(movieId: Movie.ID)
-        case artist(artistId: Artist.ID)
-
-        var id: AnyHashable {
-            switch self {
-            case .movie(let movieId):
-                return movieId
-            case .artist(let artistId):
-                return artistId
-            }
+    var id: AnyHashable {
+        switch self {
+        case .movie(let movieId):
+            return movieId
+        case .artist(let artistId):
+            return artistId
         }
     }
+}
+
+struct ExploreView: View {
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.requestManager) var requestManager
@@ -30,21 +30,17 @@ struct ExploreView: View {
     @StateObject private var searchViewModel: SearchViewModel
     @StateObject private var exploreViewModel: ExploreViewModel
 
-    @State private var presentedItem: PresentingItem?
+    @State private var presentedItem: ExplorePresentingItem?
     @State private var presentedItemNavigationPath: NavigationPath = NavigationPath()
 
     var body: some View {
         NavigationView {
             List {
                 if !searchViewModel.searchKeyword.isEmpty {
-                    ExploreVerticalSectionView(viewModel: searchViewModel.content, onItemSelected: { movieId in
-                        presentedItem = .movie(movieId: movieId)
-                    })
+                    ExploreVerticalSectionView(viewModel: searchViewModel.content, presentedItem: $presentedItem)
                 } else {
                     ForEach(exploreViewModel.sections) { sectionViewModel in
-                        ExploreHorizontalSectionView(viewModel: sectionViewModel) { movieId in
-                            presentedItem = .movie(movieId: movieId)
-                        }
+                        ExploreHorizontalSectionView(viewModel: sectionViewModel, presentedItem: $presentedItem)
                     }
                 }
             }
