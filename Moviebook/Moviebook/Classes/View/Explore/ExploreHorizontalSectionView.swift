@@ -32,6 +32,7 @@ struct ExploreHorizontalSectionView: View {
                                     presentedItem = .movie(movieId: movieDetails.id)
                                 }
                                 .frame(width: 300)
+                                .padding(.horizontal)
                             }
                         case .artists(let artists):
                             ForEach(artists, id: \.self) { artistDetails in
@@ -39,11 +40,12 @@ struct ExploreHorizontalSectionView: View {
                                     presentedItem = .artist(artistId: artistDetails.id)
                                 }
                                 .frame(width: 300)
+                                .padding(.horizontal)
                             }
                         }
                     }
                 }
-
+                .listRowInsets(EdgeInsets())
             }
         }
         .listSectionSeparator(.hidden, edges: .bottom)
