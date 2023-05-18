@@ -11,22 +11,30 @@ import CoreSpotlight
 
 @MainActor final class SearchViewModel: ObservableObject {
 
-    enum Scope: String, CaseIterable {
-        case movie
-        case artist
-    }
+    final class DataProvider: ObservableObject, ExploreContentDataProvider {
 
-    // MARK: Instance Properties
+        private static let defaultTitle: String = NSLocalizedString("EXPLORE.SEARCH.RESULTS", comment: "")
 
-    var title: String {
-        return Self.defaultTitle + ": " + searchKeyword
-    }
+        enum Scope: String, CaseIterable {
+            case movie
+            case artist
+        }
 
-    var fetchResults: ExploreContentViewModel.FetchResults {
-        return { [weak self] requestManager, page in
-            guard let self else { return try await Self.defaultFetchResults(requestManager, page) }
+        var title: String {
+            return Self.defaultTitle + ": " + searchKeyword
+        }
+
+        @Published var searchScope: Scope = .movie
+        @Published var searchKeyword: String = ""
+
+        init(searchScope: Scope, searchKeyword: String?) {
+            self.searchScope = searchScope
+            self.searchKeyword = searchKeyword ?? ""
+        }
+
+        func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
             let webService = SearchWebService(requestManager: requestManager)
-            switch self.searchScope {
+            switch searchScope {
             case .movie:
                 let response = try await webService.fetchMovies(with: searchKeyword, page: page)
                 return (results: .movies(response.results), nextPage: response.nextPage)
@@ -37,33 +45,26 @@ import CoreSpotlight
         }
     }
 
-    @Published var searchKeyword: String = ""
-    @Published var searchScope: Scope = .movie
+    // MARK: Instance Properties
+
+    @Published var dataProvider: DataProvider
     @Published var content: ExploreContentViewModel
 
     private var subscriptions: Set<AnyCancellable> = []
 
-    private static let defaultTitle: String = NSLocalizedString("EXPLORE.SEARCH.RESULTS", comment: "")
-    private static let defaultFetchResults: ExploreContentViewModel.FetchResults = { _, _ in (results: .movies([]), nextPage: nil) }
-
-    init(scope: Scope, query: String?) {
-        self.content = ExploreContentViewModel(title: Self.defaultTitle, fetchResults: Self.defaultFetchResults)
-        self.searchScope = scope
-
-        if let query {
-            self.searchKeyword = query
-        }
+    init(scope: DataProvider.Scope, query: String?) {
+        let dataProvider = DataProvider(searchScope: scope, searchKeyword: query)
+        self.dataProvider = dataProvider
+        self.content = ExploreContentViewModel(dataProvider: dataProvider)
     }
 
     // MARK: Search
 
     func start(requestManager: RequestManager) {
-        Publishers.CombineLatest($searchKeyword, $searchScope)
+        Publishers.CombineLatest(dataProvider.$searchKeyword, dataProvider.$searchScope)
             .debounce(for: .seconds(1), scheduler: DispatchQueue.main)
             .sink(receiveValue: { [weak self, weak requestManager] keyword, scope in
                 if let requestManager, let self {
-                    self.content.title = self.title
-                    self.content.fetchResults = self.fetchResults
                     self.content.fetch(requestManager: requestManager)
                 }
             })

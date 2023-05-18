@@ -12,7 +12,7 @@ import Combine
 
     // MARK: Types
 
-    enum List: String, Identifiable, CaseIterable {
+    enum Section: String, Identifiable, CaseIterable, ExploreContentDataProvider {
         case nowPlaying
         case upcoming
         case popular
@@ -22,7 +22,7 @@ import Combine
             return rawValue
         }
 
-        var name: String {
+        var title: String {
             switch self {
             case .nowPlaying:
                 return NSLocalizedString("MOVIE.NOW_PLAYING", comment: "")
@@ -35,28 +35,26 @@ import Combine
             }
         }
 
-        var fetchResults: ExploreContentViewModel.FetchResults {
-            return { requestManager, page in
-                let response: (results: [MovieDetails], nextPage: Int?)
-                switch self {
-                case .nowPlaying:
-                    response = try await MovieWebService(requestManager: requestManager).fetchNowPlaying(page: page)
-                case .upcoming:
-                    response = try await MovieWebService(requestManager: requestManager).fetchUpcoming(page: page)
-                case .popular:
-                    response = try await MovieWebService(requestManager: requestManager).fetchPopular(page: page)
-                case .topRated:
-                    response = try await MovieWebService(requestManager: requestManager).fetchTopRated(page: page)
-                }
-                return (results: .movies(response.results), nextPage: response.nextPage)
+        func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
+            let response: (results: [MovieDetails], nextPage: Int?)
+            switch self {
+            case .nowPlaying:
+                response = try await MovieWebService(requestManager: requestManager).fetchNowPlaying(page: page)
+            case .upcoming:
+                response = try await MovieWebService(requestManager: requestManager).fetchUpcoming(page: page)
+            case .popular:
+                response = try await MovieWebService(requestManager: requestManager).fetchPopular(page: page)
+            case .topRated:
+                response = try await MovieWebService(requestManager: requestManager).fetchTopRated(page: page)
             }
+            return (results: .movies(response.results), nextPage: response.nextPage)
         }
     }
 
     // MARK: Instance Properties
 
-    @Published var sections: [ExploreContentViewModel] = List.allCases.map { section in
-        ExploreContentViewModel(title: section.name, fetchResults: section.fetchResults)
+    @Published var sections: [ExploreContentViewModel] = Section.allCases.map { section in
+        ExploreContentViewModel(dataProvider: section)
     }
 
     private var subscriptions: Set<AnyCancellable> = []

@@ -36,7 +36,7 @@ struct ExploreView: View {
     var body: some View {
         NavigationView {
             List {
-                if !searchViewModel.searchKeyword.isEmpty {
+                if !searchViewModel.dataProvider.searchKeyword.isEmpty {
                     ExploreVerticalSectionView(viewModel: searchViewModel.content, presentedItem: $presentedItem)
                 } else {
                     ForEach(exploreViewModel.sections) { sectionViewModel in
@@ -56,11 +56,11 @@ struct ExploreView: View {
                 }
             }
             .searchable(
-                text: $searchViewModel.searchKeyword,
+                text: $searchViewModel.dataProvider.searchKeyword,
                 prompt: NSLocalizedString("EXPLORE.SEARCH.PROMPT", comment: "")
             )
-            .searchScopes($searchViewModel.searchScope) {
-                ForEach(SearchViewModel.Scope.allCases, id: \.self) { scope in
+            .searchScopes($searchViewModel.dataProvider.searchScope) {
+                ForEach(SearchViewModel.DataProvider.Scope.allCases, id: \.self) { scope in
                     Text(scope.rawValue.capitalized)
                 }
             }
@@ -87,7 +87,7 @@ struct ExploreView: View {
         }
     }
 
-    init(searchScope: SearchViewModel.Scope, searchQuery: String?) {
+    init(searchScope: SearchViewModel.DataProvider.Scope, searchQuery: String?) {
         self._searchViewModel = StateObject(wrappedValue: SearchViewModel(scope: searchScope, query: searchQuery))
         self._exploreViewModel = StateObject(wrappedValue: ExploreViewModel())
     }

@@ -11,7 +11,7 @@ import CoreSpotlight
 struct MoviebookView: View {
 
     enum PresentedItem: Identifiable {
-        case explore(scope: SearchViewModel.Scope, query: String?)
+        case explore(scope: SearchViewModel.DataProvider.Scope, query: String?)
         case movie(_ movie: Movie)
         case movieWithIdentifier(_ id: Movie.ID)
         case artistWithIdentifier(_ id: Artist.ID)
@@ -78,8 +78,6 @@ struct MoviebookView: View {
         switch deeplink {
         case .watchlist:
             presentedItem = nil
-        case .search(let scope, let query):
-            presentedItem = .explore(scope: scope, query: query)
         case .movie(let identifier):
             presentedItem = .movieWithIdentifier(identifier)
         case .artist(let identifier):

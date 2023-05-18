@@ -7,38 +7,41 @@
 
 import Foundation
 
+enum ExploreContentItems {
+    case movies([MovieDetails])
+    case artists([ArtistDetails])
+
+    func appending(items: ExploreContentItems) -> Self {
+        switch (self, items) {
+        case (let .movies(movies), let .movies(newMovies)):
+            return .movies(movies + newMovies)
+        case (let .artists(artists), let .artists(newArtists)):
+            return .artists(artists + newArtists)
+        default:
+            return items
+        }
+    }
+}
+
+protocol ExploreContentDataProvider {
+    var title: String { get }
+    func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?)
+}
+
 @MainActor
 final class ExploreContentViewModel: ObservableObject, Identifiable {
 
-    typealias FetchResults = (RequestManager, Int?) async throws -> (results: FetchedItems, nextPage: Int?)
-
-    enum FetchedItems {
-        case movies([MovieDetails])
-        case artists([ArtistDetails])
-
-        func appending(items: FetchedItems) -> Self {
-            switch (self, items) {
-            case (let .movies(movies), let .movies(newMovies)):
-                return .movies(movies + newMovies)
-            case (let .artists(artists), let .artists(newArtists)):
-                return .artists(artists + newArtists)
-            default:
-                return items
-            }
-        }
-    }
-
-    var fetchResults: FetchResults
+    let dataProvider: ExploreContentDataProvider
 
     @Published var title: String
-    @Published var items: FetchedItems = FetchedItems.movies([])
+    @Published var items: ExploreContentItems = .movies([])
     @Published var isLoading: Bool = false
     @Published var error: WebServiceError? = nil
     @Published var fetchNextPage: (() -> Void)?
 
-    init(title: String, fetchResults: @escaping FetchResults) {
-        self.title = title
-        self.fetchResults = fetchResults
+    init(dataProvider: ExploreContentDataProvider) {
+        self.title = dataProvider.title
+        self.dataProvider = dataProvider
     }
 
     func fetch(requestManager: RequestManager, page: Int? = nil) {
@@ -48,12 +51,13 @@ final class ExploreContentViewModel: ObservableObject, Identifiable {
                 error = nil
                 fetchNextPage = nil
 
-                let result = try await self.fetchResults(requestManager, page)
-                if let nextPage = result.nextPage {
+                title = dataProvider.title
+                let response = try await self.dataProvider.fetch(requestManager: requestManager, page: page)
+                if let nextPage = response.nextPage {
                     fetchNextPage = { [weak self] in self?.fetch(requestManager: requestManager, page: nextPage) }
                 }
 
-                items = items.appending(items: result.results)
+                items = items.appending(items: response.results)
                 isLoading = false
 
             } catch {
