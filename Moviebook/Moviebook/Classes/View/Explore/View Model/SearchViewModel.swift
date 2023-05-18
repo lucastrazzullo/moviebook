@@ -13,15 +13,9 @@ import CoreSpotlight
 
     final class DataProvider: ObservableObject, ExploreContentDataProvider {
 
-        private static let defaultTitle: String = NSLocalizedString("EXPLORE.SEARCH.RESULTS", comment: "")
-
         enum Scope: String, CaseIterable {
             case movie
             case artist
-        }
-
-        var title: String {
-            return Self.defaultTitle + ": " + searchKeyword
         }
 
         @Published var searchScope: Scope = .movie
@@ -55,7 +49,7 @@ import CoreSpotlight
     init(scope: DataProvider.Scope, query: String?) {
         let dataProvider = DataProvider(searchScope: scope, searchKeyword: query)
         self.dataProvider = dataProvider
-        self.content = ExploreContentViewModel(dataProvider: dataProvider)
+        self.content = ExploreContentViewModel(title: NSLocalizedString("EXPLORE.SEARCH.RESULTS", comment: ""), dataProvider: dataProvider)
     }
 
     // MARK: Search

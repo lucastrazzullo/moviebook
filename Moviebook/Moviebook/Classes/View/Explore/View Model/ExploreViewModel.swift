@@ -54,7 +54,7 @@ import Combine
     // MARK: Instance Properties
 
     @Published var sections: [ExploreContentViewModel] = Section.allCases.map { section in
-        ExploreContentViewModel(dataProvider: section)
+        ExploreContentViewModel(title: section.title, dataProvider: section)
     }
 
     private var subscriptions: Set<AnyCancellable> = []

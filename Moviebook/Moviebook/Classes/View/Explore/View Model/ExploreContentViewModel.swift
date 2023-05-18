@@ -24,7 +24,6 @@ enum ExploreContentItems {
 }
 
 protocol ExploreContentDataProvider {
-    var title: String { get }
     func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?)
 }
 
@@ -39,8 +38,8 @@ final class ExploreContentViewModel: ObservableObject, Identifiable {
     @Published var error: WebServiceError? = nil
     @Published var fetchNextPage: (() -> Void)?
 
-    init(dataProvider: ExploreContentDataProvider) {
-        self.title = dataProvider.title
+    init(title: String, dataProvider: ExploreContentDataProvider) {
+        self.title = title
         self.dataProvider = dataProvider
     }
 
@@ -51,7 +50,6 @@ final class ExploreContentViewModel: ObservableObject, Identifiable {
                 error = nil
                 fetchNextPage = nil
 
-                title = dataProvider.title
                 let response = try await self.dataProvider.fetch(requestManager: requestManager, page: page)
                 if let nextPage = response.nextPage {
                     fetchNextPage = { [weak self] in self?.fetch(requestManager: requestManager, page: nextPage) }
