@@ -20,72 +20,26 @@ struct WatchlistView: View {
     var body: some View {
         VStack(spacing: 0) {
             List {
-                if viewModel.isLoading {
-                    LoaderView()
-                } else {
-                    ForEach(viewModel.items) { item in
-                        switch item {
-                        case .movie(let movie, _, _):
-                            MoviePreviewView(details: movie.details) {
-                                onMovieSelected(movie)
-                            }
-                            .swipeActions {
-                                Button(action: { viewModel.remove(item: item, from: watchlist) }) {
-                                    HStack {
-                                        Image(systemName: "minus")
-                                        Text("Remove")
-                                    }
-                                }
-                                .tint(Color.accentColor)
-                            }
-                        }
+                Group {
+                    if viewModel.isLoading {
+                        LoaderView()
+                    } else if viewModel.items.isEmpty {
+                        EmptyWatchlistView(onStartDiscoverySelected: onExploreSelected)
+                    } else {
+                        ListView(viewModel: viewModel, onMovieSelected: onMovieSelected)
                     }
-                    .listRowSeparator(.hidden)
                 }
+                .listRowSeparator(.hidden)
             }
             .scrollIndicators(.hidden)
             .listStyle(.plain)
 
             if let itemToRemove = viewModel.itemToRemove {
-                switch itemToRemove {
-                case .movie(let movie, let section, _):
-                    HStack(spacing: 24) {
-                        HStack {
-                            AsyncImage(url: movie.details.media.posterPreviewUrl) { image in
-                                image.resizable().aspectRatio(contentMode: .fit)
-                            } placeholder: {
-                                Color.gray
-                            }
-                            .frame(width: 60)
-                            .cornerRadius(8)
-
-                            VStack(alignment: .leading) {
-                                Text("Removed from \(section.name)")
-                                    .font(.subheadline)
-                                    .foregroundColor(.accentColor)
-                                Text(movie.details.title)
-                                    .lineLimit(2)
-                                    .font(.headline)
-                            }
-                        }
-
-                        Spacer()
-
-                        Button(action: { viewModel.undo() }) {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Undo")
-                                ProgressView(value: viewModel.undoTimeRemaining, total: 5)
-                                    .progressViewStyle(.linear)
-                                    .animation(.linear, value: viewModel.undoTimeRemaining)
-                            }
-                        }
-                        .tint(Color.accentColor)
-                        .fixedSize()
-                    }
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .padding()
-                    .background(Rectangle().fill(.background))
-                }
+                UndoView(
+                    itemToRemove: itemToRemove,
+                    timeRemaining: viewModel.undoTimeRemaining,
+                    action: { viewModel.undo() }
+                )
             }
         }
         .navigationTitle(NSLocalizedString("WATCHLIST.TITLE", comment: ""))
@@ -124,18 +78,80 @@ struct WatchlistView: View {
     }
 }
 
-private struct EmptyWatchlistView: View {
+private struct ListView: View {
 
-    var onStartDiscoverySelected: () -> Void
+    @EnvironmentObject var watchlist: Watchlist
+
+    @ObservedObject var viewModel: WatchlistViewModel
+
+    let onMovieSelected: (Movie) -> Void
 
     var body: some View {
-        VStack {
-            Text("Your watchlist is empty")
-                .font(.headline)
+        ForEach(viewModel.items) { item in
+            switch item {
+            case .movie(let movie, _, _):
+                MoviePreviewView(details: movie.details) {
+                    onMovieSelected(movie)
+                }
+                .swipeActions {
+                    Button(action: { viewModel.remove(item: item, from: watchlist) }) {
+                        HStack {
+                            Image(systemName: "minus")
+                            Text("Remove")
+                        }
+                    }
+                    .tint(Color.accentColor)
+                }
+            }
+        }
+    }
+}
 
-            Button(action: onStartDiscoverySelected) {
-                Label("Start your discovery", systemImage: "rectangle.and.text.magnifyingglass")
-            }.buttonStyle(.borderedProminent)
+private struct UndoView: View {
+
+    let itemToRemove: WatchlistViewModel.SectionItem
+    let timeRemaining: TimeInterval
+    let action: () -> Void
+
+    var body: some View {
+        switch itemToRemove {
+        case .movie(let movie, let section, _):
+            HStack(spacing: 24) {
+                HStack {
+                    AsyncImage(url: movie.details.media.posterPreviewUrl) { image in
+                        image.resizable().aspectRatio(contentMode: .fit)
+                    } placeholder: {
+                        Color.gray
+                    }
+                    .frame(width: 60)
+                    .cornerRadius(8)
+
+                    VStack(alignment: .leading) {
+                        Text("Removed from \(section.name)")
+                            .font(.subheadline)
+                            .foregroundColor(.accentColor)
+                        Text(movie.details.title)
+                            .lineLimit(2)
+                            .font(.headline)
+                    }
+                }
+
+                Spacer()
+
+                Button(action: action) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Undo")
+                        ProgressView(value: timeRemaining, total: 5)
+                            .progressViewStyle(.linear)
+                            .animation(.linear, value: timeRemaining)
+                    }
+                }
+                .tint(Color.accentColor)
+                .fixedSize()
+            }
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+            .padding()
+            .background(Rectangle().fill(.background))
         }
     }
 }
@@ -150,6 +166,12 @@ struct WatchlistView_Previews: PreviewProvider {
                     WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
                     WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: nil)))
                 ]))
+        }
+
+        NavigationView {
+            WatchlistView(onExploreSelected: {}, onMovieSelected: { _ in })
+                .environment(\.requestManager, MockRequestManager())
+                .environmentObject(Watchlist(items: []))
         }
     }
 }
