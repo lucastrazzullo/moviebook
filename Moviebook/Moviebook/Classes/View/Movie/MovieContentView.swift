@@ -70,7 +70,7 @@ struct MovieContentView: View {
     private var specs: [SpecsView.Item] {
         var specs = [SpecsView.Item]()
 
-        if let runtime = movie.details.runtime {
+        if let runtime = movie.details.runtime, runtime > 0 {
             specs.append(.duration(runtime, label: "Runtime"))
         }
 
@@ -316,7 +316,7 @@ private struct MovieContentViewPreview: View {
         }
         .task {
             let webService = MovieWebService(requestManager: requestManager)
-            movie = try! await webService.fetchMovie(with: 353081)
+            movie = try! await webService.fetchMovie(with: 575265)
         }
     }
 }

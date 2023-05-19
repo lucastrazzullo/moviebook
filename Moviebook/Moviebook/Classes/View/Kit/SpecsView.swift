@@ -31,7 +31,6 @@ struct SpecsView: View {
                 .padding(.leading)
 
             VStack(alignment: .leading, spacing: 12) {
-
                 ForEach(items, id: \.self) { item in
                     switch item {
                     case .divider:
@@ -40,7 +39,18 @@ struct SpecsView: View {
                         switch item {
                         case .date(let date, let label):
                             SpecsRow(label: label) {
-                                Text(date, style: .date)
+                                Group {
+                                    if date > Date.now {
+                                        HStack(spacing: 4) {
+                                            Text("Coming on")
+                                            Text(date, style: .date).bold()
+                                        }
+                                        .padding(4)
+                                        .background(RoundedRectangle(cornerRadius: 6).fill(.yellow))
+                                    } else {
+                                        Text(date, style: .date)
+                                    }
+                                }
                             }
                         case .currency(let value, let code, let label):
                             SpecsRow(label: label) {
@@ -99,6 +109,13 @@ struct SpecsView_Previews: PreviewProvider {
     static var previews: some View {
         SpecsView(title: "Specs", items: [
             .date(Date(), label: "Today"),
+            .currency(100, code: "EUR", label: "Currency"),
+            .duration(600, label: "Duration"),
+            .list(["Element 1", "Element 2"], label: "List")
+        ])
+
+        SpecsView(title: "Specs", items: [
+            .date(Date().addingTimeInterval(10000), label: "Today"),
             .currency(100, code: "EUR", label: "Currency"),
             .duration(600, label: "Duration"),
             .list(["Element 1", "Element 2"], label: "List")
