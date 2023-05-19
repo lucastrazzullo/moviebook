@@ -19,20 +19,16 @@ struct WatchlistView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            List {
-                Group {
-                    if viewModel.isLoading {
-                        LoaderView()
-                    } else if viewModel.items.isEmpty {
-                        EmptyWatchlistView(onStartDiscoverySelected: onExploreSelected)
-                    } else {
-                        ListView(viewModel: viewModel, onMovieSelected: onMovieSelected)
-                    }
+
+            Group {
+                if viewModel.isLoading {
+                    LoaderView()
+                } else if viewModel.items.isEmpty {
+                    EmptyWatchlistView(onStartDiscoverySelected: onExploreSelected)
+                } else {
+                    ListView(viewModel: viewModel, onMovieSelected: onMovieSelected)
                 }
-                .listRowSeparator(.hidden)
             }
-            .scrollIndicators(.hidden)
-            .listStyle(.plain)
 
             if let itemToRemove = viewModel.itemToRemove {
                 UndoView(
@@ -67,13 +63,15 @@ struct WatchlistView: View {
     }
 
     @ToolbarContentBuilder private func makeSectionSelectionToolbarItem() -> some ToolbarContent {
-        ToolbarItem(placement: .navigationBarLeading) {
-            Picker("Section", selection: $viewModel.currentSection) {
-                ForEach(viewModel.sectionIdentifiers, id: \.self) { section in
-                    Text(section.name)
+        if viewModel.sections[.watched]?.items.count ?? 0 > 0 {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Picker("Section", selection: $viewModel.currentSection) {
+                    ForEach(viewModel.sectionIdentifiers, id: \.self) { section in
+                        Text(section.name)
+                    }
                 }
+                .segmentedStyled()
             }
-            .segmentedStyled()
         }
     }
 }
@@ -87,23 +85,28 @@ private struct ListView: View {
     let onMovieSelected: (Movie) -> Void
 
     var body: some View {
-        ForEach(viewModel.items) { item in
-            switch item {
-            case .movie(let movie, _, _):
-                MoviePreviewView(details: movie.details) {
-                    onMovieSelected(movie)
-                }
-                .swipeActions {
-                    Button(action: { viewModel.remove(item: item, from: watchlist) }) {
-                        HStack {
-                            Image(systemName: "minus")
-                            Text("Remove")
-                        }
+        List {
+            ForEach(viewModel.items) { item in
+                switch item {
+                case .movie(let movie, _, _):
+                    MoviePreviewView(details: movie.details) {
+                        onMovieSelected(movie)
                     }
-                    .tint(Color.accentColor)
+                    .swipeActions {
+                        Button(action: { viewModel.remove(item: item, from: watchlist) }) {
+                            HStack {
+                                Image(systemName: "minus")
+                                Text("Remove")
+                            }
+                        }
+                        .tint(Color.accentColor)
+                    }
                 }
             }
+            .listRowSeparator(.hidden)
         }
+        .scrollIndicators(.hidden)
+        .listStyle(.plain)
     }
 }
 
