@@ -48,7 +48,19 @@ struct MoviePreviewView: View {
                             .font(.headline)
 
                         if let releaseDate = details?.release {
-                            Text(releaseDate, format: .dateTime.year()).font(.caption)
+                            Group {
+                                if releaseDate > .now {
+                                    HStack(spacing: 4) {
+                                        Text("Coming on")
+                                        Text(releaseDate, format: .dateTime.year()).bold()
+                                    }
+                                    .padding(4)
+                                    .background(RoundedRectangle(cornerRadius: 6).fill(.yellow))
+                                } else {
+                                    Text(releaseDate, format: .dateTime.year())
+                                }
+                            }
+                            .font(.caption)
                         }
                     }
 
@@ -99,6 +111,7 @@ struct MoviePreviewView_Previews: PreviewProvider {
         ScrollView {
             VStack {
                 MoviePreviewViewPreview(movieId: 954, style: .poster)
+                MoviePreviewViewPreview(movieId: 575265, style: .poster)
                 MoviePreviewViewPreview(movieId: 616037, style: .backdrop)
             }
             .environmentObject(Watchlist(items: [
