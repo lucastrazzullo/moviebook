@@ -10,15 +10,26 @@ import SwiftUI
 @main
 struct MoviebookApp: App {
 
-    @StateObject var watchlist = Watchlist(storage: FileBasedWatchlistStorage())
+    @StateObject var application = Moviebook()
 
     let requestManager = DefaultRequestManager(logging: .disabled)
 
     var body: some Scene {
         WindowGroup {
-            MoviebookView()
-                .environment(\.requestManager, requestManager)
-                .environmentObject(watchlist)
+            Group {
+                if let watchlist = application.watchlist {
+                    MoviebookView()
+                        .environment(\.requestManager, requestManager)
+                        .environmentObject(watchlist)
+                } else if let _ = application.error {
+                    RetriableErrorView {
+                        Task { await application.start() }
+                    }
+                } else {
+                    LoaderView()
+                }
+            }
+            .task { await application.start() }
         }
     }
 }

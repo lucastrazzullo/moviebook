@@ -7,11 +7,12 @@
 
 import Foundation
 
-struct Movie: Identifiable {
+struct Movie: Identifiable, Equatable {
     let id: Int
     let details: MovieDetails
     let genres: [MovieGenre]
     let cast: [ArtistDetails]
     let production: MovieProduction
+    var watch: WatchProviders
     var collection: MovieCollection?
 }

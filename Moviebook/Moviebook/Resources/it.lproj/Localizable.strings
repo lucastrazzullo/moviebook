@@ -15,6 +15,8 @@
 
 "MOVIE.POPULAR" = "I più visti";
 "MOVIE.UPCOMING" = "Coming soon";
+"MOVIE.NOW_PLAYING" = "Ora nei cinema";
+"MOVIE.TOP_RATED" = "I più votati";
 
 // MARK: Watchlist
 
@@ -26,4 +28,4 @@
 
 "EXPLORE.TITLE" = "Esplora";
 "EXPLORE.SEARCH.RESULTS" = "La tua ricerca";
-"EXPLORE.SEARCH.PROMPT" = "Cerca un film";
+"EXPLORE.SEARCH.PROMPT" = "Cerca";

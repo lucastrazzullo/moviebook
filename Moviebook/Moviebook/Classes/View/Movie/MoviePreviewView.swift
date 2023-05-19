@@ -9,22 +9,14 @@ import SwiftUI
 
 struct MoviePreviewView: View {
 
-    enum PresentedItem: Identifiable {
-        case addToWatch(item: WatchlistContent.Item)
-        case addToWatched(item: WatchlistContent.Item)
-
-        var id: AnyHashable {
-            switch self {
-            case .addToWatch(let item):
-                return item.id
-            case .addToWatched(let item):
-                return item.id
-            }
-        }
+    enum Style {
+        case poster
+        case backdrop
     }
 
-    @State private var presentedItem: PresentedItem?
+    @EnvironmentObject var watchlist: Watchlist
 
+    let style: Style
     let details: MovieDetails?
     let onSelected: (() -> Void)?
 
@@ -32,7 +24,7 @@ struct MoviePreviewView: View {
         HStack(alignment: .center) {
             HStack(alignment: .center, spacing: 8) {
                 ZStack(alignment: .bottomTrailing) {
-                    AsyncImage(url: details?.media.posterPreviewUrl, content: { image in
+                    AsyncImage(url: imageUrl, content: { image in
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
@@ -41,8 +33,8 @@ struct MoviePreviewView: View {
                             .gray
                             .opacity(0.2)
                     })
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 120)
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: imageFrame.width, height: imageFrame.height)
                     .clipShape(RoundedRectangle(cornerRadius: 6))
                     .padding(.trailing, 4)
                     .padding(.bottom, 4)
@@ -70,71 +62,33 @@ struct MoviePreviewView: View {
 
             if let movieId = details?.id {
                 Spacer()
-                IconWatchlistButton(watchlistItem: .movie(id: movieId))
+                IconWatchlistButton(watchlistItemIdentifier: .movie(id: movieId))
                     .font(.headline)
             }
         }
-        .sheet(item: $presentedItem) { item in
-            switch item {
-            case .addToWatch(let item):
-                WatchlistAddToWatchView(item: item)
-            case .addToWatched(let item):
-                WatchlistAddToWatchedView(item: item)
-            }
-        }
-        .contextMenu {
-            if let movieId = details?.id {
-                WatchlistMenu(
-                    watchlistItem: WatchlistContent.Item.movie(id: movieId),
-                    shouldAddToWatch: { item in
-                        presentedItem = .addToWatch(item: item)
-                    },
-                    shouldAddToWatched: { item in
-                        presentedItem = .addToWatched(item: item)
-                    })
-            }
-        }
     }
 
-    init(details: MovieDetails?, onSelected: (() -> Void)? = nil) {
+    init(details: MovieDetails?, style: Style = .poster, onSelected: (() -> Void)? = nil) {
         self.details = details
+        self.style = style
         self.onSelected = onSelected
     }
-}
 
-private struct WatchlistMenu: View {
+    private var imageUrl: URL? {
+        switch style {
+        case .backdrop:
+            return details?.media.backdropPreviewUrl
+        case .poster:
+            return details?.media.posterPreviewUrl
+        }
+    }
 
-    @EnvironmentObject var watchlist: Watchlist
-
-    let watchlistItem: WatchlistContent.Item
-    let shouldAddToWatch: (WatchlistContent.Item) -> Void
-    let shouldAddToWatched: (WatchlistContent.Item) -> Void
-
-    var body: some View {
-        Group {
-            switch watchlist.itemState(item: watchlistItem) {
-            case .toWatch:
-                Button { watchlist.update(state: .none, for: watchlistItem) } label: {
-                    Label("Remove from watchlist", systemImage: "minus")
-                }
-                Button { shouldAddToWatched(watchlistItem) } label: {
-                    Label("Mark as watched", systemImage: "checkmark")
-                }
-            case .watched:
-                Button(action: { shouldAddToWatch(watchlistItem) }) {
-                    Label("Move to watchlist", systemImage: "star")
-                }
-                Button { watchlist.update(state: .none, for: watchlistItem) } label: {
-                    Label("Remove from watchlist", systemImage: "minus")
-                }
-            case .none:
-                Button(action: { shouldAddToWatch(watchlistItem) }) {
-                    Label("Add to watchlist", systemImage: "plus")
-                }
-                Button { shouldAddToWatched(watchlistItem) } label: {
-                    Label("Mark as watched", systemImage: "checkmark")
-                }
-            }
+    private var imageFrame: CGSize {
+        switch style {
+        case .backdrop:
+            return CGSize(width: 120, height: 100)
+        case .poster:
+            return CGSize(width: 120, height: 180)
         }
     }
 }
@@ -142,12 +96,39 @@ private struct WatchlistMenu: View {
 #if DEBUG
 struct MoviePreviewView_Previews: PreviewProvider {
     static var previews: some View {
-        MoviePreviewView(details: MockWebService.movie(with: 954).details)
-            .padding()
+        ScrollView {
+            VStack {
+                MoviePreviewViewPreview(movieId: 954, style: .poster)
+                MoviePreviewViewPreview(movieId: 616037, style: .backdrop)
+            }
             .environmentObject(Watchlist(items: [
-                .movie(id: 954): .toWatch(reason: .none),
-                .movie(id: 616037): .toWatch(reason: .none)
+                WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
+                WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: nil)))
             ]))
+        }
+    }
+}
+
+private struct MoviePreviewViewPreview: View {
+
+    @Environment(\.requestManager) var requestManager
+    @State var movie: Movie?
+
+    let movieId: Movie.ID
+    let style: MoviePreviewView.Style
+
+    var body: some View {
+        Group {
+            if let movie {
+                MoviePreviewView(details: movie.details, style: style).padding()
+            } else {
+                LoaderView()
+            }
+        }
+        .task {
+            let webService = MovieWebService(requestManager: requestManager)
+            movie = try! await webService.fetchMovie(with: movieId)
+        }
     }
 }
 #endif

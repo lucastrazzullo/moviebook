@@ -14,10 +14,14 @@ struct MovieContentView: View {
     @Binding var navigationPath: NavigationPath
 
     let movie: Movie
+    let onVideoSelected: (MovieVideo) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 40) {
-            HeaderView(details: movie.details)
+            HeaderView(
+                details: movie.details,
+                onPlayTrailer: onVideoSelected
+            )
 
             MovieWatchlistStateView(
                 movieId: movie.id,
@@ -29,6 +33,10 @@ struct MovieContentView: View {
                     isExpanded: $isOverviewExpanded,
                     overview: overview
                 )
+            }
+
+            if !movie.watch.isEmpty {
+                WatchProvidersView(watch: movie.watch)
             }
 
             if !specs.isEmpty {
@@ -91,15 +99,99 @@ struct MovieContentView: View {
 private struct HeaderView: View {
 
     let details: MovieDetails
+    let onPlayTrailer: (MovieVideo) -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(details.title).font(.title)
-            RatingView(rating: details.rating)
-            Text(details.release, format: .dateTime.year()).font(.caption)
+        HStack(alignment: .firstTextBaseline) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(details.title).font(.title)
+                RatingView(rating: details.rating)
+                Text(details.release, format: .dateTime.year()).font(.caption)
+            }
+
+            Spacer()
+
+            if let trailer = details.media.videos.first(where: { $0.type == .trailer }) {
+                Button(action: { onPlayTrailer(trailer) }) {
+                    HStack {
+                        Image(systemName: "play.fill")
+                        Text("Trailer")
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .tint(.black)
+                .background(RoundedRectangle(cornerRadius: 24).fill(.yellow))
+            }
         }
         .padding(.horizontal)
         .padding(.vertical, 4)
+    }
+}
+
+private struct WatchProvidersView: View {
+
+    @State private var currentRegion: String
+
+    let watch: WatchProviders
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            HStack {
+                Text("Watch providers")
+                Spacer()
+                Picker("Region", selection: $currentRegion) {
+                    ForEach(watch.regions, id: \.self) { region in
+                        Text(region)
+                    }
+                }
+            }
+            .tint(.black)
+            .font(.title2)
+
+            if let collection = watch.collection(for: currentRegion) {
+                if !collection.free.isEmpty {
+                    VStack(alignment: .leading) {
+                        Text("Free").font(.headline)
+                        providerList(providers: collection.free)
+                    }
+                }
+
+                if !(collection.rent + collection.buy).isEmpty {
+                    VStack(alignment: .leading) {
+                        Text("Rent or Buy").font(.headline)
+                        providerList(providers: collection.rent + collection.buy)
+                    }
+                }
+            } else {
+                VStack {
+                    Text("This movie has no watch providers yet")
+                }
+            }
+        }
+        .padding()
+        .background(.yellow)
+        .cornerRadius(8)
+    }
+
+    @ViewBuilder private func providerList(providers: [WatchProvider]) -> some View {
+        LazyVGrid(columns: [GridItem(), GridItem(), GridItem(), GridItem()]) {
+            ForEach(providers, id: \.name) { provider in
+                AsyncImage(url: provider.iconUrl, content: { image in
+                    image.resizable().aspectRatio(contentMode: .fit)
+                }, placeholder: {
+                    Rectangle().fill(.thinMaterial)
+                })
+                .cornerRadius(8)
+            }
+        }
+    }
+
+    init(watch: WatchProviders) {
+        self.watch = watch
+
+        let initialRegion = Locale.current.region?.identifier ?? watch.regions.first ?? "US"
+        self._currentRegion = State(initialValue: initialRegion)
     }
 }
 
@@ -196,14 +288,35 @@ private struct CastView: View {
 }
 
 #if DEBUG
-struct MovieCardView_Previews: PreviewProvider {
+struct MovieContentView_Previews: PreviewProvider {
     static var previews: some View {
         ScrollView(showsIndicators: false) {
-            MovieContentView(
-                navigationPath: .constant(NavigationPath()),
-                movie: MockWebService.movie(with: 954)
-            )
-            .environmentObject(Watchlist(items: [:]))
+            MovieContentViewPreview()
+                .environmentObject(Watchlist(items: []))
+        }
+    }
+}
+
+private struct MovieContentViewPreview: View {
+
+    @Environment(\.requestManager) var requestManager
+    @State var movie: Movie?
+
+    var body: some View {
+        Group {
+            if let movie {
+                MovieContentView(
+                    navigationPath: .constant(NavigationPath()),
+                    movie: movie,
+                    onVideoSelected: { _ in }
+                )
+            } else {
+                LoaderView()
+            }
+        }
+        .task {
+            let webService = MovieWebService(requestManager: requestManager)
+            movie = try! await webService.fetchMovie(with: 353081)
         }
     }
 }

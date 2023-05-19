@@ -144,28 +144,50 @@ private struct CardView<Content: View>: View {
 
 #if DEBUG
 struct SlidingCardView_Previews: PreviewProvider {
-    static let movie: Movie = MockWebService.movie(with: 954)
     static var previews: some View {
-        SlidingCardView(
-            navigationPath: .constant(.init()),
-            title: movie.details.title,
-            posterUrl: movie.details.media.posterUrl,
-            trailingHeaderView: {
-                WatermarkView {
-                    Image(systemName: "play")
-                }
-            },
-            content: {
-                MovieContentView(
+        NavigationView {
+            SlidingCardViewPreview()
+                .environmentObject(Watchlist(items: [
+                    WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: .init(owner: "Valerio", comment: "This is really nice"))))
+                ]))
+                .environment(\.requestManager, MockRequestManager())
+        }
+    }
+}
+
+private struct SlidingCardViewPreview: View {
+
+    @Environment(\.requestManager) var requestManager
+    @State var movie: Movie?
+
+    var body: some View {
+        Group {
+            if let movie {
+                SlidingCardView(
                     navigationPath: .constant(.init()),
-                    movie: movie
+                    title: movie.details.title,
+                    posterUrl: movie.details.media.posterUrl,
+                    trailingHeaderView: {
+                        WatermarkView {
+                            Image(systemName: "play")
+                        }
+                    },
+                    content: {
+                        MovieContentView(
+                            navigationPath: .constant(.init()),
+                            movie: movie,
+                            onVideoSelected: { _ in }
+                        )
+                    }
                 )
+            } else {
+                LoaderView()
             }
-        )
-        .environmentObject(Watchlist(items: [
-            .movie(id: 954): .toWatch(reason: .suggestion(from: "Valerio", comment: "This is really nice"))
-        ]))
-        .environment(\.requestManager, MockRequestManager())
+        }
+        .task {
+            let webService = MovieWebService(requestManager: requestManager)
+            movie = try! await webService.fetchMovie(with: 954)
+        }
     }
 }
 #endif

@@ -15,15 +15,17 @@
 
 "MOVIE.POPULAR" = "Popular";
 "MOVIE.UPCOMING" = "Upcoming";
+"MOVIE.NOW_PLAYING" = "Now playing";
+"MOVIE.TOP_RATED" = "Top rated";
 
 // MARK: Watchlist
 
 "WATCHLIST.TITLE" = "Watchlist";
-"WATCHLIST.TO_WATCH.TITLE" = "Wish list";
+"WATCHLIST.TO_WATCH.TITLE" = "Wishlist";
 "WATCHLIST.WATCHED.TITLE" = "Watched";
 
 // MARK: Explore
 
 "EXPLORE.TITLE" = "Browse";
 "EXPLORE.SEARCH.RESULTS" = "Search results";
-"EXPLORE.SEARCH.PROMPT" = "Search movie";
+"EXPLORE.SEARCH.PROMPT" = "Search";

@@ -115,10 +115,29 @@ private struct FilmographyView: View {
 struct ArtistCardView_Previews: PreviewProvider {
     static var previews: some View {
         ScrollView(showsIndicators: false) {
-            ArtistContentView(navigationPath: .constant(.init()),
-                              artist: MockWebService.artist(with: 287))
-            .environment(\.requestManager, MockRequestManager())
-            .environmentObject(Watchlist(items: [:]))
+            ArtistCardPreview()
+                .environment(\.requestManager, MockRequestManager())
+                .environmentObject(Watchlist(items: []))
+        }
+    }
+}
+
+private struct ArtistCardPreview: View {
+
+    @Environment(\.requestManager) var requestManager
+    @State var artist: Artist?
+
+    var body: some View {
+        Group {
+            if let artist {
+                ArtistContentView(navigationPath: .constant(.init()), artist: artist)
+            } else {
+                LoaderView()
+            }
+        }
+        .task {
+            let webService = ArtistWebService(requestManager: requestManager)
+            artist = try! await webService.fetchArtist(with: 287)
         }
     }
 }

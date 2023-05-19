@@ -48,7 +48,31 @@ struct ArtistPreviewView: View {
 #if DEBUG
 struct ArtistPreviewView_Previews: PreviewProvider {
     static var previews: some View {
-        ArtistPreviewView(details: MockWebService.artist(with: 287).details) {}
+        ScrollView(showsIndicators: false) {
+            ArtistPreviewViewPreview()
+                .environment(\.requestManager, MockRequestManager())
+                .environmentObject(Watchlist(items: []))
+        }
+    }
+}
+
+private struct ArtistPreviewViewPreview: View {
+
+    @Environment(\.requestManager) var requestManager
+    @State var artist: Artist?
+
+    var body: some View {
+        Group {
+            if let artist {
+                ArtistPreviewView(details: artist.details, onSelected: nil)
+            } else {
+                LoaderView()
+            }
+        }
+        .task {
+            let webService = ArtistWebService(requestManager: requestManager)
+            artist = try! await webService.fetchArtist(with: 287)
+        }
     }
 }
 #endif

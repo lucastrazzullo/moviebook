@@ -6,250 +6,155 @@
 //
 
 import SwiftUI
-import Combine
-
-@MainActor private final class Content: ObservableObject {
-
-    // MARK: Types
-
-    enum Section: Identifiable, Hashable, CaseIterable {
-        case toWatch
-        case watched
-
-        var id: String {
-            return self.name
-        }
-
-        var name: String {
-            switch self {
-            case .toWatch:
-                return NSLocalizedString("WATCHLIST.TO_WATCH.TITLE", comment: "")
-            case .watched:
-                return NSLocalizedString("WATCHLIST.WATCHED.TITLE", comment: "")
-            }
-        }
-    }
-
-    enum Item: Identifiable {
-        case movie(id: Movie.ID, movie: Movie?)
-
-        var id: Movie.ID {
-            switch self {
-            case .movie(let id, _):
-                return id
-            }
-        }
-    }
-
-    // MARK: Instance Properties
-
-    @Published var items: [Content.Section: [Item]] = [:]
-    @Published var error: WebServiceError?
-
-    var sections: [Section] {
-        return Section.allCases
-    }
-
-    private var subscriptions: Set<AnyCancellable> = []
-
-    // MARK: Object life cycle
-
-    init() {
-        sections.forEach { section in
-            items[section] = []
-        }
-    }
-
-    // MARK: Internal methods
-
-    func start(watchlist: Watchlist, requestManager: RequestManager) {
-        subscriptions.forEach({ $0.cancel() })
-
-        watchlist.$content
-            .map(\.items)
-            .sink { [weak self, requestManager] items in
-                self?.update(watchlistItems: items, requestManager: requestManager)
-            }
-            .store(in: &subscriptions)
-    }
-
-    func items(for section: Content.Section) -> [Item] {
-        return items[section] ?? []
-    }
-
-    // MARK: Private helper methods
-
-    private func section(for watchlistState: Moviebook.WatchlistContent.ItemState) -> Content.Section? {
-        switch watchlistState {
-        case .toWatch:
-            return .toWatch
-        case .watched:
-            return .watched
-        default:
-            return nil
-        }
-    }
-
-    private func update(watchlistItems: [Moviebook.WatchlistContent.Item: Moviebook.WatchlistContent.ItemState], requestManager: RequestManager) {
-        watchlistItems.forEach { itemTuple in
-            let watchlistItemState = itemTuple.value
-            let watchlistItem = itemTuple.key
-
-            guard let itemSection = section(for: watchlistItemState) else {
-                return
-            }
-
-            switch watchlistItem {
-            case .movie(let id):
-                switchOrAdd(movieWith: id, toSection: itemSection, requestManager: requestManager)
-            }
-        }
-    }
-
-    private func switchOrAdd(movieWith id: Movie.ID, toSection: Content.Section, requestManager: RequestManager) {
-        sections.forEach { section in
-            if section == toSection {
-                guard !items(for: section).contains(where: { $0.id == id }) else {
-                    return
-                }
-
-                items[section]?.append(.movie(id: id, movie: nil))
-                load(movieWith: id, in: section, requestManager: requestManager)
-            } else {
-                guard let index = items(for: section).firstIndex(where: { $0.id == id }) else {
-                    return
-                }
-
-                items[section]?.remove(at: index)
-            }
-        }
-    }
-
-    private func load(movieWith id: Movie.ID, in section: Content.Section, requestManager: RequestManager) {
-        let webService = MovieWebService(requestManager: requestManager)
-        Task {
-            do {
-                if let index = items[section]?.firstIndex(where: { $0.id == id }) {
-                    let movie = try await webService.fetchMovie(with: id)
-                    items[section]?.remove(at: index)
-                    items[section]?.insert(.movie(id: id, movie: movie), at: index)
-                }
-            } catch {
-                print("FAILED movie with id: \(id)", error)
-            }
-        }
-    }
-}
 
 struct WatchlistView: View {
 
-    enum PresentedItem: Identifiable {
-        case movie(Movie)
+    @Environment(\.requestManager) var requestManager
+    @EnvironmentObject var watchlist: Watchlist
 
-        var id: AnyHashable {
-            switch self {
-            case .movie(let movie):
-                return movie.id
+    @StateObject private var viewModel: WatchlistViewModel = WatchlistViewModel()
+
+    let onExploreSelected: () -> Void
+    let onMovieSelected: (Movie) -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+
+            Group {
+                if viewModel.isLoading {
+                    LoaderView()
+                } else if viewModel.items.isEmpty {
+                    EmptyWatchlistView(onStartDiscoverySelected: onExploreSelected)
+                } else {
+                    ListView(viewModel: viewModel, onMovieSelected: onMovieSelected)
+                }
+            }
+
+            if let itemToRemove = viewModel.itemToRemove {
+                UndoView(
+                    itemToRemove: itemToRemove,
+                    timeRemaining: viewModel.undoTimeRemaining,
+                    action: { viewModel.undo() }
+                )
+            }
+        }
+        .navigationTitle(NSLocalizedString("WATCHLIST.TITLE", comment: ""))
+        .toolbar {
+            makeSectionSelectionToolbarItem()
+            makeExploreToolbarItem()
+        }
+        .onAppear {
+            viewModel.start(watchlist: watchlist, requestManager: requestManager)
+        }
+        .animation(.easeInOut(duration: 0.8), value: viewModel.itemToRemove)
+    }
+
+    // MARK: Private factory methods
+
+    @ToolbarContentBuilder private func makeExploreToolbarItem() -> some ToolbarContent {
+        ToolbarItem(placement: .navigationBarTrailing) {
+            WatermarkView {
+                Image(systemName: "magnifyingglass")
+                    .onTapGesture {
+                        onExploreSelected()
+                    }
             }
         }
     }
 
-    @Environment(\.requestManager) var requestManager
-    @EnvironmentObject var watchlist: Watchlist
-    @StateObject private var content: Content = Content()
-
-    @State private var presentedItemNavigationPath = NavigationPath()
-
-    @State private var selectedSection: Content.Section = .toWatch
-    @State private var isExplorePresented: Bool = false
-    @State private var isItemPresented: PresentedItem? = nil
-    @State private var isErrorPresented: Bool = false
-
-    var body: some View {
-        NavigationView {
-            List {
-                ForEach(content.items(for: selectedSection)) { item in
-                    switch item {
-                    case .movie(_, let movie):
-                        MoviePreviewView(details: movie?.details) {
-                            if let movie = movie {
-                                isItemPresented = .movie(movie)
-                            }
-                        }
+    @ToolbarContentBuilder private func makeSectionSelectionToolbarItem() -> some ToolbarContent {
+        if viewModel.sections[.watched]?.items.count ?? 0 > 0 {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Picker("Section", selection: $viewModel.currentSection) {
+                    ForEach(viewModel.sectionIdentifiers, id: \.self) { section in
+                        Text(section.name)
                     }
                 }
-                .listRowSeparator(.hidden)
-            }
-            .listStyle(.plain)
-            .navigationTitle(NSLocalizedString("WATCHLIST.TITLE", comment: ""))
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Picker("Section", selection: $selectedSection) {
-                        ForEach(content.sections, id: \.self) { section in
-                            Text(section.name)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .onAppear {
-                        UISegmentedControl.appearance().backgroundColor = UIColor(Color.black.opacity(0.8))
-                        UISegmentedControl.appearance().selectedSegmentTintColor = .white
-                        UISegmentedControl.appearance().setTitleTextAttributes([.foregroundColor: UIColor.black], for: .selected)
-                        UISegmentedControl.appearance().setTitleTextAttributes([.foregroundColor: UIColor.white], for: .normal)
-                    }
-                }
-
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    WatermarkView {
-                        Image(systemName: "magnifyingglass")
-                            .onTapGesture {
-                                isExplorePresented = true
-                            }
-                    }
-                }
-            }
-            .sheet(isPresented: $isExplorePresented) {
-                ExploreView()
-            }
-            .sheet(item: $isItemPresented) { item in
-                NavigationStack(path: $presentedItemNavigationPath) {
-                    Group {
-                        switch item {
-                        case .movie(let movie):
-                            MovieView(movie: movie, navigationPath: $presentedItemNavigationPath)
-                        }
-                    }
-                    .navigationDestination(for: NavigationItem.self) { item in
-                        NavigationDestination(navigationPath: $presentedItemNavigationPath, item: item)
-                    }
-                }
-            }
-            .alert("Error", isPresented: $isErrorPresented) {
-                Button("Retry", role: .cancel) {
-                    content.error?.retry()
-                }
-            }
-            .onChange(of: content.error) { error in
-                isErrorPresented = error != nil
-            }
-            .onAppear {
-                content.start(watchlist: watchlist, requestManager: requestManager)
+                .segmentedStyled()
             }
         }
     }
 }
 
-private struct EmptyWatchlistView: View {
+private struct ListView: View {
 
-    var onStartDiscoverySelected: () -> Void
+    @EnvironmentObject var watchlist: Watchlist
+
+    @ObservedObject var viewModel: WatchlistViewModel
+
+    let onMovieSelected: (Movie) -> Void
 
     var body: some View {
-        VStack {
-            Text("Your watchlist is empty")
-                .font(.headline)
+        List {
+            ForEach(viewModel.items) { item in
+                switch item {
+                case .movie(let movie, _, _):
+                    MoviePreviewView(details: movie.details) {
+                        onMovieSelected(movie)
+                    }
+                    .swipeActions {
+                        Button(action: { viewModel.remove(item: item, from: watchlist) }) {
+                            HStack {
+                                Image(systemName: "minus")
+                                Text("Remove")
+                            }
+                        }
+                        .tint(Color.accentColor)
+                    }
+                }
+            }
+            .listRowSeparator(.hidden)
+        }
+        .scrollIndicators(.hidden)
+        .listStyle(.plain)
+    }
+}
 
-            Button(action: onStartDiscoverySelected) {
-                Label("Start your discovery", systemImage: "rectangle.and.text.magnifyingglass")
-            }.buttonStyle(.borderedProminent)
+private struct UndoView: View {
+
+    let itemToRemove: WatchlistViewModel.SectionItem
+    let timeRemaining: TimeInterval
+    let action: () -> Void
+
+    var body: some View {
+        switch itemToRemove {
+        case .movie(let movie, let section, _):
+            HStack(spacing: 24) {
+                HStack {
+                    AsyncImage(url: movie.details.media.posterPreviewUrl) { image in
+                        image.resizable().aspectRatio(contentMode: .fit)
+                    } placeholder: {
+                        Color.gray
+                    }
+                    .frame(width: 60)
+                    .cornerRadius(8)
+
+                    VStack(alignment: .leading) {
+                        Text("Removed from \(section.name)")
+                            .font(.subheadline)
+                            .foregroundColor(.accentColor)
+                        Text(movie.details.title)
+                            .lineLimit(2)
+                            .font(.headline)
+                    }
+                }
+
+                Spacer()
+
+                Button(action: action) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Undo")
+                        ProgressView(value: timeRemaining, total: 5)
+                            .progressViewStyle(.linear)
+                            .animation(.linear, value: timeRemaining)
+                    }
+                }
+                .tint(Color.accentColor)
+                .fixedSize()
+            }
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+            .padding()
+            .background(Rectangle().fill(.background))
         }
     }
 }
@@ -257,12 +162,20 @@ private struct EmptyWatchlistView: View {
 #if DEBUG
 struct WatchlistView_Previews: PreviewProvider {
     static var previews: some View {
-        WatchlistView()
-            .environment(\.requestManager, MockRequestManager())
-            .environmentObject(Watchlist(items: [
-                .movie(id: 954): .toWatch(reason: .none),
-                .movie(id: 616037): .toWatch(reason: .none)
-            ]))
+        NavigationView {
+            WatchlistView(onExploreSelected: {}, onMovieSelected: { _ in })
+                .environment(\.requestManager, MockRequestManager())
+                .environmentObject(Watchlist(items: [
+                    WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
+                    WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: nil)))
+                ]))
+        }
+
+        NavigationView {
+            WatchlistView(onExploreSelected: {}, onMovieSelected: { _ in })
+                .environment(\.requestManager, MockRequestManager())
+                .environmentObject(Watchlist(items: []))
+        }
     }
 }
 #endif

@@ -36,6 +36,7 @@ struct CircularRatingView: View {
                     Text("/").font(ratingBaseFont)
                     Text("10").font(ratingBaseFont)
                 }
+                .animation(nil, value: rating)
 
                 if let label = label {
                     Text(label)

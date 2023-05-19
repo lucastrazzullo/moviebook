@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct MovieCollection: Identifiable {
+struct MovieCollection: Identifiable, Equatable {
     let id: Int
     let name: String
     let list: [MovieDetails]?

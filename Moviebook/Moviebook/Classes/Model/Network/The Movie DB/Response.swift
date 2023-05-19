@@ -9,7 +9,16 @@ import Foundation
 
 // MARK: - Response with results
 
-private struct SafeItem<Base: Decodable>: Decodable {
+enum TheMovieDbResponse {
+
+    static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+}
+
+struct TMDBSafeItemResponse<Base: Decodable>: Decodable {
     public let value: Base?
 
     public init(from decoder: Decoder) throws {
@@ -22,9 +31,34 @@ private struct SafeItem<Base: Decodable>: Decodable {
     }
 }
 
-struct TheMovieDbResponseWithResults<ItemType: Decodable>: Decodable {
+struct TMDBResponseWithListResults<ItemType: Decodable>: Decodable {
 
     let results: [ItemType]
+    let nextPage: Int?
+
+    enum CodingKeys: CodingKey {
+        case results
+        case page
+        case total_pages
+    }
+
+    init(from decoder: Decoder) throws {
+        let container: KeyedDecodingContainer<CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
+        self.results = try container.decode([TMDBSafeItemResponse<ItemType>].self, forKey: CodingKeys.results).compactMap(\.value)
+
+        if let page = try container.decodeIfPresent(Int.self, forKey: .page),
+           let numberOfPages = try container.decodeIfPresent(Int.self, forKey: .total_pages),
+            page < numberOfPages {
+            self.nextPage = page + 1
+        } else {
+            self.nextPage = nil
+        }
+    }
+}
+
+struct TheMovieDbResponseWithDictionaryResults<ItemType: Decodable>: Decodable {
+
+    let results: [String: ItemType]
 
     enum CodingKeys: CodingKey {
         case results
@@ -32,298 +66,6 @@ struct TheMovieDbResponseWithResults<ItemType: Decodable>: Decodable {
 
     init(from decoder: Decoder) throws {
         let container: KeyedDecodingContainer<CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
-        self.results = try container.decode([SafeItem<ItemType>].self, forKey: CodingKeys.results).compactMap({ $0.value })
-    }
-}
-
-enum TheMovieDbResponse {
-
-    static let dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter
-    }()
-}
-
-// MARK: - Entities Decoding Extensions
-
-extension Movie: Decodable {
-
-    enum CodingKeys: String, CodingKey {
-        case id = "id"
-        case genres = "genres"
-        case collection = "belongs_to_collection"
-        case credits = "credits"
-    }
-
-    enum CreditsCodingKeys: String, CodingKey {
-        case cast = "cast"
-    }
-
-    init(from decoder: Decoder) throws {
-        let values = try decoder.container(keyedBy: CodingKeys.self)
-
-        id = try values.decode(Movie.ID.self, forKey: .id)
-        details = try MovieDetails(from: decoder)
-        genres = try values.decode([MovieGenre].self, forKey: .genres)
-        production = try MovieProduction(from: decoder)
-        collection = try values.decodeIfPresent(MovieCollection.self, forKey: .collection)
-
-        let creditsContainer = try values.nestedContainer(keyedBy: CreditsCodingKeys.self, forKey: .credits)
-        cast = try creditsContainer.decode([SafeItem<ArtistDetails>].self, forKey: .cast).compactMap({ $0.value })
-    }
-}
-
-extension MovieDetails: Decodable {
-
-    enum Error: Swift.Error {
-        case invalidDate
-    }
-
-    enum CodingKeys: String, CodingKey {
-        case id = "id"
-        case title = "title"
-        case overview = "overview"
-        case budget = "budget"
-        case revenue = "revenue"
-        case releaseDate = "release_date"
-        case runtime = "runtime"
-        case rating = "vote_average"
-        case posterPath = "poster_path"
-        case backdropPath = "backdrop_path"
-    }
-
-    init(from decoder: Decoder) throws {
-        let values = try decoder.container(keyedBy: CodingKeys.self)
-
-        id = try values.decode(MovieDetails.ID.self, forKey: .id)
-        title = try values.decode(String.self, forKey: .title)
-        overview = try values.decodeIfPresent(String.self, forKey: .overview)
-        rating = Rating(value: try values.decode(Float.self, forKey: .rating), quota: 10.0)
-        media = try MovieMedia(from: decoder)
-
-        let releaseDateString = try values.decode(String.self, forKey: .releaseDate)
-        guard let releaseDate = TheMovieDbResponse.dateFormatter.date(from: releaseDateString) else {
-            throw Error.invalidDate
-        }
-        release = releaseDate
-
-        let minutes = try values.decodeIfPresent(Int.self, forKey: .runtime)
-        if let minutes = minutes {
-            runtime = TimeInterval(minutes*60)
-        } else {
-            runtime = nil
-        }
-
-        if let budgetValue = try values.decodeIfPresent(Int.self, forKey: .budget) {
-            budget = MoneyValue(value: budgetValue, currencyCode: TheMovieDbConfiguration.currency)
-        } else {
-            budget = nil
-        }
-
-        if let revenueValue = try values.decodeIfPresent(Int.self, forKey: .revenue) {
-            revenue = MoneyValue(value: revenueValue, currencyCode: TheMovieDbConfiguration.currency)
-        } else {
-            revenue = nil
-        }
-    }
-}
-
-extension MovieGenre: Decodable {
-
-    enum CodingKeys: String, CodingKey {
-        case id = "id"
-        case name = "name"
-    }
-
-    init(from decoder: Decoder) throws {
-        let values = try decoder.container(keyedBy: CodingKeys.self)
-
-        id = try values.decode(MovieGenre.ID.self, forKey: .id)
-        name = try values.decode(String.self, forKey: .name)
-    }
-}
-
-extension MovieProduction: Decodable {
-
-    struct Company: Decodable {
-        let name: String
-    }
-
-    enum CodingKeys: String, CodingKey {
-        case production = "production_companies"
-    }
-
-    init(from decoder: Decoder) throws {
-        let values = try decoder.container(keyedBy: CodingKeys.self)
-        companies = try values.decode([Company].self, forKey: .production).map(\.name)
-    }
-}
-
-extension MovieCollection: Decodable {
-
-    enum CodingKeys: String, CodingKey {
-        case id = "id"
-        case name = "name"
-        case list = "parts"
-    }
-
-    init(from decoder: Decoder) throws {
-        let values = try decoder.container(keyedBy: CodingKeys.self)
-
-        let id = try values.decode(MovieCollection.ID.self, forKey: .id)
-        let name = try values.decode(String.self, forKey: .name)
-        let list = try values.decodeIfPresent([SafeItem<MovieDetails>].self, forKey: .list)?.compactMap({ $0.value }) ?? []
-
-        self.init(id: id, name: name, list: list)
-    }
-}
-
-extension MovieMedia: Decodable {
-
-    enum CodingKeys: String, CodingKey {
-        case posterPath = "poster_path"
-        case backdropPath = "backdrop_path"
-        case videos = "videos"
-        case title = "title"
-    }
-
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-
-        if let posterPath = try container.decodeIfPresent(String.self, forKey: .posterPath) {
-            posterUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .poster(path: posterPath, size: .original))
-            posterPreviewUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .poster(path: posterPath, size: .preview))
-        } else {
-            posterUrl = nil
-            posterPreviewUrl = nil
-        }
-
-        if let backdropPath = try container.decodeIfPresent(String.self, forKey: .backdropPath) {
-            backdropUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .backdrop(path: backdropPath, size: .original))
-            backdropPreviewUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .backdrop(path: backdropPath, size: .preview))
-        } else {
-            backdropUrl = nil
-            backdropPreviewUrl = nil
-        }
-
-        if let videoResults = try? container.decodeIfPresent(TheMovieDbResponseWithResults<MovieVideo>.self, forKey: .videos)?.results {
-            videos = videoResults
-        } else {
-            videos = []
-        }
-    }
-}
-
-extension MovieVideo: Decodable {
-    
-    enum DecodingError: Error {
-        case siteNotSupported(_ site: String)
-        case typeNotSupported(_ type: String)
-        case nonOfficialTrailer
-    }
-    
-    enum CodingKeys: CodingKey {
-        case id
-        case name
-        case key
-        case site
-        case type
-        case official
-    }
-    
-    init(from decoder: Decoder) throws {
-        let values = try decoder.container(keyedBy: CodingKeys.self)
-
-        let official = try values.decode(Bool.self, forKey: .official)
-        guard official else {
-            throw DecodingError.nonOfficialTrailer
-        }
-
-        id = try values.decode(String.self, forKey: .id)
-        name = try values.decode(String.self, forKey: .name)
-
-        let type = try values.decode(String.self, forKey: .type)
-        switch type {
-        case "Trailer":
-            self.type = .trailer
-        case "Teaser":
-            self.type = .teaser
-        case "Behind the Scenes":
-            self.type = .behindTheScenes
-        default:
-            throw DecodingError.typeNotSupported(type)
-        }
-
-        let key = try values.decode(String.self, forKey: .key)
-        let site = try values.decode(String.self, forKey: .site)
-        switch site {
-        case "YouTube":
-            self.source = .youtube(id: key)
-        default:
-            throw DecodingError.siteNotSupported(site)
-        }
-    }
-}
-
-extension Artist: Decodable {
-
-    enum CodingKeys: String, CodingKey {
-        case id = "id"
-        case credits = "credits"
-    }
-
-    enum CreditsCodingKeys: String, CodingKey {
-        case cast
-    }
-
-    init(from decoder: Decoder) throws {
-        let values = try decoder.container(keyedBy: CodingKeys.self)
-
-        let id = try values.decode(Movie.ID.self, forKey: .id)
-        let details = try ArtistDetails(from: decoder)
-
-        let creditsContainer = try values.nestedContainer(keyedBy: CreditsCodingKeys.self, forKey: .credits)
-        let filmography = try creditsContainer.decodeIfPresent([SafeItem<MovieDetails>].self, forKey: .cast)?.compactMap({ $0.value }) ?? []
-
-        self.init(id: id, details: details, filmography: filmography)
-    }
-}
-
-extension ArtistDetails: Decodable {
-    
-    enum CodingKeys: String, CodingKey {
-        case id = "id"
-        case name = "name"
-        case biography = "biography"
-        case character = "character"
-        case birthday = "birthday"
-        case deathday = "deathday"
-        case imagePath = "profile_path"
-    }
-    
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        
-        id = try container.decode(ArtistDetails.ID.self, forKey: .id)
-        name = try container.decode(String.self, forKey: .name)
-        biography = try container.decodeIfPresent(String.self, forKey: .biography)
-        character = try container.decodeIfPresent(String.self, forKey: .character)
-
-        if let birthdayString = try container.decodeIfPresent(String.self, forKey: .birthday) {
-            birthday = TheMovieDbResponse.dateFormatter.date(from: birthdayString)
-        } else {
-            birthday = nil
-        }
-
-        if let deathdayString = try container.decodeIfPresent(String.self, forKey: .deathday) {
-            deathday = TheMovieDbResponse.dateFormatter.date(from: deathdayString)
-        } else {
-            deathday = nil
-        }
-
-        let imagePath = try container.decode(String.self, forKey: .imagePath)
-        imagePreviewUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .avatar(path: imagePath, size: .preview))
-        imageOriginalUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .avatar(path: imagePath, size: .original))
+        self.results = try container.decode([String: ItemType].self, forKey: CodingKeys.results)
     }
 }
