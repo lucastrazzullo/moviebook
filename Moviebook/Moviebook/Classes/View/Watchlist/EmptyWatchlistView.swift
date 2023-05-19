@@ -38,11 +38,17 @@ struct EmptyWatchlistView: View {
             ZStack {
                 ListView(items: viewModel.results)
                     .allowsHitTesting(false)
-                    .mask(LinearGradient(gradient: Gradient(colors: [.gray, .gray.opacity(0)]),
-                                         startPoint: .top,
-                                         endPoint: .bottom))
+                    .mask(LinearGradient(
+                        gradient: Gradient(
+                            stops: [
+                                .init(color: .gray, location: 0),
+                                .init(color: .gray, location: 0.6),
+                                .init(color: .gray.opacity(0), location: 1)
+                            ]),
+                        startPoint: .top,
+                        endPoint: .bottom)
+                    )
             }
-
 
             Button(action: onStartDiscoverySelected) {
                 HStack {
@@ -57,7 +63,7 @@ struct EmptyWatchlistView: View {
         .padding()
         .padding(.vertical)
         .background(RoundedRectangle(cornerRadius: 12).fill(.thinMaterial))
-        .padding()
+        .padding(4)
         .onAppear {
             viewModel.start(requestManager: requestManager)
         }
@@ -70,19 +76,25 @@ private struct ListView: View {
 
     var body: some View {
         ScrollView(showsIndicators: false) {
-            LazyVGrid(columns: [GridItem(), GridItem(), GridItem(), GridItem()]) {
-                ForEach(items, id: \.self) { movieDetails in
-                    AsyncImage(url: movieDetails.media.posterPreviewUrl, content: { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    }, placeholder: {
-                        Color
-                            .gray
-                            .opacity(0.2)
-                    })
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
-                }
+            LazyVGrid(
+                columns: [
+                    GridItem(spacing: 4),
+                    GridItem(spacing: 4),
+                    GridItem(spacing: 4),
+                    GridItem(spacing: 4)],
+                spacing: 4) {
+                    ForEach(items, id: \.self) { movieDetails in
+                        AsyncImage(url: movieDetails.media.posterPreviewUrl, content: { image in
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        }, placeholder: {
+                            Color
+                                .gray
+                                .opacity(0.2)
+                        })
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                    }
             }
         }
     }
