@@ -25,7 +25,7 @@ struct SpecsView: View {
     private let items: [DisplayedItem]
 
     var body: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 0) {
             Text(title)
                 .font(.title2)
                 .padding(.leading)
