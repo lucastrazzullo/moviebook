@@ -20,7 +20,7 @@ private final class ViewModel: ObservableObject {
         case rating(item: WatchlistItem)
     }
 
-    @Published private(set) var prompt: Prompt?
+    @Published private(set) var prompt: Prompt? = .suggestion(item: WatchlistItem.init(id: .movie(id: 954), state: .toWatch(info: .init(date: .now))))
     @Published private(set) var promptTimeRemaining: TimeInterval = -1
 
     func start(watchlist: Watchlist) {
@@ -127,15 +127,15 @@ private struct PromptView: View {
         switch prompt {
         case .suggestion(let item):
             PromptItem(watchlistItem: item,
-                       title: "You can add a suggestion",
+                       description: "Add a suggestion",
                        timeRemaining: timeRemaining,
-                       actionLabel: "Add suggestion",
+                       actionLabel: "Add",
                        action: {})
         case .rating(let item):
             PromptItem(watchlistItem: item,
-                       title: "You can add your own rating",
+                       description: "Add your own rating",
                        timeRemaining: timeRemaining,
-                       actionLabel: "Add rating",
+                       actionLabel: "Add",
                        action: {})
         }
     }
@@ -159,7 +159,7 @@ private struct PromptItem: View {
     @StateObject private var loader: MovieInfoLoader = MovieInfoLoader()
 
     let watchlistItem: WatchlistItem
-    let title: String
+    let description: String
     let timeRemaining: TimeInterval
     let actionLabel: String
     let action: () -> Void
@@ -174,24 +174,27 @@ private struct PromptItem: View {
                         } placeholder: {
                             Color.gray
                         }
-                        .frame(width: 60)
+                        .frame(width: 60, height: 90)
                         .cornerRadius(8)
 
-                        VStack(alignment: .leading) {
-                            Text(title)
-                                .font(.subheadline)
-                                .foregroundColor(.accentColor)
+                        VStack(alignment: .leading, spacing: 6) {
                             Text(movie.details.title)
                                 .lineLimit(2)
                                 .font(.headline)
+                            Text(description)
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
                         }
                     }
 
                     Spacer()
 
                     Button(action: action) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(actionLabel)
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack {
+                                Image(systemName: "plus")
+                                Text(actionLabel)
+                            }
                             ProgressView(value: max(0, timeRemaining), total: 5)
                                 .progressViewStyle(.linear)
                                 .animation(.linear, value: timeRemaining)
