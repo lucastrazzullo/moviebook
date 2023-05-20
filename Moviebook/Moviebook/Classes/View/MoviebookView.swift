@@ -32,7 +32,7 @@ struct MoviebookView: View {
             }
         }
         .sheet(item: $presentedItem) { item in
-            deeplinkDestination(item: item)
+            Navigation(path: $presentedItemNavigationPath, presentingItem: item)
         }
     }
 
@@ -46,15 +46,6 @@ struct MoviebookView: View {
             presentedItem = .movieWithIdentifier(identifier)
         case .artist(let identifier):
             presentedItem = .artistWithIdentifier(identifier)
-        }
-    }
-
-    @ViewBuilder private func deeplinkDestination(item: NavigationItem) -> some View {
-        NavigationStack(path: $presentedItemNavigationPath) {
-            NavigationDestination(navigationPath: $presentedItemNavigationPath, item: item)
-                .navigationDestination(for: NavigationItem.self) { item in
-                    NavigationDestination(navigationPath: $presentedItemNavigationPath, item: item)
-                }
         }
     }
 }

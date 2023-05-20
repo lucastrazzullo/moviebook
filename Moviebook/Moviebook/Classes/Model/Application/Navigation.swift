@@ -46,3 +46,19 @@ struct NavigationDestination: View {
         }
     }
 }
+
+struct Navigation: View {
+
+    @Binding var path: NavigationPath
+
+    let presentingItem: NavigationItem
+
+    var body: some View {
+        NavigationStack(path: $path) {
+            NavigationDestination(navigationPath: $path, item: presentingItem)
+                .navigationDestination(for: NavigationItem.self) { item in
+                    NavigationDestination(navigationPath: $path, item: item)
+                }
+        }
+    }
+}

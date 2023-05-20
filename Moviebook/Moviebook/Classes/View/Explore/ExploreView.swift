@@ -51,13 +51,7 @@ struct ExploreView: View {
                 }
             }
             .sheet(item: $presentedItem) { presentedItem in
-                NavigationStack(path: $presentedItemNavigationPath) {
-                    NavigationDestination(navigationPath: $presentedItemNavigationPath, item: presentedItem)
-                        .navigationDestination(for: NavigationItem.self) { item in
-                            NavigationDestination(navigationPath: $presentedItemNavigationPath, item: item)
-                        }
-                }
-
+                Navigation(path: $presentedItemNavigationPath, presentingItem: presentedItem)
             }
             .onAppear {
                 searchViewModel.start(requestManager: requestManager)
