@@ -52,23 +52,7 @@ struct MoviebookView: View {
             }
         }
         .sheet(item: $presentedItem) { item in
-            NavigationStack(path: $presentedItemNavigationPath) {
-                Group {
-                    switch item {
-                    case .explore(let scope, let query):
-                        ExploreView(searchScope: scope, searchQuery: query)
-                    case .movie(let movie):
-                        MovieView(movie: movie, navigationPath: $presentedItemNavigationPath)
-                    case .movieWithIdentifier(let id):
-                        MovieView(movieId: id, navigationPath: $presentedItemNavigationPath)
-                    case .artistWithIdentifier(let id):
-                        ArtistView(artistId: id, navigationPath: $presentedItemNavigationPath)
-                    }
-                }
-                .navigationDestination(for: NavigationItem.self) { item in
-                    NavigationDestination(navigationPath: $presentedItemNavigationPath, item: item)
-                }
-            }
+            deeplinkDestination(item: item)
         }
     }
 
@@ -82,6 +66,26 @@ struct MoviebookView: View {
             presentedItem = .movieWithIdentifier(identifier)
         case .artist(let identifier):
             presentedItem = .artistWithIdentifier(identifier)
+        }
+    }
+
+    @ViewBuilder private func deeplinkDestination(item: PresentedItem) -> some View {
+        NavigationStack(path: $presentedItemNavigationPath) {
+            Group {
+                switch item {
+                case .explore(let scope, let query):
+                    ExploreView(searchScope: scope, searchQuery: query)
+                case .movie(let movie):
+                    MovieView(movie: movie, navigationPath: $presentedItemNavigationPath)
+                case .movieWithIdentifier(let id):
+                    MovieView(movieId: id, navigationPath: $presentedItemNavigationPath)
+                case .artistWithIdentifier(let id):
+                    ArtistView(artistId: id, navigationPath: $presentedItemNavigationPath)
+                }
+            }
+            .navigationDestination(for: NavigationItem.self) { item in
+                NavigationDestination(navigationPath: $presentedItemNavigationPath, item: item)
+            }
         }
     }
 }
