@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct WatchProviderCollection: Equatable {
+struct WatchProviderCollection: Equatable, Hashable {
     let free: [WatchProvider]
     let rent: [WatchProvider]
     let buy: [WatchProvider]

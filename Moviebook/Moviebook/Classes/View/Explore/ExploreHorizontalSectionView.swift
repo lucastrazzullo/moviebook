@@ -16,7 +16,7 @@ struct ExploreHorizontalSectionView: View {
     ]
 
     @ObservedObject var viewModel: ExploreContentViewModel
-    @Binding var presentedItem: ExplorePresentingItem?
+    @Binding var presentedItem: NavigationItem?
 
     var body: some View {
         Section(header: HeaderView(title: viewModel.title, isLoading: viewModel.isLoading, shouldShowAll: viewModel.error == nil, destination: viewAllDestination)) {
@@ -29,7 +29,7 @@ struct ExploreHorizontalSectionView: View {
                         case .movies(let movies):
                             ForEach(movies, id: \.self) { movieDetails in
                                 MoviePreviewView(details: movieDetails, style: .backdrop) {
-                                    presentedItem = .movie(movieId: movieDetails.id)
+                                    presentedItem = .movieWithIdentifier(movieDetails.id)
                                 }
                                 .frame(width: 300)
                                 .padding(.horizontal)
@@ -37,7 +37,7 @@ struct ExploreHorizontalSectionView: View {
                         case .artists(let artists):
                             ForEach(artists, id: \.self) { artistDetails in
                                 ArtistPreviewView(details: artistDetails) {
-                                    presentedItem = .artist(artistId: artistDetails.id)
+                                    presentedItem = .artistWithIdentifier(artistDetails.id)
                                 }
                                 .frame(width: 300)
                                 .padding(.horizontal)

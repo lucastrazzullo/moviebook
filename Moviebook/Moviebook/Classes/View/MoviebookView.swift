@@ -10,33 +10,13 @@ import CoreSpotlight
 
 struct MoviebookView: View {
 
-    enum PresentedItem: Identifiable {
-        case explore(scope: SearchViewModel.DataProvider.Scope, query: String?)
-        case movie(_ movie: Movie)
-        case movieWithIdentifier(_ id: Movie.ID)
-        case artistWithIdentifier(_ id: Artist.ID)
-
-        var id: AnyHashable {
-            switch self {
-            case .explore:
-                return "Explore"
-            case .movie(let movie):
-                return movie.id
-            case .movieWithIdentifier(let id):
-                return id
-            case .artistWithIdentifier(let id):
-                return id
-            }
-        }
-    }
-
     @State private var presentedItemNavigationPath = NavigationPath()
-    @State private var presentedItem: PresentedItem? = nil
+    @State private var presentedItem: NavigationItem? = nil
 
     var body: some View {
         NavigationView {
             WatchlistView(onExploreSelected: {
-                presentedItem = .explore(scope: .movie, query: nil)
+                presentedItem = .explore
             }, onMovieSelected: { movie in
                 presentedItem = .movie(movie)
             })
@@ -69,23 +49,12 @@ struct MoviebookView: View {
         }
     }
 
-    @ViewBuilder private func deeplinkDestination(item: PresentedItem) -> some View {
+    @ViewBuilder private func deeplinkDestination(item: NavigationItem) -> some View {
         NavigationStack(path: $presentedItemNavigationPath) {
-            Group {
-                switch item {
-                case .explore(let scope, let query):
-                    ExploreView(searchScope: scope, searchQuery: query)
-                case .movie(let movie):
-                    MovieView(movie: movie, navigationPath: $presentedItemNavigationPath)
-                case .movieWithIdentifier(let id):
-                    MovieView(movieId: id, navigationPath: $presentedItemNavigationPath)
-                case .artistWithIdentifier(let id):
-                    ArtistView(artistId: id, navigationPath: $presentedItemNavigationPath)
+            NavigationDestination(navigationPath: $presentedItemNavigationPath, item: item)
+                .navigationDestination(for: NavigationItem.self) { item in
+                    NavigationDestination(navigationPath: $presentedItemNavigationPath, item: item)
                 }
-            }
-            .navigationDestination(for: NavigationItem.self) { item in
-                NavigationDestination(navigationPath: $presentedItemNavigationPath, item: item)
-            }
         }
     }
 }

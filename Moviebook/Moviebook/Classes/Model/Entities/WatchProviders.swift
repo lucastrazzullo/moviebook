@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct WatchProviders: Equatable {
+struct WatchProviders: Equatable, Hashable {
 
     let regions: [String]
     let isEmpty: Bool

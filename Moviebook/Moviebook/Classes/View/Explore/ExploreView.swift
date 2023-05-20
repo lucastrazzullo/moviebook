@@ -7,20 +7,6 @@
 
 import SwiftUI
 
-enum ExplorePresentingItem: Identifiable {
-    case movie(movieId: Movie.ID)
-    case artist(artistId: Artist.ID)
-
-    var id: AnyHashable {
-        switch self {
-        case .movie(let movieId):
-            return movieId
-        case .artist(let artistId):
-            return artistId
-        }
-    }
-}
-
 struct ExploreView: View {
 
     @Environment(\.dismiss) private var dismiss
@@ -30,7 +16,7 @@ struct ExploreView: View {
     @StateObject private var searchViewModel: SearchViewModel
     @StateObject private var exploreViewModel: ExploreViewModel
 
-    @State private var presentedItem: ExplorePresentingItem?
+    @State private var presentedItem: NavigationItem?
     @State private var presentedItemNavigationPath: NavigationPath = NavigationPath()
 
     var body: some View {
@@ -66,17 +52,10 @@ struct ExploreView: View {
             }
             .sheet(item: $presentedItem) { presentedItem in
                 NavigationStack(path: $presentedItemNavigationPath) {
-                    Group {
-                        switch presentedItem {
-                        case .movie(let movieIdentifier):
-                            MovieView(movieId: movieIdentifier, navigationPath: $presentedItemNavigationPath)
-                        case .artist(let artistIdentifier):
-                            ArtistView(artistId: artistIdentifier, navigationPath: $presentedItemNavigationPath)
+                    NavigationDestination(navigationPath: $presentedItemNavigationPath, item: presentedItem)
+                        .navigationDestination(for: NavigationItem.self) { item in
+                            NavigationDestination(navigationPath: $presentedItemNavigationPath, item: item)
                         }
-                    }
-                    .navigationDestination(for: NavigationItem.self) { item in
-                        NavigationDestination(navigationPath: $presentedItemNavigationPath, item: item)
-                    }
                 }
 
             }
@@ -87,8 +66,8 @@ struct ExploreView: View {
         }
     }
 
-    init(searchScope: SearchViewModel.DataProvider.Scope, searchQuery: String?) {
-        self._searchViewModel = StateObject(wrappedValue: SearchViewModel(scope: searchScope, query: searchQuery))
+    init() {
+        self._searchViewModel = StateObject(wrappedValue: SearchViewModel(scope: .movie, query: nil))
         self._exploreViewModel = StateObject(wrappedValue: ExploreViewModel())
     }
 }
@@ -97,7 +76,7 @@ struct ExploreView: View {
 struct ExploreView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
-            ExploreView(searchScope: .movie, searchQuery: nil)
+            ExploreView()
                 .environment(\.requestManager, MockRequestManager())
                 .environmentObject(Watchlist(items: [
                     WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
