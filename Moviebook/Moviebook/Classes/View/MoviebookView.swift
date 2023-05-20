@@ -20,7 +20,7 @@ private final class ViewModel: ObservableObject {
         case rating(item: WatchlistItem)
     }
 
-    @Published private(set) var prompt: Prompt? = .suggestion(item: WatchlistItem.init(id: .movie(id: 954), state: .toWatch(info: .init(date: .now))))
+    @Published private(set) var prompt: Prompt?
     @Published private(set) var promptTimeRemaining: TimeInterval = -1
 
     func start(watchlist: Watchlist) {
@@ -70,20 +70,11 @@ struct MoviebookView: View {
 
     var body: some View {
         NavigationView {
-            VStack {
-                WatchlistView(onExploreSelected: {
-                    presentedItem = .explore
-                }, onMovieSelected: { movie in
-                    presentedItem = .movie(movie)
-                })
-
-                if let prompt = viewModel.prompt {
-                    PromptView(
-                        prompt: prompt,
-                        timeRemaining: viewModel.promptTimeRemaining
-                    )
-                }
-            }
+            WatchlistView(onExploreSelected: {
+                presentedItem = .explore
+            }, onMovieSelected: { movie in
+                presentedItem = .movie(movie)
+            })
             .animation(.easeInOut(duration: 0.8), value: viewModel.prompt)
         }
         .onOpenURL { url in
