@@ -24,9 +24,15 @@ struct WatchlistView: View {
                 if viewModel.isLoading {
                     LoaderView()
                 } else if viewModel.items.isEmpty {
-                    EmptyWatchlistView(onStartDiscoverySelected: onExploreSelected)
+                    EmptyWatchlistView(
+                        section: $viewModel.currentSection,
+                        onStartDiscoverySelected: onExploreSelected
+                    )
                 } else {
-                    ListView(viewModel: viewModel, onMovieSelected: onMovieSelected)
+                    ListView(
+                        viewModel: viewModel,
+                        onMovieSelected: onMovieSelected
+                    )
                 }
             }
 
@@ -63,15 +69,13 @@ struct WatchlistView: View {
     }
 
     @ToolbarContentBuilder private func makeSectionSelectionToolbarItem() -> some ToolbarContent {
-        if viewModel.sections[.watched]?.items.count ?? 0 > 0 {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Picker("Section", selection: $viewModel.currentSection) {
-                    ForEach(viewModel.sectionIdentifiers, id: \.self) { section in
-                        Text(section.name)
-                    }
+        ToolbarItem(placement: .navigationBarLeading) {
+            Picker("Section", selection: $viewModel.currentSection) {
+                ForEach(viewModel.sectionIdentifiers, id: \.self) { section in
+                    Text(section.name)
                 }
-                .segmentedStyled()
             }
+            .segmentedStyled()
         }
     }
 }
@@ -144,7 +148,7 @@ private struct UndoView: View {
                 Button(action: action) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Undo")
-                        ProgressView(value: timeRemaining, total: 5)
+                        ProgressView(value: max(0, timeRemaining), total: 5)
                             .progressViewStyle(.linear)
                             .animation(.linear, value: timeRemaining)
                     }
