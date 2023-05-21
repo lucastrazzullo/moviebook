@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 enum WatchlistPrompt: Identifiable, Equatable {
     case suggestion(item: WatchlistItem)
@@ -36,6 +37,7 @@ private struct WatchlistPromptView: View {
 
     let prompt: WatchlistPrompt
     let action: () -> Void
+    let cancel: () -> Void
 
     var body: some View {
         Group {
@@ -44,12 +46,14 @@ private struct WatchlistPromptView: View {
                 WatchlistPromptItem(watchlistItem: item,
                                     description: "Add a suggestion",
                                     actionLabel: "Add",
-                                    action: action)
+                                    action: action,
+                                    cancel: cancel)
             case .rating(let item):
                 WatchlistPromptItem(watchlistItem: item,
                                     description: "Add your own rating",
                                     actionLabel: "Add",
-                                    action: action)
+                                    action: action,
+                                    cancel: cancel)
             }
         }
         .id(prompt.id)
@@ -69,14 +73,46 @@ private struct WatchlistPromptItem: View {
         }
     }
 
+    @MainActor
+    private final class TimerController: ObservableObject {
+
+        private let time: TimeInterval = 5
+        private var timer: Publishers.Autoconnect<Timer.TimerPublisher>?
+        private var subscriptions: Set<AnyCancellable> = []
+
+        @Published private(set) var timeRemaining: TimeInterval = -1
+
+        private var onComplete: (() -> Void)?
+
+        func start(onComplete: @escaping () -> Void) {
+            self.onComplete = onComplete
+            self.timeRemaining = time
+
+            self.timer = Timer.publish(every: 0.1, on: .main, in: .default).autoconnect()
+            self.timer?
+                .sink { date in
+                    self.timeRemaining -= 0.1
+
+                    if self.timeRemaining <= -1 {
+                        self.timeRemaining = -1
+                        self.timer?.upstream.connect().cancel()
+                        self.onComplete?()
+                    }
+                }
+                .store(in: &subscriptions)
+        }
+    }
+
     @Environment(\.requestManager) var requestManager
 
     @StateObject private var loader: MovieInfoLoader = MovieInfoLoader()
+    @StateObject private var timer: TimerController = TimerController()
 
     let watchlistItem: WatchlistItem
     let description: String
     let actionLabel: String
     let action: () -> Void
+    let cancel: () -> Void
 
     var body: some View {
         Group {
@@ -104,9 +140,15 @@ private struct WatchlistPromptItem: View {
                     Spacer()
 
                     Button(action: action) {
-                        HStack {
-                            Image(systemName: "plus")
-                            Text(actionLabel)
+                        VStack(spacing: 6) {
+                            HStack {
+                                Image(systemName: "plus")
+                                Text(actionLabel)
+                            }
+
+                            ProgressView(value: max(0, timer.timeRemaining), total: 5)
+                                .progressViewStyle(.linear)
+                                .animation(.linear, value: timer.timeRemaining)
                         }
                     }
                     .tint(Color.accentColor)
@@ -116,8 +158,10 @@ private struct WatchlistPromptItem: View {
                 LoaderView()
             }
         }
+        .animation(.linear, value: timer.timeRemaining)
         .padding()
         .background(Rectangle().fill(.thinMaterial).ignoresSafeArea())
+        .onAppear { timer.start(onComplete: cancel) }
         .task {
             switch watchlistItem.id {
             case .movie(let id):
@@ -138,10 +182,15 @@ private struct WatchlistPromptModifier: ViewModifier {
             content
 
             if let watchlistPrompt {
-                WatchlistPromptView(prompt: watchlistPrompt, action: {
-                    self.watchlistPrompt = nil
-                    action(watchlistPrompt)
-                })
+                WatchlistPromptView(
+                    prompt: watchlistPrompt,
+                    action: {
+                        self.watchlistPrompt = nil
+                        action(watchlistPrompt)
+                    },
+                    cancel: {
+                        self.watchlistPrompt = nil
+                    })
             }
         }
     }
@@ -158,11 +207,19 @@ extension View {
 struct WatchlistPromptView_Previews: PreviewProvider {
     static var previews: some View {
         List {
-            WatchlistPromptView(prompt: .suggestion(item: .init(id: .movie(id: 954), state: .toWatch(info: .init(date: .now)))), action: {})
-                .environment(\.requestManager, MockRequestManager())
+            WatchlistPromptView(
+                prompt: .suggestion(item: .init(id: .movie(id: 954), state: .toWatch(info: .init(date: .now)))),
+                action: {},
+                cancel: {}
+            )
+            .environment(\.requestManager, MockRequestManager())
 
-            WatchlistPromptView(prompt: .rating(item: .init(id: .movie(id: 954), state: .toWatch(info: .init(date: .now)))), action: {})
-                .environment(\.requestManager, MockRequestManager())
+            WatchlistPromptView(
+                prompt: .rating(item: .init(id: .movie(id: 954), state: .toWatch(info: .init(date: .now)))),
+                action: {},
+                cancel: {}
+            )
+            .environment(\.requestManager, MockRequestManager())
         }
         .listStyle(.plain)
     }
