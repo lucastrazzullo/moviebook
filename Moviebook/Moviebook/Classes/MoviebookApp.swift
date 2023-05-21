@@ -6,27 +6,79 @@
 //
 
 import SwiftUI
+import CoreSpotlight
 
 @main
 struct MoviebookApp: App {
 
     @StateObject var application = Moviebook()
 
+    @State private var presentedItemNavigationPath: NavigationPath = NavigationPath()
+    @State private var presentedItem: NavigationItem? = nil
+
     var body: some Scene {
         WindowGroup {
             Group {
                 if let watchlist = application.watchlist {
-                    MoviebookView()
-                        .environmentObject(watchlist)
-                        .environment(\.watchlistPrompt, application.watchlistPrompt)
-                } else if let _ = application.error {
-                    RetriableErrorView { Task { await application.start() }}
+                    makeWatchlistView(watchlist: watchlist)
+                } else if let error = application.error {
+                    makeErrorView(error: error)
                 } else {
-                    LoaderView()
+                    makeLoaderView()
                 }
             }
+            .onOpenURL(perform: openDeeplink(with:))
+            .onContinueUserActivity(CSSearchableItemActionType, perform: openDeeplink(with:))
             .task { await application.start() }
         }
+    }
+
+    // MARK: Deeplinking
+
+    private func openDeeplink(with url: URL) {
+        if let deeplink = Deeplink(rawValue: url) {
+            open(deeplink: deeplink)
+        }
+    }
+
+    private func openDeeplink(with userActivity: NSUserActivity) {
+        if let deeplink = Spotlight.deeplink(from: userActivity) {
+            open(deeplink: deeplink)
+        }
+    }
+
+    private func open(deeplink: Deeplink) {
+        switch deeplink {
+        case .watchlist:
+            presentedItem = nil
+        case .movie(let identifier):
+            presentedItem = .movieWithIdentifier(identifier)
+        case .artist(let identifier):
+            presentedItem = .artistWithIdentifier(identifier)
+        }
+    }
+
+    // MARK: View building
+
+    @ViewBuilder private func makeWatchlistView(watchlist: Watchlist) -> some View {
+        NavigationView {
+            WatchlistView()
+                .sheet(item: $presentedItem) { item in
+                    Navigation(path: $presentedItemNavigationPath, presentingItem: item)
+                }
+        }
+        .environmentObject(watchlist)
+        .environment(\.watchlistPrompt, application.watchlistPrompt)
+    }
+
+    @ViewBuilder private func makeErrorView(error: Error) -> some View {
+        RetriableErrorView {
+            Task { await application.start() }
+        }
+    }
+
+    @ViewBuilder private func makeLoaderView() -> some View {
+        LoaderView()
     }
 }
 
