@@ -15,7 +15,6 @@ struct WatchlistView: View {
     @StateObject private var viewModel: WatchlistViewModel = WatchlistViewModel()
     @State private var presentedItemNavigationPath = NavigationPath()
     @State private var presentedItem: NavigationItem? = nil
-    @State private var presentedPrompt: WatchlistPrompt? = nil
 
     var body: some View {
         VStack(spacing: 0) {
@@ -35,6 +34,7 @@ struct WatchlistView: View {
                 }
             }
         }
+        .watchlistPrompt(duration: 5)
         .navigationTitle(NSLocalizedString("WATCHLIST.TITLE", comment: ""))
         .toolbar {
             makeSectionSelectionToolbarItem()
@@ -42,22 +42,6 @@ struct WatchlistView: View {
         }
         .sheet(item: $presentedItem) { item in
             Navigation(path: $presentedItemNavigationPath, presentingItem: item)
-        }
-        .watchlistPrompt(prompt: $presentedPrompt) { prompt in
-            switch prompt {
-            case .suggestion(let item):
-                presentedItem = .watchlistAddToWatchReason(itemIdentifier: item.id)
-            case .rating(let item):
-                presentedItem = .watchlistAddRating(itemIdentifier: item.id)
-            case .undo(let removeItem):
-                watchlist.update(state: removeItem.state, forItemWith: removeItem.id)
-            }
-        }
-        .onReceive(watchlist.itemDidUpdateState) { item in
-            presentedPrompt = WatchlistPrompt(item: item)
-        }
-        .onReceive(watchlist.itemWasRemoved) { item in
-            presentedPrompt = .undo(removeItem: item)
         }
         .onAppear {
             viewModel.start(watchlist: watchlist, requestManager: requestManager)

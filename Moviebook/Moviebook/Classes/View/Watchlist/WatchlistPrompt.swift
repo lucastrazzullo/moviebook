@@ -8,7 +8,7 @@
 import SwiftUI
 import Combine
 
-enum WatchlistPrompt: Identifiable, Equatable {
+private enum WatchlistPrompt: Identifiable, Equatable {
     case suggestion(item: WatchlistItem)
     case rating(item: WatchlistItem)
     case undo(removeItem: WatchlistItem)
@@ -36,8 +36,23 @@ enum WatchlistPrompt: Identifiable, Equatable {
     }
 }
 
+private enum WatchlistPromptDestination: Identifiable {
+    case watchlistAddToWatchReason(itemIdentifier: WatchlistItemIdentifier)
+    case watchlistAddRating(itemIdentifier: WatchlistItemIdentifier)
+
+    var id: AnyHashable {
+        switch self {
+        case .watchlistAddToWatchReason(let item):
+            return item.id
+        case .watchlistAddRating(let item):
+            return item.id
+        }
+    }
+}
+
 private struct WatchlistPromptView: View {
 
+    let duration: TimeInterval
     let prompt: WatchlistPrompt
     let action: () -> Void
     let cancel: () -> Void
@@ -46,21 +61,24 @@ private struct WatchlistPromptView: View {
         Group {
             switch prompt {
             case .suggestion(let item):
-                WatchlistPromptItem(watchlistItem: item,
+                WatchlistPromptItem(duration: duration,
+                                    watchlistItem: item,
                                     description: "Add a quote from a friend",
                                     actionLabel: "Add",
                                     actionIcon: Image(systemName: "quote.opening"),
                                     action: action,
                                     cancel: cancel)
             case .rating(let item):
-                WatchlistPromptItem(watchlistItem: item,
+                WatchlistPromptItem(duration: duration,
+                                    watchlistItem: item,
                                     description: "Add your own rating",
                                     actionLabel: "Rate",
                                     actionIcon: Image(systemName: "star"),
                                     action: action,
                                     cancel: cancel)
             case .undo(let removeItem):
-                WatchlistPromptItem(watchlistItem: removeItem,
+                WatchlistPromptItem(duration: duration,
+                                    watchlistItem: removeItem,
                                     description: "Removed from watchlist",
                                     actionLabel: "Undo",
                                     actionIcon: Image(systemName: "arrow.uturn.backward"),
@@ -86,17 +104,20 @@ private struct WatchlistPromptItem: View {
 
     @MainActor private final class TimerController: ObservableObject {
 
-        private let time: TimeInterval = 5
+        private let duration: TimeInterval
         private var timer: Publishers.Autoconnect<Timer.TimerPublisher>?
+        private var onComplete: (() -> Void)?
         private var subscriptions: Set<AnyCancellable> = []
 
         @Published private(set) var timeRemaining: TimeInterval = -1
 
-        private var onComplete: (() -> Void)?
+        init(duration: TimeInterval) {
+            self.duration = duration
+        }
 
         func start(onComplete: @escaping () -> Void) {
             self.onComplete = onComplete
-            self.timeRemaining = time
+            self.timeRemaining = duration
 
             self.timer = Timer.publish(every: 0.1, on: .main, in: .default).autoconnect()
             self.timer?
@@ -115,8 +136,8 @@ private struct WatchlistPromptItem: View {
 
     @Environment(\.requestManager) var requestManager
 
-    @StateObject private var loader: MovieInfoLoader = MovieInfoLoader()
-    @StateObject private var timer: TimerController = TimerController()
+    @StateObject private var loader: MovieInfoLoader
+    @StateObject private var timer: TimerController
 
     let watchlistItem: WatchlistItem
     let description: String
@@ -180,13 +201,33 @@ private struct WatchlistPromptItem: View {
             }
         }
     }
+
+    init(duration: TimeInterval,
+         watchlistItem: WatchlistItem,
+         description: String,
+         actionLabel: String,
+         actionIcon: Image,
+         action: @escaping () -> Void,
+         cancel: @escaping () -> Void) {
+        self._loader = StateObject(wrappedValue: MovieInfoLoader())
+        self._timer = StateObject(wrappedValue: TimerController(duration: duration))
+        self.watchlistItem = watchlistItem
+        self.description = description
+        self.actionLabel = actionLabel
+        self.actionIcon = actionIcon
+        self.action = action
+        self.cancel = cancel
+    }
 }
 
 private struct WatchlistPromptModifier: ViewModifier {
 
-    @Binding var watchlistPrompt: WatchlistPrompt?
+    @EnvironmentObject var watchlist: Watchlist
 
-    let action: (WatchlistPrompt) -> Void
+    @State private var watchlistPrompt: WatchlistPrompt?
+    @State private var presentedItem: WatchlistPromptDestination?
+
+    let duration: TimeInterval
 
     func body(content: Content) -> some View {
         ZStack(alignment: .bottom) {
@@ -194,23 +235,45 @@ private struct WatchlistPromptModifier: ViewModifier {
 
             if let watchlistPrompt {
                 WatchlistPromptView(
+                    duration: duration,
                     prompt: watchlistPrompt,
                     action: {
                         self.watchlistPrompt = nil
-                        action(watchlistPrompt)
+                        switch watchlistPrompt {
+                        case .suggestion(let item):
+                            presentedItem = .watchlistAddToWatchReason(itemIdentifier: item.id)
+                        case .rating(let item):
+                            presentedItem = .watchlistAddRating(itemIdentifier: item.id)
+                        case .undo(let removeItem):
+                            watchlist.update(state: removeItem.state, forItemWith: removeItem.id)
+                        }
                     },
                     cancel: {
                         self.watchlistPrompt = nil
                     })
             }
         }
+        .sheet(item: $presentedItem) { item in
+            switch item {
+            case .watchlistAddToWatchReason(let itemIdentifier):
+                NewToWatchSuggestionView(itemIdentifier: itemIdentifier)
+            case .watchlistAddRating(let itemIdentifier):
+                NewWatchedRatingView(itemIdentifier: itemIdentifier)
+            }
+        }
+        .onReceive(watchlist.itemDidUpdateState) { item in
+            watchlistPrompt = WatchlistPrompt(item: item)
+        }
+        .onReceive(watchlist.itemWasRemoved) { item in
+            watchlistPrompt = .undo(removeItem: item)
+        }
     }
 }
 
 extension View {
 
-    func watchlistPrompt(prompt: Binding<WatchlistPrompt?>, action: @escaping (WatchlistPrompt) -> Void) -> some View {
-        self.modifier(WatchlistPromptModifier(watchlistPrompt: prompt, action: action))
+    func watchlistPrompt(duration: TimeInterval) -> some View {
+        self.modifier(WatchlistPromptModifier(duration: duration))
     }
 }
 
@@ -223,29 +286,34 @@ struct WatchlistPromptView_Previews: PreviewProvider {
         List {
             Group {
                 WatchlistPromptView(
+                    duration: 5,
                     prompt: .suggestion(item: toWatchItem),
                     action: {},
                     cancel: {}
                 )
-                .environment(\.requestManager, MockRequestManager())
 
                 WatchlistPromptView(
+                    duration: 5,
                     prompt: .rating(item: watchedItem),
                     action: {},
                     cancel: {}
                 )
-                .environment(\.requestManager, MockRequestManager())
 
                 WatchlistPromptView(
+                    duration: 5,
                     prompt: .undo(removeItem: watchedItem),
                     action: {},
                     cancel: {}
                 )
-                .environment(\.requestManager, MockRequestManager())
             }
             .listRowSeparator(.hidden)
         }
         .listStyle(.plain)
+        .environment(\.requestManager, MockRequestManager())
+        .environmentObject(Watchlist(items: [
+            WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
+            WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: nil)))
+        ]))
     }
 }
 #endif
