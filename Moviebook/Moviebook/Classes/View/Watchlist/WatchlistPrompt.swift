@@ -35,6 +35,7 @@ enum WatchlistPrompt: Identifiable, Equatable {
 private struct WatchlistPromptView: View {
 
     let prompt: WatchlistPrompt
+    let action: () -> Void
 
     var body: some View {
         Group {
@@ -43,12 +44,12 @@ private struct WatchlistPromptView: View {
                 WatchlistPromptItem(watchlistItem: item,
                                     description: "Add a suggestion",
                                     actionLabel: "Add",
-                                    action: {})
+                                    action: action)
             case .rating(let item):
                 WatchlistPromptItem(watchlistItem: item,
                                     description: "Add your own rating",
                                     actionLabel: "Add",
-                                    action: {})
+                                    action: action)
             }
         }
         .id(prompt.id)
@@ -130,12 +131,17 @@ private struct WatchlistPromptModifier: ViewModifier {
 
     @Binding var watchlistPrompt: WatchlistPrompt?
 
+    let action: (WatchlistPrompt) -> Void
+
     func body(content: Content) -> some View {
         ZStack(alignment: .bottom) {
             content
 
             if let watchlistPrompt {
-                WatchlistPromptView(prompt: watchlistPrompt)
+                WatchlistPromptView(prompt: watchlistPrompt, action: {
+                    self.watchlistPrompt = nil
+                    action(watchlistPrompt)
+                })
             }
         }
     }
@@ -143,8 +149,8 @@ private struct WatchlistPromptModifier: ViewModifier {
 
 extension View {
 
-    func watchlistPrompt(prompt: Binding<WatchlistPrompt?>) -> some View {
-        self.modifier(WatchlistPromptModifier(watchlistPrompt: prompt))
+    func watchlistPrompt(prompt: Binding<WatchlistPrompt?>, action: @escaping (WatchlistPrompt) -> Void) -> some View {
+        self.modifier(WatchlistPromptModifier(watchlistPrompt: prompt, action: action))
     }
 }
 
@@ -152,10 +158,10 @@ extension View {
 struct WatchlistPromptView_Previews: PreviewProvider {
     static var previews: some View {
         List {
-            WatchlistPromptView(prompt: .suggestion(item: .init(id: .movie(id: 954), state: .toWatch(info: .init(date: .now)))))
+            WatchlistPromptView(prompt: .suggestion(item: .init(id: .movie(id: 954), state: .toWatch(info: .init(date: .now)))), action: {})
                 .environment(\.requestManager, MockRequestManager())
 
-            WatchlistPromptView(prompt: .rating(item: .init(id: .movie(id: 954), state: .toWatch(info: .init(date: .now)))))
+            WatchlistPromptView(prompt: .rating(item: .init(id: .movie(id: 954), state: .toWatch(info: .init(date: .now)))), action: {})
                 .environment(\.requestManager, MockRequestManager())
         }
         .listStyle(.plain)

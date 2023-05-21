@@ -15,10 +15,10 @@ struct WatchlistView: View {
     @StateObject private var viewModel: WatchlistViewModel = WatchlistViewModel()
     @State private var presentedItemNavigationPath = NavigationPath()
     @State private var presentedItem: NavigationItem? = nil
+    @State private var presentedPrompt: WatchlistPrompt? = nil
 
     var body: some View {
         VStack(spacing: 0) {
-
             Group {
                 if viewModel.isLoading {
                     LoaderView()
@@ -45,12 +45,23 @@ struct WatchlistView: View {
         }
         .animation(.easeInOut(duration: 0.8), value: viewModel.itemToRemove)
         .navigationTitle(NSLocalizedString("WATCHLIST.TITLE", comment: ""))
+        .watchlistPrompt(prompt: $presentedPrompt) { prompt in
+            switch prompt {
+            case .suggestion(let item):
+                presentedItem = .watchlistAddToWatchReason(itemIdentifier: item.id)
+            case .rating(let item):
+                presentedItem = .watchlistAddRating(itemIdentifier: item.id)
+            }
+        }
         .toolbar {
             makeSectionSelectionToolbarItem()
             makeExploreToolbarItem()
         }
         .sheet(item: $presentedItem) { item in
             Navigation(path: $presentedItemNavigationPath, presentingItem: item)
+        }
+        .onReceive(watchlist.itemDidUpdateState) { item in
+            presentedPrompt = WatchlistPrompt(item: item)
         }
         .onAppear {
             viewModel.start(watchlist: watchlist, requestManager: requestManager)

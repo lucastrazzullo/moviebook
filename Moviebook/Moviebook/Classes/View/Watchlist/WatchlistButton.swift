@@ -9,23 +9,10 @@ import SwiftUI
 
 struct WatchlistButton<LabelType>: View where LabelType: View  {
 
-    enum PresentedItem: Identifiable {
-        case addToWatchReason(itemIdentifier: WatchlistItemIdentifier)
-        case addRating(itemIdentifier: WatchlistItemIdentifier)
-
-        var id: AnyHashable {
-            switch self {
-            case .addToWatchReason(let item):
-                return item.id
-            case .addRating(let item):
-                return item.id
-            }
-        }
-    }
-
     @EnvironmentObject var watchlist: Watchlist
 
-    @State private var presentedItem: PresentedItem?
+    @State private var presentedItem: NavigationItem?
+    @State private var presentedItemNavigationPath: NavigationPath = NavigationPath()
 
     @ViewBuilder let label: (WatchlistItemState?) -> LabelType
 
@@ -37,7 +24,7 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
                 switch state {
                 case .toWatch(let info):
                     if info.suggestion == nil {
-                        Button { presentedItem = .addToWatchReason(itemIdentifier: watchlistItemIdentifier) } label: {
+                        Button { presentedItem = .watchlistAddToWatchReason(itemIdentifier: watchlistItemIdentifier) } label: {
                             Label("Add reason to watch", systemImage: "quote.opening")
                         }
                     }
@@ -49,7 +36,7 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
                     }
                 case .watched(let info):
                     if info.rating == nil {
-                        Button { presentedItem = .addRating(itemIdentifier: watchlistItemIdentifier) } label: {
+                        Button { presentedItem = .watchlistAddRating(itemIdentifier: watchlistItemIdentifier) } label: {
                             Label("Add rating", systemImage: "plus")
                         }
                     }
@@ -72,12 +59,7 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
             label(watchlist.itemState(id: watchlistItemIdentifier))
         }
         .sheet(item: $presentedItem) { item in
-            switch item {
-            case .addToWatchReason(let itemIdentifier):
-                NewToWatchSuggestionView(itemIdentifier: itemIdentifier)
-            case .addRating(let itemIdentifier):
-                NewWatchedRatingView(itemIdentifier: itemIdentifier)
-            }
+            NavigationDestination(navigationPath: $presentedItemNavigationPath, item: item)
         }
     }
 

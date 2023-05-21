@@ -12,6 +12,8 @@ enum NavigationItem: Identifiable, Hashable {
     case movie(_ movie: Movie)
     case movieWithIdentifier(_ id: Movie.ID)
     case artistWithIdentifier(_ id: Artist.ID)
+    case watchlistAddToWatchReason(itemIdentifier: WatchlistItemIdentifier)
+    case watchlistAddRating(itemIdentifier: WatchlistItemIdentifier)
 
     var id: AnyHashable {
         switch self {
@@ -23,6 +25,10 @@ enum NavigationItem: Identifiable, Hashable {
             return id
         case .artistWithIdentifier(let id):
             return id
+        case .watchlistAddToWatchReason(let item):
+            return item.id
+        case .watchlistAddRating(let item):
+            return item.id
         }
     }
 }
@@ -43,6 +49,10 @@ struct NavigationDestination: View {
             MovieView(movieId: id, navigationPath: $navigationPath)
         case .artistWithIdentifier(let id):
             ArtistView(artistId: id, navigationPath: $navigationPath)
+        case .watchlistAddToWatchReason(let itemIdentifier):
+            NewToWatchSuggestionView(itemIdentifier: itemIdentifier)
+        case .watchlistAddRating(let itemIdentifier):
+            NewWatchedRatingView(itemIdentifier: itemIdentifier)
         }
     }
 }
