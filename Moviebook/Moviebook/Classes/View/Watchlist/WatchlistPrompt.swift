@@ -47,16 +47,16 @@ private struct WatchlistPromptView: View {
             switch prompt {
             case .suggestion(let item):
                 WatchlistPromptItem(watchlistItem: item,
-                                    description: "Add a suggestion",
+                                    description: "Add a quote from a friend",
                                     actionLabel: "Add",
-                                    actionIcon: Image(systemName: "plus"),
+                                    actionIcon: Image(systemName: "quote.opening"),
                                     action: action,
                                     cancel: cancel)
             case .rating(let item):
                 WatchlistPromptItem(watchlistItem: item,
                                     description: "Add your own rating",
-                                    actionLabel: "Add",
-                                    actionIcon: Image(systemName: "plus"),
+                                    actionLabel: "Rate",
+                                    actionIcon: Image(systemName: "star"),
                                     action: action,
                                     cancel: cancel)
             case .undo(let removeItem):
@@ -129,7 +129,7 @@ private struct WatchlistPromptItem: View {
         Group {
             if let movie = loader.movie {
                 HStack(spacing: 24) {
-                    HStack {
+                    HStack(spacing: 12) {
                         AsyncImage(url: movie.details.media.posterPreviewUrl) { image in
                             image.resizable().aspectRatio(contentMode: .fit)
                         } placeholder: {
@@ -141,14 +141,14 @@ private struct WatchlistPromptItem: View {
                         VStack(alignment: .leading, spacing: 6) {
                             Text(movie.details.title)
                                 .lineLimit(2)
-                                .font(.headline)
-                            Text(description)
                                 .font(.subheadline)
+                            Text(description)
+                                .font(.callout)
+                                .underline()
                                 .foregroundColor(.secondary)
                         }
                     }
-
-                    Spacer()
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
                     Button(action: action) {
                         VStack(spacing: 6) {
@@ -216,21 +216,34 @@ extension View {
 
 #if DEBUG
 struct WatchlistPromptView_Previews: PreviewProvider {
+    static let toWatchItem = WatchlistItem.init(id: .movie(id: 954), state: .toWatch(info: .init(date: .now)))
+    static let watchedItem = WatchlistItem.init(id: .movie(id: 954), state: .toWatch(info: .init(date: .now)))
+
     static var previews: some View {
         List {
-            WatchlistPromptView(
-                prompt: .suggestion(item: .init(id: .movie(id: 954), state: .toWatch(info: .init(date: .now)))),
-                action: {},
-                cancel: {}
-            )
-            .environment(\.requestManager, MockRequestManager())
+            Group {
+                WatchlistPromptView(
+                    prompt: .suggestion(item: toWatchItem),
+                    action: {},
+                    cancel: {}
+                )
+                .environment(\.requestManager, MockRequestManager())
 
-            WatchlistPromptView(
-                prompt: .rating(item: .init(id: .movie(id: 954), state: .toWatch(info: .init(date: .now)))),
-                action: {},
-                cancel: {}
-            )
-            .environment(\.requestManager, MockRequestManager())
+                WatchlistPromptView(
+                    prompt: .rating(item: watchedItem),
+                    action: {},
+                    cancel: {}
+                )
+                .environment(\.requestManager, MockRequestManager())
+
+                WatchlistPromptView(
+                    prompt: .undo(removeItem: watchedItem),
+                    action: {},
+                    cancel: {}
+                )
+                .environment(\.requestManager, MockRequestManager())
+            }
+            .listRowSeparator(.hidden)
         }
         .listStyle(.plain)
     }
