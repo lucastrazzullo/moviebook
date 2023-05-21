@@ -34,16 +34,7 @@ struct WatchlistView: View {
                     )
                 }
             }
-
-            if let itemToRemove = viewModel.itemToRemove {
-                UndoView(
-                    itemToRemove: itemToRemove,
-                    timeRemaining: viewModel.undoTimeRemaining,
-                    action: { viewModel.undo() }
-                )
-            }
         }
-        .animation(.easeInOut(duration: 0.8), value: viewModel.itemToRemove)
         .navigationTitle(NSLocalizedString("WATCHLIST.TITLE", comment: ""))
         .watchlistPrompt(prompt: $presentedPrompt) { prompt in
             switch prompt {
@@ -51,6 +42,8 @@ struct WatchlistView: View {
                 presentedItem = .watchlistAddToWatchReason(itemIdentifier: item.id)
             case .rating(let item):
                 presentedItem = .watchlistAddRating(itemIdentifier: item.id)
+            case .undo(let removeItem):
+                watchlist.update(state: removeItem.state, forItemWith: removeItem.id)
             }
         }
         .toolbar {
@@ -62,6 +55,9 @@ struct WatchlistView: View {
         }
         .onReceive(watchlist.itemDidUpdateState) { item in
             presentedPrompt = WatchlistPrompt(item: item)
+        }
+        .onReceive(watchlist.itemWasRemoved) { item in
+            presentedPrompt = .undo(removeItem: item)
         }
         .onAppear {
             viewModel.start(watchlist: watchlist, requestManager: requestManager)
@@ -105,12 +101,12 @@ private struct ListView: View {
         List {
             ForEach(viewModel.items) { item in
                 switch item {
-                case .movie(let movie, _, _):
+                case .movie(let movie, _, let watchlistIdentifier):
                     MoviePreviewView(details: movie.details) {
                         onMovieSelected(movie)
                     }
                     .swipeActions {
-                        Button(action: { viewModel.remove(item: item, from: watchlist) }) {
+                        Button(action: { watchlist.remove(itemWith: watchlistIdentifier) }) {
                             HStack {
                                 Image(systemName: "minus")
                                 Text("Remove")

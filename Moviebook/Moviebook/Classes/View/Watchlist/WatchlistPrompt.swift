@@ -11,6 +11,7 @@ import Combine
 enum WatchlistPrompt: Identifiable, Equatable {
     case suggestion(item: WatchlistItem)
     case rating(item: WatchlistItem)
+    case undo(removeItem: WatchlistItem)
 
     var id: WatchlistItemIdentifier {
         switch self {
@@ -18,6 +19,8 @@ enum WatchlistPrompt: Identifiable, Equatable {
             return item.id
         case .rating(let item):
             return item.id
+        case .undo(let removeItem):
+            return removeItem.id
         }
     }
 
@@ -46,12 +49,21 @@ private struct WatchlistPromptView: View {
                 WatchlistPromptItem(watchlistItem: item,
                                     description: "Add a suggestion",
                                     actionLabel: "Add",
+                                    actionIcon: Image(systemName: "plus"),
                                     action: action,
                                     cancel: cancel)
             case .rating(let item):
                 WatchlistPromptItem(watchlistItem: item,
                                     description: "Add your own rating",
                                     actionLabel: "Add",
+                                    actionIcon: Image(systemName: "plus"),
+                                    action: action,
+                                    cancel: cancel)
+            case .undo(let removeItem):
+                WatchlistPromptItem(watchlistItem: removeItem,
+                                    description: "Removed from watchlist",
+                                    actionLabel: "Undo",
+                                    actionIcon: Image(systemName: "arrow.uturn.backward"),
                                     action: action,
                                     cancel: cancel)
             }
@@ -62,8 +74,7 @@ private struct WatchlistPromptView: View {
 
 private struct WatchlistPromptItem: View {
 
-    @MainActor
-    private final class MovieInfoLoader: ObservableObject {
+    @MainActor private final class MovieInfoLoader: ObservableObject {
 
         @Published var movie: Movie?
 
@@ -73,8 +84,7 @@ private struct WatchlistPromptItem: View {
         }
     }
 
-    @MainActor
-    private final class TimerController: ObservableObject {
+    @MainActor private final class TimerController: ObservableObject {
 
         private let time: TimeInterval = 5
         private var timer: Publishers.Autoconnect<Timer.TimerPublisher>?
@@ -111,6 +121,7 @@ private struct WatchlistPromptItem: View {
     let watchlistItem: WatchlistItem
     let description: String
     let actionLabel: String
+    let actionIcon: Image
     let action: () -> Void
     let cancel: () -> Void
 
@@ -142,7 +153,7 @@ private struct WatchlistPromptItem: View {
                     Button(action: action) {
                         VStack(spacing: 6) {
                             HStack {
-                                Image(systemName: "plus")
+                                actionIcon
                                 Text(actionLabel)
                             }
 
