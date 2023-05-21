@@ -32,7 +32,7 @@ enum WatchlistPrompt: Identifiable, Equatable {
     }
 }
 
-struct WatchlistPromptView: View {
+private struct WatchlistPromptView: View {
 
     let prompt: WatchlistPrompt
 
@@ -51,6 +51,7 @@ struct WatchlistPromptView: View {
                                     action: {})
             }
         }
+        .id(prompt.id)
     }
 }
 
@@ -114,15 +115,36 @@ private struct WatchlistPromptItem: View {
                 LoaderView()
             }
         }
-        .id("WatchlistPromptView")
         .padding()
-        .background(Rectangle().fill(.background))
+        .background(Rectangle().fill(.thinMaterial).ignoresSafeArea())
         .task {
             switch watchlistItem.id {
             case .movie(let id):
                 try? await self.loader.load(requestManager: requestManager, movieIdentifier: id)
             }
         }
+    }
+}
+
+private struct WatchlistPromptModifier: ViewModifier {
+
+    @Binding var watchlistPrompt: WatchlistPrompt?
+
+    func body(content: Content) -> some View {
+        ZStack(alignment: .bottom) {
+            content
+
+            if let watchlistPrompt {
+                WatchlistPromptView(prompt: watchlistPrompt)
+            }
+        }
+    }
+}
+
+extension View {
+
+    func watchlistPrompt(prompt: Binding<WatchlistPrompt?>) -> some View {
+        self.modifier(WatchlistPromptModifier(watchlistPrompt: prompt))
     }
 }
 
