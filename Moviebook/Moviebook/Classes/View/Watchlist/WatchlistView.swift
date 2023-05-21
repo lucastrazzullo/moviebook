@@ -13,9 +13,8 @@ struct WatchlistView: View {
     @EnvironmentObject var watchlist: Watchlist
 
     @StateObject private var viewModel: WatchlistViewModel = WatchlistViewModel()
-
-    let onExploreSelected: () -> Void
-    let onMovieSelected: (Movie) -> Void
+    @State private var presentedItemNavigationPath = NavigationPath()
+    @State private var presentedItem: NavigationItem? = nil
 
     var body: some View {
         VStack(spacing: 0) {
@@ -26,12 +25,12 @@ struct WatchlistView: View {
                 } else if viewModel.items.isEmpty {
                     EmptyWatchlistView(
                         section: $viewModel.currentSection,
-                        onStartDiscoverySelected: onExploreSelected
+                        onStartDiscoverySelected: { presentedItem = .explore }
                     )
                 } else {
                     ListView(
                         viewModel: viewModel,
-                        onMovieSelected: onMovieSelected
+                        onMovieSelected: { movie in presentedItem = .movie(movie) }
                     )
                 }
             }
@@ -49,6 +48,9 @@ struct WatchlistView: View {
             makeSectionSelectionToolbarItem()
             makeExploreToolbarItem()
         }
+        .sheet(item: $presentedItem) { item in
+            Navigation(path: $presentedItemNavigationPath, presentingItem: item)
+        }
         .onAppear {
             viewModel.start(watchlist: watchlist, requestManager: requestManager)
         }
@@ -62,7 +64,7 @@ struct WatchlistView: View {
             WatermarkView {
                 Image(systemName: "magnifyingglass")
                     .onTapGesture {
-                        onExploreSelected()
+                        presentedItem = .explore
                     }
             }
         }
@@ -167,7 +169,7 @@ private struct UndoView: View {
 struct WatchlistView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            WatchlistView(onExploreSelected: {}, onMovieSelected: { _ in })
+            WatchlistView()
                 .environment(\.requestManager, MockRequestManager())
                 .environmentObject(Watchlist(items: [
                     WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
@@ -176,7 +178,7 @@ struct WatchlistView_Previews: PreviewProvider {
         }
 
         NavigationView {
-            WatchlistView(onExploreSelected: {}, onMovieSelected: { _ in })
+            WatchlistView()
                 .environment(\.requestManager, MockRequestManager())
                 .environmentObject(Watchlist(items: [
                     WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
@@ -185,7 +187,7 @@ struct WatchlistView_Previews: PreviewProvider {
         }
 
         NavigationView {
-            WatchlistView(onExploreSelected: {}, onMovieSelected: { _ in })
+            WatchlistView()
                 .environment(\.requestManager, MockRequestManager())
                 .environmentObject(Watchlist(items: []))
         }
