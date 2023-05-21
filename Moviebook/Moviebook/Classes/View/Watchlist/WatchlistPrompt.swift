@@ -37,17 +37,19 @@ struct WatchlistPromptView: View {
     let prompt: WatchlistPrompt
 
     var body: some View {
-        switch prompt {
-        case .suggestion(let item):
-            WatchlistPromptItem(watchlistItem: item,
-                       description: "Add a suggestion",
-                       actionLabel: "Add",
-                       action: {})
-        case .rating(let item):
-            WatchlistPromptItem(watchlistItem: item,
-                       description: "Add your own rating",
-                       actionLabel: "Add",
-                       action: {})
+        Group {
+            switch prompt {
+            case .suggestion(let item):
+                WatchlistPromptItem(watchlistItem: item,
+                                    description: "Add a suggestion",
+                                    actionLabel: "Add",
+                                    action: {})
+            case .rating(let item):
+                WatchlistPromptItem(watchlistItem: item,
+                                    description: "Add your own rating",
+                                    actionLabel: "Add",
+                                    action: {})
+            }
         }
     }
 }
@@ -108,13 +110,13 @@ private struct WatchlistPromptItem: View {
                     .tint(Color.accentColor)
                     .fixedSize()
                 }
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-                .padding()
-                .background(Rectangle().fill(.background))
             } else {
                 LoaderView()
             }
         }
+        .id("WatchlistPromptView")
+        .padding()
+        .background(Rectangle().fill(.background))
         .task {
             switch watchlistItem.id {
             case .movie(let id):

@@ -68,7 +68,6 @@ struct MoviebookApp: App {
                 }
         }
         .environmentObject(watchlist)
-        .environment(\.watchlistPrompt, application.watchlistPrompt)
     }
 
     @ViewBuilder private func makeErrorView(error: Error) -> some View {
@@ -88,19 +87,10 @@ private struct RequestManagerKey: EnvironmentKey {
     static let defaultValue: RequestManager = DefaultRequestManager(logging: .disabled)
 }
 
-private struct WatchlistPromptKey: EnvironmentKey {
-    static let defaultValue: WatchlistPrompt? = nil
-}
-
 extension EnvironmentValues {
 
     var requestManager: RequestManager {
         get { self[RequestManagerKey.self] }
         set { self[RequestManagerKey.self] = newValue }
-    }
-
-    var watchlistPrompt: WatchlistPrompt? {
-        get { self[WatchlistPromptKey.self] }
-        set { self[WatchlistPromptKey.self] = newValue }
     }
 }

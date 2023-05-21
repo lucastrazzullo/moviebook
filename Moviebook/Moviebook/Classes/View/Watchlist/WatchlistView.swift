@@ -10,7 +10,6 @@ import SwiftUI
 struct WatchlistView: View {
 
     @Environment(\.requestManager) var requestManager
-    @Environment(\.watchlistPrompt) var watchlistPrompt
     @EnvironmentObject var watchlist: Watchlist
 
     @StateObject private var viewModel: WatchlistViewModel = WatchlistViewModel()
@@ -44,6 +43,7 @@ struct WatchlistView: View {
                 )
             }
         }
+        .animation(.easeInOut(duration: 0.8), value: viewModel.itemToRemove)
         .navigationTitle(NSLocalizedString("WATCHLIST.TITLE", comment: ""))
         .toolbar {
             makeSectionSelectionToolbarItem()
@@ -55,7 +55,6 @@ struct WatchlistView: View {
         .onAppear {
             viewModel.start(watchlist: watchlist, requestManager: requestManager)
         }
-        .animation(.easeInOut(duration: 0.8), value: viewModel.itemToRemove)
     }
 
     // MARK: Private factory methods
