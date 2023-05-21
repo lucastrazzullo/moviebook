@@ -52,41 +52,40 @@ private enum WatchlistPromptDestination: Identifiable {
 
 private struct WatchlistPromptView: View {
 
-    let duration: TimeInterval
     let prompt: WatchlistPrompt
+    let timeDuration: TimeInterval
+    let timeRemaining: TimeInterval
     let action: () -> Void
-    let cancel: () -> Void
 
     var body: some View {
         Group {
             switch prompt {
             case .suggestion(let item):
-                WatchlistPromptItem(duration: duration,
-                                    watchlistItem: item,
+                WatchlistPromptItem(watchlistItem: item,
+                                    timeDuration: timeDuration,
+                                    timeRemaining: timeRemaining,
                                     description: "Add a quote from a friend",
                                     actionLabel: "Add",
                                     actionIcon: Image(systemName: "quote.opening"),
-                                    action: action,
-                                    cancel: cancel)
+                                    action: action)
             case .rating(let item):
-                WatchlistPromptItem(duration: duration,
-                                    watchlistItem: item,
+                WatchlistPromptItem(watchlistItem: item,
+                                    timeDuration: timeDuration,
+                                    timeRemaining: timeRemaining,
                                     description: "Add your own rating",
                                     actionLabel: "Rate",
                                     actionIcon: Image(systemName: "star"),
-                                    action: action,
-                                    cancel: cancel)
+                                    action: action)
             case .undo(let removeItem):
-                WatchlistPromptItem(duration: duration,
-                                    watchlistItem: removeItem,
+                WatchlistPromptItem(watchlistItem: removeItem,
+                                    timeDuration: timeDuration,
+                                    timeRemaining: timeRemaining,
                                     description: "Removed from watchlist",
                                     actionLabel: "Undo",
                                     actionIcon: Image(systemName: "arrow.uturn.backward"),
-                                    action: action,
-                                    cancel: cancel)
+                                    action: action)
             }
         }
-        .id(prompt.id)
     }
 }
 
@@ -102,49 +101,17 @@ private struct WatchlistPromptItem: View {
         }
     }
 
-    @MainActor private final class TimerController: ObservableObject {
-
-        private let duration: TimeInterval
-        private var timer: Publishers.Autoconnect<Timer.TimerPublisher>?
-        private var onComplete: (() -> Void)?
-        private var subscriptions: Set<AnyCancellable> = []
-
-        @Published private(set) var timeRemaining: TimeInterval = -1
-
-        init(duration: TimeInterval) {
-            self.duration = duration
-        }
-
-        func start(onComplete: @escaping () -> Void) {
-            self.onComplete = onComplete
-            self.timeRemaining = duration
-
-            self.timer = Timer.publish(every: 0.1, on: .main, in: .default).autoconnect()
-            self.timer?
-                .sink { date in
-                    self.timeRemaining -= 0.1
-
-                    if self.timeRemaining <= -1 {
-                        self.timeRemaining = -1
-                        self.timer?.upstream.connect().cancel()
-                        self.onComplete?()
-                    }
-                }
-                .store(in: &subscriptions)
-        }
-    }
-
     @Environment(\.requestManager) var requestManager
 
-    @StateObject private var loader: MovieInfoLoader
-    @StateObject private var timer: TimerController
+    @StateObject private var loader: MovieInfoLoader = MovieInfoLoader()
 
     let watchlistItem: WatchlistItem
+    let timeDuration: TimeInterval
+    let timeRemaining: TimeInterval
     let description: String
     let actionLabel: String
     let actionIcon: Image
     let action: () -> Void
-    let cancel: () -> Void
 
     var body: some View {
         Group {
@@ -178,9 +145,9 @@ private struct WatchlistPromptItem: View {
                                 Text(actionLabel)
                             }
 
-                            ProgressView(value: max(0, timer.timeRemaining), total: 5)
+                            ProgressView(value: max(0, timeRemaining), total: timeDuration)
                                 .progressViewStyle(.linear)
-                                .animation(.linear, value: timer.timeRemaining)
+                                .animation(.linear, value: timeRemaining)
                         }
                     }
                     .tint(Color.accentColor)
@@ -190,10 +157,8 @@ private struct WatchlistPromptItem: View {
                 LoaderView().fixedSize(horizontal: false, vertical: true)
             }
         }
-        .animation(.linear, value: timer.timeRemaining)
         .padding()
         .background(Rectangle().fill(.thinMaterial).ignoresSafeArea())
-        .onAppear { timer.start(onComplete: cancel) }
         .task {
             switch watchlistItem.id {
             case .movie(let id):
@@ -201,42 +166,57 @@ private struct WatchlistPromptItem: View {
             }
         }
     }
-
-    init(duration: TimeInterval,
-         watchlistItem: WatchlistItem,
-         description: String,
-         actionLabel: String,
-         actionIcon: Image,
-         action: @escaping () -> Void,
-         cancel: @escaping () -> Void) {
-        self._loader = StateObject(wrappedValue: MovieInfoLoader())
-        self._timer = StateObject(wrappedValue: TimerController(duration: duration))
-        self.watchlistItem = watchlistItem
-        self.description = description
-        self.actionLabel = actionLabel
-        self.actionIcon = actionIcon
-        self.action = action
-        self.cancel = cancel
-    }
 }
 
 private struct WatchlistPromptModifier: ViewModifier {
 
+    @MainActor private final class TimerController: ObservableObject {
+
+        private var timer: Publishers.Autoconnect<Timer.TimerPublisher>?
+        private var timerSubscription: AnyCancellable?
+        private var onComplete: (() -> Void)?
+
+        @Published private(set) var timeRemaining: TimeInterval = -1
+
+        let duration: TimeInterval
+
+        init(duration: TimeInterval) {
+            self.duration = duration
+        }
+
+        func start(onComplete: @escaping () -> Void) {
+            self.onComplete = onComplete
+            self.timeRemaining = duration
+
+            self.timer = Timer.publish(every: 0.1, on: .main, in: .default).autoconnect()
+            self.timerSubscription = self.timer?
+                .sink { date in
+                    self.timeRemaining -= 0.1
+
+                    if self.timeRemaining <= -1 {
+                        self.timeRemaining = -1
+                        self.timer?.upstream.connect().cancel()
+                        self.onComplete?()
+                    }
+                }
+        }
+    }
+
     @EnvironmentObject var watchlist: Watchlist
 
+    @StateObject private var timer: TimerController
     @State private var watchlistPrompt: WatchlistPrompt?
     @State private var presentedItem: WatchlistPromptDestination?
-
-    let duration: TimeInterval
 
     func body(content: Content) -> some View {
         ZStack(alignment: .bottom) {
             content
-
+            
             if let watchlistPrompt {
                 WatchlistPromptView(
-                    duration: duration,
                     prompt: watchlistPrompt,
+                    timeDuration: timer.duration,
+                    timeRemaining: timer.timeRemaining,
                     action: {
                         self.watchlistPrompt = nil
                         switch watchlistPrompt {
@@ -247,10 +227,9 @@ private struct WatchlistPromptModifier: ViewModifier {
                         case .undo(let removeItem):
                             watchlist.update(state: removeItem.state, forItemWith: removeItem.id)
                         }
-                    },
-                    cancel: {
-                        self.watchlistPrompt = nil
-                    })
+                    }
+                )
+                .id(watchlistPrompt.id)
             }
         }
         .sheet(item: $presentedItem) { item in
@@ -262,11 +241,21 @@ private struct WatchlistPromptModifier: ViewModifier {
             }
         }
         .onReceive(watchlist.itemDidUpdateState) { item in
-            watchlistPrompt = WatchlistPrompt(item: item)
+            withAnimation {
+                watchlistPrompt = WatchlistPrompt(item: item)
+                timer.start(onComplete: { self.watchlistPrompt = nil })
+            }
         }
         .onReceive(watchlist.itemWasRemoved) { item in
-            watchlistPrompt = .undo(removeItem: item)
+            withAnimation {
+                watchlistPrompt = .undo(removeItem: item)
+                timer.start(onComplete: { self.watchlistPrompt = nil })
+            }
         }
+    }
+
+    init(duration: TimeInterval) {
+        self._timer = StateObject(wrappedValue: TimerController(duration: duration))
     }
 }
 
@@ -286,24 +275,24 @@ struct WatchlistPromptView_Previews: PreviewProvider {
         List {
             Group {
                 WatchlistPromptView(
-                    duration: 5,
                     prompt: .suggestion(item: toWatchItem),
-                    action: {},
-                    cancel: {}
+                    timeDuration: 10,
+                    timeRemaining: 5,
+                    action: {}
                 )
 
                 WatchlistPromptView(
-                    duration: 5,
                     prompt: .rating(item: watchedItem),
-                    action: {},
-                    cancel: {}
+                    timeDuration: 10,
+                    timeRemaining: 5,
+                    action: {}
                 )
 
                 WatchlistPromptView(
-                    duration: 5,
                     prompt: .undo(removeItem: watchedItem),
-                    action: {},
-                    cancel: {}
+                    timeDuration: 10,
+                    timeRemaining: 5,
+                    action: {}
                 )
             }
             .listRowSeparator(.hidden)

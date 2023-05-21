@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ExploreHorizontalSectionView: View {
+struct ExploreHorizontalSectionView<Destination: View>: View {
 
     private let rows: [GridItem] = [
         GridItem(.fixed(120)),
@@ -17,6 +17,8 @@ struct ExploreHorizontalSectionView: View {
 
     @ObservedObject var viewModel: ExploreContentViewModel
     @Binding var presentedItem: NavigationItem?
+
+    @ViewBuilder let viewAllDestination: () -> Destination
 
     var body: some View {
         Section(header: HeaderView(title: viewModel.title, isLoading: viewModel.isLoading, shouldShowAll: viewModel.error == nil, destination: viewAllDestination)) {
@@ -49,15 +51,6 @@ struct ExploreHorizontalSectionView: View {
             }
         }
         .listSectionSeparator(.hidden, edges: .bottom)
-    }
-
-    @ViewBuilder private func viewAllDestination() -> some View {
-        List {
-            ExploreVerticalSectionView(viewModel: viewModel, presentedItem: $presentedItem)
-        }
-        .listStyle(.inset)
-        .scrollIndicators(.hidden)
-        .navigationTitle(viewModel.title)
     }
 }
 
@@ -119,7 +112,7 @@ private struct ExploreHorizontalSectionViewPreview: View {
 
     var body: some View {
         List {
-            ExploreHorizontalSectionView(viewModel: viewModel, presentedItem: .constant(nil))
+            ExploreHorizontalSectionView(viewModel: viewModel, presentedItem: .constant(nil), viewAllDestination: { EmptyView() })
         }
         .listStyle(.inset)
         .onAppear {

@@ -61,7 +61,7 @@ struct MoviebookApp: App {
     // MARK: View building
 
     @ViewBuilder private func makeWatchlistView(watchlist: Watchlist) -> some View {
-        NavigationView {
+        Group {
             WatchlistView()
                 .sheet(item: $presentedItem) { item in
                     Navigation(path: $presentedItemNavigationPath, presentingItem: item)

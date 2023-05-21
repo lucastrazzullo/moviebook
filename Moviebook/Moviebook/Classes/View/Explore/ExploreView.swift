@@ -26,14 +26,22 @@ struct ExploreView: View {
                     ExploreVerticalSectionView(viewModel: searchViewModel.content, presentedItem: $presentedItem)
                 } else {
                     ForEach(exploreViewModel.sections) { sectionViewModel in
-                        ExploreHorizontalSectionView(viewModel: sectionViewModel, presentedItem: $presentedItem)
+                        ExploreHorizontalSectionView(viewModel: sectionViewModel, presentedItem: $presentedItem) {
+                            List {
+                                ExploreVerticalSectionView(viewModel: sectionViewModel, presentedItem: $presentedItem)
+                            }
+                            .watchlistPrompt(duration: 5)
+                            .listStyle(.inset)
+                            .scrollIndicators(.hidden)
+                            .navigationTitle(sectionViewModel.title)
+                        }
                     }
                 }
             }
+            .watchlistPrompt(duration: 5)
             .listStyle(.inset)
             .scrollIndicators(.hidden)
             .scrollDismissesKeyboard(.immediately)
-            .watchlistPrompt(duration: 5)
             .navigationTitle(NSLocalizedString("EXPLORE.TITLE", comment: ""))
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
