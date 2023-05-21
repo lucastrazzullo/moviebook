@@ -10,6 +10,7 @@ import SwiftUI
 struct WatchlistView: View {
 
     @Environment(\.requestManager) var requestManager
+    @Environment(\.watchlistPrompt) var watchlistPrompt
     @EnvironmentObject var watchlist: Watchlist
 
     @StateObject private var viewModel: WatchlistViewModel = WatchlistViewModel()

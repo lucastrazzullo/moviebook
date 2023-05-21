@@ -6,30 +6,11 @@
 //
 
 import SwiftUI
-import Combine
 import CoreSpotlight
-
-@MainActor
-private final class ViewModel: ObservableObject {
-
-    private var subscriptions: Set<AnyCancellable> = []
-
-    @Published var prompt: WatchlistPrompt?
-
-    func start(watchlist: Watchlist) {
-        watchlist.itemDidUpdateState
-            .sink { [weak self] item in
-                self?.prompt = WatchlistPrompt(item: item)
-            }
-            .store(in: &subscriptions)
-    }
-}
 
 struct MoviebookView: View {
 
     @EnvironmentObject var watchlist: Watchlist
-
-    @StateObject private var viewModel: ViewModel = ViewModel()
 
     @State private var presentedItemNavigationPath = NavigationPath()
     @State private var presentedItem: NavigationItem? = nil
@@ -40,9 +21,6 @@ struct MoviebookView: View {
         }
         .sheet(item: $presentedItem) { item in
             Navigation(path: $presentedItemNavigationPath, presentingItem: item)
-        }
-        .onAppear {
-            viewModel.start(watchlist: watchlist)
         }
         .onOpenURL { url in
             if let deeplink = Deeplink(rawValue: url) {
