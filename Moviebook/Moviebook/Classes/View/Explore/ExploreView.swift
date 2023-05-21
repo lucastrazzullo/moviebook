@@ -16,8 +16,9 @@ struct ExploreView: View {
     @StateObject private var searchViewModel: SearchViewModel
     @StateObject private var exploreViewModel: ExploreViewModel
 
-    @State private var presentedItem: NavigationItem?
     @State private var presentedItemNavigationPath: NavigationPath = NavigationPath()
+    @State private var presentedItem: NavigationItem?
+    @State private var presentedPrompt: WatchlistPrompt? = nil
 
     var body: some View {
         NavigationView {
@@ -52,6 +53,22 @@ struct ExploreView: View {
             }
             .sheet(item: $presentedItem) { presentedItem in
                 Navigation(path: $presentedItemNavigationPath, presentingItem: presentedItem)
+            }
+            .watchlistPrompt(prompt: $presentedPrompt) { prompt in
+                switch prompt {
+                case .suggestion(let item):
+                    presentedItem = .watchlistAddToWatchReason(itemIdentifier: item.id)
+                case .rating(let item):
+                    presentedItem = .watchlistAddRating(itemIdentifier: item.id)
+                case .undo(let removeItem):
+                    watchlist.update(state: removeItem.state, forItemWith: removeItem.id)
+                }
+            }
+            .onReceive(watchlist.itemDidUpdateState) { item in
+                presentedPrompt = WatchlistPrompt(item: item)
+            }
+            .onReceive(watchlist.itemWasRemoved) { item in
+                presentedPrompt = .undo(removeItem: item)
             }
             .onAppear {
                 searchViewModel.start(requestManager: requestManager)

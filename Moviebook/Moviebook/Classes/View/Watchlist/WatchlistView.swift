@@ -36,6 +36,13 @@ struct WatchlistView: View {
             }
         }
         .navigationTitle(NSLocalizedString("WATCHLIST.TITLE", comment: ""))
+        .toolbar {
+            makeSectionSelectionToolbarItem()
+            makeExploreToolbarItem()
+        }
+        .sheet(item: $presentedItem) { item in
+            Navigation(path: $presentedItemNavigationPath, presentingItem: item)
+        }
         .watchlistPrompt(prompt: $presentedPrompt) { prompt in
             switch prompt {
             case .suggestion(let item):
@@ -45,13 +52,6 @@ struct WatchlistView: View {
             case .undo(let removeItem):
                 watchlist.update(state: removeItem.state, forItemWith: removeItem.id)
             }
-        }
-        .toolbar {
-            makeSectionSelectionToolbarItem()
-            makeExploreToolbarItem()
-        }
-        .sheet(item: $presentedItem) { item in
-            Navigation(path: $presentedItemNavigationPath, presentingItem: item)
         }
         .onReceive(watchlist.itemDidUpdateState) { item in
             presentedPrompt = WatchlistPrompt(item: item)

@@ -166,7 +166,7 @@ private struct WatchlistPromptItem: View {
                     .fixedSize()
                 }
             } else {
-                LoaderView()
+                LoaderView().fixedSize(horizontal: false, vertical: true)
             }
         }
         .animation(.linear, value: timer.timeRemaining)
