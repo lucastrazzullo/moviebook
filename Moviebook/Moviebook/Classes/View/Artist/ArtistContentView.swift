@@ -29,7 +29,7 @@ struct ArtistContentView: View {
                 FilmographyView(
                     movies: artist.filmography,
                     onMovieSelected: { identifier in
-                        navigationPath.append(NavigationItem.movie(movieId: identifier))
+                        navigationPath.append(NavigationItem.movieWithIdentifier(identifier))
                     }
                 )
             }

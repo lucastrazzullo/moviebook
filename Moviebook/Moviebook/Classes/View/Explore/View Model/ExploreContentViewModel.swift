@@ -27,8 +27,7 @@ protocol ExploreContentDataProvider {
     func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?)
 }
 
-@MainActor
-final class ExploreContentViewModel: ObservableObject, Identifiable {
+@MainActor final class ExploreContentViewModel: ObservableObject, Identifiable {
 
     let dataProvider: ExploreContentDataProvider
 

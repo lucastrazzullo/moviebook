@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct WatchProvider: Equatable {
+struct WatchProvider: Equatable, Hashable {
     let name: String
     let iconUrl: URL
 }

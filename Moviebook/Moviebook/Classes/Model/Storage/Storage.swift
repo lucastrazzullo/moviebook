@@ -29,7 +29,7 @@ actor Storage {
         let watchlist = await Watchlist(items: watchlistItems)
 
         // Listen for watchlist updates
-        watchlist.objectDidChange
+        watchlist.itemsDidChange
             .removeDuplicates()
             .sink { items in Task { try await watchlistStorage.store(items: items) }}
             .store(in: &subscriptions)

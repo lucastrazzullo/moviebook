@@ -9,8 +9,7 @@ import SwiftUI
 
 struct EmptyWatchlistView: View {
 
-    @MainActor
-    private final class ViewModel: ObservableObject {
+    @MainActor private final class ViewModel: ObservableObject {
 
         @Published var results: [WatchlistViewModel.Section: [MovieDetails]] = [:]
 

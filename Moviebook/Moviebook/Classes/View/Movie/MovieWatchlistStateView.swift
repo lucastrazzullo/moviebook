@@ -9,21 +9,8 @@ import SwiftUI
 
 struct MovieWatchlistStateView: View {
 
-    enum PresentedItem: Identifiable {
-        case addToWatchReason(itemIdentifier: WatchlistItemIdentifier)
-        case addRating(itemIdentifier: WatchlistItemIdentifier)
-
-        var id: AnyHashable {
-            switch self {
-            case .addToWatchReason(let itemIdentifier):
-                return itemIdentifier.id
-            case .addRating(let itemIdentifier):
-                return itemIdentifier.id
-            }
-        }
-    }
-
-    @State private var presentedItem: PresentedItem?
+    @State private var presentedItem: NavigationItem?
+    @State private var presentedItemNavigationPath: NavigationPath = NavigationPath()
 
     @EnvironmentObject var watchlist: Watchlist
 
@@ -36,11 +23,11 @@ struct MovieWatchlistStateView: View {
                 switch state {
                 case .toWatch(let info):
                     InWatchlistView(movieId: movieId, info: info, onAddSuggestion: {
-                        presentedItem = .addToWatchReason(itemIdentifier: .movie(id: movieId))
+                        presentedItem = .watchlistAddToWatchReason(itemIdentifier: .movie(id: movieId))
                     })
                 case .watched(let info):
                     WatchedView(movieId: movieId, movieBackdropPreviewUrl: movieBackdropPreviewUrl, info: info, onAddRating: {
-                        presentedItem = .addRating(itemIdentifier: .movie(id: movieId))
+                        presentedItem = .watchlistAddRating(itemIdentifier: .movie(id: movieId))
                     })
                 }
             } else {
@@ -52,12 +39,7 @@ struct MovieWatchlistStateView: View {
         .background(RoundedRectangle(cornerRadius: 8).stroke(.orange))
         .background(.thinMaterial)
         .sheet(item: $presentedItem) { item in
-            switch item {
-            case .addToWatchReason(let itemIdentifier):
-                NewToWatchSuggestionView(itemIdentifier: itemIdentifier)
-            case .addRating(let itemIdentifier):
-                NewWatchedRatingView(itemIdentifier: itemIdentifier)
-            }
+            NavigationDestination(navigationPath: $presentedItemNavigationPath, item: item)
         }
     }
 }
