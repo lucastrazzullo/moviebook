@@ -13,14 +13,58 @@ private enum WatchlistPrompt: Identifiable, Equatable {
     case rating(item: WatchlistItem)
     case undo(removeItem: WatchlistItem)
 
-    var id: WatchlistItemIdentifier {
+    var id: String {
         switch self {
         case .suggestion(let item):
-            return item.id
+            return "suggestion:\(item.id)"
         case .rating(let item):
-            return item.id
+            return "rating:\(item.id)"
         case .undo(let removeItem):
-            return removeItem.id
+            return "undo.remove:\(removeItem.id)"
+        }
+    }
+
+    var item: WatchlistItem {
+        switch self {
+        case .suggestion(let item):
+            return item
+        case .rating(let item):
+            return item
+        case .undo(let removeItem):
+            return removeItem
+        }
+    }
+
+    var description: String {
+        switch self {
+        case .suggestion:
+            return "Add a quote from a friend"
+        case .rating:
+            return "Add your own rating"
+        case .undo:
+            return "Removed from watchlist"
+        }
+    }
+
+    var actionLabel: String {
+        switch self {
+        case .suggestion:
+            return "Add"
+        case .rating:
+            return "Rate"
+        case .undo:
+            return "Undo"
+        }
+    }
+
+    var actionIcon: Image {
+        switch self {
+        case .suggestion:
+            return Image(systemName: "quote.opening")
+        case .rating:
+            return Image(systemName: "star.fill")
+        case .undo:
+            return Image(systemName: "arrow.uturn.backward")
         }
     }
 
@@ -50,45 +94,6 @@ private enum WatchlistPromptDestination: Identifiable {
     }
 }
 
-private struct WatchlistPromptView: View {
-
-    let prompt: WatchlistPrompt
-    let timeDuration: TimeInterval
-    let timeRemaining: TimeInterval
-    let action: () -> Void
-
-    var body: some View {
-        Group {
-            switch prompt {
-            case .suggestion(let item):
-                WatchlistPromptItem(watchlistItem: item,
-                                    timeDuration: timeDuration,
-                                    timeRemaining: timeRemaining,
-                                    description: "Add a quote from a friend",
-                                    actionLabel: "Add",
-                                    actionIcon: Image(systemName: "quote.opening"),
-                                    action: action)
-            case .rating(let item):
-                WatchlistPromptItem(watchlistItem: item,
-                                    timeDuration: timeDuration,
-                                    timeRemaining: timeRemaining,
-                                    description: "Add your own rating",
-                                    actionLabel: "Rate",
-                                    actionIcon: Image(systemName: "star.fill"),
-                                    action: action)
-            case .undo(let removeItem):
-                WatchlistPromptItem(watchlistItem: removeItem,
-                                    timeDuration: timeDuration,
-                                    timeRemaining: timeRemaining,
-                                    description: "Removed from watchlist",
-                                    actionLabel: "Undo",
-                                    actionIcon: Image(systemName: "arrow.uturn.backward"),
-                                    action: action)
-            }
-        }
-    }
-}
-
 private struct WatchlistPromptItem: View {
 
     @MainActor private final class MovieInfoLoader: ObservableObject {
@@ -105,73 +110,64 @@ private struct WatchlistPromptItem: View {
 
     @StateObject private var loader: MovieInfoLoader = MovieInfoLoader()
 
-    let watchlistItem: WatchlistItem
+    let prompt: WatchlistPrompt
     let timeDuration: TimeInterval
     let timeRemaining: TimeInterval
-    let description: String
-    let actionLabel: String
-    let actionIcon: Image
     let action: () -> Void
 
     var body: some View {
-        Group {
-            if let movie = loader.movie {
-                HStack(spacing: 24) {
-                    HStack(spacing: 12) {
-                        AsyncImage(url: movie.details.media.posterPreviewUrl) { image in
-                            image.resizable().aspectRatio(contentMode: .fit)
-                        } placeholder: {
-                            Color.gray
-                        }
-                        .frame(width: 60, height: 90)
-                        .cornerRadius(8)
-
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(movie.details.title)
-                                .lineLimit(2)
-                                .font(.subheadline)
-                            Text(description)
-                                .font(.callout)
-                                .underline()
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
-                    Button(action: action) {
-                        VStack(spacing: 6) {
-                            HStack(spacing: 4) {
-                                actionIcon
-                                Text(actionLabel)
-                            }
-                            .font(.footnote)
-                            .foregroundColor(.white)
-                            .padding(.vertical, 4)
-                            .padding(.horizontal, 8)
-                            .background(
-                                ZStack {
-                                    GeometryReader { reader in
-                                        let width = max(0, timeRemaining / timeDuration * reader.size.width)
-                                        Rectangle().fill(Color.secondary)
-                                        Rectangle().fill(Color.accentColor)
-                                            .frame(width: width, alignment: .leading)
-                                    }
-                                }
-                                .mask(Capsule())
-                            )
-                        }
-                    }
-                    .tint(Color.accentColor)
-                    .fixedSize()
+        HStack(spacing: 24) {
+            HStack(spacing: 12) {
+                AsyncImage(url: loader.movie?.details.media.posterPreviewUrl) { image in
+                    image.resizable().aspectRatio(contentMode: .fit)
+                } placeholder: {
+                    Color.gray
                 }
-            } else {
-                LoaderView().fixedSize(horizontal: false, vertical: true)
+                .frame(width: 60, height: 90)
+                .cornerRadius(8)
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(loader.movie?.details.title ?? "Loading")
+                        .lineLimit(2)
+                        .font(.subheadline)
+                    Text(prompt.description)
+                        .font(.callout)
+                        .underline()
+                        .foregroundColor(.secondary)
+                }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Button(action: action) {
+                VStack(spacing: 6) {
+                    HStack(spacing: 4) {
+                        prompt.actionIcon
+                        Text(prompt.actionLabel)
+                    }
+                    .font(.footnote)
+                    .foregroundColor(.white)
+                    .padding(.vertical, 4)
+                    .padding(.horizontal, 8)
+                    .background(
+                        ZStack {
+                            GeometryReader { reader in
+                                let width = max(0, timeRemaining / timeDuration * reader.size.width)
+                                Rectangle().fill(Color.secondary)
+                                Rectangle().fill(Color.accentColor)
+                                    .frame(width: width, alignment: .leading)
+                            }
+                        }
+                        .mask(Capsule())
+                    )
+                }
+            }
+            .tint(Color.accentColor)
+            .fixedSize()
         }
         .padding()
         .background(Rectangle().fill(.thinMaterial).ignoresSafeArea())
         .task {
-            switch watchlistItem.id {
+            switch prompt.item.id {
             case .movie(let id):
                 try? await self.loader.load(requestManager: requestManager, movieIdentifier: id)
             }
@@ -224,30 +220,27 @@ private struct WatchlistPromptModifier: ViewModifier {
         ZStack(alignment: .bottom) {
             content.zIndex(0)
 
-            Group {
-                if let watchlistPrompt {
-                    WatchlistPromptView(
-                        prompt: watchlistPrompt,
-                        timeDuration: timer.duration,
-                        timeRemaining: timer.timeRemaining,
-                        action: {
-                            self.watchlistPrompt = nil
-                            switch watchlistPrompt {
-                            case .suggestion(let item):
-                                presentedItem = .watchlistAddToWatchReason(itemIdentifier: item.id)
-                            case .rating(let item):
-                                presentedItem = .watchlistAddRating(itemIdentifier: item.id)
-                            case .undo(let removeItem):
-                                watchlist.update(state: removeItem.state, forItemWith: removeItem.id)
-                            }
+            if let watchlistPrompt {
+                WatchlistPromptItem(
+                    prompt: watchlistPrompt,
+                    timeDuration: timer.duration,
+                    timeRemaining: timer.timeRemaining,
+                    action: {
+                        self.watchlistPrompt = nil
+                        switch watchlistPrompt {
+                        case .suggestion(let item):
+                            presentedItem = .watchlistAddToWatchReason(itemIdentifier: item.id)
+                        case .rating(let item):
+                            presentedItem = .watchlistAddRating(itemIdentifier: item.id)
+                        case .undo(let removeItem):
+                            watchlist.update(state: removeItem.state, forItemWith: removeItem.id)
                         }
-                    )
-                    .id(watchlistPrompt.id)
-                }
+                    }
+                )
+                .id(watchlistPrompt.id)
+                .transition(.move(edge: .bottom))
+                .zIndex(1)
             }
-            .id("PromptView")
-            .transition(.move(edge: .bottom).combined(with: .opacity))
-            .zIndex(1)
         }
         .animation(.default, value: watchlistPrompt)
         .sheet(item: $presentedItem) { item in
@@ -288,21 +281,21 @@ struct WatchlistPromptView_Previews: PreviewProvider {
     static var previews: some View {
         List {
             Group {
-                WatchlistPromptView(
+                WatchlistPromptItem(
                     prompt: .suggestion(item: toWatchItem),
                     timeDuration: 10,
                     timeRemaining: 5,
                     action: {}
                 )
 
-                WatchlistPromptView(
+                WatchlistPromptItem(
                     prompt: .rating(item: watchedItem),
                     timeDuration: 10,
                     timeRemaining: 5,
                     action: {}
                 )
 
-                WatchlistPromptView(
+                WatchlistPromptItem(
                     prompt: .undo(removeItem: watchedItem),
                     timeDuration: 10,
                     timeRemaining: 5,
