@@ -65,11 +65,15 @@ enum WatchlistItemIdentifier: Identifiable, Hashable, Equatable, Codable {
 
     @Published private(set) var items: [WatchlistItem] = []
 
-    let objectDidChange: PassthroughSubject<[WatchlistItem], Never>
+    let itemWasRemoved: PassthroughSubject<WatchlistItem, Never>
+    let itemDidUpdateState: PassthroughSubject<WatchlistItem, Never>
+    let itemsDidChange: PassthroughSubject<[WatchlistItem], Never>
 
     init(items: [WatchlistItem]) {
         self.items = items
-        self.objectDidChange = PassthroughSubject<[WatchlistItem], Never>()
+        self.itemWasRemoved = PassthroughSubject<WatchlistItem, Never>()
+        self.itemDidUpdateState = PassthroughSubject<WatchlistItem, Never>()
+        self.itemsDidChange = PassthroughSubject<[WatchlistItem], Never>()
     }
 
     // MARK: Internal methods
@@ -81,19 +85,23 @@ enum WatchlistItemIdentifier: Identifiable, Hashable, Equatable, Codable {
     func update(state: WatchlistItemState, forItemWith id: WatchlistItemIdentifier) {
         if let index = items.firstIndex(where: { $0.id == id }) {
             items[index].state = state
+            itemDidUpdateState.send(items[index])
         } else {
-            items.append(WatchlistItem(id: id, state: state))
+            let item = WatchlistItem(id: id, state: state)
+            items.append(item)
+            itemDidUpdateState.send(item)
         }
 
-        objectDidChange.send(items)
+        itemsDidChange.send(items)
     }
 
     func remove(itemWith id: WatchlistItemIdentifier) {
         if let index = items.firstIndex(where: { $0.id == id }) {
-            items.remove(at: index)
+            let item = items.remove(at: index)
+            itemWasRemoved.send(item)
         }
 
-        objectDidChange.send(items)
+        itemsDidChange.send(items)
     }
 
     func set(items: [WatchlistItem]) {

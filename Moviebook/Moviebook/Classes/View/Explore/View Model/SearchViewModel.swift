@@ -13,7 +13,7 @@ import CoreSpotlight
 
     final class DataProvider: ObservableObject, ExploreContentDataProvider {
 
-        enum Scope: String, CaseIterable {
+        enum Scope: String, CaseIterable, Hashable {
             case movie
             case artist
         }

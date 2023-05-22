@@ -65,8 +65,6 @@ import Combine
 
         @Published private(set) var items: [SectionItem] = []
 
-        private var hiddenItemIndex: Int?
-
         init(section: Section) {
             self.section = section
         }
@@ -74,8 +72,6 @@ import Combine
         // MARK: Internal methods
 
         func set(identifiers: [WatchlistItemIdentifier], requestManager: RequestManager) async throws {
-            hiddenItemIndex = nil
-
             items = try await withThrowingTaskGroup(of: SectionItem.self) { group in
                 var result = [WatchlistItemIdentifier: SectionItem]()
                 result.reserveCapacity(identifiers.count)
@@ -105,36 +101,15 @@ import Combine
                 return items
             }
         }
-
-        func hide(item: SectionItem) {
-            guard let index = items.firstIndex(of: item) else {
-                return
-            }
-
-            hiddenItemIndex = index
-            items.remove(at: index)
-        }
-
-        func unhide(item: SectionItem) {
-            guard let index = hiddenItemIndex else {
-                return
-            }
-
-            items.insert(item, at: index)
-            hiddenItemIndex = nil
-        }
     }
 
     // MARK: Instance Properties
 
     @Published private(set) var isLoading: Bool = true
     @Published private(set) var sections: [Section: SectionContent] = [:]
-    @Published private(set) var itemToRemove: SectionItem?
-    @Published private(set) var undoTimeRemaining: TimeInterval = 0
     
     @Published var currentSection: Section = .toWatch
 
-    private var undoTimer: Publishers.Autoconnect<Timer.TimerPublisher>?
     private var subscriptions: Set<AnyCancellable> = []
 
     var sectionIdentifiers: [Section] {
@@ -186,39 +161,5 @@ import Combine
                 }
             }
             .store(in: &subscriptions)
-    }
-
-    func remove(item: SectionItem, from watchlist: Watchlist) {
-        sections[item.section]?.hide(item: item)
-
-        itemToRemove = item
-        undoTimeRemaining = 5
-
-        undoTimer = Timer.publish(every: 0.1, on: .main, in: .default).autoconnect()
-        undoTimer?
-            .sink { date in
-                self.undoTimeRemaining -= 0.1
-
-                if self.undoTimeRemaining <= -1 {
-                    self.undoTimeRemaining = -1
-                    self.itemToRemove = nil
-                    self.undoTimer?.upstream.connect().cancel()
-
-                    watchlist.remove(itemWith: item.watchlistIdentifier)
-                }
-            }
-            .store(in: &subscriptions)
-    }
-
-    func undo() {
-        guard let itemToRemove else {
-            return
-        }
-
-        self.sections[itemToRemove.section]?.unhide(item: itemToRemove)
-
-        self.undoTimeRemaining = -1
-        self.itemToRemove = nil
-        self.undoTimer?.upstream.connect().cancel()
     }
 }

@@ -10,7 +10,7 @@ import SwiftUI
 struct ExploreVerticalSectionView: View {
 
     @ObservedObject var viewModel: ExploreContentViewModel
-    @Binding var presentedItem: ExplorePresentingItem?
+    @Binding var presentedItem: NavigationItem?
 
     var body: some View {
         Section {
@@ -22,13 +22,13 @@ struct ExploreVerticalSectionView: View {
             case .movies(let movies):
                 ForEach(movies) { movieDetails in
                     MoviePreviewView(details: movieDetails) {
-                        presentedItem = .movie(movieId: movieDetails.id)
+                        presentedItem = .movieWithIdentifier(movieDetails.id)
                     }
                 }
             case .artists(let artists):
                 ForEach(artists, id: \.self) { artistDetails in
                     ArtistPreviewView(details: artistDetails) {
-                        presentedItem = .artist(artistId: artistDetails.id)
+                        presentedItem = .artistWithIdentifier(artistDetails.id)
                     }
                 }
             }

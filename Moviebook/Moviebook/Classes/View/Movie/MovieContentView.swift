@@ -49,7 +49,7 @@ struct MovieContentView: View {
                     movies: list,
                     highlightedMovieId: movie.id,
                     onMovieSelected: { identifier in
-                        navigationPath.append(NavigationItem.movie(movieId: identifier))
+                        navigationPath.append(NavigationItem.movieWithIdentifier(identifier))
                     }
                 )
             }
@@ -58,7 +58,7 @@ struct MovieContentView: View {
                 CastView(
                     cast: movie.cast,
                     onArtistSelected: { identifier in
-                        navigationPath.append(NavigationItem.artist(artistId: identifier))
+                        navigationPath.append(NavigationItem.artistWithIdentifier(identifier))
                     }
                 )
             }
