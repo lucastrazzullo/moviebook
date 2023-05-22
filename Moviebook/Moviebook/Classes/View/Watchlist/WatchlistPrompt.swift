@@ -210,28 +210,34 @@ private struct WatchlistPromptModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         ZStack(alignment: .bottom) {
-            content
-            
-            if let watchlistPrompt {
-                WatchlistPromptView(
-                    prompt: watchlistPrompt,
-                    timeDuration: timer.duration,
-                    timeRemaining: timer.timeRemaining,
-                    action: {
-                        self.watchlistPrompt = nil
-                        switch watchlistPrompt {
-                        case .suggestion(let item):
-                            presentedItem = .watchlistAddToWatchReason(itemIdentifier: item.id)
-                        case .rating(let item):
-                            presentedItem = .watchlistAddRating(itemIdentifier: item.id)
-                        case .undo(let removeItem):
-                            watchlist.update(state: removeItem.state, forItemWith: removeItem.id)
+            content.zIndex(0)
+
+            Group {
+                if let watchlistPrompt {
+                    WatchlistPromptView(
+                        prompt: watchlistPrompt,
+                        timeDuration: timer.duration,
+                        timeRemaining: timer.timeRemaining,
+                        action: {
+                            self.watchlistPrompt = nil
+                            switch watchlistPrompt {
+                            case .suggestion(let item):
+                                presentedItem = .watchlistAddToWatchReason(itemIdentifier: item.id)
+                            case .rating(let item):
+                                presentedItem = .watchlistAddRating(itemIdentifier: item.id)
+                            case .undo(let removeItem):
+                                watchlist.update(state: removeItem.state, forItemWith: removeItem.id)
+                            }
                         }
-                    }
-                )
-                .id(watchlistPrompt.id)
+                    )
+                    .id(watchlistPrompt.id)
+                }
             }
+            .id("PromptView")
+            .transition(.move(edge: .bottom).combined(with: .opacity))
+            .zIndex(1)
         }
+        .animation(.default, value: watchlistPrompt)
         .sheet(item: $presentedItem) { item in
             switch item {
             case .watchlistAddToWatchReason(let itemIdentifier):
@@ -241,16 +247,12 @@ private struct WatchlistPromptModifier: ViewModifier {
             }
         }
         .onReceive(watchlist.itemDidUpdateState) { item in
-            withAnimation {
-                watchlistPrompt = WatchlistPrompt(item: item)
-                timer.start(onComplete: { self.watchlistPrompt = nil })
-            }
+            watchlistPrompt = WatchlistPrompt(item: item)
+            timer.start(onComplete: { self.watchlistPrompt = nil })
         }
         .onReceive(watchlist.itemWasRemoved) { item in
-            withAnimation {
-                watchlistPrompt = .undo(removeItem: item)
-                timer.start(onComplete: { self.watchlistPrompt = nil })
-            }
+            watchlistPrompt = .undo(removeItem: item)
+            timer.start(onComplete: { self.watchlistPrompt = nil })
         }
     }
 
