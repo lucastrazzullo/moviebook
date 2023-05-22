@@ -74,7 +74,7 @@ private struct WatchlistPromptView: View {
                                     timeRemaining: timeRemaining,
                                     description: "Add your own rating",
                                     actionLabel: "Rate",
-                                    actionIcon: Image(systemName: "star"),
+                                    actionIcon: Image(systemName: "star.fill"),
                                     action: action)
             case .undo(let removeItem):
                 WatchlistPromptItem(watchlistItem: removeItem,
@@ -140,14 +140,25 @@ private struct WatchlistPromptItem: View {
 
                     Button(action: action) {
                         VStack(spacing: 6) {
-                            HStack {
+                            HStack(spacing: 4) {
                                 actionIcon
                                 Text(actionLabel)
                             }
-
-                            ProgressView(value: max(0, timeRemaining), total: timeDuration)
-                                .progressViewStyle(.linear)
-                                .animation(.linear, value: timeRemaining)
+                            .font(.footnote)
+                            .foregroundColor(.white)
+                            .padding(.vertical, 4)
+                            .padding(.horizontal, 8)
+                            .background(
+                                ZStack {
+                                    GeometryReader { reader in
+                                        let width = max(0, timeRemaining / timeDuration * reader.size.width)
+                                        Rectangle().fill(Color.secondary)
+                                        Rectangle().fill(Color.accentColor)
+                                            .frame(width: width, alignment: .leading)
+                                    }
+                                }
+                                .mask(Capsule())
+                            )
                         }
                     }
                     .tint(Color.accentColor)
@@ -188,6 +199,7 @@ private struct WatchlistPromptModifier: ViewModifier {
             self.onComplete = onComplete
             self.timeRemaining = duration
 
+            self.timer?.upstream.connect().cancel()
             self.timer = Timer.publish(every: 0.1, on: .main, in: .default).autoconnect()
             self.timerSubscription = self.timer?
                 .sink { date in
