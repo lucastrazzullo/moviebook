@@ -29,7 +29,13 @@ struct WatchlistView: View {
                 } else {
                     ListView(
                         viewModel: viewModel,
-                        onMovieSelected: { movie in presentedItem = .movie(movie) }
+                        onMovieSelected: { movie in presentedItem = .movie(movie) },
+                        onAddToWatchReason: { watchlistItemIdentifier in
+                            presentedItem = .watchlistAddToWatchReason(itemIdentifier: watchlistItemIdentifier)
+                        },
+                        onAddRating: { watchlistItemIdentifier in
+                            presentedItem = .watchlistAddRating(itemIdentifier: watchlistItemIdentifier)
+                        }
                     )
                 }
             }
@@ -80,30 +86,48 @@ private struct ListView: View {
     @ObservedObject var viewModel: WatchlistViewModel
 
     let onMovieSelected: (Movie) -> Void
+    let onAddToWatchReason: (WatchlistItemIdentifier) -> Void
+    let onAddRating: (WatchlistItemIdentifier) -> Void
 
     var body: some View {
-        List {
-            ForEach(viewModel.items) { item in
-                switch item {
-                case .movie(let movie, _, let watchlistIdentifier):
-                    MoviePreviewView(details: movie.details) {
-                        onMovieSelected(movie)
-                    }
-                    .swipeActions {
-                        Button(action: { watchlist.remove(itemWith: watchlistIdentifier) }) {
-                            HStack {
-                                Image(systemName: "minus")
-                                Text("Remove")
-                            }
+        ScrollView {
+            LazyVGrid(columns: [GridItem(), GridItem()]) {
+                ForEach(viewModel.items) { item in
+                    switch item {
+                    case .movie(let movie, _, let watchlistIdentifier):
+                        Group {
+                            AsyncImage(url: movie.details.media.posterPreviewUrl, content: { image in
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                            }, placeholder: {
+                                Color
+                                    .gray
+                                    .opacity(0.2)
+                            })
+                            .aspectRatio(contentMode: .fill)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
                         }
-                        .tint(Color.accentColor)
+                        .onTapGesture {
+                            onMovieSelected(movie)
+                        }
+                        .contextMenu {
+                            WatchlistOptions(
+                                watchlistItemIdentifier: watchlistIdentifier,
+                                onAddToWatchReason: {
+                                    onAddToWatchReason(watchlistIdentifier)
+                                },
+                                onAddRating: {
+                                    onAddRating(watchlistIdentifier)
+                                }
+                            )
+                        }
                     }
                 }
             }
-            .listRowSeparator(.hidden)
+            .padding(4)
         }
         .scrollIndicators(.hidden)
-        .listStyle(.plain)
     }
 }
 
@@ -114,6 +138,8 @@ struct WatchlistView_Previews: PreviewProvider {
             .environment(\.requestManager, MockRequestManager())
             .environmentObject(Watchlist(items: [
                 WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
+                WatchlistItem(id: .movie(id: 353081), state: .toWatch(info: .init(date: .now, suggestion: nil))),
+                WatchlistItem(id: .movie(id: 575265), state: .toWatch(info: .init(date: .now, suggestion: nil))),
                 WatchlistItem(id: .movie(id: 616037), state: .watched(info: .init(toWatchInfo: .init(date: .now, suggestion: nil), date: .now)))
             ]))
 

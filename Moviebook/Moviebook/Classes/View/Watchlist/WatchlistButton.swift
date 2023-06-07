@@ -20,11 +20,42 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
 
     var body: some View {
         Menu {
+            WatchlistOptions(
+                watchlistItemIdentifier: watchlistItemIdentifier,
+                onAddToWatchReason: {
+                    presentedItem = .watchlistAddToWatchReason(itemIdentifier: watchlistItemIdentifier)
+                },
+                onAddRating: {
+                    presentedItem = .watchlistAddRating(itemIdentifier: watchlistItemIdentifier)
+                }
+            )
+        } label: {
+            label(watchlist.itemState(id: watchlistItemIdentifier))
+        }
+    }
+
+    init(watchlistItemIdentifier: WatchlistItemIdentifier, @ViewBuilder label: @escaping (WatchlistItemState?) -> LabelType) {
+        self.watchlistItemIdentifier = watchlistItemIdentifier
+        self.label = label
+    }
+}
+
+struct WatchlistOptions: View {
+
+    @EnvironmentObject var watchlist: Watchlist
+
+    let watchlistItemIdentifier: WatchlistItemIdentifier
+    let onAddToWatchReason: () -> Void
+    let onAddRating: () -> Void
+
+
+    var body: some View {
+        Group {
             if let state = watchlist.itemState(id: watchlistItemIdentifier) {
                 switch state {
                 case .toWatch(let info):
                     if info.suggestion == nil {
-                        Button { presentedItem = .watchlistAddToWatchReason(itemIdentifier: watchlistItemIdentifier) } label: {
+                        Button(action: onAddToWatchReason) {
                             Label("Add reason to watch", systemImage: "quote.opening")
                         }
                     }
@@ -36,7 +67,7 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
                     }
                 case .watched(let info):
                     if info.rating == nil {
-                        Button { presentedItem = .watchlistAddRating(itemIdentifier: watchlistItemIdentifier) } label: {
+                        Button(action: onAddRating) {
                             Label("Add rating", systemImage: "plus")
                         }
                     }
@@ -55,17 +86,7 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
                     Label("Mark as watched", systemImage: "checkmark")
                 }
             }
-        } label: {
-            label(watchlist.itemState(id: watchlistItemIdentifier))
         }
-        .sheet(item: $presentedItem) { item in
-            NavigationDestination(navigationPath: $presentedItemNavigationPath, item: item)
-        }
-    }
-
-    init(watchlistItemIdentifier: WatchlistItemIdentifier, @ViewBuilder label: @escaping (WatchlistItemState?) -> LabelType) {
-        self.watchlistItemIdentifier = watchlistItemIdentifier
-        self.label = label
     }
 }
 
