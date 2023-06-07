@@ -32,6 +32,9 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
         } label: {
             label(watchlist.itemState(id: watchlistItemIdentifier))
         }
+        .sheet(item: $presentedItem) { item in
+            NavigationDestination(navigationPath: $presentedItemNavigationPath, item: item)
+        }
     }
 
     init(watchlistItemIdentifier: WatchlistItemIdentifier, @ViewBuilder label: @escaping (WatchlistItemState?) -> LabelType) {
@@ -47,7 +50,6 @@ struct WatchlistOptions: View {
     let watchlistItemIdentifier: WatchlistItemIdentifier
     let onAddToWatchReason: () -> Void
     let onAddRating: () -> Void
-
 
     var body: some View {
         Group {
