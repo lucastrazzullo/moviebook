@@ -159,13 +159,8 @@ private struct WatchlistItemView: View {
         }
         .contextMenu {
             WatchlistOptions(
-                watchlistItemIdentifier: watchlistIdentifier,
-                onAddToWatchReason: {
-                    presentedItem = .watchlistAddToWatchReason(itemIdentifier: watchlistIdentifier)
-                },
-                onAddRating: {
-                    presentedItem = .watchlistAddRating(itemIdentifier: watchlistIdentifier)
-                }
+                presentedItem: $presentedItem,
+                watchlistItemIdentifier: watchlistIdentifier
             )
         }
     }
