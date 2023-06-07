@@ -45,47 +45,54 @@ struct EmptyWatchlistView: View {
     let section: WatchlistViewModel.Section
 
     var body: some View {
-        VStack(spacing: 24) {
-            ZStack {
-                ListView(items: viewModel.results[section] ?? [])
-                    .allowsHitTesting(false)
-                    .mask(LinearGradient(
-                        gradient: Gradient(
-                            stops: [
-                                .init(color: .gray, location: 0),
-                                .init(color: .gray, location: 0.6),
-                                .init(color: .gray.opacity(0), location: 1)
-                            ]),
-                        startPoint: .top,
-                        endPoint: .bottom)
-                    )
-            }
+        GeometryReader { geometry in
+            let topSpacing = geometry.safeAreaInsets.top
+            let bottomSpacing = geometry.safeAreaInsets.bottom + 32
 
-            VStack {
-                switch section {
-                case .toWatch:
-                    Text("Your watchlist is empty")
-                        .font(.title2.bold())
-                    HStack {
-                        Text("Start your discovery")
-                        Image(systemName: "magnifyingglass")
-                    }
-                case .watched:
-                    Text("You haven't watched a movie yet")
-                        .font(.title2.bold())
-                    HStack {
-                        Text("Go to your watchlist")
-                        Image(systemName: "text.badge.star")
+            VStack(spacing: 24) {
+                ZStack {
+                    ListView(items: viewModel.results[section] ?? [])
+                        .allowsHitTesting(false)
+                        .mask(LinearGradient(
+                            gradient: Gradient(
+                                stops: [
+                                    .init(color: .gray, location: 0),
+                                    .init(color: .gray, location: 0.6),
+                                    .init(color: .gray.opacity(0), location: 1)
+                                ]),
+                            startPoint: .top,
+                            endPoint: .bottom)
+                        )
+                }
+
+                VStack {
+                    switch section {
+                    case .toWatch:
+                        Text("Your watchlist is empty")
+                            .font(.title2.bold())
+                        HStack {
+                            Text("Start your discovery")
+                            Image(systemName: "magnifyingglass")
+                        }
+                    case .watched:
+                        Text("You haven't watched a movie yet")
+                            .font(.title2.bold())
+                        HStack {
+                            Text("Go to your watchlist")
+                            Image(systemName: "text.badge.star")
+                        }
                     }
                 }
-            }
-            .foregroundColor(.primary.opacity(0.7))
+                .foregroundColor(.primary.opacity(0.7))
 
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .padding(.vertical)
+            .padding(.top, topSpacing)
+            .padding(.bottom, bottomSpacing)
+            .background(.thinMaterial)
         }
-        .frame(maxWidth: .infinity)
-        .padding()
-        .padding(.vertical)
-        .background(.thinMaterial)
         .task {
             try? await viewModel.start(requestManager: requestManager)
         }
