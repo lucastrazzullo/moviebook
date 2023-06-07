@@ -171,10 +171,20 @@ private struct WatchProvidersView: View {
         }
         .padding()
         .background(.yellow)
+        .foregroundColor(.black)
         .cornerRadius(8)
     }
 
     @ViewBuilder private func providerList(providers: [WatchProvider]) -> some View {
+        var uniqueProviders = Set<WatchProvider>(providers)
+        let providers = providers.filter { provider in
+            if uniqueProviders.contains(provider) {
+                uniqueProviders.remove(provider)
+                return true
+            } else {
+                return false
+            }
+        }
         LazyVGrid(columns: [GridItem(), GridItem(), GridItem(), GridItem()]) {
             ForEach(providers, id: \.name) { provider in
                 AsyncImage(url: provider.iconUrl, content: { image in
@@ -182,7 +192,7 @@ private struct WatchProvidersView: View {
                 }, placeholder: {
                     Rectangle().fill(.thinMaterial)
                 })
-                .cornerRadius(8)
+                .cornerRadius(22)
             }
         }
     }
@@ -316,7 +326,7 @@ private struct MovieContentViewPreview: View {
         }
         .task {
             let webService = MovieWebService(requestManager: requestManager)
-            movie = try! await webService.fetchMovie(with: 575265)
+            movie = try! await webService.fetchMovie(with: 353081)
         }
     }
 }

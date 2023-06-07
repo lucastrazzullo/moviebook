@@ -56,6 +56,7 @@ struct MoviePreviewView: View {
                                     }
                                     .padding(4)
                                     .background(RoundedRectangle(cornerRadius: 6).fill(.yellow))
+                                    .foregroundColor(.black)
                                 } else {
                                     Text(releaseDate, format: .dateTime.year())
                                 }
