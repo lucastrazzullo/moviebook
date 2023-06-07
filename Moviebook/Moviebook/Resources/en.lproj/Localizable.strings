@@ -20,8 +20,7 @@
 
 // MARK: Watchlist
 
-"WATCHLIST.TITLE" = "Watchlist";
-"WATCHLIST.TO_WATCH.TITLE" = "Wishlist";
+"WATCHLIST.TO_WATCH.TITLE" = "Watchlist";
 "WATCHLIST.WATCHED.TITLE" = "Watched";
 
 // MARK: Explore
