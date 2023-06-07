@@ -24,7 +24,6 @@ struct WatchlistView: View {
                         presentedItem: $presentedItem,
                         section: section
                     )
-
                     .tag(section)
                 }
             }
@@ -76,7 +75,6 @@ private struct ContentView: View {
     @EnvironmentObject var watchlist: Watchlist
 
     @StateObject private var viewModel: WatchlistViewModel = WatchlistViewModel()
-
     @Binding var presentedItem: NavigationItem?
 
     let section: WatchlistViewModel.Section
@@ -93,18 +91,11 @@ private struct ContentView: View {
                 } else {
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 0) {
-                            LazyVGrid(columns: [GridItem(), GridItem()]) {
-                                ForEach(viewModel.items) { item in
-                                    switch item {
-                                    case .movie(let movie, _, let watchlistIdentifier):
-                                        WatchlistItemView(
-                                            presentedItem: $presentedItem,
-                                            movie: movie,
-                                            watchlistIdentifier: watchlistIdentifier
-                                        )
-                                    }
-                                }
-                            }
+                            WatchlistListView(
+                                presentedItem: $presentedItem,
+                                section: section,
+                                items: viewModel.items
+                            )
                             .padding(.horizontal, 4)
 
                             Spacer().frame(height: bottomSpacing)
@@ -114,6 +105,29 @@ private struct ContentView: View {
             }
             .onAppear {
                 viewModel.start(section: section, watchlist: watchlist, requestManager: requestManager)
+            }
+        }
+    }
+}
+
+private struct WatchlistListView: View {
+
+    @Binding var presentedItem: NavigationItem?
+
+    let section: WatchlistViewModel.Section
+    let items: [WatchlistViewModel.Item]
+
+    var body: some View {
+        LazyVGrid(columns: [GridItem(), GridItem()]) {
+            ForEach(items) { item in
+                switch item {
+                case .movie(let movie, _, let watchlistIdentifier):
+                    WatchlistItemView(
+                        presentedItem: $presentedItem,
+                        movie: movie,
+                        watchlistIdentifier: watchlistIdentifier
+                    )
+                }
             }
         }
     }

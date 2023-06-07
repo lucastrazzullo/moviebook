@@ -30,7 +30,7 @@ import Combine
         }
     }
 
-    enum SectionItem: Identifiable, Equatable {
+    enum Item: Identifiable, Equatable {
         case movie(movie: Movie, section: Section, watchlistIdentifier: WatchlistItemIdentifier)
 
         var id: String {
@@ -58,7 +58,7 @@ import Combine
     // MARK: Instance Properties
 
     @Published private(set) var isLoading: Bool = true
-    @Published private(set) var items: [SectionItem] = []
+    @Published private(set) var items: [Item] = []
 
     private var subscriptions: Set<AnyCancellable> = []
 
@@ -91,8 +91,8 @@ import Combine
     }
 
     private func set(identifiers: [WatchlistItemIdentifier], section: Section, requestManager: RequestManager) async throws {
-        items = try await withThrowingTaskGroup(of: SectionItem.self) { group in
-            var result = [WatchlistItemIdentifier: SectionItem]()
+        items = try await withThrowingTaskGroup(of: Item.self) { group in
+            var result = [WatchlistItemIdentifier: Item]()
             result.reserveCapacity(identifiers.count)
 
             for identifier in identifiers {
@@ -101,7 +101,7 @@ import Combine
                     case .movie(let id):
                         let webService = MovieWebService(requestManager: requestManager)
                         let movie = try await webService.fetchMovie(with: id)
-                        return SectionItem.movie(movie: movie, section: section, watchlistIdentifier: identifier)
+                        return Item.movie(movie: movie, section: section, watchlistIdentifier: identifier)
                     }
                 }
             }
@@ -110,7 +110,7 @@ import Combine
                 result[item.watchlistIdentifier] = item
             }
 
-            var items = [SectionItem]()
+            var items = [Item]()
             for identifier in identifiers {
                 if let item = result[identifier] {
                     items.append(item)
