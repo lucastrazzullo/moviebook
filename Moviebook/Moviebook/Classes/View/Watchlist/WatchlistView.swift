@@ -12,52 +12,54 @@ struct WatchlistView: View {
     @Environment(\.requestManager) var requestManager
     @EnvironmentObject var watchlist: Watchlist
 
-    @StateObject private var viewModel: WatchlistViewModel = WatchlistViewModel()
+    @State private var currentSection: WatchlistViewModel.Section = .toWatch
     @State private var presentedItemNavigationPath = NavigationPath()
     @State private var presentedItem: NavigationItem? = nil
 
     var body: some View {
-        NavigationView {
+        TabView(selection: $currentSection) {
             Group {
-                if viewModel.isLoading {
-                    LoaderView()
-                } else if viewModel.items.isEmpty {
-                    EmptyWatchlistView(
-                        section: $viewModel.currentSection,
-                        onStartDiscoverySelected: { presentedItem = .explore }
+                ForEach(WatchlistViewModel.Section.allCases) { section in
+                    ContentView(
+                        presentedItem: $presentedItem,
+                        section: section
                     )
-                } else {
-                    ListView(
-                        viewModel: viewModel,
-                        onMovieSelected: { movie in presentedItem = .movie(movie) },
-                        onAddToWatchReason: { watchlistItemIdentifier in
-                            presentedItem = .watchlistAddToWatchReason(itemIdentifier: watchlistItemIdentifier)
-                        },
-                        onAddRating: { watchlistItemIdentifier in
-                            presentedItem = .watchlistAddRating(itemIdentifier: watchlistItemIdentifier)
-                        }
-                    )
+
+                    .tag(section)
                 }
             }
-            .watchlistPrompt(duration: 5)
-            .navigationTitle(NSLocalizedString("WATCHLIST.TITLE", comment: ""))
-            .toolbar {
-                makeSectionSelectionToolbarItem()
-                makeExploreToolbarItem()
-            }
-            .sheet(item: $presentedItem) { item in
-                Navigation(path: $presentedItemNavigationPath, presentingItem: item)
-            }
-            .onAppear {
-                viewModel.start(watchlist: watchlist, requestManager: requestManager)
-            }
+        }
+        .tabViewStyle(.page(indexDisplayMode: .never))
+        .ignoresSafeArea()
+        .safeAreaInset(edge: .bottom) {
+            ToolbarView(
+                currentSection: $currentSection,
+                presentedItem: $presentedItem
+            )
+            .padding()
+            .background(.thickMaterial)
+        }
+        .watchlistPrompt(duration: 5)
+        .sheet(item: $presentedItem) { item in
+            Navigation(path: $presentedItemNavigationPath, presentingItem: item)
         }
     }
+}
 
-    // MARK: Private factory methods
+private struct ToolbarView: View {
 
-    @ToolbarContentBuilder private func makeExploreToolbarItem() -> some ToolbarContent {
-        ToolbarItem(placement: .navigationBarTrailing) {
+    @Binding var currentSection: WatchlistViewModel.Section
+    @Binding var presentedItem: NavigationItem?
+
+    var body: some View {
+        HStack {
+            Picker("Section", selection: $currentSection) {
+                ForEach(WatchlistViewModel.Section.allCases, id: \.self) { section in
+                    Text(section.name)
+                }
+            }
+            .segmentedStyled()
+
             WatermarkView {
                 Image(systemName: "magnifyingglass")
                     .onTapGesture {
@@ -66,68 +68,92 @@ struct WatchlistView: View {
             }
         }
     }
-
-    @ToolbarContentBuilder private func makeSectionSelectionToolbarItem() -> some ToolbarContent {
-        ToolbarItem(placement: .navigationBarLeading) {
-            Picker("Section", selection: $viewModel.currentSection) {
-                ForEach(viewModel.sectionIdentifiers, id: \.self) { section in
-                    Text(section.name)
-                }
-            }
-            .segmentedStyled()
-        }
-    }
 }
 
-private struct ListView: View {
+private struct ContentView: View {
 
+    @Environment(\.requestManager) var requestManager
     @EnvironmentObject var watchlist: Watchlist
 
-    @ObservedObject var viewModel: WatchlistViewModel
+    @StateObject private var viewModel: WatchlistViewModel = WatchlistViewModel()
 
-    let onMovieSelected: (Movie) -> Void
-    let onAddToWatchReason: (WatchlistItemIdentifier) -> Void
-    let onAddRating: (WatchlistItemIdentifier) -> Void
+    @Binding var presentedItem: NavigationItem?
+
+    let section: WatchlistViewModel.Section
 
     var body: some View {
-        ScrollView {
-            LazyVGrid(columns: [GridItem(), GridItem()]) {
-                ForEach(viewModel.items) { item in
-                    switch item {
-                    case .movie(let movie, _, let watchlistIdentifier):
-                        Group {
-                            AsyncImage(url: movie.details.media.posterPreviewUrl, content: { image in
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                            }, placeholder: {
-                                Color
-                                    .gray
-                                    .opacity(0.2)
-                            })
-                            .aspectRatio(contentMode: .fill)
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
-                        }
-                        .onTapGesture {
-                            onMovieSelected(movie)
-                        }
-                        .contextMenu {
-                            WatchlistOptions(
-                                watchlistItemIdentifier: watchlistIdentifier,
-                                onAddToWatchReason: {
-                                    onAddToWatchReason(watchlistIdentifier)
-                                },
-                                onAddRating: {
-                                    onAddRating(watchlistIdentifier)
+        GeometryReader { geometry in
+            let bottomSpacing = geometry.safeAreaInsets.bottom + 32
+            Group {
+                if viewModel.isLoading {
+                    LoaderView()
+                } else if viewModel.items.isEmpty {
+                    EmptyWatchlistView(section: section)
+                        .padding(.bottom, bottomSpacing)
+                } else {
+                    ScrollView(showsIndicators: false) {
+                        VStack(spacing: 0) {
+                            LazyVGrid(columns: [GridItem(), GridItem()]) {
+                                ForEach(viewModel.items) { item in
+                                    switch item {
+                                    case .movie(let movie, _, let watchlistIdentifier):
+                                        WatchlistItemView(
+                                            presentedItem: $presentedItem,
+                                            movie: movie,
+                                            watchlistIdentifier: watchlistIdentifier
+                                        )
+                                    }
                                 }
-                            )
+                            }
+                            .padding(.horizontal, 4)
+
+                            Spacer().frame(height: bottomSpacing)
                         }
                     }
                 }
             }
-            .padding(4)
+            .onAppear {
+                viewModel.start(section: section, watchlist: watchlist, requestManager: requestManager)
+            }
         }
-        .scrollIndicators(.hidden)
+    }
+}
+
+private struct WatchlistItemView: View {
+
+    @Binding var presentedItem: NavigationItem?
+
+    let movie: Movie
+    let watchlistIdentifier: WatchlistItemIdentifier
+
+    var body: some View {
+        Group {
+            AsyncImage(url: movie.details.media.posterPreviewUrl, content: { image in
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            }, placeholder: {
+                Color
+                    .gray
+                    .opacity(0.2)
+            })
+            .aspectRatio(contentMode: .fill)
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+        }
+        .onTapGesture {
+            presentedItem = .movie(movie)
+        }
+        .contextMenu {
+            WatchlistOptions(
+                watchlistItemIdentifier: watchlistIdentifier,
+                onAddToWatchReason: {
+                    presentedItem = .watchlistAddToWatchReason(itemIdentifier: watchlistIdentifier)
+                },
+                onAddRating: {
+                    presentedItem = .watchlistAddRating(itemIdentifier: watchlistIdentifier)
+                }
+            )
+        }
     }
 }
 
