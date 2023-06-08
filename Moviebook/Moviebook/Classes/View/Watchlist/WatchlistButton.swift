@@ -21,13 +21,8 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
     var body: some View {
         Menu {
             WatchlistOptions(
-                watchlistItemIdentifier: watchlistItemIdentifier,
-                onAddToWatchReason: {
-                    presentedItem = .watchlistAddToWatchReason(itemIdentifier: watchlistItemIdentifier)
-                },
-                onAddRating: {
-                    presentedItem = .watchlistAddRating(itemIdentifier: watchlistItemIdentifier)
-                }
+                presentedItem: $presentedItem,
+                watchlistItemIdentifier: watchlistItemIdentifier
             )
         } label: {
             label(watchlist.itemState(id: watchlistItemIdentifier))
@@ -46,10 +41,9 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
 struct WatchlistOptions: View {
 
     @EnvironmentObject var watchlist: Watchlist
+    @Binding var presentedItem: NavigationItem?
 
     let watchlistItemIdentifier: WatchlistItemIdentifier
-    let onAddToWatchReason: () -> Void
-    let onAddRating: () -> Void
 
     var body: some View {
         Group {
@@ -57,7 +51,7 @@ struct WatchlistOptions: View {
                 switch state {
                 case .toWatch(let info):
                     if info.suggestion == nil {
-                        Button(action: onAddToWatchReason) {
+                        Button { presentedItem = .watchlistAddToWatchReason(itemIdentifier: watchlistItemIdentifier) } label: {
                             Label("Add reason to watch", systemImage: "quote.opening")
                         }
                     }
@@ -69,7 +63,7 @@ struct WatchlistOptions: View {
                     }
                 case .watched(let info):
                     if info.rating == nil {
-                        Button(action: onAddRating) {
+                        Button { presentedItem = .watchlistAddRating(itemIdentifier: watchlistItemIdentifier) } label: {
                             Label("Add rating", systemImage: "plus")
                         }
                     }
