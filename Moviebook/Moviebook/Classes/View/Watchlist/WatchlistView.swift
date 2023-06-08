@@ -171,15 +171,11 @@ private struct WatchlistItemView: View {
 
     var body: some View {
         Group {
-            AsyncImage(url: movie.details.media.posterPreviewUrl, content: { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            }, placeholder: {
-                Color
-                    .gray
-                    .opacity(0.2)
-            })
+            RemoteImage(url: movie.details.media.posterPreviewUrl) { image in
+                image.resizable()
+            } placeholder: {
+                Color.gray.opacity(0.2)
+            }
             .aspectRatio(contentMode: .fill)
             .clipShape(RoundedRectangle(cornerRadius: 6))
         }

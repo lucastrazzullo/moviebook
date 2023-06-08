@@ -92,7 +92,7 @@ private struct WatchedView: View {
             .background(.ultraThinMaterial.opacity(0.6))
             .background(Color.accentColor.opacity(0.2))
             .background(ZStack {
-                AsyncImage(
+                RemoteImage(
                     url: movieBackdropPreviewUrl,
                     content: { image in
                         image

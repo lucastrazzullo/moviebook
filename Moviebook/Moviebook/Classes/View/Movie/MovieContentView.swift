@@ -187,7 +187,7 @@ private struct WatchProvidersView: View {
         }
         LazyVGrid(columns: [GridItem(), GridItem(), GridItem(), GridItem()]) {
             ForEach(providers, id: \.name) { provider in
-                AsyncImage(url: provider.iconUrl, content: { image in
+                RemoteImage(url: provider.iconUrl, content: { image in
                     image.resizable().aspectRatio(contentMode: .fit)
                 }, placeholder: {
                     Rectangle().fill(.thinMaterial)
@@ -268,7 +268,7 @@ private struct CastView: View {
             LazyVGrid(columns: [GridItem(), GridItem(), GridItem()]) {
                 ForEach(cast) { artistDetails in
                     ZStack(alignment: .bottomLeading) {
-                        AsyncImage(url: artistDetails.imagePreviewUrl, content: { image in
+                        RemoteImage(url: artistDetails.imagePreviewUrl, content: { image in
                             image
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)

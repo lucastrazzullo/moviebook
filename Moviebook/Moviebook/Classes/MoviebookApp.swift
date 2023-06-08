@@ -103,10 +103,19 @@ private struct RequestManagerKey: EnvironmentKey {
     static let defaultValue: RequestManager = DefaultRequestManager(logging: .disabled)
 }
 
+private struct ImageLoaderKey: EnvironmentKey {
+    static let defaultValue = ImageLoader()
+}
+
 extension EnvironmentValues {
 
     var requestManager: RequestManager {
         get { self[RequestManagerKey.self] }
         set { self[RequestManagerKey.self] = newValue }
+    }
+
+    var imageLoader: ImageLoader {
+        get { self[ImageLoaderKey.self] }
+        set { self[ImageLoaderKey.self ] = newValue}
     }
 }
