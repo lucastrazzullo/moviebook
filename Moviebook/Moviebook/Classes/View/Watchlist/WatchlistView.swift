@@ -15,7 +15,6 @@ struct WatchlistView: View {
     @State private var currentSection: WatchlistViewModel.Section = .toWatch
     @State private var presentedItemNavigationPath = NavigationPath()
     @State private var presentedItem: NavigationItem? = nil
-    @State private var scrollOffset: CGFloat = 0
 
     var body: some View {
         TabView(selection: $currentSection) {
@@ -23,7 +22,6 @@ struct WatchlistView: View {
                 ForEach(WatchlistViewModel.Section.allCases) { section in
                     ContentView(
                         presentedItem: $presentedItem,
-                        scrollOffset: $scrollOffset,
                         section: section
                     )
                     .tag(section)
@@ -32,39 +30,18 @@ struct WatchlistView: View {
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
         .ignoresSafeArea()
-        .safeAreaInset(edge: .top) {
-            TopBarView()
-                .padding(.vertical, 6)
-                .transition(.opacity)
-                .background(.regularMaterial.opacity(scrollOffset > 0 ? 1 : 0))
-                .animation(.easeIn(duration: 0.125), value: scrollOffset)
-        }
         .safeAreaInset(edge: .bottom) {
             ToolbarView(
                 currentSection: $currentSection,
                 presentedItem: $presentedItem
             )
             .padding()
-            .background(.thickMaterial)
+            .background(.thinMaterial)
         }
         .watchlistPrompt(duration: 5)
         .sheet(item: $presentedItem) { item in
             Navigation(path: $presentedItemNavigationPath, presentingItem: item)
         }
-    }
-}
-
-private struct TopBarView: View {
-
-    var body: some View {
-        Group {
-            Image("Moviebook")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-        }
-        .foregroundColor(.primary)
-        .frame(height: 32)
-        .frame(maxWidth: .infinity)
     }
 }
 
@@ -81,6 +58,9 @@ private struct ToolbarView: View {
                 }
             }
             .segmentedStyled()
+            .fixedSize()
+
+            Spacer()
 
             WatermarkView {
                 Image(systemName: "magnifyingglass")
@@ -99,7 +79,6 @@ private struct ContentView: View {
 
     @StateObject private var viewModel: WatchlistViewModel = WatchlistViewModel()
     @Binding var presentedItem: NavigationItem?
-    @Binding var scrollOffset: CGFloat
 
     let section: WatchlistViewModel.Section
 
@@ -112,7 +91,6 @@ private struct ContentView: View {
             } else {
                 WatchlistListView(
                     presentedItem: $presentedItem,
-                    scrollOffset: $scrollOffset,
                     section: section,
                     items: viewModel.items
                 )
@@ -127,21 +105,17 @@ private struct ContentView: View {
 private struct WatchlistListView: View {
 
     @Binding var presentedItem: NavigationItem?
-    @Binding var scrollOffset: CGFloat
 
     let section: WatchlistViewModel.Section
     let items: [WatchlistViewModel.Item]
 
     var body: some View {
         GeometryReader { geometry in
-            let topSpacing = geometry.safeAreaInsets.top
             let bottomSpacing = geometry.safeAreaInsets.bottom + 32
 
-            ObservableScrollView(scrollOffset: $scrollOffset, showsIndicators: false) { _ in
+            ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
-                    Spacer().frame(height: topSpacing)
-
-                    LazyVGrid(columns: [GridItem(), GridItem()]) {
+                    LazyVGrid(columns: [GridItem(spacing: 4), GridItem()], spacing: 4) {
                         ForEach(items) { item in
                             switch item {
                             case .movie(let movie, _, let watchlistIdentifier):
@@ -177,7 +151,7 @@ private struct WatchlistItemView: View {
                 Color.gray.opacity(0.2)
             }
             .aspectRatio(contentMode: .fill)
-            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
         }
         .onTapGesture {
             presentedItem = .movie(movie)

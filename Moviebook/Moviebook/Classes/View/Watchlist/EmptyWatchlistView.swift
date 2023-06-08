@@ -46,7 +46,6 @@ struct EmptyWatchlistView: View {
 
     var body: some View {
         GeometryReader { geometry in
-            let topSpacing = geometry.safeAreaInsets.top
             let bottomSpacing = geometry.safeAreaInsets.bottom + 32
 
             VStack(spacing: 24) {
@@ -89,7 +88,6 @@ struct EmptyWatchlistView: View {
             .frame(maxWidth: .infinity)
             .padding()
             .padding(.vertical)
-            .padding(.top, topSpacing)
             .padding(.bottom, bottomSpacing)
             .background(.thinMaterial)
         }
