@@ -118,7 +118,7 @@ private struct WatchlistPromptItem: View {
     var body: some View {
         HStack(spacing: 24) {
             HStack(spacing: 12) {
-                AsyncImage(url: loader.movie?.details.media.posterPreviewUrl) { image in
+                RemoteImage(url: loader.movie?.details.media.posterPreviewUrl) { image in
                     image.resizable().aspectRatio(contentMode: .fit)
                 } placeholder: {
                     Color.gray
@@ -217,31 +217,29 @@ private struct WatchlistPromptModifier: ViewModifier {
     @State private var presentedItem: WatchlistPromptDestination?
 
     func body(content: Content) -> some View {
-        ZStack(alignment: .bottom) {
-            content.zIndex(0)
-
-            if let watchlistPrompt {
-                WatchlistPromptItem(
-                    prompt: watchlistPrompt,
-                    timeDuration: timer.duration,
-                    timeRemaining: timer.timeRemaining,
-                    action: {
-                        self.watchlistPrompt = nil
-                        switch watchlistPrompt {
-                        case .suggestion(let item):
-                            presentedItem = .watchlistAddToWatchReason(itemIdentifier: item.id)
-                        case .rating(let item):
-                            presentedItem = .watchlistAddRating(itemIdentifier: item.id)
-                        case .undo(let removeItem):
-                            watchlist.update(state: removeItem.state, forItemWith: removeItem.id)
+        content
+            .safeAreaInset(edge: .bottom) {
+                if let watchlistPrompt {
+                    WatchlistPromptItem(
+                        prompt: watchlistPrompt,
+                        timeDuration: timer.duration,
+                        timeRemaining: timer.timeRemaining,
+                        action: {
+                            self.watchlistPrompt = nil
+                            switch watchlistPrompt {
+                            case .suggestion(let item):
+                                presentedItem = .watchlistAddToWatchReason(itemIdentifier: item.id)
+                            case .rating(let item):
+                                presentedItem = .watchlistAddRating(itemIdentifier: item.id)
+                            case .undo(let removeItem):
+                                watchlist.update(state: removeItem.state, forItemWith: removeItem.id)
+                            }
                         }
-                    }
-                )
-                .id(watchlistPrompt.id)
-                .transition(.move(edge: .bottom))
-                .zIndex(1)
+                    )
+                    .id(watchlistPrompt.id)
+                    .transition(.move(edge: .bottom))
+                }
             }
-        }
         .animation(.default, value: watchlistPrompt)
         .sheet(item: $presentedItem) { item in
             switch item {

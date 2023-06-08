@@ -8,10 +8,26 @@
 import SwiftUI
 import CoreSpotlight
 
+@MainActor private final class Moviebook: ObservableObject {
+
+    @Published var watchlist: Watchlist?
+    @Published var error: Error?
+
+    private let storage: Storage = Storage()
+
+    func start() async {
+        do {
+            self.watchlist = try await storage.loadWatchlist()
+        } catch {
+            self.error = error
+        }
+    }
+}
+
 @main
 struct MoviebookApp: App {
 
-    @StateObject var application = Moviebook()
+    @StateObject private var application = Moviebook()
 
     @State private var presentedItemNavigationPath: NavigationPath = NavigationPath()
     @State private var presentedItem: NavigationItem? = nil
@@ -87,10 +103,19 @@ private struct RequestManagerKey: EnvironmentKey {
     static let defaultValue: RequestManager = DefaultRequestManager(logging: .disabled)
 }
 
+private struct ImageLoaderKey: EnvironmentKey {
+    static let defaultValue = ImageLoader()
+}
+
 extension EnvironmentValues {
 
     var requestManager: RequestManager {
         get { self[RequestManagerKey.self] }
         set { self[RequestManagerKey.self] = newValue }
+    }
+
+    var imageLoader: ImageLoader {
+        get { self[ImageLoaderKey.self] }
+        set { self[ImageLoaderKey.self ] = newValue}
     }
 }

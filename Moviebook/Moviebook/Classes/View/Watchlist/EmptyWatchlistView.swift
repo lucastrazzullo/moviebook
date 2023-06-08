@@ -41,65 +41,56 @@ struct EmptyWatchlistView: View {
     @Environment(\.requestManager) var requestManager
 
     @StateObject private var viewModel: ViewModel = ViewModel()
-    @Binding var section: WatchlistViewModel.Section
 
-    let onStartDiscoverySelected: () -> Void
+    let section: WatchlistViewModel.Section
 
     var body: some View {
-        VStack(spacing: 24) {
-            Group {
-                switch section {
-                case .toWatch:
-                    Text("Your watchlist is empty")
-                case .watched:
-                    Text("You haven't watched a movie yet")
+        GeometryReader { geometry in
+            let bottomSpacing = geometry.safeAreaInsets.bottom + 32
+
+            VStack(spacing: 24) {
+                ZStack {
+                    ListView(items: viewModel.results[section] ?? [])
+                        .allowsHitTesting(false)
+                        .mask(LinearGradient(
+                            gradient: Gradient(
+                                stops: [
+                                    .init(color: .gray, location: 0),
+                                    .init(color: .gray, location: 0.6),
+                                    .init(color: .gray.opacity(0), location: 1)
+                                ]),
+                            startPoint: .top,
+                            endPoint: .bottom)
+                        )
                 }
-            }
-            .font(.title2.bold())
-            .foregroundColor(.primary.opacity(0.7))
 
-            ZStack {
-                ListView(items: viewModel.results[section] ?? [])
-                    .allowsHitTesting(false)
-                    .mask(LinearGradient(
-                        gradient: Gradient(
-                            stops: [
-                                .init(color: .gray, location: 0),
-                                .init(color: .gray, location: 0.6),
-                                .init(color: .gray.opacity(0), location: 1)
-                            ]),
-                        startPoint: .top,
-                        endPoint: .bottom)
-                    )
-            }
-
-            Group {
-                switch section {
-                case .toWatch:
-                    Button(action: onStartDiscoverySelected) {
+                VStack {
+                    switch section {
+                    case .toWatch:
+                        Text("Your watchlist is empty")
+                            .font(.title2.bold())
                         HStack {
-                            Image(systemName: "rectangle.and.text.magnifyingglass")
-                            Text("Start your discovery").bold()
+                            Text("Start your discovery")
+                            Image(systemName: "magnifyingglass")
                         }
-                    }
-                case .watched:
-                    Button(action: { section = .toWatch }) {
+                    case .watched:
+                        Text("You haven't watched a movie yet")
+                            .font(.title2.bold())
                         HStack {
+                            Text("Go to your watchlist")
                             Image(systemName: "text.badge.star")
-                            Text("Go to your watchlist").bold()
                         }
                     }
                 }
-            }
-            .buttonStyle(.borderedProminent)
-            .foregroundStyle(.white)
+                .foregroundColor(.primary.opacity(0.7))
 
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .padding(.vertical)
+            .padding(.bottom, bottomSpacing)
+            .background(.thinMaterial)
         }
-        .frame(maxWidth: .infinity)
-        .padding()
-        .padding(.vertical)
-        .background(RoundedRectangle(cornerRadius: 12).fill(.thinMaterial))
-        .padding(4)
         .task {
             try? await viewModel.start(requestManager: requestManager)
         }
@@ -120,15 +111,19 @@ private struct ListView: View {
                     GridItem(spacing: 4)],
                 spacing: 4) {
                     ForEach(items, id: \.self) { movieDetails in
-                        AsyncImage(url: movieDetails.media.posterPreviewUrl, content: { image in
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                        }, placeholder: {
-                            Color
-                                .gray
-                                .opacity(0.2)
-                        })
+                        RemoteImage(
+                            url: movieDetails.media.posterPreviewUrl,
+                            content: { image in
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                            },
+                            placeholder: {
+                                Color
+                                    .gray
+                                    .opacity(0.2)
+                            }
+                        )
                         .clipShape(RoundedRectangle(cornerRadius: 4))
                     }
             }
@@ -139,13 +134,13 @@ private struct ListView: View {
 #if DEBUG
 struct EmptyWatchlistView_Previews: PreviewProvider {
     static var previews: some View {
-        EmptyWatchlistView(section: .constant(.toWatch), onStartDiscoverySelected: {})
+        EmptyWatchlistView(section: .toWatch)
             .environment(\.requestManager, MockRequestManager())
             .environmentObject(Watchlist(items: []))
             .listRowSeparator(.hidden)
             .listSectionSeparator(.hidden)
 
-        EmptyWatchlistView(section: .constant(.watched), onStartDiscoverySelected: {})
+        EmptyWatchlistView(section: .watched)
             .environment(\.requestManager, MockRequestManager())
             .environmentObject(Watchlist(items: []))
             .listRowSeparator(.hidden)

@@ -24,7 +24,7 @@ struct MoviePreviewView: View {
         HStack(alignment: .center) {
             HStack(alignment: .center, spacing: 8) {
                 ZStack(alignment: .bottomTrailing) {
-                    AsyncImage(url: imageUrl, content: { image in
+                    RemoteImage(url: imageUrl, content: { image in
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fill)
@@ -56,6 +56,7 @@ struct MoviePreviewView: View {
                                     }
                                     .padding(4)
                                     .background(RoundedRectangle(cornerRadius: 6).fill(.yellow))
+                                    .foregroundColor(.black)
                                 } else {
                                     Text(releaseDate, format: .dateTime.year())
                                 }

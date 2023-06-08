@@ -17,7 +17,7 @@ struct PosterView: View {
 
     var body: some View {
         GeometryReader { mainGeometry in
-            AsyncImage(
+            RemoteImage(
                 url: posterUrl,
                 content: { image in
                     image

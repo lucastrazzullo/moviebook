@@ -42,7 +42,7 @@ struct SlidingCardView<TrailingHeaderView: View, ContentView: View>: View {
                     }
                 }
 
-                ObservableScrollView(scrollOffset: $contentOffset, showsIndicators: false) { scrollViewProxy in
+                ObservableScrollView(scrollOffset: $contentOffset, showsIndicators: false) { _ in
                     VStack {
                         Spacer()
                             .frame(height: isImageLoaded

@@ -30,7 +30,7 @@ import Combine
         }
     }
 
-    enum SectionItem: Identifiable, Equatable {
+    enum Item: Identifiable, Equatable {
         case movie(movie: Movie, section: Section, watchlistIdentifier: WatchlistItemIdentifier)
 
         var id: String {
@@ -55,111 +55,69 @@ import Combine
         }
     }
 
-    final class SectionContent: ObservableObject, Identifiable {
-
-        let section: Section
-
-        var id: Section.ID {
-            return section.id
-        }
-
-        @Published private(set) var items: [SectionItem] = []
-
-        init(section: Section) {
-            self.section = section
-        }
-
-        // MARK: Internal methods
-
-        func set(identifiers: [WatchlistItemIdentifier], requestManager: RequestManager) async throws {
-            items = try await withThrowingTaskGroup(of: SectionItem.self) { group in
-                var result = [WatchlistItemIdentifier: SectionItem]()
-                result.reserveCapacity(identifiers.count)
-
-                for identifier in identifiers {
-                    group.addTask {
-                        switch identifier {
-                        case .movie(let id):
-                            let webService = MovieWebService(requestManager: requestManager)
-                            let movie = try await webService.fetchMovie(with: id)
-                            return SectionItem.movie(movie: movie, section: self.section, watchlistIdentifier: identifier)
-                        }
-                    }
-                }
-
-                for try await item in group {
-                    result[item.watchlistIdentifier] = item
-                }
-
-                var items = [SectionItem]()
-                for identifier in identifiers {
-                    if let item = result[identifier] {
-                        items.append(item)
-                    }
-                }
-
-                return items
-            }
-        }
-    }
-
     // MARK: Instance Properties
 
     @Published private(set) var isLoading: Bool = true
-    @Published private(set) var sections: [Section: SectionContent] = [:]
-    
-    @Published var currentSection: Section = .toWatch
+    @Published private(set) var items: [Item] = []
 
     private var subscriptions: Set<AnyCancellable> = []
 
-    var sectionIdentifiers: [Section] {
-        return Section.allCases
-    }
-
-    var items: [SectionItem] {
-        return sections[currentSection]?.items ?? []
-    }
-
-    // MARK: Object life cycle
-
-    init() {
-        sectionIdentifiers.forEach { section in
-            sections[section] = SectionContent(section: section)
-            sections[section]?.objectWillChange
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] _ in
-                    self?.objectWillChange.send()
-                }
-                .store(in: &subscriptions)
-        }
-    }
-
     // MARK: Internal methods
 
-    func start(watchlist: Watchlist, requestManager: RequestManager) {
+    func start(section: Section, watchlist: Watchlist, requestManager: RequestManager) {
         watchlist.$items
             .sink { [weak self, weak requestManager] items in
-                var itemsToWatch = [WatchlistItemIdentifier]()
-                var watchedItems = [WatchlistItemIdentifier]()
+                var itemIdentifiers = [WatchlistItemIdentifier]()
 
                 for item in items {
-                    switch item.state {
-                    case .toWatch:
-                        itemsToWatch.append(item.id)
-                    case .watched:
-                        watchedItems.append(item.id)
+                    switch (item.state, section) {
+                    case (.toWatch, .toWatch):
+                        itemIdentifiers.append(item.id)
+                    case (.watched, .watched):
+                        itemIdentifiers.append(item.id)
+                    default:
+                        continue
                     }
                 }
 
                 if let requestManager {
                     Task {
-                        try await self?.sections[.toWatch]?.set(identifiers: itemsToWatch, requestManager: requestManager)
-                        try await self?.sections[.watched]?.set(identifiers: watchedItems, requestManager: requestManager)
-
+                        try await self?.set(identifiers: itemIdentifiers, section: section, requestManager: requestManager)
                         self?.isLoading = false
                     }
                 }
             }
             .store(in: &subscriptions)
+    }
+
+    private func set(identifiers: [WatchlistItemIdentifier], section: Section, requestManager: RequestManager) async throws {
+        items = try await withThrowingTaskGroup(of: Item.self) { group in
+            var result = [WatchlistItemIdentifier: Item]()
+            result.reserveCapacity(identifiers.count)
+
+            for identifier in identifiers {
+                group.addTask {
+                    switch identifier {
+                    case .movie(let id):
+                        let webService = MovieWebService(requestManager: requestManager)
+                        let movie = try await webService.fetchMovie(with: id)
+                        return Item.movie(movie: movie, section: section, watchlistIdentifier: identifier)
+                    }
+                }
+            }
+
+            for try await item in group {
+                result[item.watchlistIdentifier] = item
+            }
+
+            var items = [Item]()
+            for identifier in identifiers {
+                if let item = result[identifier] {
+                    items.append(item)
+                }
+            }
+
+            return items
+        }
     }
 }

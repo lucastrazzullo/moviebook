@@ -20,6 +20,33 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
 
     var body: some View {
         Menu {
+            WatchlistOptions(
+                presentedItem: $presentedItem,
+                watchlistItemIdentifier: watchlistItemIdentifier
+            )
+        } label: {
+            label(watchlist.itemState(id: watchlistItemIdentifier))
+        }
+        .sheet(item: $presentedItem) { item in
+            NavigationDestination(navigationPath: $presentedItemNavigationPath, item: item)
+        }
+    }
+
+    init(watchlistItemIdentifier: WatchlistItemIdentifier, @ViewBuilder label: @escaping (WatchlistItemState?) -> LabelType) {
+        self.watchlistItemIdentifier = watchlistItemIdentifier
+        self.label = label
+    }
+}
+
+struct WatchlistOptions: View {
+
+    @EnvironmentObject var watchlist: Watchlist
+    @Binding var presentedItem: NavigationItem?
+
+    let watchlistItemIdentifier: WatchlistItemIdentifier
+
+    var body: some View {
+        Group {
             if let state = watchlist.itemState(id: watchlistItemIdentifier) {
                 switch state {
                 case .toWatch(let info):
@@ -55,17 +82,7 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
                     Label("Mark as watched", systemImage: "checkmark")
                 }
             }
-        } label: {
-            label(watchlist.itemState(id: watchlistItemIdentifier))
         }
-        .sheet(item: $presentedItem) { item in
-            NavigationDestination(navigationPath: $presentedItemNavigationPath, item: item)
-        }
-    }
-
-    init(watchlistItemIdentifier: WatchlistItemIdentifier, @ViewBuilder label: @escaping (WatchlistItemState?) -> LabelType) {
-        self.watchlistItemIdentifier = watchlistItemIdentifier
-        self.label = label
     }
 }
 
