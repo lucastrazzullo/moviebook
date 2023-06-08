@@ -113,15 +113,19 @@ private struct ListView: View {
                     GridItem(spacing: 4)],
                 spacing: 4) {
                     ForEach(items, id: \.self) { movieDetails in
-                        AsyncImage(url: movieDetails.media.posterPreviewUrl, content: { image in
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                        }, placeholder: {
-                            Color
-                                .gray
-                                .opacity(0.2)
-                        })
+                        RemoteImage(
+                            url: movieDetails.media.posterPreviewUrl,
+                            content: { image in
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                            },
+                            placeholder: {
+                                Color
+                                    .gray
+                                    .opacity(0.2)
+                            }
+                        )
                         .clipShape(RoundedRectangle(cornerRadius: 4))
                     }
             }

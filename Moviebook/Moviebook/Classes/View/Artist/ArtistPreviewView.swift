@@ -16,15 +16,19 @@ struct ArtistPreviewView: View {
         HStack(alignment: .center) {
             HStack(alignment: .center, spacing: 8) {
                 ZStack(alignment: .bottomTrailing) {
-                    AsyncImage(url: details.imagePreviewUrl, content: { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    }, placeholder: {
-                        Color
-                            .gray
-                            .opacity(0.2)
-                    })
+                    RemoteImage(
+                        url: details.imagePreviewUrl,
+                        content: { image in
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                        },
+                        placeholder: {
+                            Color
+                                .gray
+                                .opacity(0.2)
+                        }
+                    )
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 120)
                     .clipShape(RoundedRectangle(cornerRadius: 6))
