@@ -7,20 +7,20 @@
 
 import Foundation
 
-struct WatchProviders: Equatable, Hashable {
+public struct WatchProviders: Equatable, Hashable {
 
-    let regions: [String]
-    let isEmpty: Bool
+    public let regions: [String]
+    public let isEmpty: Bool
 
     private let collections: [String: WatchProviderCollection]
 
-    init(collections: [String: WatchProviderCollection]) {
+    public init(collections: [String: WatchProviderCollection]) {
         self.collections = collections
         self.regions = Array(collections.keys).sorted()
         self.isEmpty = regions.isEmpty || collections.values.first(where: { !$0.isEmpty }) == nil
     }
 
-    func collection(for region: String) -> WatchProviderCollection? {
+    public func collection(for region: String) -> WatchProviderCollection? {
         return collections[region]
     }
 }

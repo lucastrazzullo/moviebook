@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import MoviebookCommons
 
 @MainActor final class ArtistViewModel: ObservableObject {
 

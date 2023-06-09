@@ -9,18 +9,18 @@ import Foundation
 import CoreData
 import Combine
 
-actor WatchlistStorage {
+public actor WatchlistStorage {
 
     private let persistentContainer: NSPersistentContainer
 
-    init() async throws {
+    public init() async throws {
         persistentContainer = NSPersistentCloudKitContainer(name: "Moviebook")
         try await load()
     }
 
     // MARK: - Internal methods
 
-    func fetchWatchlistItems() async throws -> [WatchlistItem] {
+    public func fetchWatchlistItems() async throws -> [WatchlistItem] {
         var result = [WatchlistItem]()
 
         let storedItemsToWatch = try await fetchStoredItemsToWatch()

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import CoreSpotlight
+import MoviebookCommons
 
 @MainActor private final class Moviebook: ObservableObject {
 

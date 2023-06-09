@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Combine
+import MoviebookCommons
 
 private enum WatchlistPrompt: Identifiable, Equatable {
     case suggestion(item: WatchlistItem)

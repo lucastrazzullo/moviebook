@@ -7,12 +7,12 @@
 
 import Foundation
 
-struct Artist: Identifiable {
-    let id: Int
-    let details: ArtistDetails
-    let filmography: [MovieDetails]
+public struct Artist: Identifiable {
+    public let id: Int
+    public let details: ArtistDetails
+    public let filmography: [MovieDetails]
 
-    init(id: Int, details: ArtistDetails, filmography: [MovieDetails]) {
+    public init(id: Int, details: ArtistDetails, filmography: [MovieDetails]) {
         self.id = id
         self.details = details
         self.filmography = filmography.sorted { $0.release > $1.release }

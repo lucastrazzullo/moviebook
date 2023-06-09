@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import MoviebookCommons
 
 enum NavigationItem: Identifiable, Hashable {
     case explore

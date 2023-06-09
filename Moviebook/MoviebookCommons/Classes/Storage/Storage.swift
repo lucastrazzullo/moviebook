@@ -8,13 +8,17 @@
 import Foundation
 import Combine
 
-actor Storage {
+public actor Storage {
 
-    private var subscriptions: Set<AnyCancellable> = []
+    private var subscriptions: Set<AnyCancellable>
+
+    public init() {
+        self.subscriptions = []
+    }
 
     // MARK: Internal methods
 
-    func loadWatchlist() async throws -> Watchlist {
+    public func loadWatchlist() async throws -> Watchlist {
         let watchlistStorage = try await WatchlistStorage()
 
         // Migrate from legacy storage
