@@ -16,9 +16,9 @@ import MoviebookCommons
 
     private let storage: Storage = Storage()
 
-    func start() async {
+    func start(requestManager: RequestManager) async {
         do {
-            self.watchlist = try await storage.loadWatchlist()
+            self.watchlist = try await storage.loadWatchlist(requestManager: requestManager)
         } catch {
             self.error = error
         }
@@ -27,6 +27,8 @@ import MoviebookCommons
 
 @main
 struct MoviebookApp: App {
+
+    @Environment(\.requestManager) private var requestManager
 
     @StateObject private var application = Moviebook()
 
@@ -46,7 +48,7 @@ struct MoviebookApp: App {
             }
             .onOpenURL(perform: openDeeplink(with:))
             .onContinueUserActivity(CSSearchableItemActionType, perform: openDeeplink(with:))
-            .task { await application.start() }
+            .task { await application.start(requestManager: requestManager) }
         }
     }
 
@@ -89,7 +91,7 @@ struct MoviebookApp: App {
 
     @ViewBuilder private func makeErrorView(error: Error) -> some View {
         RetriableErrorView {
-            Task { await application.start() }
+            Task { await application.start(requestManager: requestManager) }
         }
     }
 

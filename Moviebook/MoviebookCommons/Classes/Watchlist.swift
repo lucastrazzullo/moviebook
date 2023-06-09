@@ -8,6 +8,22 @@
 import Foundation
 import Combine
 
+public enum WatchlistItemIdentifier: Identifiable, Hashable, Equatable, Codable {
+    case movie(id: Movie.ID)
+
+    public var id: AnyHashable {
+        switch self {
+        case .movie(let id):
+            return id
+        }
+    }
+}
+
+public enum WatchlistItemState: Equatable {
+    case toWatch(info: WatchlistItemToWatchInfo)
+    case watched(info: WatchlistItemWatchedInfo)
+}
+
 public struct WatchlistItem: Equatable {
 
     public let id: WatchlistItemIdentifier
@@ -61,22 +77,6 @@ public struct WatchlistItemWatchedInfo: Hashable, Equatable {
     }
 }
 
-public enum WatchlistItemState: Equatable {
-    case toWatch(info: WatchlistItemToWatchInfo)
-    case watched(info: WatchlistItemWatchedInfo)
-}
-
-public enum WatchlistItemIdentifier: Identifiable, Hashable, Equatable, Codable {
-    case movie(id: Movie.ID)
-
-    public var id: AnyHashable {
-        switch self {
-        case .movie(let id):
-            return id
-        }
-    }
-}
-
 @MainActor public final class Watchlist: ObservableObject {
 
     @Published public private(set) var items: [WatchlistItem] = []
@@ -94,11 +94,9 @@ public enum WatchlistItemIdentifier: Identifiable, Hashable, Equatable, Codable 
 
     // MARK: Internal methods
 
-    func set(items: [WatchlistItem]) {
+    public func set(items: [WatchlistItem]) {
         self.items = items
     }
-
-    // MARK: Public methods
 
     public func itemState(id: WatchlistItemIdentifier) -> WatchlistItemState? {
         return items.first(where: { $0.id == id })?.state

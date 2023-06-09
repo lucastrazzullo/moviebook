@@ -7,6 +7,7 @@
 
 import WidgetKit
 import SwiftUI
+import MoviebookCommons
 
 struct WatchNextWidget: Widget {
     let kind: String = "WatchNextWidget"
@@ -15,8 +16,8 @@ struct WatchNextWidget: Widget {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
             WatchNextWidgetEntryView(entry: entry)
         }
-        .configurationDisplayName("My Widget")
-        .description("This is an example widget.")
+        .configurationDisplayName("Watch next")
+        .description("The movies in your watchlist")
     }
 }
 
@@ -24,13 +25,17 @@ struct WatchNextWidgetEntryView : View {
     var entry: Provider.Entry
 
     var body: some View {
-        Text(entry.date, style: .time)
+        if let image = entry.item.image {
+            Image(uiImage: image)
+        } else {
+            Text(entry.item.title)
+        }
     }
 }
 
 struct WatchNextWidget_Previews: PreviewProvider {
     static var previews: some View {
-        WatchNextWidgetEntryView(entry: WatchNextItem(date: Date()))
+        WatchNextWidgetEntryView(entry: WatchNextItemEntry(date: Date(), item: WatchNextItem(title: "Watch next", image: nil)))
             .previewContext(WidgetPreviewContext(family: .systemSmall))
     }
 }

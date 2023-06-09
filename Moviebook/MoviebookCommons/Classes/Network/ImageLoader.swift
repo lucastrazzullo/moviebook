@@ -9,17 +9,22 @@ import Foundation
 import SwiftUI
 import UIKit
 
-actor ImageLoader {
+public actor ImageLoader {
 
     private enum LoaderStatus {
         case inProgress(Task<UIImage, Error>)
         case fetched(UIImage)
     }
 
-    private let cache: NSCache = NSCache<AnyObject, AnyObject>()
-    private var images: [URLRequest: LoaderStatus] = [:]
+    private let cache: NSCache<AnyObject, AnyObject>
+    private var images: [URLRequest: LoaderStatus]
 
-    func fetch(_ url: URL) async throws -> UIImage {
+    public init() {
+        self.cache = NSCache<AnyObject, AnyObject>()
+        self.images = [:]
+    }
+
+    public func fetch(_ url: URL) async throws -> UIImage {
         let urlRequest = URLRequest(url: url)
 
         if let status = images[urlRequest] {

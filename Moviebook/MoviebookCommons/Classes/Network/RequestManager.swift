@@ -7,26 +7,26 @@
 
 import Foundation
 
-protocol RequestManager: AnyObject {
+public protocol RequestManager: AnyObject {
     func request(from url: URL) async throws -> Data
 }
 
-final class DefaultRequestManager: RequestManager {
+public final class DefaultRequestManager: RequestManager {
 
-    enum Logging {
+    public enum Logging {
         case disabled
         case enabled
     }
 
     private let logging: Logging
 
-    init(logging: Logging) {
+    public init(logging: Logging) {
         self.logging = logging
     }
 
     // MARK: Internal methods
 
-    func request(from url: URL) async throws -> Data {
+    public func request(from url: URL) async throws -> Data {
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
 
