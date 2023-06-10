@@ -12,11 +12,13 @@ import MoviebookCommons
 struct Provider: TimelineProvider {
 
     func placeholder(in context: Context) -> WatchNextItemEntry {
-        WatchNextItemEntry(date: Date(), item: WatchNextItem(title: "Watch next", image: nil))
+        let items = WatchNextStorage.getItems()
+        return WatchNextItemEntry(date: Date(), items: [WatchNextItem(title: items.first?.title, image: items.first?.image)], highlightIndex: 0)
     }
 
     func getSnapshot(in context: Context, completion: @escaping (WatchNextItemEntry) -> ()) {
-        let entry = WatchNextItemEntry(date: Date(), item: WatchNextItem(title: "Watch next", image: nil))
+        let items = WatchNextStorage.getItems()
+        let entry = WatchNextItemEntry(date: Date(), items: [WatchNextItem(title: items.first?.title, image: items.first?.image)], highlightIndex: 0)
         completion(entry)
     }
 
@@ -27,7 +29,7 @@ struct Provider: TimelineProvider {
         let currentDate = Date()
         for hourOffset in 0 ..< items.count {
             let entryDate = Calendar.current.date(byAdding: .hour, value: hourOffset, to: currentDate)!
-            let entry = WatchNextItemEntry(date: entryDate, item: items[hourOffset])
+            let entry = WatchNextItemEntry(date: entryDate, items: items, highlightIndex: hourOffset)
             entries.append(entry)
         }
 
@@ -38,5 +40,14 @@ struct Provider: TimelineProvider {
 
 struct WatchNextItemEntry: TimelineEntry {
     let date: Date
-    let item: WatchNextItem
+    let items: [WatchNextItem]
+    let highlightIndex: Int
+
+    var highlightedItem: WatchNextItem? {
+        if items.indices.contains(highlightIndex) {
+            return items[highlightIndex]
+        } else {
+            return nil
+        }
+    }
 }

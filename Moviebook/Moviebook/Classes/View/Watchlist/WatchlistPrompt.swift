@@ -119,7 +119,7 @@ private struct WatchlistPromptItem: View {
     var body: some View {
         HStack(spacing: 24) {
             HStack(spacing: 12) {
-                RemoteImage(url: loader.movie?.details.media.posterPreviewUrl) { image in
+                AsyncImage(url: loader.movie?.details.media.posterPreviewUrl) { image in
                     image.resizable().aspectRatio(contentMode: .fit)
                 } placeholder: {
                     Color.gray

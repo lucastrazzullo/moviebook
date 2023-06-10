@@ -9,7 +9,7 @@ import Foundation
 import UIKit
 import WidgetKit
 
-public struct WatchNextItem: Codable {
+public struct WatchNextItem: Codable, Equatable {
 
     enum Error: Swift.Error {
         case unableToDecodeImage
@@ -19,10 +19,10 @@ public struct WatchNextItem: Codable {
         case title, image
     }
 
-    public let title: String
+    public let title: String?
     public let image: UIImage?
 
-    public init(title: String, image: UIImage?) {
+    public init(title: String?, image: UIImage?) {
         self.title = title
         self.image = image
     }
@@ -40,7 +40,7 @@ public struct WatchNextItem: Codable {
             self.image = nil
         }
 
-        self.title = try container.decode(String.self, forKey: .title)
+        self.title = try container.decodeIfPresent(String.self, forKey: .title)
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -54,6 +54,10 @@ public struct WatchNextItem: Codable {
 
 public actor WatchNextStorage {
 
+    enum Error: Swift.Error {
+        case unableToLoadItem
+    }
+
     private static let userDefaultsKey: String = "watch-next-key"
     private static let userDefaultsGroup: String = "group.it.lucastrazzullo.ios.moviebook.Shared"
 
@@ -64,8 +68,6 @@ public actor WatchNextStorage {
     }
 
     public func set(items: [WatchlistItem]) async {
-        WidgetCenter.shared.reloadAllTimelines()
-
         let identifiers = items.compactMap { item in
             if case .toWatch = item.state {
                 return item.id
@@ -74,26 +76,39 @@ public actor WatchNextStorage {
             }
         }
 
-        let watchNextItems = await withTaskGroup(of: WatchNextItem?.self) { group in
-            var result = [WatchNextItem]()
+        let watchNextItems = await withTaskGroup(of: (identifier: WatchlistItemIdentifier, item: WatchNextItem)?.self) { group in
+            var result = [WatchlistItemIdentifier: WatchNextItem]()
             result.reserveCapacity(identifiers.count)
 
             for identifier in identifiers {
                 group.addTask {
-                    return await self.loadItem(withWatchlistItentifier: identifier)
+                    return try? await self.loadItem(withWatchlistItentifier: identifier)
                 }
             }
 
-            for await item in group {
-                if let item {
-                    result.append(item)
+            for await response in group {
+                if let response {
+                    result[response.identifier] = response.item
                 }
             }
 
-            return result
+            var items = [WatchNextItem]()
+            items.reserveCapacity(identifiers.count)
+
+            for identifier in identifiers {
+                if let item = result[identifier] {
+                    items.append(item)
+                }
+            }
+
+            return items
         }
 
-        store(items: watchNextItems)
+        if let data = try? JSONEncoder().encode(watchNextItems) {
+            UserDefaults(suiteName: Self.userDefaultsGroup)?.set(data, forKey: Self.userDefaultsKey)
+        }
+
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     public static func getItems() -> [WatchNextItem] {
@@ -107,30 +122,20 @@ public actor WatchNextStorage {
 
     // MARK: Private helper methods
 
-    private func store(items: [WatchNextItem]) {
-        if let data = try? JSONEncoder().encode(items) {
-            UserDefaults(suiteName: Self.userDefaultsGroup)?.set(data, forKey: Self.userDefaultsKey)
+    private func loadItem(withWatchlistItentifier identifier: WatchlistItemIdentifier) async throws -> (identifier: WatchlistItemIdentifier, item: WatchNextItem) {
+        switch identifier {
+        case .movie(let id):
+            return (identifier: identifier, item: try await self.loadItem(withMovieIdentifier: id))
         }
     }
 
-    private func loadItem(withWatchlistItentifier identifier: WatchlistItemIdentifier) async -> WatchNextItem? {
-        do {
-            switch identifier {
-            case .movie(let id):
-                return try await self.loadItem(withMovieIdentifier: id)
-            }
-        } catch {
-            return nil
-        }
-    }
-
-    private func loadItem(withMovieIdentifier identifier: Movie.ID) async throws -> WatchNextItem? {
+    private func loadItem(withMovieIdentifier identifier: Movie.ID) async throws -> WatchNextItem {
         let movie = try await self.webService.fetchMovie(with: identifier)
         if let posterUrl = movie.details.media.posterPreviewUrl {
             let image = try await ImageLoader().fetch(posterUrl)
             return WatchNextItem(title: movie.details.title, image: image)
         } else {
-            return nil
+            throw Error.unableToLoadItem
         }
     }
 }
