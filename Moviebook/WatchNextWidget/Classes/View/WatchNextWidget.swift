@@ -43,13 +43,11 @@ struct WatchNextWidgetEntryView : View {
 
                 makeList {
                     ForEach(items, id: \.title) { item in
-                        ZStack(alignment: .top) {
-                            if let image = item.image {
-                                Image(uiImage: image)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .cornerRadius(12)
-                            }
+                        if let image = item.image {
+                            Image(uiImage: image)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .cornerRadius(12)
                         }
                     }
                 }
