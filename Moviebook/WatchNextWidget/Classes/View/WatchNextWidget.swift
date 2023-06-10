@@ -17,15 +17,13 @@ struct WatchNextWidget: Widget {
             WatchNextWidgetEntryView(entry: entry)
         }
         .configurationDisplayName("Watch next")
-        .description("The movies in your watchlist")
+        .description("Your watchlist")
     }
 }
 
 struct WatchNextWidgetEntryView : View {
 
-    @Environment(\.widgetFamily) var widgetFamily
-
-    var entry: Provider.Entry
+    let entry: Provider.Entry
 
     var body: some View {
         GeometryReader { geometry in
@@ -41,15 +39,13 @@ struct WatchNextWidgetEntryView : View {
 
                 }
 
-                makeList {
-                    ForEach(items, id: \.title) { item in
-                        if let image = item.image {
-                            Link(destination: item.deeplink?.rawValue ?? Deeplink.watchlist.rawValue) {
-                                Image(uiImage: image)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .cornerRadius(12)
-                            }
+                WatchNextWidgetContentView(entry: entry) { item in
+                    if let image = item?.image {
+                        Link(destination: item?.deeplink?.rawValue ?? Deeplink.watchlist.rawValue) {
+                            Image(uiImage: image)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .cornerRadius(12)
                         }
                     }
                 }
@@ -57,30 +53,33 @@ struct WatchNextWidgetEntryView : View {
             }
         }
     }
+}
 
-    private var items: [WatchNextItem] {
-        switch widgetFamily {
-        case .systemMedium:
-            return Array(entry.items.rotateLeft(distance: entry.highlightIndex)[0..<min(4, entry.items.count)])
-        case .systemLarge:
-            return Array(entry.items.rotateLeft(distance: entry.highlightIndex)[0..<min(6, entry.items.count)])
-        default:
-            return [entry.highlightedItem].compactMap({$0})
-        }
-    }
+private struct WatchNextWidgetContentView<ItemContent: View>: View {
 
-    @ViewBuilder private func makeList(content: () -> some View) -> some View {
+    @Environment(\.widgetFamily) var widgetFamily
+
+    let entry: Provider.Entry
+    @ViewBuilder let itemContent: (WatchNextItem?) -> ItemContent
+
+    var body: some View {
         switch widgetFamily {
         case .systemLarge:
+            let items = Array(entry.items.rotateLeft(distance: entry.highlightIndex)[0..<min(6, entry.items.count)])
             LazyVGrid(columns: [GridItem(spacing: 4), GridItem(spacing: 4), GridItem(spacing: 4)], spacing: 4) {
-                content()
+                ForEach(items, id: \.title) { item in
+                    itemContent(item)
+                }
             }
         case .systemMedium:
+            let items = Array(entry.items.rotateLeft(distance: entry.highlightIndex)[0..<min(4, entry.items.count)])
             HStack(spacing: 4) {
-                content()
+                ForEach(items, id: \.title) { item in
+                    itemContent(item)
+                }
             }
         default:
-            content()
+            itemContent(entry.highlightedItem)
         }
     }
 }
