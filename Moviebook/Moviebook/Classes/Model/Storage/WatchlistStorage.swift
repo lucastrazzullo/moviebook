@@ -8,6 +8,7 @@
 import Foundation
 import CoreData
 import Combine
+import MoviebookCommons
 
 actor WatchlistStorage {
 

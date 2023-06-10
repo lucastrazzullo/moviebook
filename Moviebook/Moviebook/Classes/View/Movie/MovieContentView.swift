@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import MoviebookCommons
 
 struct MovieContentView: View {
 
@@ -105,6 +106,7 @@ private struct HeaderView: View {
         HStack(alignment: .firstTextBaseline) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(details.title).font(.title)
+                Spacer()
                 RatingView(rating: details.rating)
                 Text(details.release, format: .dateTime.year()).font(.caption)
             }
