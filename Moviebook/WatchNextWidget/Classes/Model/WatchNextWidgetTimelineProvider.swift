@@ -13,12 +13,32 @@ struct Provider: TimelineProvider {
 
     func placeholder(in context: Context) -> WatchNextItemEntry {
         let items = WatchNextStorage.getItems()
-        return WatchNextItemEntry(date: Date(), items: [WatchNextItem(title: items.first?.title, image: items.first?.image)], highlightIndex: 0)
+        return WatchNextItemEntry(
+            date: Date(),
+            items: [
+                WatchNextItem(
+                    title: items.first?.title,
+                    image: items.first?.image,
+                    deeplink: items.first?.deeplink
+                )
+            ],
+            highlightIndex: 0
+        )
     }
 
     func getSnapshot(in context: Context, completion: @escaping (WatchNextItemEntry) -> ()) {
         let items = WatchNextStorage.getItems()
-        let entry = WatchNextItemEntry(date: Date(), items: [WatchNextItem(title: items.first?.title, image: items.first?.image)], highlightIndex: 0)
+        let entry = WatchNextItemEntry(
+            date: Date(),
+            items: [
+                WatchNextItem(
+                    title: items.first?.title,
+                    image: items.first?.image,
+                    deeplink: items.first?.deeplink
+                )
+            ],
+            highlightIndex: 0
+        )
         completion(entry)
     }
 

@@ -44,10 +44,12 @@ struct WatchNextWidgetEntryView : View {
                 makeList {
                     ForEach(items, id: \.title) { item in
                         if let image = item.image {
-                            Image(uiImage: image)
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .cornerRadius(12)
+                            Link(destination: item.deeplink?.rawValue ?? Deeplink.watchlist.rawValue) {
+                                Image(uiImage: image)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .cornerRadius(12)
+                            }
                         }
                     }
                 }
@@ -69,14 +71,16 @@ struct WatchNextWidgetEntryView : View {
 
     @ViewBuilder private func makeList(content: () -> some View) -> some View {
         switch widgetFamily {
-        case .systemLarge, .systemExtraLarge:
+        case .systemLarge:
             LazyVGrid(columns: [GridItem(spacing: 4), GridItem(spacing: 4), GridItem(spacing: 4)], spacing: 4) {
                 content()
             }
-        default:
+        case .systemMedium:
             HStack(spacing: 4) {
                 content()
             }
+        default:
+            content()
         }
     }
 }
@@ -85,14 +89,14 @@ struct WatchNextWidget_Previews: PreviewProvider {
     static let entry: WatchNextItemEntry = WatchNextItemEntry(
         date: Date(),
         items: [
-            WatchNextItem(title: "Movie title 0", image: UIImage(named: "MoviePoster")),
-            WatchNextItem(title: "Movie title 1", image: UIImage(named: "MoviePoster")),
-            WatchNextItem(title: "Movie title 2", image: UIImage(named: "MoviePoster")),
-            WatchNextItem(title: "Movie title 3", image: UIImage(named: "MoviePoster")),
-            WatchNextItem(title: "Movie title 4", image: UIImage(named: "MoviePoster")),
-            WatchNextItem(title: "Movie title 5", image: UIImage(named: "MoviePoster")),
-            WatchNextItem(title: "Movie title 6", image: UIImage(named: "MoviePoster")),
-            WatchNextItem(title: "Movie title 7", image: UIImage(named: "MoviePoster"))
+            WatchNextItem(title: "Movie title 0", image: UIImage(named: "MoviePoster"), deeplink: nil),
+            WatchNextItem(title: "Movie title 1", image: UIImage(named: "MoviePoster"), deeplink: nil),
+            WatchNextItem(title: "Movie title 2", image: UIImage(named: "MoviePoster"), deeplink: nil),
+            WatchNextItem(title: "Movie title 3", image: UIImage(named: "MoviePoster"), deeplink: nil),
+            WatchNextItem(title: "Movie title 4", image: UIImage(named: "MoviePoster"), deeplink: nil),
+            WatchNextItem(title: "Movie title 5", image: UIImage(named: "MoviePoster"), deeplink: nil),
+            WatchNextItem(title: "Movie title 6", image: UIImage(named: "MoviePoster"), deeplink: nil),
+            WatchNextItem(title: "Movie title 7", image: UIImage(named: "MoviePoster"), deeplink: nil)
         ],
         highlightIndex: 0
     )

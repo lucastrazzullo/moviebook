@@ -16,19 +16,27 @@ public struct WatchNextItem: Codable, Equatable {
     }
 
     enum CodingKeys: CodingKey {
-        case title, image
+        case title, image, deeplink
     }
 
     public let title: String?
     public let image: UIImage?
+    public let deeplink: Deeplink?
 
-    public init(title: String?, image: UIImage?) {
+    public init(title: String?, image: UIImage?, deeplink: Deeplink?) {
         self.title = title
         self.image = image
+        self.deeplink = deeplink
     }
 
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        if let deeplinkUrl = try container.decodeIfPresent(URL.self, forKey: .deeplink) {
+            self.deeplink = Deeplink(rawValue: deeplinkUrl)
+        } else {
+            self.deeplink = nil
+        }
 
         if let imageData = try container.decodeIfPresent(Data.self, forKey: .image) {
             guard let image = UIImage(data: imageData) else {
@@ -46,6 +54,8 @@ public struct WatchNextItem: Codable, Equatable {
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
+        let deeplinkUrl = deeplink?.rawValue
+        try container.encode(deeplinkUrl, forKey: .deeplink)
         let imageData = image?.jpegData(compressionQuality: 1.0)
         try container.encode(imageData, forKey: .image)
         try container.encode(title, forKey: .title)
@@ -133,7 +143,8 @@ public actor WatchNextStorage {
         let movie = try await self.webService.fetchMovie(with: identifier)
         if let posterUrl = movie.details.media.posterPreviewUrl {
             let image = try await ImageLoader().fetch(posterUrl)
-            return WatchNextItem(title: movie.details.title, image: image)
+            let deeplink = Deeplink.movie(identifier: movie.id)
+            return WatchNextItem(title: movie.details.title, image: image, deeplink: deeplink)
         } else {
             throw Error.unableToLoadItem
         }

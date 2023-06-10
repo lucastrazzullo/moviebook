@@ -6,11 +6,10 @@
 //
 
 import Foundation
-import MoviebookCommons
 
-enum Deeplink: RawRepresentable {
+public enum Deeplink: RawRepresentable, Equatable {
 
-    typealias RawValue = URL
+    public typealias RawValue = URL
 
     // MARK: Cases
 
@@ -61,13 +60,13 @@ enum Deeplink: RawRepresentable {
         }
     }
 
-    var rawValue: URL {
+    public var rawValue: URL {
         return URL(string: "\(Self.scheme)://\(Self.host)/\(path)")!
     }
 
     // MARK: Object life cycle
 
-    init?(rawValue: URL) {
+    public init?(rawValue: URL) {
         let components = rawValue.pathComponents
         guard components.indices.contains(1), let screen = Screen(rawValue: components[1]) else {
             return nil
