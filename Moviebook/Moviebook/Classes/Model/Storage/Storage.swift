@@ -21,9 +21,7 @@ actor Storage {
 
         // Migrate from legacy storage
         let legacyWatchlistStorage = LegacyWatchlistStorage()
-        let legacyItems = try? await legacyWatchlistStorage
-            .fetchWatchlistItems()
-            .removeDuplicates(where: { $0.id == $1.id })
+        let legacyItems = try? await legacyWatchlistStorage.fetchWatchlistItems()
 
         if let legacyItems, !legacyItems.isEmpty {
             try await watchlistStorage.store(items: legacyItems)

@@ -95,7 +95,7 @@ actor WatchlistStorage {
         }
 
         // Add or modify existing items
-        for itemToStore in watchlistItems {
+        for itemToStore in watchlistItems.removeDuplicates(where: { $0.id == $1.id }) {
             guard let storeableIdentifier = itemToStore.storeableIdentifier else { continue }
 
             let managedItemToStore = storedItems.first(where: { $0.identifier == storeableIdentifier }) ?? managedItemType.init(context: persistentContainer.viewContext)
@@ -104,7 +104,7 @@ actor WatchlistStorage {
         }
     }
 
-    // MARK: - Cloudkit methods
+    // MARK: - Core Data methods
 
     private func load() async throws {
         try await withUnsafeThrowingContinuation { (continuation: UnsafeContinuation<Void, Error>) in
@@ -129,7 +129,7 @@ actor WatchlistStorage {
             return try persistentContainer.viewContext.fetch(fetchRequest)
         }
 
-        return try await task.value
+        return try await task.value.removeDuplicates(where: { $0.watchlistItemIdentifier == $1.watchlistItemIdentifier })
     }
 
     private func fetchStoredWatchedItems() async throws -> [ManagedWatchedItem] {
@@ -139,7 +139,7 @@ actor WatchlistStorage {
             return try persistentContainer.viewContext.fetch(fetchRequest)
         }
 
-        return try await task.value
+        return try await task.value.removeDuplicates(where: { $0.watchlistItemIdentifier == $1.watchlistItemIdentifier })
     }
 
     private func delete(storedWatchlistItem: ManagedWatchlistItem) {
