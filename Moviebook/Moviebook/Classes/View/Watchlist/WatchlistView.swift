@@ -154,14 +154,14 @@ private struct WatchlistItemView: View {
             .aspectRatio(contentMode: .fill)
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
+        .overlay(alignment: .bottomTrailing) {
+            WatermarkView {
+                IconWatchlistButton(watchlistItemIdentifier: .movie(id: movie.id))
+            }
+            .padding(4)
+        }
         .onTapGesture {
             presentedItem = .movie(movie)
-        }
-        .contextMenu {
-            WatchlistOptions(
-                presentedItem: $presentedItem,
-                watchlistItemIdentifier: watchlistIdentifier
-            )
         }
     }
 }
