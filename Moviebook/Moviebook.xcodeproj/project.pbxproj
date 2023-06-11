@@ -1349,9 +1349,12 @@
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_ENTITLEMENTS = WatchNextWidget/WatchNextWidgetExtension.entitlements;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = UC9U5RZ8UF;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = UC9U5RZ8UF;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = WatchNextWidget/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = WatchNextWidget;
@@ -1363,8 +1366,10 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 3.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = it.lucastrazzullo.ios.moviebook.WatchNextWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = "it.lucastrazzullo.ios.moviebook.Moviebook-WatchNext-Widget";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Moviebook Widget - Development";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
@@ -1379,9 +1384,12 @@
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_ENTITLEMENTS = WatchNextWidget/WatchNextWidgetExtension.entitlements;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = UC9U5RZ8UF;
+				DEVELOPMENT_TEAM = "";
+				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = UC9U5RZ8UF;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = WatchNextWidget/Resources/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = WatchNextWidget;
@@ -1393,8 +1401,10 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = 3.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = it.lucastrazzullo.ios.moviebook.WatchNextWidget;
+				PRODUCT_BUNDLE_IDENTIFIER = "it.lucastrazzullo.ios.moviebook.Moviebook-WatchNext-Widget";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Moviebook Widget - Distribution";
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
