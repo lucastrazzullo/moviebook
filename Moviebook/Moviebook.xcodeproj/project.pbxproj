@@ -520,7 +520,6 @@
 			isa = PBXGroup;
 			children = (
 				81C7A5F428D4621E00AA24E3 /* Web Service */,
-				814D46CE28C2221B000D7ABD /* The Movie DB */,
 				814D46E328C23989000D7ABD /* Mocks */,
 			);
 			path = Network;
@@ -587,6 +586,7 @@
 		81C7A5F428D4621E00AA24E3 /* Web Service */ = {
 			isa = PBXGroup;
 			children = (
+				814D46CE28C2221B000D7ABD /* The Movie DB */,
 				812489BC29F04E85004A6BE6 /* WebServiceError.swift */,
 				8128AB1328DF106C002FD343 /* SearchWebService.swift */,
 				814D46EA28C26E6B000D7ABD /* MovieWebService.swift */,
