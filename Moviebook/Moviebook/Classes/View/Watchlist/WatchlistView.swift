@@ -125,6 +125,8 @@ private struct WatchlistListView: View {
                                     movie: movie,
                                     watchlistIdentifier: watchlistIdentifier
                                 )
+                                .id(item.id)
+                                .transition(.opacity)
                             }
                         }
                     }
@@ -132,6 +134,7 @@ private struct WatchlistListView: View {
 
                     Spacer().frame(height: bottomSpacing)
                 }
+                .animation(.default, value: items)
             }
         }
     }
