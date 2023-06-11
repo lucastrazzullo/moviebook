@@ -6,8 +6,9 @@
 //
 
 import Foundation
+import MoviebookCommons
 
-struct MovieWebService {
+struct MovieWebService: MoviebookCommons.MovieWebService {
 
     let requestManager: RequestManager
 
@@ -257,9 +258,11 @@ struct TMDBMovieMediaResponse: Decodable {
 
         var posterUrl: URL?
         var posterPreviewUrl: URL?
+        var posterThumbnailUrl: URL?
         if let posterPath = try container.decodeIfPresent(String.self, forKey: .posterPath) {
             posterUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .poster(path: posterPath, size: .original))
             posterPreviewUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .poster(path: posterPath, size: .preview))
+            posterThumbnailUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .poster(path: posterPath, size: .thumbnail))
         }
 
         var backdropUrl: URL?
@@ -278,6 +281,7 @@ struct TMDBMovieMediaResponse: Decodable {
 
         self.result = MovieMedia(posterUrl: posterUrl,
                                  posterPreviewUrl: posterPreviewUrl,
+                                 posterThumbnailUrl: posterThumbnailUrl,
                                  backdropUrl: backdropUrl,
                                  backdropPreviewUrl: backdropPreviewUrl,
                                  videos: videos)

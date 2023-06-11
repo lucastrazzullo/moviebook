@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import MoviebookCommons
 
 struct WatchlistView: View {
 
@@ -124,6 +125,8 @@ private struct WatchlistListView: View {
                                     movie: movie,
                                     watchlistIdentifier: watchlistIdentifier
                                 )
+                                .id(item.id)
+                                .transition(.opacity)
                             }
                         }
                     }
@@ -131,6 +134,7 @@ private struct WatchlistListView: View {
 
                     Spacer().frame(height: bottomSpacing)
                 }
+                .animation(.default, value: items)
             }
         }
     }
@@ -153,14 +157,14 @@ private struct WatchlistItemView: View {
             .aspectRatio(contentMode: .fill)
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
+        .overlay(alignment: .bottomTrailing) {
+            WatermarkView {
+                IconWatchlistButton(watchlistItemIdentifier: .movie(id: movie.id))
+            }
+            .padding(4)
+        }
         .onTapGesture {
             presentedItem = .movie(movie)
-        }
-        .contextMenu {
-            WatchlistOptions(
-                presentedItem: $presentedItem,
-                watchlistItemIdentifier: watchlistIdentifier
-            )
         }
     }
 }

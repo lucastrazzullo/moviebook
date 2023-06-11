@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import MoviebookCommons
 
 struct WatchlistButton<LabelType>: View where LabelType: View  {
 

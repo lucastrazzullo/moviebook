@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import MoviebookCommons
 
 @MainActor final class WatchlistViewModel: ObservableObject {
 

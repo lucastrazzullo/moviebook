@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import MoviebookCommons
 
 enum ExploreContentItems {
     case movies([MovieDetails])
@@ -54,7 +55,11 @@ protocol ExploreContentDataProvider {
                     fetchNextPage = { [weak self] in self?.fetch(requestManager: requestManager, page: nextPage) }
                 }
 
-                items = items.appending(items: response.results)
+                if page == nil {
+                    items = response.results
+                } else {
+                    items = items.appending(items: response.results)
+                }
                 isLoading = false
 
             } catch {

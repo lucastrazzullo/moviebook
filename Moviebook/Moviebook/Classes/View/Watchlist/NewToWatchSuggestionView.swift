@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import MoviebookCommons
 
 struct NewToWatchSuggestionView: View {
 
