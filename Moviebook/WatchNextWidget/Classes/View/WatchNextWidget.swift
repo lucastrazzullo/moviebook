@@ -80,6 +80,7 @@ private struct WatchNextWidgetContentView<ItemContent: View>: View {
             }
         default:
             itemContent(entry.highlightedItem)
+                .widgetURL(entry.highlightedItem?.deeplink?.rawValue)
         }
     }
 }
