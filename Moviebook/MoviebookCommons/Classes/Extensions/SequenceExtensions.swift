@@ -19,4 +19,18 @@ extension Array {
 
         return result
     }
+
+    public func removeDuplicates(where matching: (Element, Element) -> Bool) -> [Element] {
+        var result = Array<Element>()
+
+        for element in self {
+            if result.contains(where: { matching(element, $0) }) {
+                continue
+            }
+
+            result.append(element)
+        }
+
+        return result
+    }
 }

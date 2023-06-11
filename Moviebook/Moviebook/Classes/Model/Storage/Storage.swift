@@ -21,13 +21,20 @@ actor Storage {
 
         // Migrate from legacy storage
         let legacyWatchlistStorage = LegacyWatchlistStorage()
-        if let legacyItems = try? await legacyWatchlistStorage.fetchWatchlistItems(), !legacyItems.isEmpty {
+        let legacyItems = try? await legacyWatchlistStorage
+            .fetchWatchlistItems()
+            .removeDuplicates(where: { $0.id == $1.id })
+
+        if let legacyItems, !legacyItems.isEmpty {
             try await watchlistStorage.store(items: legacyItems)
             try await legacyWatchlistStorage.deleteAllMovies()
         }
 
         // Load items and watchlist
-        let watchlistItems = try await watchlistStorage.fetchWatchlistItems()
+        let watchlistItems = try await watchlistStorage
+            .fetchWatchlistItems()
+            .removeDuplicates(where: { $0.id == $1.id })
+
         let watchlist = await Watchlist(items: watchlistItems)
         await watchNextStorage.set(items: watchlistItems)
 

@@ -19,12 +19,12 @@ public enum WatchlistItemIdentifier: Identifiable, Hashable, Equatable, Codable 
     }
 }
 
-public enum WatchlistItemState: Equatable {
+public enum WatchlistItemState: Equatable, Hashable {
     case toWatch(info: WatchlistItemToWatchInfo)
     case watched(info: WatchlistItemWatchedInfo)
 }
 
-public struct WatchlistItem: Equatable {
+public struct WatchlistItem: Equatable, Hashable {
 
     public let id: WatchlistItemIdentifier
     public var state: WatchlistItemState
