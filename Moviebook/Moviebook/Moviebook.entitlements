@@ -18,6 +18,8 @@
 		<string>CloudKit</string>
 	</array>
 	<key>com.apple.security.application-groups</key>
-	<array/>
+	<array>
+		<string>group.it.lucastrazzullo.ios.moviebook.Shared</string>
+	</array>
 </dict>
 </plist>

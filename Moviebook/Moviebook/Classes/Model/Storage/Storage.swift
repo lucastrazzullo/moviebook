@@ -31,9 +31,7 @@ actor Storage {
         }
 
         // Load items and watchlist
-        let watchlistItems = try await watchlistStorage
-            .fetchWatchlistItems()
-            .removeDuplicates(where: { $0.id == $1.id })
+        let watchlistItems = try await watchlistStorage.fetchWatchlistItems()
 
         let watchlist = await Watchlist(items: watchlistItems)
         await watchNextStorage.set(items: watchlistItems)

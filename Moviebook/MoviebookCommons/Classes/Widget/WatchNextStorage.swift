@@ -68,8 +68,8 @@ public actor WatchNextStorage {
         case unableToLoadItem
     }
 
-    private static let userDefaultsKey: String = "watch-next-key"
-    private static let userDefaultsGroup: String = "group.it.lucastrazzullo.ios.moviebook.Shared"
+    private static let storedFileName: String = "watch-next-items.json"
+    private static let appGroupIdentifier: String = "group.it.lucastrazzullo.ios.moviebook.Shared"
 
     private let webService: MovieWebService
 
@@ -78,12 +78,16 @@ public actor WatchNextStorage {
     }
 
     public func set(items: [WatchlistItem]) async {
-        let identifiers = items.compactMap { item in
+        var identifiers = items.compactMap { item in
             if case .toWatch = item.state {
                 return item.id
             } else {
                 return nil
             }
+        }
+
+        if identifiers.isEmpty, let nowPlayingMovies = try? await webService.fetchNowPlaying(page: nil) {
+            identifiers = nowPlayingMovies.results.map { movie in .movie(id: movie.id) }
         }
 
         let watchNextItems = await withTaskGroup(of: (identifier: WatchlistItemIdentifier, item: WatchNextItem)?.self) { group in
@@ -115,19 +119,20 @@ public actor WatchNextStorage {
         }
 
         if let data = try? JSONEncoder().encode(watchNextItems) {
-            UserDefaults(suiteName: Self.userDefaultsGroup)?.set(data, forKey: Self.userDefaultsKey)
+            Self.storeItemsData(data)
         }
 
         WidgetCenter.shared.reloadAllTimelines()
     }
 
     public static func getItems() -> [WatchNextItem] {
-        if let data = UserDefaults(suiteName: Self.userDefaultsGroup)?.data(forKey: Self.userDefaultsKey),
-           let items = try? JSONDecoder().decode([WatchNextItem].self, from: data) {
-            return items
-        } else {
+        guard let data = Self.getStoredItemsData() else {
             return []
         }
+        guard let items = try? JSONDecoder().decode([WatchNextItem].self, from: data) else {
+            return []
+        }
+        return items
     }
 
     // MARK: Private helper methods
@@ -141,12 +146,38 @@ public actor WatchNextStorage {
 
     private func loadItem(withMovieIdentifier identifier: Movie.ID) async throws -> WatchNextItem {
         let movie = try await self.webService.fetchMovie(with: identifier)
-        if let posterUrl = movie.details.media.posterPreviewUrl {
+        if let posterUrl = movie.details.media.posterThumbnailUrl {
             let image = try await ImageLoader().fetch(posterUrl)
             let deeplink = Deeplink.movie(identifier: movie.id)
             return WatchNextItem(title: movie.details.title, image: image, deeplink: deeplink)
         } else {
             throw Error.unableToLoadItem
         }
+    }
+
+    // MARK: File manager
+
+    private static func getStoredItemsData() -> Data? {
+        guard let url = getDocumentsDirectory()?.appendingPathComponent(Self.storedFileName, isDirectory: false) else {
+            return nil
+        }
+
+        return FileManager.default.contents(atPath: url.path)
+    }
+
+    private static func storeItemsData(_ data: Data) {
+        guard let url = getDocumentsDirectory()?.appendingPathComponent(Self.storedFileName, isDirectory: false) else {
+            return
+        }
+
+        if FileManager.default.fileExists(atPath: url.path) {
+            try? FileManager.default.removeItem(at: url)
+        }
+
+        FileManager.default.createFile(atPath: url.path, contents: data, attributes: nil)
+    }
+
+    private static func getDocumentsDirectory() -> URL? {
+        return FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: Self.appGroupIdentifier)
     }
 }
