@@ -95,6 +95,8 @@
 		81D60E072A3484E60045AA0B /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 81D60E062A3484E60045AA0B /* Preview Assets.xcassets */; };
 		81D60E0A2A3493130045AA0B /* SequenceExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81D60E092A3493130045AA0B /* SequenceExtensions.swift */; };
 		81D60E0B2A349C340045AA0B /* Deeplink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 817C42A829FC66EB00FB3FD6 /* Deeplink.swift */; };
+		81EEB7932A35A762008D031A /* SearchWebService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81EEB7922A35A762008D031A /* SearchWebService.swift */; };
+		81EEB7952A35A7B4008D031A /* ArtistWebService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81EEB7942A35A7B4008D031A /* ArtistWebService.swift */; };
 		81FCB2932A18E5BB00BFD280 /* WatchlistPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81FCB2922A18E5BB00BFD280 /* WatchlistPrompt.swift */; };
 /* End PBXBuildFile section */
 
@@ -256,6 +258,8 @@
 		81D60E012A335DF20045AA0B /* WatchNextWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WatchNextWidgetExtension.entitlements; sourceTree = "<group>"; };
 		81D60E062A3484E60045AA0B /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		81D60E092A3493130045AA0B /* SequenceExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SequenceExtensions.swift; sourceTree = "<group>"; };
+		81EEB7922A35A762008D031A /* SearchWebService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchWebService.swift; sourceTree = "<group>"; };
+		81EEB7942A35A7B4008D031A /* ArtistWebService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistWebService.swift; sourceTree = "<group>"; };
 		81FCB2922A18E5BB00BFD280 /* WatchlistPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistPrompt.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -661,6 +665,8 @@
 			isa = PBXGroup;
 			children = (
 				81D60DFA2A3352E20045AA0B /* MovieWebService.swift */,
+				81EEB7942A35A7B4008D031A /* ArtistWebService.swift */,
+				81EEB7922A35A762008D031A /* SearchWebService.swift */,
 			);
 			path = "Web Service";
 			sourceTree = "<group>";
@@ -998,12 +1004,14 @@
 			files = (
 				81D60DE52A3343940045AA0B /* MoneyValue.swift in Sources */,
 				81D60DE12A3343940045AA0B /* MovieVideo.swift in Sources */,
+				81EEB7932A35A762008D031A /* SearchWebService.swift in Sources */,
 				81D60DDD2A3343940045AA0B /* WatchProvider.swift in Sources */,
 				81D60DE42A3343940045AA0B /* Rating.swift in Sources */,
 				81D60DDE2A3343940045AA0B /* ArtistDetails.swift in Sources */,
 				81D60E0B2A349C340045AA0B /* Deeplink.swift in Sources */,
 				81D60DD82A3343940045AA0B /* WatchProviders.swift in Sources */,
 				81D60DDF2A3343940045AA0B /* MovieMedia.swift in Sources */,
+				81EEB7952A35A7B4008D031A /* ArtistWebService.swift in Sources */,
 				81D60DE02A3343940045AA0B /* MovieDetails.swift in Sources */,
 				81D60DD92A3343940045AA0B /* MovieCollection.swift in Sources */,
 				81D60DDC2A3343940045AA0B /* WatchProviderCollection.swift in Sources */,
