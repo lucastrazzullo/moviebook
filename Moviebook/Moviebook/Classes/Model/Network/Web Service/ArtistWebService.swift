@@ -86,8 +86,8 @@ struct TMDBArtistDetailsResponse: Decodable {
         }
 
         let imagePath = try container.decode(String.self, forKey: .imagePath)
-        let imagePreviewUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .avatar(path: imagePath, size: .preview))
-        let imageOriginalUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .avatar(path: imagePath, size: .original))
+        let imagePreviewUrl = try TheMovieDbImageRequestFactory.makeURL(format: .avatar(path: imagePath, size: .preview))
+        let imageOriginalUrl = try TheMovieDbImageRequestFactory.makeURL(format: .avatar(path: imagePath, size: .original))
 
         self.result = ArtistDetails(id: id,
                                     name: name,
