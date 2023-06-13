@@ -64,10 +64,6 @@ public struct WatchNextItem: Codable, Equatable {
 
 public actor WatchNextStorage {
 
-    enum Error: Swift.Error {
-        case unableToLoadItem
-    }
-
     private static let storedFileName: String = "watch-next-items.json"
     private static let appGroupIdentifier: String = "group.it.lucastrazzullo.ios.moviebook.Shared"
 
@@ -146,13 +142,10 @@ public actor WatchNextStorage {
 
     private func loadItem(withMovieIdentifier identifier: Movie.ID) async throws -> WatchNextItem {
         let movie = try await self.webService.fetchMovie(with: identifier)
-        if let posterUrl = movie.details.media.posterThumbnailUrl {
-            let image = try await ImageLoader().fetch(posterUrl)
-            let deeplink = Deeplink.movie(identifier: movie.id)
-            return WatchNextItem(title: movie.details.title, image: image, deeplink: deeplink)
-        } else {
-            throw Error.unableToLoadItem
-        }
+        let posterUrl = movie.details.media.posterThumbnailUrl
+        let image = try await ImageLoader().fetch(posterUrl)
+        let deeplink = Deeplink.movie(identifier: movie.id)
+        return WatchNextItem(title: movie.details.title, image: image, deeplink: deeplink)
     }
 
     // MARK: File manager
