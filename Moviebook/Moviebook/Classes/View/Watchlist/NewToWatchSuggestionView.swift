@@ -116,7 +116,7 @@ struct NewToWatchSuggestionView: View {
         .onAppear {
             if let toWatchSuggestion = toWatchInfo?.suggestion {
                 suggestedByText = toWatchSuggestion.owner
-                commentText = toWatchSuggestion.comment
+                commentText = toWatchSuggestion.comment ?? ""
             }
         }
         .task {
@@ -131,7 +131,9 @@ struct NewToWatchSuggestionView: View {
 
     private func save() {
         suggestedByError = FieldError(text: suggestedByText)
-        commentError = FieldError(text: commentText)
+        if !commentText.isEmpty {
+            commentError = FieldError(text: commentText)
+        }
 
         guard suggestedByError == nil, commentError == nil else {
             return

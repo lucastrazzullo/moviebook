@@ -44,11 +44,14 @@ struct NewWatchedRatingView: View {
 
                         VStack(alignment: .leading, spacing: 24) {
                             VStack(alignment: .leading, spacing: 8) {
-                                Text("Suggested by \(toWatchSuggestion.owner).")
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
+                                HStack(spacing: 4) {
+                                    Text("Suggested by")
+                                    Text(toWatchSuggestion.owner).bold()
+                                }
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
 
-                                Text(toWatchSuggestion.comment)
+                                Text(toWatchSuggestion.comment ?? "")
                                     .fixedSize(horizontal: false, vertical: true)
                                     .font(.body)
                             }

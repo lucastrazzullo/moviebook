@@ -193,7 +193,7 @@ private struct AddToWatchlistView: View {
 private struct SuggestionView: View {
 
     let from: String
-    let comment: String
+    let comment: String?
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
@@ -202,12 +202,16 @@ private struct SuggestionView: View {
                 .foregroundColor(.accentColor)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("Suggested by \(from).")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                HStack(spacing: 4) {
+                    Text("Suggested by")
+                    Text(from).bold()
+                }
+                .font(.subheadline)
+                .foregroundColor(.secondary)
 
-                Text(comment)
-                    .font(.body)
+                if let comment {
+                    Text(comment).font(.body)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
