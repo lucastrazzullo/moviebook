@@ -51,9 +51,11 @@ struct WatchlistOptions: View {
             if let state = watchlist.itemState(id: watchlistItemIdentifier) {
                 switch state {
                 case .toWatch(let info):
-                    if info.suggestion == nil {
-                        Button { presentedItem = .watchlistAddToWatchReason(itemIdentifier: watchlistItemIdentifier) } label: {
+                    Button { presentedItem = .watchlistAddToWatchReason(itemIdentifier: watchlistItemIdentifier) } label: {
+                        if info.suggestion == nil {
                             Label("Add reason to watch", systemImage: "quote.opening")
+                        } else {
+                            Label("Update reason to watch", systemImage: "quote.opening")
                         }
                     }
                     Button { watchlist.remove(itemWith: watchlistItemIdentifier) } label: {

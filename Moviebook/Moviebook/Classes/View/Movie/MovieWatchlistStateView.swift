@@ -23,13 +23,9 @@ struct MovieWatchlistStateView: View {
             if let state = watchlist.itemState(id: .movie(id: movieId)) {
                 switch state {
                 case .toWatch(let info):
-                    InWatchlistView(movieId: movieId, info: info, onAddSuggestion: {
-                        presentedItem = .watchlistAddToWatchReason(itemIdentifier: .movie(id: movieId))
-                    })
+                    InWatchlistView(presentedItem: $presentedItem, movieId: movieId, info: info)
                 case .watched(let info):
-                    WatchedView(movieId: movieId, movieBackdropPreviewUrl: movieBackdropPreviewUrl, info: info, onAddRating: {
-                        presentedItem = .watchlistAddRating(itemIdentifier: .movie(id: movieId))
-                    })
+                    WatchedView(presentedItem: $presentedItem, movieId: movieId, movieBackdropPreviewUrl: movieBackdropPreviewUrl, info: info)
                 }
             } else {
                 AddToWatchlistView(movieId: movieId)
@@ -57,10 +53,11 @@ private struct WatchedView: View {
 
     @EnvironmentObject var watchlist: Watchlist
 
+    @Binding var presentedItem: NavigationItem?
+
     let movieId: Movie.ID
     let movieBackdropPreviewUrl: URL?
     let info: WatchlistItemWatchedInfo
-    let onAddRating: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -69,7 +66,7 @@ private struct WatchedView: View {
                     CircularRatingView(rating: rating, label: "Your vote", style: .prominent)
                         .frame(height: 150)
                 } else {
-                    Button(action: onAddRating) {
+                    Button(action: { presentedItem = .watchlistAddRating(itemIdentifier: .movie(id: movieId)) }) {
                         HStack {
                             Image(systemName: "plus")
                             Text("Add rating").underline()
@@ -108,7 +105,12 @@ private struct WatchedView: View {
             .cornerRadius(12)
 
             if let suggestion = info.toWatchInfo.suggestion {
-                SuggestionView(from: suggestion.owner, comment: suggestion.comment)
+                SuggestionView(
+                    presentedItem: $presentedItem,
+                    movieId: movieId,
+                    from: suggestion.owner,
+                    comment: suggestion.comment
+                )
             }
         }
     }
@@ -118,9 +120,10 @@ private struct InWatchlistView: View {
 
     @EnvironmentObject var watchlist: Watchlist
 
+    @Binding var presentedItem: NavigationItem?
+
     let movieId: Movie.ID
     let info: WatchlistItemToWatchInfo
-    let onAddSuggestion: () -> Void
 
     var body: some View {
         VStack(alignment: .center, spacing: 24) {
@@ -142,9 +145,14 @@ private struct InWatchlistView: View {
                 .buttonStyle(.borderedProminent)
 
                 if let suggestion = info.suggestion {
-                    SuggestionView(from: suggestion.owner, comment: suggestion.comment)
+                    SuggestionView(
+                        presentedItem: $presentedItem,
+                        movieId: movieId,
+                        from: suggestion.owner,
+                        comment: suggestion.comment
+                    )
                 } else {
-                    Button(action: onAddSuggestion) {
+                    Button(action: { presentedItem = .watchlistAddToWatchReason(itemIdentifier: .movie(id: movieId)) }) {
                         HStack {
                             Image(systemName: "quote.opening")
                             Text("Add suggestion").underline()
@@ -192,6 +200,9 @@ private struct AddToWatchlistView: View {
 
 private struct SuggestionView: View {
 
+    @Binding var presentedItem: NavigationItem?
+
+    let movieId: Movie.ID
     let from: String
     let comment: String?
 
@@ -211,6 +222,10 @@ private struct SuggestionView: View {
 
                 if let comment {
                     Text(comment).font(.body)
+                }
+
+                Button(action: { presentedItem = .watchlistAddToWatchReason(itemIdentifier: .movie(id: movieId)) }) {
+                    Text("Update").font(.caption2)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
