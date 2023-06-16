@@ -56,7 +56,7 @@ struct MoviePreviewView: View {
                                         Text(releaseDate, format: .dateTime.year()).bold()
                                     }
                                     .padding(4)
-                                    .background(RoundedRectangle(cornerRadius: 6).fill(.yellow))
+                                    .background(.yellow, in: RoundedRectangle(cornerRadius: 6))
                                     .foregroundColor(.black)
                                 } else {
                                     Text(releaseDate, format: .dateTime.year())
@@ -113,13 +113,14 @@ struct MoviePreviewView_Previews: PreviewProvider {
         ScrollView {
             VStack {
                 MoviePreviewViewPreview(movieId: 954, style: .poster)
-                MoviePreviewViewPreview(movieId: 575265, style: .poster)
+                MoviePreviewViewPreview(movieId: 353081, style: .poster)
                 MoviePreviewViewPreview(movieId: 616037, style: .backdrop)
             }
             .environmentObject(Watchlist(items: [
                 WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
                 WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: nil)))
             ]))
+            .environment(\.requestManager, MockRequestManager())
         }
     }
 }

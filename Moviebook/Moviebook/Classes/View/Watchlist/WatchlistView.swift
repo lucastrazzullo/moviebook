@@ -161,23 +161,39 @@ private struct WatchlistItemView: View {
                 presentedItem = .movie(movie)
             }
         }
-        .overlay(alignment: .bottomTrailing) {
-            Menu {
-                Button(action: { presentedItem = .movie(movie) }) { Label("Open", systemImage: "chevron.up") }
+        .overlay(alignment: .bottom) {
+            HStack(alignment: .center) {
+                if movie.details.release > Date.now {
+                    HStack(spacing: 4) {
+                        Text("Release")
+                        Text(movie.details.release, format: .dateTime.year())
+                    }
+                    .font(.caption2).bold()
+                    .padding(6)
+                    .background(.yellow, in: RoundedRectangle(cornerRadius: 6))
+                    .foregroundColor(.black)
+                    .padding(4)
+                }
+
+                Spacer()
+
                 Menu {
-                    WatchlistOptions(
-                        presentedItem: $presentedItem,
-                        watchlistItemIdentifier: watchlistIdentifier
-                    )
+                    Button(action: { presentedItem = .movie(movie) }) { Label("Open", systemImage: "chevron.up") }
+                    Menu {
+                        WatchlistOptions(
+                            presentedItem: $presentedItem,
+                            watchlistItemIdentifier: watchlistIdentifier
+                        )
+                    } label: {
+                        WatchlistLabel(itemState: watchlist.itemState(id: watchlistIdentifier))
+                    }
                 } label: {
-                    WatchlistLabel(itemState: watchlist.itemState(id: watchlistIdentifier))
+                    WatermarkView {
+                        Image(systemName: "ellipsis")
+                    }
                 }
-            } label: {
-                WatermarkView {
-                    Image(systemName: "ellipsis")
-                }
+                .padding(4)
             }
-            .padding(4)
         }
     }
 }
