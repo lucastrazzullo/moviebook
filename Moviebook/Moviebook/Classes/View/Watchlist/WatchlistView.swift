@@ -141,6 +141,8 @@ private struct WatchlistListView: View {
 
 private struct WatchlistItemView: View {
 
+    @EnvironmentObject var watchlist: Watchlist
+
     @Binding var presentedItem: NavigationItem?
 
     let movie: Movie
@@ -155,15 +157,27 @@ private struct WatchlistItemView: View {
             }
             .aspectRatio(contentMode: .fill)
             .clipShape(RoundedRectangle(cornerRadius: 12))
+            .onTapGesture {
+                presentedItem = .movie(movie)
+            }
         }
         .overlay(alignment: .bottomTrailing) {
-            WatermarkView {
-                IconWatchlistButton(watchlistItemIdentifier: .movie(id: movie.id))
+            Menu {
+                Button(action: { presentedItem = .movie(movie) }) { Label("Open", systemImage: "chevron.up") }
+                Menu {
+                    WatchlistOptions(
+                        presentedItem: $presentedItem,
+                        watchlistItemIdentifier: watchlistIdentifier
+                    )
+                } label: {
+                    WatchlistLabel(itemState: watchlist.itemState(id: watchlistIdentifier))
+                }
+            } label: {
+                WatermarkView {
+                    Image(systemName: "ellipsis")
+                }
             }
             .padding(4)
-        }
-        .onTapGesture {
-            presentedItem = .movie(movie)
         }
     }
 }
