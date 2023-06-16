@@ -63,11 +63,10 @@ private struct ToolbarView: View {
 
             Spacer()
 
-            WatermarkView {
-                Image(systemName: "magnifyingglass")
-                    .onTapGesture {
-                        presentedItem = .explore
-                    }
+            Button(action: { presentedItem = .explore }) {
+                WatermarkView {
+                    Image(systemName: "magnifyingglass")
+                }
             }
         }
     }
@@ -177,7 +176,6 @@ struct WatchlistView_Previews: PreviewProvider {
             .environmentObject(Watchlist(items: [
                 WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
                 WatchlistItem(id: .movie(id: 353081), state: .toWatch(info: .init(date: .now, suggestion: nil))),
-                WatchlistItem(id: .movie(id: 575265), state: .toWatch(info: .init(date: .now, suggestion: nil))),
                 WatchlistItem(id: .movie(id: 616037), state: .watched(info: .init(toWatchInfo: .init(date: .now, suggestion: nil), date: .now)))
             ]))
 
