@@ -91,6 +91,15 @@ struct NewWatchedRatingView: View {
         .padding()
         .foregroundColor(nil)
         .font(.body)
+        .onAppear {
+            guard let watchlistState = watchlist.itemState(id: itemIdentifier) else {
+                return
+            }
+
+            if case .watched(let info) = watchlistState, let rating = info.rating {
+                self.rating = rating
+            }
+        }
     }
 
     private func save() {

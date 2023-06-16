@@ -63,13 +63,15 @@ struct WatchlistOptions: View {
                         Label("Mark as watched", systemImage: "checkmark")
                     }
                 case .watched(let info):
-                    if info.rating == nil {
-                        Button { presentedItem = .watchlistAddRating(itemIdentifier: watchlistItemIdentifier) } label: {
+                    Button { presentedItem = .watchlistAddRating(itemIdentifier: watchlistItemIdentifier) } label: {
+                        if info.rating == nil {
                             Label("Add rating", systemImage: "plus")
+                        } else {
+                            Label("Update rating", systemImage: "star")
                         }
                     }
                     Button { watchlist.update(state: .toWatch(info: info.toWatchInfo), forItemWith: watchlistItemIdentifier) } label: {
-                        Label("Move to watchlist", systemImage: "star")
+                        Label("Move to watchlist", systemImage: "books.vertical.fill")
                     }
                     Button { watchlist.remove(itemWith: watchlistItemIdentifier) } label: {
                         Label("Remove from watchlist", systemImage: "minus")
