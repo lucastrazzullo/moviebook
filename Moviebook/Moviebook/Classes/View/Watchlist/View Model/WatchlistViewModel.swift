@@ -70,7 +70,7 @@ import MoviebookCommons
             .sink { [weak self, weak requestManager] items in
                 var itemIdentifiers = [WatchlistItemIdentifier]()
 
-                for item in items {
+                for item in items.sorted(by: { lhs, rhs in lhs.date > rhs.date }) {
                     switch (item.state, section) {
                     case (.toWatch, .toWatch):
                         itemIdentifiers.append(item.id)
