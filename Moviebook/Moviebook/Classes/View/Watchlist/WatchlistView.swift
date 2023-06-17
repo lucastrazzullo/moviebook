@@ -15,6 +15,9 @@ struct WatchlistView: View {
 
     @State private var currentSection: WatchlistViewModel.Section = .toWatch
     @State private var currentSorting: WatchlistViewModel.Sorting = .lastAdded
+
+    @State private var shouldShowBackground: Bool = false
+    @State private var shouldShowTopBar: Bool = false
     @State private var shouldShowBottomBar: Bool = false
 
     @State private var presentedItemNavigationPath = NavigationPath()
@@ -26,6 +29,8 @@ struct WatchlistView: View {
                 ForEach(WatchlistViewModel.Section.allCases) { section in
                     ContentView(
                         presentedItem: $presentedItem,
+                        shouldShowBackground: $shouldShowBackground,
+                        shouldShowTopBar: $shouldShowTopBar,
                         shouldShowBottomBar: $shouldShowBottomBar,
                         section: section,
                         sorting: currentSorting
@@ -36,13 +41,15 @@ struct WatchlistView: View {
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
         .ignoresSafeArea()
+        .background(.thinMaterial.opacity(shouldShowBackground ? 1 : 0))
         .watchlistPrompt(duration: 5)
         .safeAreaInset(edge: .top) {
             TopbarView(
                 sorting: $currentSorting
             )
             .padding()
-            .background(.thinMaterial)
+            .background(.thinMaterial.opacity(shouldShowTopBar ? 1 : 0))
+            .animation(.easeOut(duration: 0.12), value: shouldShowTopBar)
         }
         .safeAreaInset(edge: .bottom) {
             ToolbarView(
@@ -122,6 +129,9 @@ private struct ContentView: View {
 
     @StateObject private var viewModel: WatchlistViewModel = WatchlistViewModel()
     @Binding var presentedItem: NavigationItem?
+
+    @Binding var shouldShowBackground: Bool
+    @Binding var shouldShowTopBar: Bool
     @Binding var shouldShowBottomBar: Bool
 
     let section: WatchlistViewModel.Section
@@ -133,12 +143,16 @@ private struct ContentView: View {
                 LoaderView()
             } else if viewModel.items.isEmpty {
                 WatchlistEmptyListView(
+                    shouldShowBackground: $shouldShowBackground,
+                    shouldShowTopBar: $shouldShowTopBar,
                     shouldShowBottomBar: $shouldShowBottomBar,
                     section: section
                 )
             } else {
                 WatchlistListView(
                     presentedItem: $presentedItem,
+                    shouldShowBackground: $shouldShowBackground,
+                    shouldShowTopBar: $shouldShowTopBar,
                     shouldShowBottomBar: $shouldShowBottomBar,
                     section: section,
                     items: viewModel.items.sorted(by: sort(lhs:rhs:))
@@ -166,6 +180,8 @@ private struct ContentView: View {
 
 private struct WatchlistEmptyListView: View {
 
+    @Binding var shouldShowBackground: Bool
+    @Binding var shouldShowTopBar: Bool
     @Binding var shouldShowBottomBar: Bool
 
     let section: WatchlistViewModel.Section
@@ -179,7 +195,9 @@ private struct WatchlistEmptyListView: View {
                 .padding(.top, topSpacing)
                 .padding(.bottom, bottomSpacing)
                 .onAppear {
+                    shouldShowTopBar = true
                     shouldShowBottomBar = true
+                    shouldShowBackground = true
                 }
         }
     }
@@ -190,6 +208,9 @@ private struct WatchlistListView: View {
     @State private var scrollContent: ObservableScrollContent = .zero
 
     @Binding var presentedItem: NavigationItem?
+
+    @Binding var shouldShowBackground: Bool
+    @Binding var shouldShowTopBar: Bool
     @Binding var shouldShowBottomBar: Bool
 
     let section: WatchlistViewModel.Section
@@ -224,7 +245,11 @@ private struct WatchlistListView: View {
                 }
                 .animation(.default, value: items)
                 .onChange(of: scrollContent) { info in
+                    shouldShowTopBar = info.offset > 0
                     shouldShowBottomBar = -(info.offset - info.height) > geometry.size.height
+                }
+                .onAppear {
+                    shouldShowBackground = false
                 }
             }
         }
