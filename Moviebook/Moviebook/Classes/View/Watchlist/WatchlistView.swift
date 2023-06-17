@@ -14,6 +14,8 @@ struct WatchlistView: View {
     @EnvironmentObject var watchlist: Watchlist
 
     @State private var currentSection: WatchlistViewModel.Section = .toWatch
+    @State private var shouldShowBottomBar: Bool = false
+
     @State private var presentedItemNavigationPath = NavigationPath()
     @State private var presentedItem: NavigationItem? = nil
 
@@ -23,6 +25,7 @@ struct WatchlistView: View {
                 ForEach(WatchlistViewModel.Section.allCases) { section in
                     ContentView(
                         presentedItem: $presentedItem,
+                        shouldShowBottomBar: $shouldShowBottomBar,
                         section: section
                     )
                     .tag(section)
@@ -31,15 +34,16 @@ struct WatchlistView: View {
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
         .ignoresSafeArea()
+        .watchlistPrompt(duration: 5)
         .safeAreaInset(edge: .bottom) {
             ToolbarView(
                 currentSection: $currentSection,
                 presentedItem: $presentedItem
             )
             .padding()
-            .background(.thinMaterial)
+            .background(.thinMaterial.opacity(shouldShowBottomBar ? 1 : 0))
+            .animation(.easeOut(duration: 0.12), value: shouldShowBottomBar)
         }
-        .watchlistPrompt(duration: 5)
         .sheet(item: $presentedItem) { item in
             Navigation(path: $presentedItemNavigationPath, presentingItem: item)
         }
@@ -79,6 +83,7 @@ private struct ContentView: View {
 
     @StateObject private var viewModel: WatchlistViewModel = WatchlistViewModel()
     @Binding var presentedItem: NavigationItem?
+    @Binding var shouldShowBottomBar: Bool
 
     let section: WatchlistViewModel.Section
 
@@ -91,6 +96,7 @@ private struct ContentView: View {
             } else {
                 WatchlistListView(
                     presentedItem: $presentedItem,
+                    shouldShowBottomBar: $shouldShowBottomBar,
                     section: section,
                     items: viewModel.items
                 )
@@ -118,7 +124,10 @@ private struct WatchlistEmptyListView: View {
 
 private struct WatchlistListView: View {
 
+    @State private var scrollContent: ObservableScrollContent = .zero
+
     @Binding var presentedItem: NavigationItem?
+    @Binding var shouldShowBottomBar: Bool
 
     let section: WatchlistViewModel.Section
     let items: [WatchlistViewModel.Item]
@@ -127,7 +136,7 @@ private struct WatchlistListView: View {
         GeometryReader { geometry in
             let bottomSpacing = geometry.safeAreaInsets.bottom + 32
 
-            ScrollView(showsIndicators: false) {
+            ObservableScrollView(scrollContent: $scrollContent, showsIndicators: false) { _ in
                 VStack(spacing: 0) {
                     LazyVGrid(columns: [GridItem(spacing: 4), GridItem()], spacing: 4) {
                         ForEach(items) { item in
@@ -148,6 +157,9 @@ private struct WatchlistListView: View {
                     Spacer().frame(height: bottomSpacing)
                 }
                 .animation(.default, value: items)
+                .onChange(of: scrollContent) { info in
+                    shouldShowBottomBar = -(info.offset - info.height) > geometry.size.height
+                }
             }
         }
     }

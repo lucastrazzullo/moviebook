@@ -14,15 +14,30 @@ struct ScrollViewOffsetPreferenceKey: PreferenceKey {
     }
 }
 
+struct ScrollViewContentHeightPreferenceKey: PreferenceKey {
+    static var defaultValue = CGFloat.zero
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value += nextValue()
+    }
+}
+
+struct ObservableScrollContent: Equatable {
+    static let zero = ObservableScrollContent(offset: 0, height: 0)
+
+    var offset: CGFloat
+    var height: CGFloat
+}
+
 struct ObservableScrollView<Content>: View where Content : View {
+
     @Namespace var scrollSpace
-    @Binding var scrollOffset: CGFloat
+    @Binding var scrollContent: ObservableScrollContent
 
     let content: (ScrollViewProxy) -> Content
     let showsIndicators: Bool
 
-    init(scrollOffset: Binding<CGFloat>, showsIndicators: Bool = true, @ViewBuilder content: @escaping (ScrollViewProxy) -> Content) {
-        _scrollOffset = scrollOffset
+    init(scrollContent: Binding<ObservableScrollContent>, showsIndicators: Bool = true, @ViewBuilder content: @escaping (ScrollViewProxy) -> Content) {
+        _scrollContent = scrollContent
         self.content = content
         self.showsIndicators = showsIndicators
     }
@@ -32,13 +47,19 @@ struct ObservableScrollView<Content>: View where Content : View {
             ScrollViewReader { proxy in
                 content(proxy).background(GeometryReader { geometry in
                     let offset = -geometry.frame(in: .named(scrollSpace)).minY
-                    Color.clear.preference(key: ScrollViewOffsetPreferenceKey.self, value: offset)
+                    let height = geometry.size.height
+                    Color.clear
+                        .preference(key: ScrollViewOffsetPreferenceKey.self, value: offset)
+                        .preference(key: ScrollViewContentHeightPreferenceKey.self, value: height)
                 })
             }
         }
         .coordinateSpace(name: scrollSpace)
         .onPreferenceChange(ScrollViewOffsetPreferenceKey.self) { value in
-            scrollOffset = value
+            scrollContent.offset = value
+        }
+        .onPreferenceChange(ScrollViewContentHeightPreferenceKey.self) { value in
+            scrollContent.height = value
         }
     }
 }
