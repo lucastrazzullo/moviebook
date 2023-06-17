@@ -92,7 +92,10 @@ private struct ContentView: View {
             if viewModel.isLoading {
                 LoaderView()
             } else if viewModel.items.isEmpty {
-                WatchlistEmptyListView(section: section)
+                WatchlistEmptyListView(
+                    shouldShowBottomBar: $shouldShowBottomBar,
+                    section: section
+                )
             } else {
                 WatchlistListView(
                     presentedItem: $presentedItem,
@@ -110,6 +113,8 @@ private struct ContentView: View {
 
 private struct WatchlistEmptyListView: View {
 
+    @Binding var shouldShowBottomBar: Bool
+
     let section: WatchlistViewModel.Section
 
     var body: some View {
@@ -118,6 +123,9 @@ private struct WatchlistEmptyListView: View {
 
             EmptyWatchlistView(section: section)
                 .padding(.bottom, bottomSpacing)
+                .onAppear {
+                    shouldShowBottomBar = true
+                }
         }
     }
 }
