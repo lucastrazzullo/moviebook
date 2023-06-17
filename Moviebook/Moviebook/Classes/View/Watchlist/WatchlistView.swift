@@ -13,8 +13,8 @@ struct WatchlistView: View {
     @Environment(\.requestManager) var requestManager
     @EnvironmentObject var watchlist: Watchlist
 
-    @State private var currentSection: WatchlistViewModel.Section = .toWatch
-    @State private var currentSorting: WatchlistViewModel.Sorting = .lastAdded
+    @AppStorage("watchlistSection") private var currentSection: WatchlistViewModel.Section = .toWatch
+    @AppStorage("watchlistSorting") private var currentSorting: WatchlistViewModel.Sorting = .lastAdded
 
     @State private var shouldShowBackground: Bool = false
     @State private var shouldShowTopBar: Bool = false

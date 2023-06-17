@@ -31,7 +31,7 @@ import MoviebookCommons
         }
     }
 
-    enum Sorting: CaseIterable {
+    enum Sorting: String, CaseIterable, Hashable, Equatable {
         case lastAdded
         case rating
         case name
