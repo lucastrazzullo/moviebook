@@ -14,6 +14,7 @@ struct WatchlistView: View {
     @EnvironmentObject var watchlist: Watchlist
 
     @State private var currentSection: WatchlistViewModel.Section = .toWatch
+    @State private var currentSorting: WatchlistViewModel.Sorting = .lastAdded
     @State private var shouldShowBottomBar: Bool = false
 
     @State private var presentedItemNavigationPath = NavigationPath()
@@ -26,7 +27,8 @@ struct WatchlistView: View {
                     ContentView(
                         presentedItem: $presentedItem,
                         shouldShowBottomBar: $shouldShowBottomBar,
-                        section: section
+                        section: section,
+                        sorting: currentSorting
                     )
                     .tag(section)
                 }
@@ -35,6 +37,13 @@ struct WatchlistView: View {
         .tabViewStyle(.page(indexDisplayMode: .never))
         .ignoresSafeArea()
         .watchlistPrompt(duration: 5)
+        .safeAreaInset(edge: .top) {
+            TopbarView(
+                sorting: $currentSorting
+            )
+            .padding()
+            .background(.thinMaterial)
+        }
         .safeAreaInset(edge: .bottom) {
             ToolbarView(
                 currentSection: $currentSection,
@@ -46,6 +55,36 @@ struct WatchlistView: View {
         }
         .sheet(item: $presentedItem) { item in
             Navigation(path: $presentedItemNavigationPath, presentingItem: item)
+        }
+    }
+}
+
+private struct TopbarView: View {
+
+    @Binding var sorting: WatchlistViewModel.Sorting
+
+    var body: some View {
+        ZStack {
+            Text("Moviebook")
+                .font(.title3.bold())
+
+            Menu {
+                Picker("Sorting", selection: $sorting) {
+                    ForEach(WatchlistViewModel.Sorting.allCases, id: \.self) { sorting in
+                        HStack {
+                            Text(sorting.label)
+                            Spacer()
+                            Image(systemName: sorting.image)
+                        }
+                        .tag(sorting)
+                    }
+                }
+            } label: {
+                WatermarkView {
+                    Image(systemName: "arrow.up.and.down.text.horizontal")
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .trailing)
         }
     }
 }
@@ -86,6 +125,7 @@ private struct ContentView: View {
     @Binding var shouldShowBottomBar: Bool
 
     let section: WatchlistViewModel.Section
+    let sorting: WatchlistViewModel.Sorting
 
     var body: some View {
         Group {
@@ -101,12 +141,25 @@ private struct ContentView: View {
                     presentedItem: $presentedItem,
                     shouldShowBottomBar: $shouldShowBottomBar,
                     section: section,
-                    items: viewModel.items
+                    items: viewModel.items.sorted(by: sort(lhs:rhs:))
                 )
             }
         }
         .onAppear {
             viewModel.start(section: section, watchlist: watchlist, requestManager: requestManager)
+        }
+    }
+
+    private func sort(lhs: WatchlistViewModel.Item, rhs: WatchlistViewModel.Item) -> Bool {
+        switch sorting {
+        case .lastAdded:
+            return true
+        case .rating:
+            return lhs.rating > rhs.rating
+        case .name:
+            return lhs.name > rhs.name
+        case .release:
+            return lhs.release > rhs.release
         }
     }
 }
@@ -119,9 +172,11 @@ private struct WatchlistEmptyListView: View {
 
     var body: some View {
         GeometryReader { geometry in
+            let topSpacing = geometry.safeAreaInsets.top - 4
             let bottomSpacing = geometry.safeAreaInsets.bottom + 32
 
             EmptyWatchlistView(section: section)
+                .padding(.top, topSpacing)
                 .padding(.bottom, bottomSpacing)
                 .onAppear {
                     shouldShowBottomBar = true
@@ -142,10 +197,13 @@ private struct WatchlistListView: View {
 
     var body: some View {
         GeometryReader { geometry in
+            let topSpacing = geometry.safeAreaInsets.top + 12
             let bottomSpacing = geometry.safeAreaInsets.bottom + 32
 
             ObservableScrollView(scrollContent: $scrollContent, showsIndicators: false) { _ in
                 VStack(spacing: 0) {
+                    Spacer().frame(height: topSpacing)
+
                     LazyVGrid(columns: [GridItem(spacing: 4), GridItem()], spacing: 4) {
                         ForEach(items) { item in
                             switch item {

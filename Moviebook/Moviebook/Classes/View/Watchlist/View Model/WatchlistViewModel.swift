@@ -31,6 +31,39 @@ import MoviebookCommons
         }
     }
 
+    enum Sorting: CaseIterable {
+        case lastAdded
+        case rating
+        case name
+        case release
+
+        var label: String {
+            switch self {
+            case .lastAdded:
+                return "Last added"
+            case .rating:
+                return "Rating"
+            case .name:
+                return "Name"
+            case .release:
+                return "Release"
+            }
+        }
+
+        var image: String {
+            switch self {
+            case .lastAdded:
+                return "text.line.first.and.arrowtriangle.forward"
+            case .rating:
+                return "star"
+            case .name:
+                return "a.circle.fill"
+            case .release:
+                return "calendar"
+            }
+        }
+    }
+
     enum Item: Identifiable, Equatable {
         case movie(movie: Movie, section: Section, watchlistIdentifier: WatchlistItemIdentifier)
 
@@ -54,6 +87,27 @@ import MoviebookCommons
                 return watchlistIdentifier
             }
         }
+
+        var rating: Float {
+            switch self {
+            case .movie(let movie, _, _):
+                return movie.details.rating.value
+            }
+        }
+
+        var name: String {
+            switch self {
+            case .movie(let movie, _, _):
+                return movie.details.title
+            }
+        }
+
+        var release: Date {
+            switch self {
+            case .movie(let movie, _, _):
+                return movie.details.release
+            }
+        }
     }
 
     // MARK: Instance Properties
@@ -67,6 +121,7 @@ import MoviebookCommons
 
     func start(section: Section, watchlist: Watchlist, requestManager: RequestManager) {
         watchlist.$items
+            .removeDuplicates()
             .sink { [weak self, weak requestManager] items in
                 var itemIdentifiers = [WatchlistItemIdentifier]()
 
