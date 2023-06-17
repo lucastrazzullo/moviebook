@@ -87,7 +87,7 @@ private struct ContentView: View {
             if viewModel.isLoading {
                 LoaderView()
             } else if viewModel.items.isEmpty {
-                EmptyWatchlistView(section: section)
+                WatchlistEmptyListView(section: section)
             } else {
                 WatchlistListView(
                     presentedItem: $presentedItem,
@@ -98,6 +98,20 @@ private struct ContentView: View {
         }
         .onAppear {
             viewModel.start(section: section, watchlist: watchlist, requestManager: requestManager)
+        }
+    }
+}
+
+private struct WatchlistEmptyListView: View {
+
+    let section: WatchlistViewModel.Section
+
+    var body: some View {
+        GeometryReader { geometry in
+            let bottomSpacing = geometry.safeAreaInsets.bottom + 32
+
+            EmptyWatchlistView(section: section)
+                .padding(.bottom, bottomSpacing)
         }
     }
 }
