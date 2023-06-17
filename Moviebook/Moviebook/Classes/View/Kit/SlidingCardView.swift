@@ -11,7 +11,7 @@ import MoviebookCommons
 struct SlidingCardView<TrailingHeaderView: View, ContentView: View>: View {
 
     @State private var headerHeight: CGFloat = 0
-    @State private var contentOffset: CGFloat = 0
+    @State private var scrollContent: ObservableScrollContent = .zero
     @State private var contentInset: CGFloat = 0
     @State private var isImageLoaded: Bool = false
 
@@ -33,7 +33,7 @@ struct SlidingCardView<TrailingHeaderView: View, ContentView: View>: View {
                 PosterView(
                     isImageLoaded: $isImageLoaded,
                     imageHeight: $contentInset,
-                    contentOffset: contentOffset,
+                    contentOffset: scrollContent.offset,
                     posterUrl: posterUrl
                 )
 
@@ -43,7 +43,7 @@ struct SlidingCardView<TrailingHeaderView: View, ContentView: View>: View {
                     }
                 }
 
-                ObservableScrollView(scrollOffset: $contentOffset, showsIndicators: false) { _ in
+                ObservableScrollView(scrollContent: $scrollContent, showsIndicators: false) { _ in
                     VStack {
                         Spacer()
                             .frame(height: isImageLoaded
@@ -62,7 +62,7 @@ struct SlidingCardView<TrailingHeaderView: View, ContentView: View>: View {
                 navigationPath: $navigationPath,
                 headerHeight: $headerHeight,
                 title: title,
-                shouldShowHeader: isImageLoaded && contentOffset - contentInset + headerHeight > 0,
+                shouldShowHeader: isImageLoaded && scrollContent.offset - contentInset + headerHeight > 0,
                 trailingView: trailingHeaderView
             )
         }

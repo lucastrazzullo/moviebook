@@ -256,21 +256,14 @@ struct TMDBMovieMediaResponse: Decodable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
-        var posterUrl: URL?
-        var posterPreviewUrl: URL?
-        var posterThumbnailUrl: URL?
-        if let posterPath = try container.decodeIfPresent(String.self, forKey: .posterPath) {
-            posterUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .poster(path: posterPath, size: .original))
-            posterPreviewUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .poster(path: posterPath, size: .preview))
-            posterThumbnailUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .poster(path: posterPath, size: .thumbnail))
-        }
+        let posterPath = try container.decode(String.self, forKey: .posterPath)
+        let posterUrl = try TheMovieDbImageRequestFactory.makeURL(format: .poster(path: posterPath, size: .original))
+        let posterPreviewUrl = try TheMovieDbImageRequestFactory.makeURL(format: .poster(path: posterPath, size: .preview))
+        let posterThumbnailUrl = try TheMovieDbImageRequestFactory.makeURL(format: .poster(path: posterPath, size: .thumbnail))
 
-        var backdropUrl: URL?
-        var backdropPreviewUrl: URL?
-        if let backdropPath = try container.decodeIfPresent(String.self, forKey: .backdropPath) {
-            backdropUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .backdrop(path: backdropPath, size: .original))
-            backdropPreviewUrl = try? TheMovieDbImageRequestFactory.makeURL(format: .backdrop(path: backdropPath, size: .preview))
-        }
+        let backdropPath = try container.decode(String.self, forKey: .backdropPath)
+        let backdropUrl = try TheMovieDbImageRequestFactory.makeURL(format: .backdrop(path: backdropPath, size: .original))
+        let backdropPreviewUrl = try TheMovieDbImageRequestFactory.makeURL(format: .backdrop(path: backdropPath, size: .preview))
 
         var videos: [MovieVideo] = []
         if let videoResults = try? container.decodeIfPresent(TMDBResponseWithListResults<TMDBMovieVideoResponse>.self, forKey: .videos)?.results {

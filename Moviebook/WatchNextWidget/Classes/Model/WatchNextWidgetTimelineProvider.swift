@@ -15,13 +15,7 @@ struct Provider: TimelineProvider {
         let items = WatchNextStorage.getItems()
         return WatchNextItemEntry(
             date: Date(),
-            items: [
-                WatchNextItem(
-                    title: items.first?.title,
-                    image: items.first?.image,
-                    deeplink: items.first?.deeplink
-                )
-            ],
+            items: items,
             highlightIndex: 0
         )
     }
@@ -30,13 +24,7 @@ struct Provider: TimelineProvider {
         let items = WatchNextStorage.getItems()
         let entry = WatchNextItemEntry(
             date: Date(),
-            items: [
-                WatchNextItem(
-                    title: items.first?.title,
-                    image: items.first?.image,
-                    deeplink: items.first?.deeplink
-                )
-            ],
+            items: items,
             highlightIndex: 0
         )
         completion(entry)

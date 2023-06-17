@@ -50,8 +50,8 @@ struct MovieView: View {
             ZStack(alignment: .topLeading) {
                 MovieVideoPlayer(video: video, autoplay: true)
 
-                WatermarkView {
-                    Button(action: { isVideoPresented = nil }) {
+                Button(action: { isVideoPresented = nil }) {
+                    WatermarkView {
                         Image(systemName: "chevron.down")
                     }
                 }

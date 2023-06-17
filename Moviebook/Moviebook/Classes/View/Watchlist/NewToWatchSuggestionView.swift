@@ -10,7 +10,7 @@ import MoviebookCommons
 
 struct NewToWatchSuggestionView: View {
 
-    enum FieldError {
+    enum FieldError: Hashable {
         case empty
         case characterLimit(limit: Int)
 
@@ -23,14 +23,23 @@ struct NewToWatchSuggestionView: View {
             }
         }
 
-        init?(text: String) {
-            if text.isEmpty {
-                self = .empty
-            } else if text.count > 300 {
-                self = .characterLimit(limit: 300)
-            } else {
-                return nil
+        init?(text: String, checking: Set<Self>) {
+            for check in checking {
+                switch check {
+                case .empty:
+                    if text.isEmpty {
+                        self = check
+                        return
+                    }
+                case .characterLimit(let limit):
+                    if text.count > limit {
+                        self = check
+                        return
+                    }
+                }
             }
+
+            return nil
         }
     }
 
@@ -116,7 +125,7 @@ struct NewToWatchSuggestionView: View {
         .onAppear {
             if let toWatchSuggestion = toWatchInfo?.suggestion {
                 suggestedByText = toWatchSuggestion.owner
-                commentText = toWatchSuggestion.comment
+                commentText = toWatchSuggestion.comment ?? ""
             }
         }
         .task {
@@ -130,8 +139,8 @@ struct NewToWatchSuggestionView: View {
     }
 
     private func save() {
-        suggestedByError = FieldError(text: suggestedByText)
-        commentError = FieldError(text: commentText)
+        suggestedByError = FieldError(text: suggestedByText, checking: [.empty, .characterLimit(limit: 20)])
+        commentError = FieldError(text: commentText, checking: [.characterLimit(limit: 300)])
 
         guard suggestedByError == nil, commentError == nil else {
             return

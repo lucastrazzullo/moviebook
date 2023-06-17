@@ -107,7 +107,7 @@ private struct RequestManagerKey: EnvironmentKey {
 }
 
 private struct ImageLoaderKey: EnvironmentKey {
-    static let defaultValue = ImageLoader()
+    static let defaultValue: ImageLoader = ImageLoader()
 }
 
 extension EnvironmentValues {

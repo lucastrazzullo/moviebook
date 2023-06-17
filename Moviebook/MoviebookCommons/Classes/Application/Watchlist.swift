@@ -48,9 +48,9 @@ public struct WatchlistItemToWatchInfo: Hashable, Equatable {
 
     public struct Suggestion: Hashable, Equatable {
         public let owner: String
-        public let comment: String
+        public let comment: String?
 
-        public init(owner: String, comment: String) {
+        public init(owner: String, comment: String?) {
             self.owner = owner
             self.comment = comment
         }
