@@ -10,6 +10,11 @@ import MoviebookCommons
 
 struct NewToWatchSuggestionView: View {
 
+    enum Field {
+        case author
+        case comment
+    }
+
     enum FieldError: Hashable {
         case empty
         case characterLimit(limit: Int)
@@ -54,6 +59,8 @@ struct NewToWatchSuggestionView: View {
     @State private var commentText: String = ""
     @State private var commentError: FieldError?
 
+    @FocusState private var focusedField: Field?
+
     let itemIdentifier: WatchlistItemIdentifier
 
     private var toWatchInfo: WatchlistItemToWatchInfo? {
@@ -69,46 +76,58 @@ struct NewToWatchSuggestionView: View {
     }
 
     var body: some View {
-        VStack(spacing: 44) {
-            if let title {
-                VStack {
-                    Text("Why do you want to watch")
-                    Text(title).bold()
+        ScrollView(showsIndicators: false) {
+            VStack(spacing: 44) {
+                if let title {
+                    VStack {
+                        Text("Why do you want to watch")
+                        Text(title).bold()
+                    }
+                    .multilineTextAlignment(.center)
+                    .font(.title2)
+                    .frame(maxWidth: 300)
                 }
-                .multilineTextAlignment(.center)
-                .font(.title2)
-                .frame(maxWidth: 300)
-            }
 
-            VStack(spacing: 24) {
-                VStack(alignment: .leading) {
-                    TextField("Suggested by (required)", text: $suggestedByText)
-                        .textFieldStyle(OvalTextFieldStyle())
-                        .onSubmit(save)
+                VStack(spacing: 24) {
+                    VStack(alignment: .leading) {
+                        TextField("Suggested by (required)", text: $suggestedByText)
+                            .textFieldStyle(OvalTextFieldStyle())
+                            .focused($focusedField, equals: .author)
+                            .textContentType(.givenName)
+                            .onSubmit { focusedField = nil }
+                            .submitLabel(.done)
 
-                    if let error = suggestedByError {
-                        Text(error.description)
-                            .font(.caption)
-                            .foregroundColor(.red)
-                            .padding(.horizontal, 22)
+                        if let error = suggestedByError {
+                            Text(error.description)
+                                .font(.caption)
+                                .foregroundColor(.red)
+                                .padding(.horizontal, 22)
+                        }
+                    }
+
+                    VStack(alignment: .leading) {
+                        TextField("Comment", text: $commentText, axis: .vertical)
+                            .textFieldStyle(OvalTextFieldStyle())
+                            .focused($focusedField, equals: .comment)
+                            .lineLimit(10, reservesSpace: true)
+                            .onSubmit { focusedField = nil }
+                            .submitLabel(.done)
+
+                        if let error = commentError {
+                            Text(error.description)
+                                .font(.caption)
+                                .foregroundColor(.red)
+                                .padding(.horizontal, 22)
+                        }
                     }
                 }
-
-                VStack(alignment: .leading) {
-                    TextField("Comment", text: $commentText, axis: .vertical)
-                        .textFieldStyle(OvalTextFieldStyle())
-                        .lineLimit(10, reservesSpace: true)
-                        .onSubmit(save)
-
-                    if let error = commentError {
-                        Text(error.description)
-                            .font(.caption)
-                            .foregroundColor(.red)
-                            .padding(.horizontal, 22)
-                    }
-                }
             }
-
+            .padding(.top)
+            .padding()
+            .foregroundColor(nil)
+            .font(.body)
+        }
+        .safeAreaInset(edge: .bottom) {
             VStack(spacing: 24) {
                 Button(action: save) {
                     Text("Save").frame(maxWidth: .infinity)
@@ -120,11 +139,8 @@ struct NewToWatchSuggestionView: View {
                 }
                 .buttonStyle(.plain)
             }
+            .padding(.horizontal)
         }
-        .padding(.top)
-        .padding()
-        .foregroundColor(nil)
-        .font(.body)
         .onAppear {
             if let toWatchSuggestion = toWatchInfo?.suggestion {
                 suggestedByText = toWatchSuggestion.owner
