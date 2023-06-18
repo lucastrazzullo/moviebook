@@ -193,13 +193,41 @@ private struct ContentView: View {
     private func sort(lhs: WatchlistViewModel.Item, rhs: WatchlistViewModel.Item) -> Bool {
         switch sorting {
         case .lastAdded:
-            return true
+            return addedDate(for: lhs) > addedDate(for: rhs)
         case .rating:
-            return lhs.rating > rhs.rating
+            return rating(for: lhs) > rating(for: rhs)
         case .name:
-            return lhs.name > rhs.name
+            return name(for: lhs) > name(for: rhs)
         case .release:
-            return lhs.release > rhs.release
+            return releaseDate(for: lhs) > releaseDate(for: rhs)
+        }
+    }
+
+    private func rating(for item: WatchlistViewModel.Item) -> Float {
+        switch item {
+        case .movie(let movie, _, _, _):
+            return movie.details.rating.value
+        }
+    }
+
+    private func name(for item: WatchlistViewModel.Item) -> String {
+        switch item {
+        case .movie(let movie, _, _, _):
+            return movie.details.title
+        }
+    }
+
+    private func releaseDate(for item: WatchlistViewModel.Item) -> Date {
+        switch item {
+        case .movie(let movie, _, _, _):
+            return movie.details.release
+        }
+    }
+
+    private func addedDate(for item: WatchlistViewModel.Item) -> Date {
+        switch item {
+        case .movie(_, _, _, let addedDate):
+            return addedDate
         }
     }
 }
@@ -250,7 +278,7 @@ private struct WatchlistListView: View {
                     LazyVGrid(columns: [GridItem(spacing: 4), GridItem()], spacing: 4) {
                         ForEach(items) { item in
                             switch item {
-                            case .movie(let movie, _, let watchlistIdentifier):
+                            case .movie(let movie, _, let watchlistIdentifier, _):
                                 WatchlistItemView(
                                     presentedItem: $presentedItem,
                                     movie: movie,

@@ -65,47 +65,26 @@ import MoviebookCommons
     }
 
     enum Item: Identifiable, Equatable {
-        case movie(movie: Movie, section: Section, watchlistIdentifier: WatchlistItemIdentifier)
+        case movie(movie: Movie, section: Section, watchlistIdentifier: WatchlistItemIdentifier, addedDate: Date)
 
         var id: String {
             switch self {
-            case .movie(let movie, let section, _):
+            case .movie(let movie, let section, _, _):
                 return "\(movie.id): \(section.name)"
             }
         }
 
         var section: Section {
             switch self {
-            case .movie(_, let section, _):
+            case .movie(_, let section, _, _):
                 return section
             }
         }
 
         var watchlistIdentifier: WatchlistItemIdentifier {
             switch self {
-            case .movie(_, _, let watchlistIdentifier):
+            case .movie(_, _, let watchlistIdentifier, _):
                 return watchlistIdentifier
-            }
-        }
-
-        var rating: Float {
-            switch self {
-            case .movie(let movie, _, _):
-                return movie.details.rating.value
-            }
-        }
-
-        var name: String {
-            switch self {
-            case .movie(let movie, _, _):
-                return movie.details.title
-            }
-        }
-
-        var release: Date {
-            switch self {
-            case .movie(let movie, _, _):
-                return movie.details.release
             }
         }
     }
@@ -123,14 +102,14 @@ import MoviebookCommons
         watchlist.$items
             .removeDuplicates()
             .sink { [weak self, weak requestManager] items in
-                var itemIdentifiers = [WatchlistItemIdentifier]()
+                var result = [WatchlistItem]()
 
-                for item in items.sorted(by: { lhs, rhs in lhs.date > rhs.date }) {
+                for item in items {
                     switch (item.state, section) {
                     case (.toWatch, .toWatch):
-                        itemIdentifiers.append(item.id)
+                        result.append(item)
                     case (.watched, .watched):
-                        itemIdentifiers.append(item.id)
+                        result.append(item)
                     default:
                         continue
                     }
@@ -138,7 +117,7 @@ import MoviebookCommons
 
                 if let requestManager {
                     Task {
-                        try await self?.set(identifiers: itemIdentifiers, section: section, requestManager: requestManager)
+                        try await self?.set(items: result, section: section, requestManager: requestManager)
                         self?.isLoading = false
                     }
                 }
@@ -146,34 +125,27 @@ import MoviebookCommons
             .store(in: &subscriptions)
     }
 
-    private func set(identifiers: [WatchlistItemIdentifier], section: Section, requestManager: RequestManager) async throws {
-        items = try await withThrowingTaskGroup(of: Item.self) { group in
-            var result = [WatchlistItemIdentifier: Item]()
-            result.reserveCapacity(identifiers.count)
+    private func set(items: [WatchlistItem], section: Section, requestManager: RequestManager) async throws {
+        self.items = try await withThrowingTaskGroup(of: Item.self) { group in
+            var result = [Item]()
+            result.reserveCapacity(items.count)
 
-            for identifier in identifiers {
+            for item in items {
                 group.addTask {
-                    switch identifier {
+                    switch item.id {
                     case .movie(let id):
                         let webService = MovieWebService(requestManager: requestManager)
                         let movie = try await webService.fetchMovie(with: id)
-                        return Item.movie(movie: movie, section: section, watchlistIdentifier: identifier)
+                        return Item.movie(movie: movie, section: section, watchlistIdentifier: item.id, addedDate: item.date)
                     }
                 }
             }
 
             for try await item in group {
-                result[item.watchlistIdentifier] = item
+                result.append(item)
             }
 
-            var items = [Item]()
-            for identifier in identifiers {
-                if let item = result[identifier] {
-                    items.append(item)
-                }
-            }
-
-            return items
+            return result
         }
     }
 }
