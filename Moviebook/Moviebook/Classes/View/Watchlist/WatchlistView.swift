@@ -20,6 +20,9 @@ struct WatchlistView: View {
     @State private var shouldShowTopBar: Bool = false
     @State private var shouldShowBottomBar: Bool = false
 
+    @State private var topBarHeight: CGFloat = 0
+    @State private var bottomBarHeight: CGFloat = 0
+
     @State private var presentedItemNavigationPath = NavigationPath()
     @State private var presentedItem: NavigationItem? = nil
 
@@ -33,7 +36,9 @@ struct WatchlistView: View {
                         shouldShowTopBar: $shouldShowTopBar,
                         shouldShowBottomBar: $shouldShowBottomBar,
                         section: section,
-                        sorting: currentSorting
+                        sorting: currentSorting,
+                        topSpacing: topBarHeight,
+                        bottomSpacing: bottomBarHeight
                     )
                     .tag(section)
                 }
@@ -49,6 +54,9 @@ struct WatchlistView: View {
             )
             .padding()
             .background(.thinMaterial.opacity(shouldShowTopBar ? 1 : 0))
+            .background(GeometryReader { geometry in Color.clear.onAppear {
+                topBarHeight = geometry.size.height
+            }})
             .animation(.easeOut(duration: 0.12), value: shouldShowTopBar)
         }
         .safeAreaInset(edge: .bottom) {
@@ -58,6 +66,9 @@ struct WatchlistView: View {
             )
             .padding()
             .background(.thinMaterial.opacity(shouldShowBottomBar ? 1 : 0))
+            .background(GeometryReader { geometry in Color.clear.onAppear {
+                bottomBarHeight = geometry.size.height
+            }})
             .animation(.easeOut(duration: 0.12), value: shouldShowBottomBar)
         }
         .sheet(item: $presentedItem) { item in
@@ -137,6 +148,9 @@ private struct ContentView: View {
     let section: WatchlistViewModel.Section
     let sorting: WatchlistViewModel.Sorting
 
+    let topSpacing: CGFloat
+    let bottomSpacing: CGFloat
+
     var body: some View {
         Group {
             if viewModel.isLoading {
@@ -146,7 +160,9 @@ private struct ContentView: View {
                     shouldShowBackground: $shouldShowBackground,
                     shouldShowTopBar: $shouldShowTopBar,
                     shouldShowBottomBar: $shouldShowBottomBar,
-                    section: section
+                    section: section,
+                    topSpacing: topSpacing,
+                    bottomSpacing: bottomSpacing
                 )
             } else {
                 WatchlistListView(
@@ -155,7 +171,9 @@ private struct ContentView: View {
                     shouldShowTopBar: $shouldShowTopBar,
                     shouldShowBottomBar: $shouldShowBottomBar,
                     section: section,
-                    items: viewModel.items.sorted(by: sort(lhs:rhs:))
+                    items: viewModel.items.sorted(by: sort(lhs:rhs:)),
+                    topSpacing: topSpacing,
+                    bottomSpacing: bottomSpacing
                 )
             }
         }
@@ -185,21 +203,18 @@ private struct WatchlistEmptyListView: View {
     @Binding var shouldShowBottomBar: Bool
 
     let section: WatchlistViewModel.Section
+    let topSpacing: CGFloat
+    let bottomSpacing: CGFloat
 
     var body: some View {
-        GeometryReader { geometry in
-            let topSpacing = geometry.safeAreaInsets.top - 4
-            let bottomSpacing = geometry.safeAreaInsets.bottom + 32
-
-            EmptyWatchlistView(section: section)
-                .padding(.top, topSpacing)
-                .padding(.bottom, bottomSpacing)
-                .onAppear {
-                    shouldShowTopBar = true
-                    shouldShowBottomBar = true
-                    shouldShowBackground = true
-                }
-        }
+        EmptyWatchlistView(section: section)
+            .padding(.top, topSpacing)
+            .padding(.bottom, bottomSpacing)
+            .onAppear {
+                shouldShowTopBar = true
+                shouldShowBottomBar = true
+                shouldShowBackground = true
+            }
     }
 }
 
@@ -215,12 +230,11 @@ private struct WatchlistListView: View {
 
     let section: WatchlistViewModel.Section
     let items: [WatchlistViewModel.Item]
+    let topSpacing: CGFloat
+    let bottomSpacing: CGFloat
 
     var body: some View {
         GeometryReader { geometry in
-            let topSpacing = geometry.safeAreaInsets.top + 12
-            let bottomSpacing = geometry.safeAreaInsets.bottom + 32
-
             ObservableScrollView(scrollContent: $scrollContent, showsIndicators: false) { _ in
                 VStack(spacing: 0) {
                     Spacer().frame(height: topSpacing)
