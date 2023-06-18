@@ -11,9 +11,11 @@ import MoviebookCommons
 struct NewWatchedRatingView: View {
 
     @Environment(\.presentationMode) var presentationMode
+    @Environment(\.requestManager) var requestManager
 
     @EnvironmentObject var watchlist: Watchlist
 
+    @State private var title: String?
     @State private var rating: Double = 6
 
     let itemIdentifier: WatchlistItemIdentifier
@@ -32,54 +34,69 @@ struct NewWatchedRatingView: View {
     }
 
     var body: some View {
-        VStack {
-            Text("Add your rating")
-                .font(.title)
+        VStack(spacing: 44) {
+            if let title {
+                VStack {
+                    Text("Add your rating")
+                    Text(title).bold()
+                }
+                .multilineTextAlignment(.center)
+                .font(.title2)
+                .frame(maxWidth: 300)
+            }
 
-            Form {
-                if let toWatchSuggestion = toWatchInfo?.suggestion {
-                    HStack(alignment: .top, spacing: 8) {
-                        Image(systemName: "quote.opening").font(.title)
-                            .foregroundColor(.accentColor)
-
-                        VStack(alignment: .leading, spacing: 24) {
-                            VStack(alignment: .leading, spacing: 8) {
-                                HStack(spacing: 4) {
-                                    Text("Suggested by")
-                                    Text(toWatchSuggestion.owner).bold()
-                                }
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-
-                                Text(toWatchSuggestion.comment ?? "")
-                                    .fixedSize(horizontal: false, vertical: true)
-                                    .font(.body)
-                            }
+            if let toWatchSuggestion = toWatchInfo?.suggestion {
+                VStack(alignment: .leading, spacing: 24) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack(spacing: 4) {
+                            Text("Suggested by")
+                            Text(toWatchSuggestion.owner).bold()
                         }
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
 
-                        Spacer()
+                        Text(toWatchSuggestion.comment ?? "")
+                            .fixedSize(horizontal: false, vertical: true)
+                            .font(.body)
                     }
-                } else {
-                    EmptyView()
+                }
+                .padding(18)
+                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 24))
+                .overlay(alignment: .topLeading) {
+                    Image(systemName: "quote.opening")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding(8)
+                        .background(Color.accentColor, in: Capsule())
+                        .offset(x: -18, y: -14)
+                }
+            } else {
+                EmptyView()
+            }
+
+            HStack(spacing: 24) {
+                Button(action: { rating = max(0, rating - 0.5) }) {
+                    WatermarkView {
+                        Image(systemName: "minus")
+                    }
                 }
 
-                Section() {
-                    VStack(spacing: 32) {
-                        CircularRatingView(rating: rating, label: "Your vote", style: .prominent)
-                            .frame(height: 200)
-                            .animation(.default, value: rating)
+                CircularRatingView(rating: rating, label: "Your vote", style: .prominent)
+                    .frame(height: 200)
+                    .animation(.default, value: rating)
 
-                        Slider(value: $rating, in: 0...CircularRatingView.ratingQuota, step: 0.5)
+                Button(action: { rating = min(CircularRatingView.ratingQuota, rating + 0.5) }) {
+                    WatermarkView {
+                        Image(systemName: "plus")
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
 
             VStack(spacing: 24) {
                 Button(action: save) {
                     Text("Save").frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(OvalButtonStyle())
 
                 Button(action: dismiss) {
                     Text("Cancel")
@@ -98,6 +115,14 @@ struct NewWatchedRatingView: View {
 
             if case .watched(let info) = watchlistState, let rating = info.rating {
                 self.rating = rating
+            }
+        }
+        .task {
+            switch itemIdentifier {
+            case .movie(let id):
+                let webService = MovieWebService(requestManager: requestManager)
+                let movie = try? await webService.fetchMovie(with: id)
+                title = movie?.details.title
             }
         }
     }
