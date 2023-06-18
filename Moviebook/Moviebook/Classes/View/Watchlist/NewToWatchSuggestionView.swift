@@ -69,31 +69,34 @@ struct NewToWatchSuggestionView: View {
     }
 
     var body: some View {
-        VStack {
-            VStack {
-                Text("Why do you want to watch")
-                if let title {
+        VStack(spacing: 44) {
+            if let title {
+                VStack {
+                    Text("Why do you want to watch")
                     Text(title).bold()
                 }
+                .multilineTextAlignment(.center)
+                .font(.title2)
+                .frame(maxWidth: 300)
             }
-            .font(.title)
 
-            Form {
+            VStack(spacing: 24) {
                 VStack(alignment: .leading) {
-                    TextField("Suggested by", text: $suggestedByText)
-                        .textFieldStyle(.roundedBorder)
+                    TextField("Suggested by (required)", text: $suggestedByText)
+                        .textFieldStyle(OvalTextFieldStyle())
                         .onSubmit(save)
 
                     if let error = suggestedByError {
                         Text(error.description)
                             .font(.caption)
                             .foregroundColor(.red)
+                            .padding(.horizontal, 22)
                     }
                 }
 
                 VStack(alignment: .leading) {
                     TextField("Comment", text: $commentText, axis: .vertical)
-                        .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(OvalTextFieldStyle())
                         .lineLimit(10, reservesSpace: true)
                         .onSubmit(save)
 
@@ -101,16 +104,16 @@ struct NewToWatchSuggestionView: View {
                         Text(error.description)
                             .font(.caption)
                             .foregroundColor(.red)
+                            .padding(.horizontal, 22)
                     }
                 }
             }
-            .scrollContentBackground(.hidden)
 
             VStack(spacing: 24) {
                 Button(action: save) {
                     Text("Save").frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(OvalButtonStyle())
 
                 Button(action: dismiss) {
                     Text("Cancel")
