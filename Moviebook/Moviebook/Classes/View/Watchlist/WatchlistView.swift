@@ -338,7 +338,7 @@ private struct WatchlistItemView: View {
                         Image(systemName: "ellipsis")
                     }
                 }
-                .padding(4)
+                .padding(12)
             }
         }
     }
