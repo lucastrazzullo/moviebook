@@ -16,7 +16,6 @@ struct WatchlistView: View {
     @AppStorage("watchlistSection") private var currentSection: WatchlistViewModel.Section = .toWatch
     @AppStorage("watchlistSorting") private var currentSorting: WatchlistViewModel.Sorting = .lastAdded
 
-    @State private var shouldShowBackground: Bool = false
     @State private var shouldShowTopBar: Bool = false
     @State private var shouldShowBottomBar: Bool = false
 
@@ -32,7 +31,6 @@ struct WatchlistView: View {
                 ForEach(WatchlistViewModel.Section.allCases) { section in
                     ContentView(
                         presentedItem: $presentedItem,
-                        shouldShowBackground: $shouldShowBackground,
                         shouldShowTopBar: $shouldShowTopBar,
                         shouldShowBottomBar: $shouldShowBottomBar,
                         section: section,
@@ -46,7 +44,6 @@ struct WatchlistView: View {
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
         .ignoresSafeArea()
-        .background(.thinMaterial.opacity(shouldShowBackground ? 1 : 0))
         .background(GeometryReader { geometry in
             Color.clear
                 .onAppear {
@@ -149,7 +146,6 @@ private struct ContentView: View {
     @StateObject private var viewModel: WatchlistViewModel = WatchlistViewModel()
     @Binding var presentedItem: NavigationItem?
 
-    @Binding var shouldShowBackground: Bool
     @Binding var shouldShowTopBar: Bool
     @Binding var shouldShowBottomBar: Bool
 
@@ -165,7 +161,6 @@ private struct ContentView: View {
                 LoaderView()
             } else if viewModel.items.isEmpty {
                 WatchlistEmptyListView(
-                    shouldShowBackground: $shouldShowBackground,
                     shouldShowTopBar: $shouldShowTopBar,
                     shouldShowBottomBar: $shouldShowBottomBar,
                     section: section,
@@ -175,7 +170,6 @@ private struct ContentView: View {
             } else {
                 WatchlistListView(
                     presentedItem: $presentedItem,
-                    shouldShowBackground: $shouldShowBackground,
                     shouldShowTopBar: $shouldShowTopBar,
                     shouldShowBottomBar: $shouldShowBottomBar,
                     section: section,
@@ -234,7 +228,6 @@ private struct ContentView: View {
 
 private struct WatchlistEmptyListView: View {
 
-    @Binding var shouldShowBackground: Bool
     @Binding var shouldShowTopBar: Bool
     @Binding var shouldShowBottomBar: Bool
 
@@ -244,12 +237,11 @@ private struct WatchlistEmptyListView: View {
 
     var body: some View {
         EmptyWatchlistView(section: section)
-            .padding(.top, topSpacing)
-            .padding(.bottom, bottomSpacing)
+            .padding(.top, topSpacing - 20)
+            .padding(.bottom, bottomSpacing / 2)
             .onAppear {
                 shouldShowTopBar = true
                 shouldShowBottomBar = true
-                shouldShowBackground = true
             }
     }
 }
@@ -260,7 +252,6 @@ private struct WatchlistListView: View {
 
     @Binding var presentedItem: NavigationItem?
 
-    @Binding var shouldShowBackground: Bool
     @Binding var shouldShowTopBar: Bool
     @Binding var shouldShowBottomBar: Bool
 
@@ -299,9 +290,6 @@ private struct WatchlistListView: View {
                 }
                 .onChange(of: geometry.safeAreaInsets) { _ in
                     updateShouldShowBars(geometry: geometry)
-                }
-                .onAppear {
-                    shouldShowBackground = false
                 }
             }
         }
