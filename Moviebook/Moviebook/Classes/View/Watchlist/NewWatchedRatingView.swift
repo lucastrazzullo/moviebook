@@ -35,9 +35,18 @@ struct NewWatchedRatingView: View {
     }
 
     var body: some View {
-        VStack(spacing: 44) {
-            if let title, let imageUrl {
-                VStack {
+        ZStack {
+            if let imageUrl {
+                RemoteImage(
+                    url: imageUrl,
+                    content: { image in image.resizable().aspectRatio(contentMode: .fill) },
+                    placeholder: { Color.clear }
+                )
+                .overlay(.regularMaterial)
+            }
+
+            VStack(spacing: 44) {
+                if let title {
                     VStack {
                         Text("Add your rating")
                         Text(title).bold()
@@ -45,18 +54,9 @@ struct NewWatchedRatingView: View {
                     .multilineTextAlignment(.center)
                     .font(.title2)
                     .frame(maxWidth: 300)
-
-                    RemoteImage(
-                        url: imageUrl,
-                        content: { image in image.resizable().aspectRatio(contentMode: .fit) },
-                        placeholder: { Color.clear }
-                    )
-                    .cornerRadius(12)
                 }
-            }
 
-            if let toWatchSuggestion = toWatchInfo?.suggestion {
-                VStack(alignment: .leading, spacing: 24) {
+                if let toWatchSuggestion = toWatchInfo?.suggestion {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack(spacing: 4) {
                             Text("Suggested by")
@@ -71,39 +71,42 @@ struct NewWatchedRatingView: View {
                                 .font(.body)
                         }
                     }
-                }
-                .padding(18)
-                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 24))
-                .overlay(alignment: .topLeading) {
-                    Image(systemName: "quote.opening")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding(8)
-                        .background(Color.accentColor, in: Capsule())
-                        .offset(x: -18, y: -14)
-                }
-            } else {
-                EmptyView()
-            }
-
-            HStack(spacing: 24) {
-                Button(action: { rating = max(0, rating - 0.5) }) {
-                    WatermarkView {
-                        Image(systemName: "minus")
+                    .padding(18)
+                    .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24))
+                    .overlay(alignment: .topLeading) {
+                        Image(systemName: "quote.opening")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .padding(8)
+                            .background(Color.accentColor, in: Capsule())
+                            .offset(x: -18, y: -14)
                     }
                 }
 
-                CircularRatingView(rating: rating, label: "Your vote", style: .prominent)
-                    .frame(height: 200)
-                    .animation(.default, value: rating)
+                HStack(spacing: 24) {
+                    Button(action: { rating = max(0, rating - 0.5) }) {
+                        WatermarkView {
+                            Image(systemName: "minus")
+                        }
+                    }
 
-                Button(action: { rating = min(CircularRatingView.ratingQuota, rating + 0.5) }) {
-                    WatermarkView {
-                        Image(systemName: "plus")
+                    CircularRatingView(rating: rating, label: "Your vote", style: .prominent)
+                        .frame(height: 200)
+                        .animation(.default, value: rating)
+
+                    Button(action: { rating = min(CircularRatingView.ratingQuota, rating + 0.5) }) {
+                        WatermarkView {
+                            Image(systemName: "plus")
+                        }
                     }
                 }
             }
-
+            .padding(.top)
+            .padding()
+            .foregroundColor(nil)
+            .font(.body)
+        }
+        .safeAreaInset(edge: .bottom) {
             VStack(spacing: 24) {
                 Button(action: save) {
                     Text("Save").frame(maxWidth: .infinity)
@@ -115,11 +118,8 @@ struct NewWatchedRatingView: View {
                 }
                 .buttonStyle(.plain)
             }
+            .padding(.horizontal)
         }
-        .padding(.top)
-        .padding()
-        .foregroundColor(nil)
-        .font(.body)
         .onAppear {
             guard let watchlistState = watchlist.itemState(id: itemIdentifier) else {
                 return
@@ -135,7 +135,7 @@ struct NewWatchedRatingView: View {
                 let webService = MovieWebService(requestManager: requestManager)
                 let movie = try? await webService.fetchMovie(with: id)
                 title = movie?.details.title
-                imageUrl = movie?.details.media.backdropPreviewUrl
+                imageUrl = movie?.details.media.posterPreviewUrl
             }
         }
     }
