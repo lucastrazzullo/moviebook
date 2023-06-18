@@ -24,7 +24,7 @@ struct CircularRatingView: View {
         ZStack {
             Circle()
                 .stroke(style: .init(lineWidth: strokeWidth, lineCap: .round))
-                .foregroundColor(.white.opacity(0.2))
+                .foregroundStyle(.ultraThinMaterial)
 
             Circle()
                 .trim(from: 0.0, to: rating / Self.ratingQuota)
