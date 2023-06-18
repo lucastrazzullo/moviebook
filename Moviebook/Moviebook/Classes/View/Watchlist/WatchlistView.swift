@@ -318,7 +318,7 @@ private struct WatchlistItemView: View {
                     .padding(6)
                     .background(.yellow, in: RoundedRectangle(cornerRadius: 6))
                     .foregroundColor(.black)
-                    .padding(4)
+                    .padding(.leading, 12)
                 }
 
                 Spacer()
