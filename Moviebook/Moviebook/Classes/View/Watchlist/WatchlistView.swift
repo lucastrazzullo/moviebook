@@ -47,6 +47,15 @@ struct WatchlistView: View {
         .tabViewStyle(.page(indexDisplayMode: .never))
         .ignoresSafeArea()
         .background(.thinMaterial.opacity(shouldShowBackground ? 1 : 0))
+        .background(GeometryReader { geometry in
+            Color.clear
+                .onAppear {
+                    setBarsHeight(safeAreaInsets: geometry.safeAreaInsets)
+                }
+                .onChange(of: geometry.safeAreaInsets) { safeAreaInsets in
+                    setBarsHeight(safeAreaInsets: safeAreaInsets)
+                }
+        })
         .watchlistPrompt(duration: 5)
         .safeAreaInset(edge: .top) {
             TopbarView(
@@ -54,9 +63,6 @@ struct WatchlistView: View {
             )
             .padding()
             .background(.thinMaterial.opacity(shouldShowTopBar ? 1 : 0))
-            .background(GeometryReader { geometry in Color.clear.onAppear {
-                topBarHeight = geometry.size.height
-            }})
             .animation(.easeOut(duration: 0.12), value: shouldShowTopBar)
         }
         .safeAreaInset(edge: .bottom) {
@@ -66,14 +72,16 @@ struct WatchlistView: View {
             )
             .padding()
             .background(.thinMaterial.opacity(shouldShowBottomBar ? 1 : 0))
-            .background(GeometryReader { geometry in Color.clear.onAppear {
-                bottomBarHeight = geometry.size.height
-            }})
             .animation(.easeOut(duration: 0.12), value: shouldShowBottomBar)
         }
         .sheet(item: $presentedItem) { item in
             Navigation(path: $presentedItemNavigationPath, presentingItem: item)
         }
+    }
+
+    private func setBarsHeight(safeAreaInsets: EdgeInsets) {
+        topBarHeight = safeAreaInsets.top / 2 + 20
+        bottomBarHeight = safeAreaInsets.bottom
     }
 }
 
@@ -259,14 +267,21 @@ private struct WatchlistListView: View {
                 }
                 .animation(.default, value: items)
                 .onChange(of: scrollContent) { info in
-                    shouldShowTopBar = info.offset > 0
-                    shouldShowBottomBar = -(info.offset - info.height) > geometry.size.height
+                    updateShouldShowBars(geometry: geometry)
+                }
+                .onChange(of: geometry.safeAreaInsets) { _ in
+                    updateShouldShowBars(geometry: geometry)
                 }
                 .onAppear {
                     shouldShowBackground = false
                 }
             }
         }
+    }
+
+    private func updateShouldShowBars(geometry: GeometryProxy) {
+        shouldShowTopBar = scrollContent.offset > 0
+        shouldShowBottomBar = -(scrollContent.offset - scrollContent.height) > geometry.size.height + 20
     }
 }
 
