@@ -16,6 +16,7 @@ struct NewWatchedRatingView: View {
     @EnvironmentObject var watchlist: Watchlist
 
     @State private var title: String?
+    @State private var imageUrl: URL?
     @State private var rating: Double = 6
 
     let itemIdentifier: WatchlistItemIdentifier
@@ -35,14 +36,23 @@ struct NewWatchedRatingView: View {
 
     var body: some View {
         VStack(spacing: 44) {
-            if let title {
+            if let title, let imageUrl {
                 VStack {
-                    Text("Add your rating")
-                    Text(title).bold()
+                    VStack {
+                        Text("Add your rating")
+                        Text(title).bold()
+                    }
+                    .multilineTextAlignment(.center)
+                    .font(.title2)
+                    .frame(maxWidth: 300)
+
+                    RemoteImage(
+                        url: imageUrl,
+                        content: { image in image.resizable().aspectRatio(contentMode: .fit) },
+                        placeholder: { Color.clear }
+                    )
+                    .cornerRadius(12)
                 }
-                .multilineTextAlignment(.center)
-                .font(.title2)
-                .frame(maxWidth: 300)
             }
 
             if let toWatchSuggestion = toWatchInfo?.suggestion {
@@ -55,9 +65,11 @@ struct NewWatchedRatingView: View {
                         .font(.subheadline)
                         .foregroundColor(.secondary)
 
-                        Text(toWatchSuggestion.comment ?? "")
-                            .fixedSize(horizontal: false, vertical: true)
-                            .font(.body)
+                        if let comment = toWatchSuggestion.comment {
+                            Text(comment)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .font(.body)
+                        }
                     }
                 }
                 .padding(18)
@@ -123,6 +135,7 @@ struct NewWatchedRatingView: View {
                 let webService = MovieWebService(requestManager: requestManager)
                 let movie = try? await webService.fetchMovie(with: id)
                 title = movie?.details.title
+                imageUrl = movie?.details.media.backdropPreviewUrl
             }
         }
     }
