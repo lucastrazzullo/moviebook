@@ -15,10 +15,14 @@ import MoviebookCommons
     @Published var error: Error?
 
     private let storage: Storage = Storage()
+    private var notifications: Notifications?
 
     func start(requestManager: RequestManager) async {
         do {
-            self.watchlist = try await storage.loadWatchlist(requestManager: requestManager)
+            let watchlist = try await storage.loadWatchlist(requestManager: requestManager)
+
+            self.watchlist = watchlist
+            self.notifications = Notifications(watchlist: watchlist, requestManager: requestManager)
         } catch {
             self.error = error
         }
