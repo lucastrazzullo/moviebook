@@ -191,9 +191,9 @@ private struct ContentView: View {
         case .rating:
             return rating(for: lhs) > rating(for: rhs)
         case .name:
-            return name(for: lhs) > name(for: rhs)
+            return name(for: lhs) < name(for: rhs)
         case .release:
-            return releaseDate(for: lhs) > releaseDate(for: rhs)
+            return releaseDate(for: lhs) < releaseDate(for: rhs)
         }
     }
 
