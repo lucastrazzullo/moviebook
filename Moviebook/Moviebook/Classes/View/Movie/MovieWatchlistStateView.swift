@@ -129,17 +129,17 @@ private struct InWatchlistView: View {
         VStack(alignment: .center, spacing: 24) {
             VStack(spacing: 12) {
                 HStack(alignment: .firstTextBaseline) {
-                    WatchlistIcon(state: .toWatch)
+                    Image(systemName: WatchlistViewState.toWatch.icon)
                     Text("Watchlist")
                 }
                 .font(.title)
-                
+
                 Text("This movie is in your watchlist")
             }
 
             VStack(spacing: 12) {
                 Button(action: { watchlist.update(state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: info, rating: nil, date: .now)), forItemWith: .movie(id: movieId)) }) {
-                    WatchlistIcon(state: .watched)
+                    Image(systemName: WatchlistViewState.watched.icon)
                     Text("Mark as watched").font(.headline)
                 }
                 .buttonStyle(.borderedProminent)
@@ -177,9 +177,9 @@ private struct AddToWatchlistView: View {
             VStack(spacing: 16) {
                 Button(action: { watchlist.update(state: .toWatch(info: .init(date: .now, suggestion: nil)), forItemWith: .movie(id: movieId)) }) {
                     HStack {
-                        WatchlistIcon(state: .toWatch)
+                        Image(systemName: WatchlistViewState.toWatch.icon)
                         Text("Add to watchlist").font(.headline)
-                        WatchlistIcon(state: .none)
+                        Image(systemName: WatchlistViewState.none.icon)
                     }
                     .font(.title)
                 }
@@ -187,7 +187,7 @@ private struct AddToWatchlistView: View {
 
                 Button(action: { watchlist.update(state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: .init(date: .now, suggestion: nil), rating: nil, date: .now)), forItemWith: .movie(id: movieId)) }) {
                     HStack {
-                        WatchlistIcon(state: .watched)
+                        Image(systemName: WatchlistViewState.watched.icon)
                         Text("Mark as watched").underline()
                     }
                 }

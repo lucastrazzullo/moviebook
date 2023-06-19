@@ -65,26 +65,26 @@ import MoviebookCommons
     }
 
     enum Item: Identifiable, Equatable {
-        case movie(movie: Movie, section: Section, watchlistIdentifier: WatchlistItemIdentifier, addedDate: Date)
+        case movie(movie: Movie, section: Section, watchlistItem: WatchlistItem)
 
         var id: String {
             switch self {
-            case .movie(let movie, let section, _, _):
+            case .movie(let movie, let section, _):
                 return "\(movie.id): \(section.name)"
             }
         }
 
         var section: Section {
             switch self {
-            case .movie(_, let section, _, _):
+            case .movie(_, let section, _):
                 return section
             }
         }
 
-        var watchlistIdentifier: WatchlistItemIdentifier {
+        var watchlistItem: WatchlistItem {
             switch self {
-            case .movie(_, _, let watchlistIdentifier, _):
-                return watchlistIdentifier
+            case .movie(_, _, let watchlistItem):
+                return watchlistItem
             }
         }
     }
@@ -136,7 +136,7 @@ import MoviebookCommons
                     case .movie(let id):
                         let webService = MovieWebService(requestManager: requestManager)
                         let movie = try await webService.fetchMovie(with: id)
-                        return Item.movie(movie: movie, section: section, watchlistIdentifier: item.id, addedDate: item.date)
+                        return Item.movie(movie: movie, section: section, watchlistItem: item)
                     }
                 }
             }

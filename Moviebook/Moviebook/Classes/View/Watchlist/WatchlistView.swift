@@ -199,29 +199,34 @@ private struct ContentView: View {
 
     private func rating(for item: WatchlistViewModel.Item) -> Float {
         switch item {
-        case .movie(let movie, _, _, _):
-            return movie.details.rating.value
+        case .movie(let movie, _, let watchlistItem):
+            switch watchlistItem.state {
+            case .toWatch:
+                return movie.details.rating.value
+            case .watched(let info):
+                return Float(info.rating ?? 0)
+            }
         }
     }
 
     private func name(for item: WatchlistViewModel.Item) -> String {
         switch item {
-        case .movie(let movie, _, _, _):
+        case .movie(let movie, _, _):
             return movie.details.title
         }
     }
 
     private func releaseDate(for item: WatchlistViewModel.Item) -> Date {
         switch item {
-        case .movie(let movie, _, _, _):
+        case .movie(let movie, _, _):
             return movie.details.release
         }
     }
 
     private func addedDate(for item: WatchlistViewModel.Item) -> Date {
         switch item {
-        case .movie(_, _, _, let addedDate):
-            return addedDate
+        case .movie(_, _, let watchlistItem):
+            return watchlistItem.date
         }
     }
 }
@@ -269,11 +274,11 @@ private struct WatchlistListView: View {
                     LazyVGrid(columns: [GridItem(spacing: 4), GridItem()], spacing: 4) {
                         ForEach(items) { item in
                             switch item {
-                            case .movie(let movie, _, let watchlistIdentifier, _):
+                            case .movie(let movie, _, let watchlistItem):
                                 WatchlistItemView(
                                     presentedItem: $presentedItem,
                                     movie: movie,
-                                    watchlistIdentifier: watchlistIdentifier
+                                    watchlistIdentifier: watchlistItem.id
                                 )
                                 .id(item.id)
                                 .transition(.opacity)
@@ -351,7 +356,7 @@ private struct WatchlistItemView: View {
                     }
                 } label: {
                     WatermarkView {
-                        Image(systemName: "ellipsis")
+                        WatchlistIcon(itemState: watchlist.itemState(id: watchlistIdentifier))
                     }
                 }
                 .padding(12)
