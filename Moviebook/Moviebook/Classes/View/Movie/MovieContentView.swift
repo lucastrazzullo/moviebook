@@ -123,7 +123,7 @@ private struct HeaderView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
                 .tint(.black)
-                .background(RoundedRectangle(cornerRadius: 24).fill(.yellow))
+                .background(.yellow, in: RoundedRectangle(cornerRadius: 24))
             }
         }
         .padding(.horizontal)

@@ -46,7 +46,8 @@ struct SpecsView: View {
                                             Text(date, style: .date).bold()
                                         }
                                         .padding(4)
-                                        .background(RoundedRectangle(cornerRadius: 6).fill(.yellow))
+                                        .background(.yellow, in: RoundedRectangle(cornerRadius: 6))
+                                        .foregroundColor(.black)
                                     } else {
                                         Text(date, style: .date)
                                     }
