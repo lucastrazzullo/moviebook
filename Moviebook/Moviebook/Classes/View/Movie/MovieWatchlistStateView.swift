@@ -31,10 +31,9 @@ struct MovieWatchlistStateView: View {
                 AddToWatchlistView(movieId: movieId)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .background(RoundedRectangle(cornerRadius: 8).stroke(.orange))
+        .frame(maxWidth: .infinity, alignment: .center)
         .background(.thinMaterial)
+        .cornerRadius(24)
         .sheet(item: $presentedItem) { item in
             NavigationDestination(navigationPath: $presentedItemNavigationPath, item: item)
         }
@@ -60,11 +59,12 @@ private struct WatchedView: View {
     let info: WatchlistItemWatchedInfo
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: -12) {
             HStack(alignment: .top, spacing: 8) {
                 if let rating = info.rating {
                     CircularRatingView(rating: rating, label: "Your vote", style: .prominent)
                         .frame(height: 150)
+                        .padding(.leading, 8)
                 } else {
                     Button(action: { presentedItem = .watchlistAddRating(itemIdentifier: .movie(id: movieId)) }) {
                         HStack {
@@ -87,6 +87,7 @@ private struct WatchedView: View {
             }
             .foregroundColor(.white)
             .padding()
+            .padding(.bottom, info.toWatchInfo.suggestion == nil ? 0 : 12)
             .background(.ultraThinMaterial.opacity(0.6))
             .background(Color.accentColor.opacity(0.2))
             .background(ZStack {
@@ -130,12 +131,13 @@ private struct InWatchlistView: View {
             VStack(spacing: 12) {
                 HStack(alignment: .firstTextBaseline) {
                     Image(systemName: WatchlistViewState.toWatch.icon)
-                    Text("Watchlist")
+                    Text("In watchlist")
                 }
                 .font(.title)
 
                 Text("This movie is in your watchlist")
             }
+            .padding(.top)
 
             VStack(spacing: 12) {
                 Button(action: { watchlist.update(state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: info, rating: nil, date: .now)), forItemWith: .movie(id: movieId)) }) {
@@ -154,15 +156,15 @@ private struct InWatchlistView: View {
                 } else {
                     Button(action: { presentedItem = .watchlistAddToWatchReason(itemIdentifier: .movie(id: movieId)) }) {
                         HStack {
-                            Image(systemName: "quote.opening")
-                            Text("Add suggestion").underline()
+                            Image(systemName: "plus")
+                            Text("Add info").underline()
                         }
                     }
                     .buttonStyle(.plain)
+                    .padding(.bottom)
                 }
             }
         }
-        .frame(maxWidth: .infinity)
     }
 }
 
@@ -174,11 +176,14 @@ private struct AddToWatchlistView: View {
 
     var body: some View {
         VStack(alignment: .center, spacing: 24) {
+            Text("Add to your watchlist")
+                .font(.headline.bold())
+
             VStack(spacing: 16) {
                 Button(action: { watchlist.update(state: .toWatch(info: .init(date: .now, suggestion: nil)), forItemWith: .movie(id: movieId)) }) {
                     HStack {
                         Image(systemName: WatchlistViewState.toWatch.icon)
-                        Text("Add to watchlist").font(.headline)
+                        Text("I want to watch it").font(.headline)
                         Image(systemName: WatchlistViewState.none.icon)
                     }
                     .font(.title)
@@ -188,13 +193,13 @@ private struct AddToWatchlistView: View {
                 Button(action: { watchlist.update(state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: .init(date: .now, suggestion: nil), rating: nil, date: .now)), forItemWith: .movie(id: movieId)) }) {
                     HStack {
                         Image(systemName: WatchlistViewState.watched.icon)
-                        Text("Mark as watched").underline()
+                        Text("I watched it").underline()
                     }
                 }
                 .buttonStyle(.plain)
             }
         }
-        .frame(maxWidth: .infinity)
+        .padding()
     }
 }
 
@@ -213,25 +218,23 @@ private struct SuggestionView: View {
                 .foregroundColor(.accentColor)
 
             VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 4) {
-                    Text("Suggested by")
-                    Text(from).bold()
-                }
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+                Text("Suggested by \(from)")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
 
                 if let comment {
                     Text(comment).font(.body)
                 }
-
-                Button(action: { presentedItem = .watchlistAddToWatchReason(itemIdentifier: .movie(id: movieId)) }) {
-                    Text("Update").font(.caption2)
-                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
+
+            Button(action: { presentedItem = .watchlistAddToWatchReason(itemIdentifier: .movie(id: movieId)) }) {
+                Text("Update").font(.footnote)
+            }
+            .buttonStyle(.bordered)
         }
-        .padding(8)
-        .background(RoundedRectangle(cornerRadius: 12).foregroundStyle(.thinMaterial))
+        .padding()
+        .background(.ultraThinMaterial)
     }
 }
 
@@ -279,6 +282,20 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
         .environmentObject(Watchlist(items: [
             WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: .init(owner: "Valerio", comment: "This is really nice")))),
             WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: nil)))
+        ]))
+
+        MovieWatchlistStateView(
+            movieId: 954,
+            movieBackdropPreviewUrl: try? TheMovieDbImageRequestFactory.makeURL(
+                format: .backdrop(
+                    path: "/eDtsTxALld2gPw9lO1hQIJXqMHu.jpg",
+                    size: .preview
+                )
+            )
+        )
+        .padding(24)
+        .environmentObject(Watchlist(items: [
+            WatchlistItem(id: .movie(id: 954), state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: .init(date: .now, suggestion: nil), rating: nil, date: .now))),
         ]))
 
         MovieWatchlistStateView(
