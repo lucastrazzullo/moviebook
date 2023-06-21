@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		8111247A2A40EA9B009133C2 /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 811124792A40EA9B009133C2 /* Notifications.swift */; };
 		811124822A422287009133C2 /* NotificationViewModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 811124812A422287009133C2 /* NotificationViewModifier.swift */; };
+		811124832A43373D009133C2 /* Mocks in Resources */ = {isa = PBXBuildFile; fileRef = 814D46E828C23CED000D7ABD /* Mocks */; };
 		8112AF0329152F900041475D /* YouTubePlayerKit in Frameworks */ = {isa = PBXBuildFile; productRef = 8112AF0229152F900041475D /* YouTubePlayerKit */; };
 		8112AF0529152FA80041475D /* MovieVideoPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8112AF0429152FA80041475D /* MovieVideoPlayer.swift */; };
 		8112AF0729153EA60041475D /* WatermarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8112AF0629153EA60041475D /* WatermarkView.swift */; };
@@ -38,7 +39,7 @@
 		8152570629F6A03E00B05522 /* Navigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8152570529F6A03E00B05522 /* Navigation.swift */; };
 		8169FB1D28C204450054BCE6 /* MoviebookApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8169FB1C28C204450054BCE6 /* MoviebookApp.swift */; };
 		8169FB1F28C204450054BCE6 /* WatchlistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8169FB1E28C204450054BCE6 /* WatchlistView.swift */; };
-		8169FB3328C204450054BCE6 /* MoviebookTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8169FB3228C204450054BCE6 /* MoviebookTests.swift */; };
+		8169FB3328C204450054BCE6 /* NotificationsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8169FB3228C204450054BCE6 /* NotificationsTests.swift */; };
 		8169FB3D28C204450054BCE6 /* MoviebookUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8169FB3C28C204450054BCE6 /* MoviebookUITests.swift */; };
 		8169FB3F28C204450054BCE6 /* MoviebookUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8169FB3E28C204450054BCE6 /* MoviebookUITestsLaunchTests.swift */; };
 		8169FB5F28C20C420054BCE6 /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8169FB5E28C20C420054BCE6 /* ExploreView.swift */; };
@@ -207,7 +208,7 @@
 		8169FB2328C204450054BCE6 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		8169FB2828C204450054BCE6 /* Moviebook.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Moviebook.xcdatamodel; sourceTree = "<group>"; };
 		8169FB2E28C204450054BCE6 /* MoviebookTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MoviebookTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		8169FB3228C204450054BCE6 /* MoviebookTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviebookTests.swift; sourceTree = "<group>"; };
+		8169FB3228C204450054BCE6 /* NotificationsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationsTests.swift; sourceTree = "<group>"; };
 		8169FB3828C204450054BCE6 /* MoviebookUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MoviebookUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8169FB3C28C204450054BCE6 /* MoviebookUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviebookUITests.swift; sourceTree = "<group>"; };
 		8169FB3E28C204450054BCE6 /* MoviebookUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviebookUITestsLaunchTests.swift; sourceTree = "<group>"; };
@@ -479,7 +480,7 @@
 		8169FB3128C204450054BCE6 /* MoviebookTests */ = {
 			isa = PBXGroup;
 			children = (
-				8169FB3228C204450054BCE6 /* MoviebookTests.swift */,
+				8169FB3228C204450054BCE6 /* NotificationsTests.swift */,
 			);
 			path = MoviebookTests;
 			sourceTree = "<group>";
@@ -943,6 +944,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				811124832A43373D009133C2 /* Mocks in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1031,7 +1033,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8169FB3328C204450054BCE6 /* MoviebookTests.swift in Sources */,
+				8169FB3328C204450054BCE6 /* NotificationsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1331,7 +1333,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = UC9U5RZ8UF;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = it.lucastrazzullo.ios.MoviebookTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1351,7 +1353,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = UC9U5RZ8UF;
 				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.5;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = it.lucastrazzullo.ios.MoviebookTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";

@@ -15,6 +15,30 @@ protocol NotificationsDelegate: AnyObject, UNUserNotificationCenterDelegate {
     func shouldAuthorizeNotifications()
 }
 
+// MARK: Notification center
+
+protocol UserNotificationCenter: AnyObject {
+    var delegate: UNUserNotificationCenterDelegate? { get set }
+
+    @discardableResult
+    func requestAuthorization(options: UNAuthorizationOptions) async throws -> Bool
+    func getAuthorizationStatus() async -> UNAuthorizationStatus
+
+    func pendingNotificationRequests() async -> [UNNotificationRequest]
+    func add(_ request: UNNotificationRequest) async throws
+    func removePendingNotificationRequests(withIdentifiers: [String])
+}
+
+extension UNUserNotificationCenter: UserNotificationCenter {
+
+    func getAuthorizationStatus() async -> UNAuthorizationStatus {
+        let settings = await notificationSettings()
+        return settings.authorizationStatus
+    }
+}
+
+// MARK: Notifications
+
 final class Notifications {
 
     enum Error: Swift.Error {
@@ -23,33 +47,36 @@ final class Notifications {
 
     weak var delegate: NotificationsDelegate? {
         didSet {
-            UNUserNotificationCenter.current().delegate = delegate
+            notificationCenter.delegate = delegate
         }
     }
 
+    private let notificationCenter: UserNotificationCenter
     private var subscriptions: Set<AnyCancellable> = []
+
+    init(notificationCenter: UserNotificationCenter = UNUserNotificationCenter.current()) {
+        self.notificationCenter = notificationCenter
+    }
 
     // MARK: Internal methods
 
-    func schedule(for watchlist: Watchlist, requestManager: RequestManager) {
-        Task {
-            await withThrowingTaskGroup(of: Void.self) { group in
-                let items = await watchlist.items
-                for item in items {
-                    group.addTask {
-                        try await self.schedule(for: item, requestManager: requestManager)
-                    }
+    func schedule(for watchlist: Watchlist, requestManager: RequestManager) async {
+        await withThrowingTaskGroup(of: Void.self) { group in
+            let items = await watchlist.items
+            for item in items {
+                group.addTask {
+                    try await self.schedule(for: item, requestManager: requestManager)
                 }
             }
-
-            await watchlist.itemDidUpdateState
-                .sink { item in Task { try await self.schedule(for: item, requestManager: requestManager) }}
-                .store(in: &subscriptions)
-            
-            await watchlist.itemWasRemoved
-                .sink { item in Task { await self.remove(for: item) }}
-                .store(in: &subscriptions)
         }
+
+        await watchlist.itemDidUpdateState
+            .sink { item in Task { try await self.schedule(for: item, requestManager: requestManager) }}
+            .store(in: &subscriptions)
+
+        await watchlist.itemWasRemoved
+            .sink { item in Task { await self.remove(for: item) }}
+            .store(in: &subscriptions)
     }
 
     // MARK: Private scheduling methods
@@ -79,7 +106,6 @@ final class Notifications {
     // MARK: Notifications
 
     private func scheduleIfNeeded(notificationWith identifier: String, for movie: Movie) async throws {
-        let notificationCenter = UNUserNotificationCenter.current()
         let notifications = await notificationCenter.pendingNotificationRequests()
 
         if let scheduledNotification = notifications.first(where: { $0.identifier == identifier }) {
@@ -108,12 +134,10 @@ final class Notifications {
         let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
         let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
 
-        let notificationCenter = UNUserNotificationCenter.current()
         try await notificationCenter.add(request)
     }
 
     private func remove(notificationWith identifier: String) async {
-        let notificationCenter = UNUserNotificationCenter.current()
         let notifications = await notificationCenter.pendingNotificationRequests()
         if notifications.contains(where: { $0.identifier == identifier }) {
             notificationCenter.removePendingNotificationRequests(withIdentifiers: [identifier])
@@ -121,10 +145,9 @@ final class Notifications {
     }
 
     private func requestAuthorization() async throws {
-        let notificationCenter = UNUserNotificationCenter.current()
-        let settings = await UNUserNotificationCenter.current().notificationSettings()
+        let status = await notificationCenter.getAuthorizationStatus()
 
-        switch settings.authorizationStatus {
+        switch status {
         case .authorized:
             return
         case .notDetermined:

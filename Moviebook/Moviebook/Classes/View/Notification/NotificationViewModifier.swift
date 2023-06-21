@@ -16,8 +16,8 @@ private struct NotificationViewModifier: ViewModifier {
     @StateObject private var notificationHandler: NotificationHandler
 
     func body(content: Content) -> some View {
-        content.onAppear {
-            notificationHandler.start(watchlist: watchlist, requestManager: requestManager)
+        content.task {
+            await notificationHandler.start(watchlist: watchlist, requestManager: requestManager)
         }
     }
 
@@ -37,9 +37,9 @@ private final class NotificationHandler: NSObject, ObservableObject {
         self.onReceiveNotification = onReceiveNotification
     }
 
-    func start(watchlist: Watchlist, requestManager: RequestManager) {
+    func start(watchlist: Watchlist, requestManager: RequestManager) async {
         notifications.delegate = self
-        notifications.schedule(for: watchlist, requestManager: requestManager)
+        await notifications.schedule(for: watchlist, requestManager: requestManager)
     }
 }
 
