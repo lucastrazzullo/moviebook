@@ -10,18 +10,38 @@ import Combine
 import UserNotifications
 import MoviebookCommons
 
+protocol NotificationsDelegate: AnyObject, UNUserNotificationCenterDelegate {
+    func shouldRequestAuthorization() async -> Bool
+    func shouldAuthorizeNotifications()
+}
+
 final class Notifications {
+
+    enum Error: Swift.Error {
+        case notificationsNotAuthorized
+    }
+
+    weak var delegate: NotificationsDelegate? {
+        didSet {
+            UNUserNotificationCenter.current().delegate = delegate
+        }
+    }
 
     private var subscriptions: Set<AnyCancellable> = []
 
     // MARK: Internal methods
 
-    func setNotificationManagerDelegate(_ delegate: UNUserNotificationCenterDelegate) {
-        UNUserNotificationCenter.current().delegate = delegate
-    }
-
     func schedule(for watchlist: Watchlist, requestManager: RequestManager) {
         Task {
+            await withThrowingTaskGroup(of: Void.self) { group in
+                let items = await watchlist.items
+                for item in items {
+                    group.addTask {
+                        try await self.schedule(for: item, requestManager: requestManager)
+                    }
+                }
+            }
+
             await watchlist.itemDidUpdateState
                 .sink { item in Task { try await self.schedule(for: item, requestManager: requestManager) }}
                 .store(in: &subscriptions)
@@ -38,14 +58,12 @@ final class Notifications {
         switch item.id {
         case .movie(let movieId):
             let notificationIdentifier = String(movieId)
-            await remove(notificationWith: notificationIdentifier)
-
             if case .toWatch = item.state {
                 let webService = MovieWebService(requestManager: requestManager)
                 let movie = try await webService.fetchMovie(with: movieId)
-                if movie.details.release > Date.now {
-                    try await schedule(notificationWith: notificationIdentifier, for: movie)
-                }
+                try await scheduleIfNeeded(notificationWith: notificationIdentifier, for: movie)
+            } else {
+                await remove(notificationWith: notificationIdentifier)
             }
         }
     }
@@ -60,11 +78,22 @@ final class Notifications {
 
     // MARK: Notifications
 
-    private func requestAuthorization() async throws {
+    private func scheduleIfNeeded(notificationWith identifier: String, for movie: Movie) async throws {
         let notificationCenter = UNUserNotificationCenter.current()
-        let settings = await UNUserNotificationCenter.current().notificationSettings()
-        guard case .notDetermined = settings.authorizationStatus else { return }
-        try await notificationCenter.requestAuthorization(options: [.alert])
+        let notifications = await notificationCenter.pendingNotificationRequests()
+
+        if let scheduledNotification = notifications.first(where: { $0.identifier == identifier }) {
+            if let trigger = scheduledNotification.trigger as? UNCalendarNotificationTrigger,
+               let triggerDate = trigger.nextTriggerDate(), triggerDate != movie.details.release {
+                await remove(notificationWith: identifier)
+
+                if movie.details.release > Date.now {
+                    try await schedule(notificationWith: identifier, for: movie)
+                }
+            }
+        } else if movie.details.release > Date.now {
+            try await schedule(notificationWith: identifier, for: movie)
+        }
     }
 
     private func schedule(notificationWith identifier: String, for movie: Movie) async throws {
@@ -88,6 +117,27 @@ final class Notifications {
         let notifications = await notificationCenter.pendingNotificationRequests()
         if notifications.contains(where: { $0.identifier == identifier }) {
             notificationCenter.removePendingNotificationRequests(withIdentifiers: [identifier])
+        }
+    }
+
+    private func requestAuthorization() async throws {
+        let notificationCenter = UNUserNotificationCenter.current()
+        let settings = await UNUserNotificationCenter.current().notificationSettings()
+
+        switch settings.authorizationStatus {
+        case .authorized:
+            return
+        case .notDetermined:
+            if let shouldRequestAuthorization = await delegate?.shouldRequestAuthorization(), shouldRequestAuthorization {
+                try await notificationCenter.requestAuthorization(options: [.alert])
+            } else {
+                throw Error.notificationsNotAuthorized
+            }
+        case .denied:
+            delegate?.shouldAuthorizeNotifications()
+            throw Error.notificationsNotAuthorized
+        default:
+            throw Error.notificationsNotAuthorized
         }
     }
 }

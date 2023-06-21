@@ -27,7 +27,7 @@ private struct NotificationViewModifier: ViewModifier {
     }
 }
 
-private final class NotificationHandler: NSObject, UNUserNotificationCenterDelegate, ObservableObject {
+private final class NotificationHandler: NSObject, ObservableObject {
 
     private let notifications: Notifications
     private let onReceiveNotification: (UNNotification) -> Void
@@ -38,11 +38,23 @@ private final class NotificationHandler: NSObject, UNUserNotificationCenterDeleg
     }
 
     func start(watchlist: Watchlist, requestManager: RequestManager) {
-        notifications.setNotificationManagerDelegate(self)
+        notifications.delegate = self
         notifications.schedule(for: watchlist, requestManager: requestManager)
     }
+}
 
-    // MARK: UNUserNotificationCenterDelegate
+extension NotificationHandler: NotificationsDelegate {
+
+    func shouldRequestAuthorization() async -> Bool {
+        return true
+    }
+
+    func shouldAuthorizeNotifications() {
+
+    }
+}
+
+extension NotificationHandler: UNUserNotificationCenterDelegate {
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
         onReceiveNotification(response.notification)
