@@ -117,7 +117,7 @@ import MoviebookCommons
                 }
 
                 if let requestManager {
-                    self?.setItemsOrRetry(items: items, section: section, requestManager: requestManager)
+                    self?.setItemsOrRetry(items: result, section: section, requestManager: requestManager)
                 }
             }
             .store(in: &subscriptions)
