@@ -32,14 +32,14 @@ actor Storage {
         let watchlistItems = try await watchlistStorage.fetchWatchlistItems()
 
         let watchlist = await Watchlist(items: watchlistItems)
-        await watchNextStorage.set(items: watchlistItems)
+        try await watchNextStorage.set(items: watchlistItems)
 
         // Listen for watchlist updates
         await watchlist.itemsDidChange
             .removeDuplicates()
             .sink { items in Task {
                 try await watchlistStorage.store(items: items)
-                await watchNextStorage.set(items: items)
+                try await watchNextStorage.set(items: items)
             }}
             .store(in: &subscriptions)
 
@@ -48,7 +48,7 @@ actor Storage {
             .removeDuplicates()
             .sink { items in Task {
                 await watchlist.set(items: items)
-                await watchNextStorage.set(items: items)
+                try await watchNextStorage.set(items: items)
             }}
             .store(in: &subscriptions)
 

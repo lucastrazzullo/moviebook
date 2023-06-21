@@ -92,6 +92,7 @@ import MoviebookCommons
     // MARK: Instance Properties
 
     @Published private(set) var isLoading: Bool = true
+    @Published private(set) var error: WebServiceError? = nil
     @Published private(set) var items: [Item] = []
 
     private var subscriptions: Set<AnyCancellable> = []
@@ -116,13 +117,28 @@ import MoviebookCommons
                 }
 
                 if let requestManager {
-                    Task {
-                        try await self?.set(items: result, section: section, requestManager: requestManager)
-                        self?.isLoading = false
-                    }
+                    self?.setItemsOrRetry(items: items, section: section, requestManager: requestManager)
                 }
             }
             .store(in: &subscriptions)
+    }
+
+    private func setItemsOrRetry(items: [WatchlistItem], section: Section, requestManager: RequestManager) {
+        Task {
+            do {
+                self.isLoading = true
+                self.error = nil
+
+                try await set(items: items, section: section, requestManager: requestManager)
+                self.isLoading = false
+
+            } catch {
+                self.isLoading = false
+                self.error = WebServiceError.failedToLoad(id: .init(), retry: { [weak self] in
+                    self?.setItemsOrRetry(items: items, section: section, requestManager: requestManager)
+                })
+            }
+        }
     }
 
     private func set(items: [WatchlistItem], section: Section, requestManager: RequestManager) async throws {

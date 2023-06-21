@@ -11,7 +11,7 @@ public protocol RequestManager: AnyObject {
     func request(from url: URL) async throws -> Data
 }
 
-public final class DefaultRequestManager: RequestManager {
+actor DefaultRequestManager: RequestManager {
 
     public enum Logging {
         case disabled
@@ -28,7 +28,16 @@ public final class DefaultRequestManager: RequestManager {
 
     public func request(from url: URL) async throws -> Data {
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
+            if logging == .enabled {
+                log(request: url, response: nil, error: nil)
+            }
+
+            let sessionConfiguguration = URLSessionConfiguration.default
+            sessionConfiguguration.timeoutIntervalForRequest = 10.0
+            sessionConfiguguration.timeoutIntervalForResource = 20.0
+
+            let session = URLSession(configuration: sessionConfiguguration)
+            let (data, _) = try await session.data(from: url)
 
             if logging == .enabled {
                 log(request: url, response: data, error: nil)
@@ -47,22 +56,26 @@ public final class DefaultRequestManager: RequestManager {
     // MARK: Private logging methods
 
     private func log(request url: URL, response data: Data?, error: Error?) {
-        print("Request")
-        print(url.description)
-        print("-------")
+        if data == nil && error == nil {
+            print("[REQUEST MANAGER] Request started")
+            print("[REQUEST MANAGER]", url.description)
+            print("[REQUEST MANAGER] -------")
+        }
 
         if let response = data {
-            print("Response")
-            print(String(describing: String(data: response, encoding: .utf8)))
-            print("-------")
+            print("[REQUEST MANAGER] Response")
+            print("[REQUEST MANAGER] from request:", url.description)
+            print("[REQUEST MANAGER]", String(describing: String(data: response, encoding: .utf8)))
+            print("[REQUEST MANAGER] -------")
         }
 
         if let error = error {
-            print("Error")
-            print(error)
-            print("-------")
+            print("[REQUEST MANAGER] Error")
+            print("[REQUEST MANAGER] for request:", url.description)
+            print("[REQUEST MANAGER]", error)
+            print("[REQUEST MANAGER] -------")
         }
 
-        print("-------")
+        print("[REQUEST MANAGER] -------")
     }
 }

@@ -159,6 +159,8 @@ private struct ContentView: View {
         Group {
             if viewModel.isLoading {
                 LoaderView()
+            } else if let error = viewModel.error {
+                RetriableErrorView(retry: error.retry).padding()
             } else if viewModel.items.isEmpty {
                 WatchlistEmptyListView(
                     shouldShowTopBar: $shouldShowTopBar,

@@ -73,7 +73,7 @@ public actor WatchNextStorage {
         self.webService = webService
     }
 
-    public func set(items: [WatchlistItem]) async {
+    public func set(items: [WatchlistItem]) async throws {
         var identifiers = items.compactMap { item in
             if case .toWatch = item.state {
                 return item.id
@@ -86,7 +86,7 @@ public actor WatchNextStorage {
             identifiers = nowPlayingMovies.results.map { movie in .movie(id: movie.id) }
         }
 
-        let watchNextItems = await withTaskGroup(of: (identifier: WatchlistItemIdentifier, item: WatchNextItem)?.self) { group in
+        let watchNextItems = try await withThrowingTaskGroup(of: (identifier: WatchlistItemIdentifier, item: WatchNextItem)?.self) { group in
             var result = [WatchlistItemIdentifier: WatchNextItem]()
             result.reserveCapacity(identifiers.count)
 
@@ -96,7 +96,7 @@ public actor WatchNextStorage {
                 }
             }
 
-            for await response in group {
+            for try await response in group {
                 if let response {
                     result[response.identifier] = response.item
                 }
