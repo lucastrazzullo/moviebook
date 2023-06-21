@@ -10,32 +10,31 @@ import Combine
 import UserNotifications
 import MoviebookCommons
 
-actor Notifications {
+final class Notifications {
 
-    private let requestManager: RequestManager
     private var subscriptions: Set<AnyCancellable> = []
 
-    init(watchlist: Watchlist, requestManager: RequestManager) {
-        self.requestManager = requestManager
+    // MARK: Internal methods
 
+    func setNotificationManagerDelegate(_ delegate: UNUserNotificationCenterDelegate) {
+        UNUserNotificationCenter.current().delegate = delegate
+    }
+
+    func schedule(for watchlist: Watchlist, requestManager: RequestManager) {
         Task {
-            await self.schedule(for: watchlist)
+            await watchlist.itemDidUpdateState
+                .sink { item in Task { try await self.schedule(for: item, requestManager: requestManager) }}
+                .store(in: &subscriptions)
+            
+            await watchlist.itemWasRemoved
+                .sink { item in Task { await self.remove(for: item) }}
+                .store(in: &subscriptions)
         }
     }
 
     // MARK: Private scheduling methods
 
-    private func schedule(for watchlist: Watchlist) async {
-        await watchlist.itemDidUpdateState
-            .sink { item in Task { try await self.schedule(for: item) }}
-            .store(in: &subscriptions)
-
-        await watchlist.itemWasRemoved
-            .sink { item in Task { await self.remove(for: item) }}
-            .store(in: &subscriptions)
-    }
-
-    private func schedule(for item: WatchlistItem) async throws {
+    private func schedule(for item: WatchlistItem, requestManager: RequestManager) async throws {
         switch item.id {
         case .movie(let movieId):
             let notificationIdentifier = String(movieId)
@@ -62,9 +61,10 @@ actor Notifications {
     // MARK: Notifications
 
     private func requestAuthorization() async throws {
+        let notificationCenter = UNUserNotificationCenter.current()
         let settings = await UNUserNotificationCenter.current().notificationSettings()
         guard case .notDetermined = settings.authorizationStatus else { return }
-        try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert])
+        try await notificationCenter.requestAuthorization(options: [.alert])
     }
 
     private func schedule(notificationWith identifier: String, for movie: Movie) async throws {
@@ -73,8 +73,10 @@ actor Notifications {
         let content = UNMutableNotificationContent()
         content.title = movie.details.title
         content.subtitle = "Is released!"
+        content.categoryIdentifier = Deeplink.movie(identifier: movie.id).rawValue.absoluteString
 
-        let timeInterval = movie.details.release.timeIntervalSinceNow
+        // TODO: Make trigger based on release date
+        let timeInterval = 10.0
 
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: timeInterval, repeats: false)
         let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)

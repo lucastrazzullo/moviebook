@@ -15,14 +15,10 @@ import MoviebookCommons
     @Published var error: Error?
 
     private let storage: Storage = Storage()
-    private var notifications: Notifications?
 
     func start(requestManager: RequestManager) async {
         do {
-            let watchlist = try await storage.loadWatchlist(requestManager: requestManager)
-
-            self.watchlist = watchlist
-            self.notifications = Notifications(watchlist: watchlist, requestManager: requestManager)
+            self.watchlist = try await storage.loadWatchlist(requestManager: requestManager)
         } catch {
             self.error = error
         }
@@ -70,6 +66,13 @@ struct MoviebookApp: App {
         }
     }
 
+    private func openDeeplink(with notification: UNNotification) {
+        if let url = URL(string: notification.request.content.categoryIdentifier),
+           let deeplink = Deeplink(rawValue: url) {
+            open(deeplink: deeplink)
+        }
+    }
+
     private func open(deeplink: Deeplink) {
         switch deeplink {
         case .watchlist:
@@ -90,6 +93,7 @@ struct MoviebookApp: App {
                     Navigation(path: $presentedItemNavigationPath, presentingItem: item)
                 }
         }
+        .onReceiveNotification(perform: openDeeplink(with:))
         .environmentObject(watchlist)
     }
 

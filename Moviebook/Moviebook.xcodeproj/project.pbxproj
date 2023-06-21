@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		8111247A2A40EA9B009133C2 /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 811124792A40EA9B009133C2 /* Notifications.swift */; };
+		811124822A422287009133C2 /* NotificationViewModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 811124812A422287009133C2 /* NotificationViewModifier.swift */; };
 		8112AF0329152F900041475D /* YouTubePlayerKit in Frameworks */ = {isa = PBXBuildFile; productRef = 8112AF0229152F900041475D /* YouTubePlayerKit */; };
 		8112AF0529152FA80041475D /* MovieVideoPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8112AF0429152FA80041475D /* MovieVideoPlayer.swift */; };
 		8112AF0729153EA60041475D /* WatermarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8112AF0629153EA60041475D /* WatermarkView.swift */; };
@@ -166,6 +167,8 @@
 /* Begin PBXFileReference section */
 		810A9934290ED832005A33EE /* MovieGenre.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieGenre.swift; sourceTree = "<group>"; };
 		811124792A40EA9B009133C2 /* Notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
+		8111247F2A40FCDE009133C2 /* apple-app-site-association */ = {isa = PBXFileReference; lastKnownFileType = text; path = "apple-app-site-association"; sourceTree = "<group>"; };
+		811124812A422287009133C2 /* NotificationViewModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationViewModifier.swift; sourceTree = "<group>"; };
 		8112AF0429152FA80041475D /* MovieVideoPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieVideoPlayer.swift; sourceTree = "<group>"; };
 		8112AF0629153EA60041475D /* WatermarkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatermarkView.swift; sourceTree = "<group>"; };
 		8112AF0A2916DF5D0041475D /* MovieWatchlistStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieWatchlistStateView.swift; sourceTree = "<group>"; };
@@ -312,6 +315,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		8111247E2A40FCC4009133C2 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				8111247F2A40FCDE009133C2 /* apple-app-site-association */,
+			);
+			path = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		811124802A42225C009133C2 /* Notification */ = {
+			isa = PBXGroup;
+			children = (
+				811124812A422287009133C2 /* NotificationViewModifier.swift */,
+			);
+			path = Notification;
+			sourceTree = "<group>";
+		};
 		8112AF082916DF010041475D /* Movie */ = {
 			isa = PBXGroup;
 			children = (
@@ -444,6 +463,7 @@
 				8169FB4E28C205BF0054BCE6 /* Classes */,
 				8169FB4F28C205C60054BCE6 /* Resources */,
 				8169FB2228C204450054BCE6 /* Preview Content */,
+				8111247E2A40FCC4009133C2 /* Supporting Files */,
 			);
 			path = Moviebook;
 			sourceTree = "<group>";
@@ -507,6 +527,7 @@
 			isa = PBXGroup;
 			children = (
 				814D46EC28C27EB3000D7ABD /* Kit */,
+				811124802A42225C009133C2 /* Notification */,
 				818FA44D291E8B0700CF6318 /* Watchlist */,
 				812489BE29F149DD004A6BE6 /* Explore */,
 				8112AF082916DF010041475D /* Movie */,
@@ -980,6 +1001,7 @@
 				814D46D028C2224A000D7ABD /* Response.swift in Sources */,
 				8111247A2A40EA9B009133C2 /* Notifications.swift in Sources */,
 				8169FB1D28C204450054BCE6 /* MoviebookApp.swift in Sources */,
+				811124822A422287009133C2 /* NotificationViewModifier.swift in Sources */,
 				81B7DBF92A14050300AF9118 /* ExploreHorizontalSectionView.swift in Sources */,
 				8112AF0529152FA80041475D /* MovieVideoPlayer.swift in Sources */,
 				81A395D329F40B8700800F7E /* ArtistView.swift in Sources */,
