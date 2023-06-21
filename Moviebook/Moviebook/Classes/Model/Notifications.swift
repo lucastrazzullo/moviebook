@@ -75,10 +75,8 @@ final class Notifications {
         content.subtitle = "Is released!"
         content.categoryIdentifier = Deeplink.movie(identifier: movie.id).rawValue.absoluteString
 
-        // TODO: Make trigger based on release date
-        let timeInterval = 10.0
-
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: timeInterval, repeats: false)
+        let dateComponents = Calendar.current.dateComponents(Set(arrayLiteral: Calendar.Component.year, Calendar.Component.month, Calendar.Component.day), from: movie.details.release)
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
         let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
 
         let notificationCenter = UNUserNotificationCenter.current()
