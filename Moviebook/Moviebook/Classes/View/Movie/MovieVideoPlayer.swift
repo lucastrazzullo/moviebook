@@ -7,7 +7,7 @@
 
 import SwiftUI
 import YouTubePlayerKit
-import MoviebookCommons
+import MoviebookCommon
 
 struct MovieVideoPlayer: View {
 

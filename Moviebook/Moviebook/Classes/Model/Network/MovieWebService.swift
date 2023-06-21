@@ -6,9 +6,9 @@
 //
 
 import Foundation
-import MoviebookCommons
+import MoviebookCommon
 
-struct MovieWebService: MoviebookCommons.MovieWebService {
+struct MovieWebService: MoviebookCommon.MovieWebService {
 
     let requestManager: RequestManager
 

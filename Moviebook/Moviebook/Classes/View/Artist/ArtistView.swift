@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import MoviebookCommons
+import MoviebookCommon
 
 struct ArtistView: View {
 
@@ -80,6 +80,8 @@ private struct ShareButton: View {
 }
 
 #if DEBUG
+import MoviebookTestSupport
+
 struct ArtistView_Previews: PreviewProvider {
     static var previews: some View {
         ArtistView(artistId: 287, navigationPath: .constant(NavigationPath()))

@@ -6,9 +6,9 @@
 //
 
 import Foundation
-import MoviebookCommons
+import MoviebookCommon
 
-struct SearchWebService: MoviebookCommons.SearchWebService {
+struct SearchWebService: MoviebookCommon.SearchWebService {
 
     let requestManager: RequestManager
 

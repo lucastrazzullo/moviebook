@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import MoviebookCommons
+import MoviebookCommon
 
 struct EmptyWatchlistView: View {
 
@@ -128,6 +128,8 @@ private struct ListView: View {
 }
 
 #if DEBUG
+import MoviebookTestSupport
+
 struct EmptyWatchlistView_Previews: PreviewProvider {
     static var previews: some View {
         EmptyWatchlistView(section: .toWatch)

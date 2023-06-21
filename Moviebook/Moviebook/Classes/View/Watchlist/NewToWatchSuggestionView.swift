@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import MoviebookCommons
+import MoviebookCommon
 
 struct NewToWatchSuggestionView: View {
 
@@ -179,11 +179,9 @@ struct NewToWatchSuggestionView: View {
     }
 }
 
-#if DEBUG
 struct NewToWatchSuggestionView_Previews: PreviewProvider {
     static var previews: some View {
         NewToWatchSuggestionView(itemIdentifier: .movie(id: 954))
             .environmentObject(Watchlist(items: []))
     }
 }
-#endif

@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import MoviebookCommons
+import MoviebookCommon
 
 struct MovieWatchlistStateView: View {
 
@@ -238,7 +238,6 @@ private struct SuggestionView: View {
     }
 }
 
-#if DEBUG
 struct MovieWatchlistStateView_Previews: PreviewProvider {
     static var previews: some View {
         MovieWatchlistStateView(
@@ -327,4 +326,3 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
         ]))
     }
 }
-#endif

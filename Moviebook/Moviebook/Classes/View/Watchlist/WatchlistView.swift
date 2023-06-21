@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import MoviebookCommons
+import MoviebookCommon
 
 struct WatchlistView: View {
 
@@ -368,6 +368,8 @@ private struct WatchlistItemView: View {
 }
 
 #if DEBUG
+import MoviebookTestSupport
+
 struct WatchlistView_Previews: PreviewProvider {
     static var previews: some View {
         WatchlistView()

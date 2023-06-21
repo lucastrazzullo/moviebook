@@ -7,7 +7,7 @@
 
 import SwiftUI
 import Combine
-import MoviebookCommons
+import MoviebookCommon
 
 private enum WatchlistPrompt: Identifiable, Equatable {
     case suggestion(item: WatchlistItem)
@@ -273,6 +273,8 @@ extension View {
 }
 
 #if DEBUG
+import MoviebookTestSupport
+
 struct WatchlistPromptView_Previews: PreviewProvider {
     static let toWatchItem = WatchlistItem.init(id: .movie(id: 954), state: .toWatch(info: .init(date: .now)))
     static let watchedItem = WatchlistItem.init(id: .movie(id: 954), state: .toWatch(info: .init(date: .now)))

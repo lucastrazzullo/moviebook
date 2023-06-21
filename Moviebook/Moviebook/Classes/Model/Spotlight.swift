@@ -7,7 +7,7 @@
 
 import Foundation
 import CoreSpotlight
-import MoviebookCommons
+import MoviebookCommon
 
 enum Spotlight {
 

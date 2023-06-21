@@ -6,7 +6,8 @@
 //
 
 import XCTest
-import MoviebookCommons
+import MoviebookCommon
+import MoviebookTestSupport
 @testable import Moviebook
 
 final class NotificationsTests: XCTestCase {

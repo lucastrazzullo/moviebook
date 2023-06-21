@@ -8,6 +8,7 @@
 import Foundation
 import Combine
 import CoreSpotlight
+import MoviebookCommon
 
 @MainActor final class SearchViewModel: ObservableObject {
 

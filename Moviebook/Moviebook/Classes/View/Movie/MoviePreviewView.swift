@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import MoviebookCommons
+import MoviebookCommon
 
 struct MoviePreviewView: View {
 
@@ -108,6 +108,8 @@ struct MoviePreviewView: View {
 }
 
 #if DEBUG
+import MoviebookTestSupport
+
 struct MoviePreviewView_Previews: PreviewProvider {
     static var previews: some View {
         ScrollView {

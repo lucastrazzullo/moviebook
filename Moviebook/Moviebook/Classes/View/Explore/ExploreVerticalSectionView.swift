@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import MoviebookCommons
+import MoviebookCommon
 
 struct ExploreVerticalSectionView: View {
 
@@ -67,6 +67,8 @@ private struct LoadMoreView: View {
 }
 
 #if DEBUG
+import MoviebookTestSupport
+
 struct ExploreSectionView_Previews: PreviewProvider {
     
     static var previews: some View {

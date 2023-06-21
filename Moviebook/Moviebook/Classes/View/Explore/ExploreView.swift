@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import MoviebookCommons
+import MoviebookCommon
 
 struct ExploreView: View {
 
@@ -77,6 +77,8 @@ struct ExploreView: View {
 }
 
 #if DEBUG
+import MoviebookTestSupport
+
 struct ExploreView_Previews: PreviewProvider {
     static var previews: some View {
         Group {

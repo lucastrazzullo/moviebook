@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import MoviebookCommons
+import MoviebookCommon
 
 struct SlidingCardView<TrailingHeaderView: View, ContentView: View>: View {
 
@@ -144,6 +144,8 @@ private struct CardView<Content: View>: View {
 }
 
 #if DEBUG
+import MoviebookTestSupport
+
 struct SlidingCardView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {

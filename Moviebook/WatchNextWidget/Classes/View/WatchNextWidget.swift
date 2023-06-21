@@ -7,7 +7,7 @@
 
 import WidgetKit
 import SwiftUI
-import MoviebookCommons
+import MoviebookCommon
 
 struct WatchNextWidget: Widget {
     let kind: String = "WatchNextWidget"

@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import MoviebookCommons
+import MoviebookCommon
 
 struct ExploreHorizontalSectionView<Destination: View>: View {
 
@@ -85,6 +85,8 @@ private struct HeaderView<Destination: View>: View {
 }
 
 #if DEBUG
+import MoviebookTestSupport
+
 struct ExploreHorizontalSectionView_Previews: PreviewProvider {
 
     static var previews: some View {

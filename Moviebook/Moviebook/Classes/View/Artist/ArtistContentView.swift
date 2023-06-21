@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import MoviebookCommons
+import MoviebookCommon
 
 struct ArtistContentView: View {
 
@@ -113,6 +113,8 @@ private struct FilmographyView: View {
 }
 
 #if DEBUG
+import MoviebookTestSupport
+
 struct ArtistCardView_Previews: PreviewProvider {
     static var previews: some View {
         ScrollView(showsIndicators: false) {

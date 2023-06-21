@@ -8,7 +8,7 @@
 import Foundation
 import Combine
 import UserNotifications
-import MoviebookCommons
+import MoviebookCommon
 
 protocol NotificationsDelegate: AnyObject, UNUserNotificationCenterDelegate {
     func shouldRequestAuthorization() async -> Bool
