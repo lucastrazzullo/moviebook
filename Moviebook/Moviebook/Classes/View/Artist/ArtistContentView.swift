@@ -119,7 +119,7 @@ struct ArtistCardView_Previews: PreviewProvider {
     static var previews: some View {
         ScrollView(showsIndicators: false) {
             ArtistCardPreview()
-                .environment(\.requestManager, MockRequestManager())
+                .environment(\.requestManager, MockRequestManager.shared)
                 .environmentObject(Watchlist(items: []))
         }
     }

@@ -57,7 +57,7 @@ struct ArtistPreviewView_Previews: PreviewProvider {
     static var previews: some View {
         ScrollView(showsIndicators: false) {
             ArtistPreviewViewPreview()
-                .environment(\.requestManager, MockRequestManager())
+                .environment(\.requestManager, MockRequestManager.shared)
                 .environmentObject(Watchlist(items: []))
         }
     }

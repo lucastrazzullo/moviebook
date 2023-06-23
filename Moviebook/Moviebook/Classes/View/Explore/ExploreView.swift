@@ -83,7 +83,7 @@ struct ExploreView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
             ExploreView()
-                .environment(\.requestManager, MockRequestManager())
+                .environment(\.requestManager, MockRequestManager.shared)
                 .environmentObject(Watchlist(items: [
                     WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
                     WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: nil)))

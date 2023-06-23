@@ -307,7 +307,7 @@ struct MovieContentView_Previews: PreviewProvider {
         ScrollView(showsIndicators: false) {
             MovieContentViewPreview()
                 .environmentObject(Watchlist(items: []))
-                .environment(\.requestManager, MockRequestManager())
+                .environment(\.requestManager, MockRequestManager.shared)
         }
     }
 }

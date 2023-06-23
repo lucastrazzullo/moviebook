@@ -38,6 +38,22 @@ final class NotificationsTests: XCTestCase {
 
     // MARK: Tests
 
+    func testScheduleNotifications_forNotReleasedMoviesOnly() async {
+        let notReleasedMovies: [Movie] = []
+        let releasedMovies: [Movie] = []
+
+        let movies = notReleasedMovies + releasedMovies
+        movies.forEach { movie in
+//            mockServer.addStub(MockStub(path: "3/movie/\(movie.id)", value: movie))
+        }
+
+        let watchlist = await makeWatchlist(toWatchMovies: notReleasedMovies + releasedMovies)
+
+        await notifications.schedule(for: watchlist, requestManager: requestManager)
+        XCTAssertEqual(notificationCenter.totalNumberOfScheduledNotifications, notReleasedMovies.count)
+        XCTAssertEqual(notificationCenter.totalNumberOfRemovedNotifications, 0)
+    }
+
     func testScheduleNotifications_onlyOnce() async {
         let notReleasedMovieIdentifiers = makeNotReleasedMovieIdentifiers()
         let releasedMovieIdentifiers = makeReleasedMovieIdentifiers()

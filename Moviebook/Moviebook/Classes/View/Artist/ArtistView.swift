@@ -85,7 +85,7 @@ import MoviebookTestSupport
 struct ArtistView_Previews: PreviewProvider {
     static var previews: some View {
         ArtistView(artistId: 287, navigationPath: .constant(NavigationPath()))
-            .environment(\.requestManager, MockRequestManager())
+            .environment(\.requestManager, MockRequestManager.shared)
     }
 }
 #endif

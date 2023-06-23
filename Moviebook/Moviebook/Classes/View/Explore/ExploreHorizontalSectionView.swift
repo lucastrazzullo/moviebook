@@ -93,7 +93,7 @@ struct ExploreHorizontalSectionView_Previews: PreviewProvider {
         NavigationView {
             ExploreHorizontalSectionViewPreview()
         }
-        .environment(\.requestManager, MockRequestManager())
+        .environment(\.requestManager, MockRequestManager.shared)
         .environmentObject(Watchlist(items: [
             WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
             WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: nil)))

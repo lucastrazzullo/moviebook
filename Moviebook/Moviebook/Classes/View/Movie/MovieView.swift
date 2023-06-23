@@ -117,7 +117,7 @@ struct MovieView_Previews: PreviewProvider {
                 .environmentObject(Watchlist(items: [
                     WatchlistItem(id: .movie(id: 353081), state: .toWatch(info: .init(date: .now, suggestion: .init(owner: "Valerio", comment: "This is really nice"))))
                 ]))
-                .environment(\.requestManager, MockRequestManager())
+                .environment(\.requestManager, MockRequestManager.shared)
         }
     }
 }
