@@ -17,7 +17,7 @@ actor Storage {
 
     func loadWatchlist(requestManager: RequestManager) async throws -> Watchlist {
         let watchlistStorage = try await WatchlistStorage()
-        let watchNextStorage = WatchNextStorage(webService: MovieWebService(requestManager: requestManager))
+        let watchNextStorage = WatchNextStorage(webService: WebService.movieWebService(requestManager: requestManager))
 
         // Migrate from legacy storage
         let legacyWatchlistStorage = LegacyWatchlistStorage()

@@ -1,13 +1,13 @@
 //
-//  MockServer.swift
-//  Moviebook
+//  BundleMockServer.swift
+//  MoviebookTestSupport
 //
-//  Created by Luca Strazzullo on 02/09/2022.
+//  Created by Luca Strazzullo on 22/06/2023.
 //
 
 import Foundation
 
-final class MockServer {
+final class BundleMockServer: MockServer {
 
     enum Error: Swift.Error {
         case cannotFindMocksBundle

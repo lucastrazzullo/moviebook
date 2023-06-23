@@ -102,7 +102,7 @@ private struct WatchlistPromptItem: View {
         @Published var movie: Movie?
 
         func load(requestManager: RequestManager, movieIdentifier: Movie.ID) async throws {
-            let webService = MovieWebService(requestManager: requestManager)
+            let webService = WebService.movieWebService(requestManager: requestManager)
             self.movie = try await webService.fetchMovie(with: movieIdentifier)
         }
     }

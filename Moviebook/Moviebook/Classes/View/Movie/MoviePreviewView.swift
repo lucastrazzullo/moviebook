@@ -144,7 +144,7 @@ private struct MoviePreviewViewPreview: View {
             }
         }
         .task {
-            let webService = MovieWebService(requestManager: requestManager)
+            let webService = WebService.movieWebService(requestManager: requestManager)
             movie = try! await webService.fetchMovie(with: movieId)
         }
     }

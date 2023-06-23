@@ -1,55 +1,12 @@
 //
-//  ArtistWebService.swift
-//  Moviebook
+//  TMDBArtistDetailsResponse.swift
+//  TheMovieDb
 //
-//  Created by Luca Strazzullo on 22/04/2023.
+//  Created by Luca Strazzullo on 23/06/2023.
 //
 
 import Foundation
 import MoviebookCommon
-
-struct ArtistWebService: MoviebookCommon.ArtistWebService {
-
-    let requestManager: RequestManager
-
-    func fetchArtist(with identifier: Artist.ID) async throws -> Artist {
-        let url = try TheMovieDbDataRequestFactory.makeURL(path: "person/\(identifier)", queryItems: [
-            URLQueryItem(name: "append_to_response", value: "credits")
-        ])
-        let data = try await requestManager.request(from: url)
-        return try JSONDecoder().decode(TMDBArtistResponse.self, from: data).result
-    }
-}
-
-// MARK: Response
-
-struct TMDBArtistResponse: Decodable {
-
-    enum CodingKeys: String, CodingKey {
-        case id = "id"
-        case credits = "credits"
-    }
-
-    enum CreditsCodingKeys: String, CodingKey {
-        case cast
-    }
-
-    let result: Artist
-
-    init(from decoder: Decoder) throws {
-        let values = try decoder.container(keyedBy: CodingKeys.self)
-
-        let id = try values.decode(Movie.ID.self, forKey: .id)
-        let details = try TMDBArtistDetailsResponse(from: decoder).result
-
-        let creditsContainer = try values.nestedContainer(keyedBy: CreditsCodingKeys.self, forKey: .credits)
-        let filmography = try creditsContainer.decodeIfPresent([TMDBSafeItemResponse<TMDBMovieDetailsResponse>].self, forKey: .cast)?
-            .compactMap(\.value)
-            .map(\.result) ?? []
-
-        self.result = Artist(id: id, details: details, filmography: filmography)
-    }
-}
 
 struct TMDBArtistDetailsResponse: Decodable {
 
@@ -77,12 +34,12 @@ struct TMDBArtistDetailsResponse: Decodable {
 
         var birthday: Date?
         if let birthdayString = try container.decodeIfPresent(String.self, forKey: .birthday) {
-            birthday = TheMovieDbResponse.dateFormatter.date(from: birthdayString)
+            birthday = TheMovieDbResponseFactory.dateFormatter.date(from: birthdayString)
         }
 
         var deathday: Date?
         if let deathdayString = try container.decodeIfPresent(String.self, forKey: .deathday) {
-            deathday = TheMovieDbResponse.dateFormatter.date(from: deathdayString)
+            deathday = TheMovieDbResponseFactory.dateFormatter.date(from: deathdayString)
         }
 
         let imagePath = try container.decode(String.self, forKey: .imagePath)

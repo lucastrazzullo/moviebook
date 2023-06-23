@@ -1,5 +1,5 @@
 //
-//  SearchWebService.swift
+//  TheMovieDbSearchWebService.swift
 //  Moviebook
 //
 //  Created by Luca Strazzullo on 24/09/2022.
@@ -8,11 +8,15 @@
 import Foundation
 import MoviebookCommon
 
-struct SearchWebService: MoviebookCommon.SearchWebService {
+public struct TheMovieDbSearchWebService: SearchWebService {
 
-    let requestManager: RequestManager
+    private let requestManager: RequestManager
 
-    func fetchMovies(with keyword: String, page: Int? = nil) async throws -> (results: [MovieDetails], nextPage: Int?) {
+    public init(requestManager: RequestManager) {
+        self.requestManager = requestManager
+    }
+
+    public func fetchMovies(with keyword: String, page: Int? = nil) async throws -> (results: [MovieDetails], nextPage: Int?) {
         var queryItems = [URLQueryItem(name: "query", value: keyword)]
         if let page {
             queryItems.append(URLQueryItem(name: "page", value: String(page)))
@@ -23,7 +27,7 @@ struct SearchWebService: MoviebookCommon.SearchWebService {
         return (results: response.results.map(\.result), nextPage: response.nextPage)
     }
 
-    func fetchArtists(with keyword: String, page: Int? = nil) async throws -> (results: [ArtistDetails], nextPage: Int?) {
+    public func fetchArtists(with keyword: String, page: Int? = nil) async throws -> (results: [ArtistDetails], nextPage: Int?) {
         var queryItems = [URLQueryItem(name: "query", value: keyword)]
         if let page {
             queryItems.append(URLQueryItem(name: "page", value: String(page)))

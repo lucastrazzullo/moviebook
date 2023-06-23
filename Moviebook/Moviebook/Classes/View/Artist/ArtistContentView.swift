@@ -139,7 +139,7 @@ private struct ArtistCardPreview: View {
             }
         }
         .task {
-            let webService = ArtistWebService(requestManager: requestManager)
+            let webService = WebService.artistWebService(requestManager: requestManager)
             artist = try! await webService.fetchArtist(with: 287)
         }
     }

@@ -86,7 +86,7 @@ final class Notifications {
         case .movie(let movieId):
             let notificationIdentifier = String(movieId)
             if case .toWatch = item.state {
-                let webService = MovieWebService(requestManager: requestManager)
+                let webService = WebService.movieWebService(requestManager: requestManager)
                 let movie = try await webService.fetchMovie(with: movieId)
                 try await scheduleIfNeeded(notificationWith: notificationIdentifier, for: movie)
             } else {

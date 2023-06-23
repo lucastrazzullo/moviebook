@@ -85,7 +85,7 @@ private struct ExploreSectionViewPreview: View {
 
     struct DataProvider: ExploreContentDataProvider {
         func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
-            let response = try await MovieWebService(requestManager: requestManager).fetchPopular(page: page)
+            let response = try await WebService.movieWebService(requestManager: requestManager).fetchPopular(page: page)
             return (results: .movies(response.results), nextPage: response.nextPage)
         }
     }

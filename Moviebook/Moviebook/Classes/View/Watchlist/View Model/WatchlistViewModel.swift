@@ -150,7 +150,7 @@ import MoviebookCommon
                 group.addTask {
                     switch item.id {
                     case .movie(let id):
-                        let webService = MovieWebService(requestManager: requestManager)
+                        let webService = WebService.movieWebService(requestManager: requestManager)
                         let movie = try await webService.fetchMovie(with: id)
                         return Item.movie(movie: movie, section: section, watchlistItem: item)
                     }

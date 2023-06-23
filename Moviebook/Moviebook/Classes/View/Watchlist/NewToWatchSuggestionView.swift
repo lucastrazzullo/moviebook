@@ -150,7 +150,7 @@ struct NewToWatchSuggestionView: View {
         .task {
             switch itemIdentifier {
             case .movie(let id):
-                let webService = MovieWebService(requestManager: requestManager)
+                let webService = WebService.movieWebService(requestManager: requestManager)
                 let movie = try? await webService.fetchMovie(with: id)
                 title = movie?.details.title
             }

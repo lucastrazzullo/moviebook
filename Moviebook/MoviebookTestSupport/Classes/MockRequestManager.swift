@@ -12,8 +12,8 @@ public final class MockRequestManager: RequestManager {
 
     private let server: MockServer
 
-    public init() {
-        self.server = MockServer()
+    public init(server: MockServer? = nil) {
+        self.server = server ?? BundleMockServer()
     }
 
     public func request(from url: URL) async throws -> Data {

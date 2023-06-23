@@ -28,7 +28,7 @@ import MoviebookCommon
         }
 
         func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
-            let webService = SearchWebService(requestManager: requestManager)
+            let webService = WebService.searchWebService(requestManager: requestManager)
             switch searchScope {
             case .movie:
                 let response = try await webService.fetchMovies(with: searchKeyword, page: page)

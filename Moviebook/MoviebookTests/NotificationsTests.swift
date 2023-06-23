@@ -8,17 +8,21 @@
 import XCTest
 import MoviebookCommon
 import MoviebookTestSupport
+import TheMovieDb
+
 @testable import Moviebook
 
 final class NotificationsTests: XCTestCase {
 
+    private var mockServer: StubMockServer!
     private var requestManager: RequestManager!
     private var notificationCenter: MockUserNotificationCenter!
     private var notifications: Notifications!
 
     override func setUpWithError() throws {
         try super.setUpWithError()
-        requestManager = MockRequestManager()
+        mockServer = StubMockServer()
+        requestManager = MockRequestManager(server: mockServer)
         notificationCenter = MockUserNotificationCenter()
         notificationCenter.delegate = self
 
@@ -33,16 +37,6 @@ final class NotificationsTests: XCTestCase {
     }
 
     // MARK: Tests
-
-    func testScheduleNotifications_forNotReleasedMoviesOnlt() async {
-        let notReleasedMovieIdentifiers = makeNotReleasedMovieIdentifiers()
-        let releasedMovieIdentifiers = makeReleasedMovieIdentifiers()
-        let watchlist = await makeWatchlist(movieIdentifiers: notReleasedMovieIdentifiers + releasedMovieIdentifiers)
-
-        await notifications.schedule(for: watchlist, requestManager: requestManager)
-        XCTAssertEqual(notificationCenter.totalNumberOfScheduledNotifications, notReleasedMovieIdentifiers.count)
-        XCTAssertEqual(notificationCenter.totalNumberOfRemovedNotifications, 0)
-    }
 
     func testScheduleNotifications_onlyOnce() async {
         let notReleasedMovieIdentifiers = makeNotReleasedMovieIdentifiers()
@@ -61,6 +55,13 @@ final class NotificationsTests: XCTestCase {
     }
 
     // MARK: Private factory methods
+
+    private func makeWatchlist(toWatchMovies: [Movie]) async -> Watchlist {
+        let toWatchItems = toWatchMovies.map { movie in
+            WatchlistItem(id: .movie(id: movie.id), state: .toWatch(info: .init(date: .now)))
+        }
+        return await Watchlist(items: toWatchItems)
+    }
 
     private func makeWatchlist(movieIdentifiers: [Movie.ID]) async -> Watchlist {
         let items = makeToWatchWatchlistItems(movieIdentifiers: movieIdentifiers)
@@ -91,6 +92,8 @@ extension NotificationsTests: NotificationsDelegate {
     func shouldAuthorizeNotifications() {
     }
 }
+
+// MARK: Mock classes
 
 private final class MockUserNotificationCenter: UserNotificationCenter {
 

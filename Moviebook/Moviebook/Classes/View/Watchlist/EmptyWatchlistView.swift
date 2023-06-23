@@ -15,7 +15,7 @@ struct EmptyWatchlistView: View {
         @Published var results: [WatchlistViewModel.Section: [MovieDetails]] = [:]
 
         func start(requestManager: RequestManager) async throws {
-            let webService = MovieWebService(requestManager: requestManager)
+            let webService = WebService.movieWebService(requestManager: requestManager)
             self.results = try await withThrowingTaskGroup(of: (section: WatchlistViewModel.Section, results: [MovieDetails]).self) { group in
                 var results: [WatchlistViewModel.Section: [MovieDetails]] = [:]
 
