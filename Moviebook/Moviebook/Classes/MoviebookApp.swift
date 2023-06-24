@@ -14,11 +14,15 @@ import MoviebookCommon
     @Published var watchlist: Watchlist?
     @Published var error: Error?
 
+    let notifications: Notifications = Notifications()
+
     private let storage: Storage = Storage()
 
     func start(requestManager: RequestManager) async {
         do {
-            self.watchlist = try await storage.loadWatchlist(requestManager: requestManager)
+            let watchlist = try await storage.loadWatchlist(requestManager: requestManager)
+            self.watchlist = watchlist
+            await self.notifications.schedule(for: watchlist, requestManager: requestManager)
         } catch {
             self.error = error
         }
@@ -46,6 +50,7 @@ struct MoviebookApp: App {
                     makeLoaderView()
                 }
             }
+            .onReceiveNotification(from: application.notifications, perform: openDeeplink(with:))
             .onOpenURL(perform: openDeeplink(with:))
             .onContinueUserActivity(CSSearchableItemActionType, perform: openDeeplink(with:))
             .task { await application.start(requestManager: requestManager) }
@@ -93,7 +98,6 @@ struct MoviebookApp: App {
                     Navigation(path: $presentedItemNavigationPath, presentingItem: item)
                 }
         }
-        .onReceiveNotification(perform: openDeeplink(with:))
         .environmentObject(watchlist)
     }
 
