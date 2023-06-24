@@ -7,7 +7,7 @@
 
 import SwiftUI
 import Combine
-import MoviebookCommons
+import MoviebookCommon
 
 private enum WatchlistPrompt: Identifiable, Equatable {
     case suggestion(item: WatchlistItem)
@@ -102,7 +102,7 @@ private struct WatchlistPromptItem: View {
         @Published var movie: Movie?
 
         func load(requestManager: RequestManager, movieIdentifier: Movie.ID) async throws {
-            let webService = MovieWebService(requestManager: requestManager)
+            let webService = WebService.movieWebService(requestManager: requestManager)
             self.movie = try await webService.fetchMovie(with: movieIdentifier)
         }
     }
@@ -273,6 +273,8 @@ extension View {
 }
 
 #if DEBUG
+import MoviebookTestSupport
+
 struct WatchlistPromptView_Previews: PreviewProvider {
     static let toWatchItem = WatchlistItem.init(id: .movie(id: 954), state: .toWatch(info: .init(date: .now)))
     static let watchedItem = WatchlistItem.init(id: .movie(id: 954), state: .toWatch(info: .init(date: .now)))
@@ -304,7 +306,7 @@ struct WatchlistPromptView_Previews: PreviewProvider {
             .listRowSeparator(.hidden)
         }
         .listStyle(.plain)
-        .environment(\.requestManager, MockRequestManager())
+        .environment(\.requestManager, MockRequestManager.shared)
         .environmentObject(Watchlist(items: [
             WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
             WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: nil)))

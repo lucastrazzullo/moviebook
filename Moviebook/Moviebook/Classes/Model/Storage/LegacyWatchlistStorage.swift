@@ -8,7 +8,7 @@
 import Foundation
 import CloudKit
 import Combine
-import MoviebookCommons
+import MoviebookCommon
 
 actor LegacyWatchlistStorage {
 

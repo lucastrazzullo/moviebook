@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import MoviebookCommons
+import MoviebookCommon
 
 @MainActor final class ArtistViewModel: ObservableObject {
 
@@ -38,7 +38,7 @@ import MoviebookCommons
     private func loadArtist(requestManager: RequestManager) {
         Task {
             do {
-                setArtist(try await ArtistWebService(requestManager: requestManager).fetchArtist(with: artistId))
+                setArtist(try await WebService.artistWebService(requestManager: requestManager).fetchArtist(with: artistId))
             } catch {
                 self.error = .failedToLoad(id: .init(), retry: { [weak self, weak requestManager] in
                     if let requestManager {

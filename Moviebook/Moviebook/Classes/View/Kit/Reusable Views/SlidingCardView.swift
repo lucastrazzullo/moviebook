@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import MoviebookCommons
+import MoviebookCommon
 
 struct SlidingCardView<TrailingHeaderView: View, ContentView: View>: View {
 
@@ -144,6 +144,8 @@ private struct CardView<Content: View>: View {
 }
 
 #if DEBUG
+import MoviebookTestSupport
+
 struct SlidingCardView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
@@ -151,7 +153,7 @@ struct SlidingCardView_Previews: PreviewProvider {
                 .environmentObject(Watchlist(items: [
                     WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: .init(owner: "Valerio", comment: "This is really nice"))))
                 ]))
-                .environment(\.requestManager, MockRequestManager())
+                .environment(\.requestManager, MockRequestManager.shared)
         }
     }
 }
@@ -186,7 +188,7 @@ private struct SlidingCardViewPreview: View {
             }
         }
         .task {
-            let webService = MovieWebService(requestManager: requestManager)
+            let webService = WebService.movieWebService(requestManager: requestManager)
             movie = try! await webService.fetchMovie(with: 954)
         }
     }

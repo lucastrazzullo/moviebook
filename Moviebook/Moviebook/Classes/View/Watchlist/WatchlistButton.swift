@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import MoviebookCommons
+import MoviebookCommon
 
 struct WatchlistButton<LabelType>: View where LabelType: View  {
 
@@ -108,74 +108,62 @@ enum WatchlistViewState {
             self = .watched
         }
     }
+
+    var icon: String {
+        switch self {
+        case .toWatch:
+            return "books.vertical.fill"
+        case .watched:
+            return "person.fill.checkmark"
+        case .none:
+            return "plus"
+        }
+    }
+
+    var label: String {
+        switch self {
+        case .toWatch:
+            return "In watchlist"
+        case .watched:
+            return "Watched"
+        case .none:
+            return "Add"
+        }
+    }
 }
 
 struct WatchlistIcon: View {
 
-    let state: WatchlistViewState
+    let itemState: WatchlistItemState?
 
     var body: some View {
-        switch state {
-        case .toWatch:
-            Image(systemName: "books.vertical.fill")
-        case .watched:
-            Image(systemName: "person.fill.checkmark")
-        case .none:
-            Image(systemName: "plus")
+        VStack(alignment: .leading) {
+            Image(systemName: WatchlistViewState(itemState: itemState).icon)
+            if let itemState, case .watched(let info) = itemState, let rating = info.rating {
+                Text(rating, format: .number.precision(.fractionLength(1))).font(.caption)
+            }
         }
     }
 
     init(itemState: WatchlistItemState?) {
-        self.state = WatchlistViewState(itemState: itemState)
-    }
-
-    init(state: WatchlistViewState) {
-        self.state = state
-    }
-}
-
-struct WatchlistText: View {
-
-    let state: WatchlistViewState
-
-    var body: some View {
-        switch state {
-        case .toWatch:
-            Text("In watchlist")
-        case .watched:
-            Text("Watched")
-        case .none:
-            Text("Add")
-        }
-    }
-
-    init(itemState: WatchlistItemState) {
-        self.state = WatchlistViewState(itemState: itemState)
-    }
-
-    init(state: WatchlistViewState) {
-        self.state = state
+        self.itemState = itemState
     }
 }
 
 struct WatchlistLabel: View {
 
-    let state: WatchlistViewState
+    let itemState: WatchlistItemState?
 
     var body: some View {
         HStack {
-            WatchlistIcon(state: state)
-            WatchlistText(state: state)
+            WatchlistIcon(itemState: itemState)
+            Text(WatchlistViewState(itemState: itemState).label)
                 .fixedSize(horizontal: true, vertical: false)
         }
     }
 
     init(itemState: WatchlistItemState?) {
-        self.state = WatchlistViewState(itemState: itemState)
-    }
-
-    init(state: WatchlistViewState) {
-        self.state = state
+        self.itemState = itemState
     }
 }
 
@@ -187,13 +175,8 @@ struct IconWatchlistButton: View {
 
     var body: some View {
         WatchlistButton(watchlistItemIdentifier: watchlistItemIdentifier) { state in
-            VStack(alignment: .leading) {
-                WatchlistIcon(itemState: state)
-                if let state, case .watched(let info) = state, let rating = info.rating {
-                    Text(rating, format: .number.precision(.fractionLength(1))).font(.caption)
-                }
-            }
-            .padding(8)
+            WatchlistIcon(itemState: state)
+                .padding(8)
         }
     }
 }
@@ -204,7 +187,7 @@ struct WatermarkWatchlistButton: View {
 
     var body: some View {
         WatchlistButton(watchlistItemIdentifier: watchlistItemIdentifier) { state in
-            WatchlistLabel(itemState: state)
+            Text(WatchlistViewState(itemState: state).label)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 8)
                 .background(.black.opacity(0.8))
@@ -214,7 +197,6 @@ struct WatermarkWatchlistButton: View {
     }
 }
 
-#if DEBUG
 struct WatchlistButton_Previews: PreviewProvider {
     static let toWatchItem = WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil)))
     static let watchedItem = WatchlistItem(id: .movie(id: 954), state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: .init(date: .now, suggestion: nil), rating: 6.4, date: .now)))
@@ -243,4 +225,3 @@ struct WatchlistButton_Previews: PreviewProvider {
         .cornerRadius(12)
     }
 }
-#endif

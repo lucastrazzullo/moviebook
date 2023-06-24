@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import MoviebookCommons
+import MoviebookCommon
 
 struct MovieView: View {
 
@@ -108,6 +108,8 @@ private struct ShareButton: View {
 }
 
 #if DEBUG
+import MoviebookTestSupport
+
 struct MovieView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
@@ -115,7 +117,7 @@ struct MovieView_Previews: PreviewProvider {
                 .environmentObject(Watchlist(items: [
                     WatchlistItem(id: .movie(id: 353081), state: .toWatch(info: .init(date: .now, suggestion: .init(owner: "Valerio", comment: "This is really nice"))))
                 ]))
-                .environment(\.requestManager, MockRequestManager())
+                .environment(\.requestManager, MockRequestManager.shared)
         }
     }
 }

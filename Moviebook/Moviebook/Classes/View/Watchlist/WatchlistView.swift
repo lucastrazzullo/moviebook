@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import MoviebookCommons
+import MoviebookCommon
 
 struct WatchlistView: View {
 
@@ -159,6 +159,8 @@ private struct ContentView: View {
         Group {
             if viewModel.isLoading {
                 LoaderView()
+            } else if let error = viewModel.error {
+                RetriableErrorView(retry: error.retry).padding()
             } else if viewModel.items.isEmpty {
                 WatchlistEmptyListView(
                     shouldShowTopBar: $shouldShowTopBar,
@@ -191,37 +193,42 @@ private struct ContentView: View {
         case .rating:
             return rating(for: lhs) > rating(for: rhs)
         case .name:
-            return name(for: lhs) > name(for: rhs)
+            return name(for: lhs) < name(for: rhs)
         case .release:
-            return releaseDate(for: lhs) > releaseDate(for: rhs)
+            return releaseDate(for: lhs) < releaseDate(for: rhs)
         }
     }
 
     private func rating(for item: WatchlistViewModel.Item) -> Float {
         switch item {
-        case .movie(let movie, _, _, _):
-            return movie.details.rating.value
+        case .movie(let movie, _, let watchlistItem):
+            switch watchlistItem.state {
+            case .toWatch:
+                return movie.details.rating.value
+            case .watched(let info):
+                return Float(info.rating ?? 0)
+            }
         }
     }
 
     private func name(for item: WatchlistViewModel.Item) -> String {
         switch item {
-        case .movie(let movie, _, _, _):
+        case .movie(let movie, _, _):
             return movie.details.title
         }
     }
 
     private func releaseDate(for item: WatchlistViewModel.Item) -> Date {
         switch item {
-        case .movie(let movie, _, _, _):
+        case .movie(let movie, _, _):
             return movie.details.release
         }
     }
 
     private func addedDate(for item: WatchlistViewModel.Item) -> Date {
         switch item {
-        case .movie(_, _, _, let addedDate):
-            return addedDate
+        case .movie(_, _, let watchlistItem):
+            return watchlistItem.date
         }
     }
 }
@@ -269,11 +276,11 @@ private struct WatchlistListView: View {
                     LazyVGrid(columns: [GridItem(spacing: 4), GridItem()], spacing: 4) {
                         ForEach(items) { item in
                             switch item {
-                            case .movie(let movie, _, let watchlistIdentifier, _):
+                            case .movie(let movie, _, let watchlistItem):
                                 WatchlistItemView(
                                     presentedItem: $presentedItem,
                                     movie: movie,
-                                    watchlistIdentifier: watchlistIdentifier
+                                    watchlistIdentifier: watchlistItem.id
                                 )
                                 .id(item.id)
                                 .transition(.opacity)
@@ -351,7 +358,7 @@ private struct WatchlistItemView: View {
                     }
                 } label: {
                     WatermarkView {
-                        Image(systemName: "ellipsis")
+                        WatchlistIcon(itemState: watchlist.itemState(id: watchlistIdentifier))
                     }
                 }
                 .padding(12)
@@ -361,10 +368,12 @@ private struct WatchlistItemView: View {
 }
 
 #if DEBUG
+import MoviebookTestSupport
+
 struct WatchlistView_Previews: PreviewProvider {
     static var previews: some View {
         WatchlistView()
-            .environment(\.requestManager, MockRequestManager())
+            .environment(\.requestManager, MockRequestManager.shared)
             .environmentObject(Watchlist(items: [
                 WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
                 WatchlistItem(id: .movie(id: 353081), state: .toWatch(info: .init(date: .now, suggestion: nil))),
@@ -372,14 +381,14 @@ struct WatchlistView_Previews: PreviewProvider {
             ]))
 
         WatchlistView()
-            .environment(\.requestManager, MockRequestManager())
+            .environment(\.requestManager, MockRequestManager.shared)
             .environmentObject(Watchlist(items: [
                 WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
                 WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: nil)))
             ]))
 
         WatchlistView()
-            .environment(\.requestManager, MockRequestManager())
+            .environment(\.requestManager, MockRequestManager.shared)
             .environmentObject(Watchlist(items: []))
     }
 }

@@ -7,7 +7,7 @@
 
 import WidgetKit
 import SwiftUI
-import MoviebookCommons
+import MoviebookCommon
 
 struct Provider: TimelineProvider {
 

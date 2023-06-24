@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import MoviebookCommons
+import MoviebookCommon
 
 enum ExploreContentItems {
     case movies([MovieDetails])

@@ -7,7 +7,7 @@
 
 import Foundation
 import Combine
-import MoviebookCommons
+import MoviebookCommon
 
 @MainActor final class WatchlistViewModel: ObservableObject {
 
@@ -65,26 +65,26 @@ import MoviebookCommons
     }
 
     enum Item: Identifiable, Equatable {
-        case movie(movie: Movie, section: Section, watchlistIdentifier: WatchlistItemIdentifier, addedDate: Date)
+        case movie(movie: Movie, section: Section, watchlistItem: WatchlistItem)
 
         var id: String {
             switch self {
-            case .movie(let movie, let section, _, _):
+            case .movie(let movie, let section, _):
                 return "\(movie.id): \(section.name)"
             }
         }
 
         var section: Section {
             switch self {
-            case .movie(_, let section, _, _):
+            case .movie(_, let section, _):
                 return section
             }
         }
 
-        var watchlistIdentifier: WatchlistItemIdentifier {
+        var watchlistItem: WatchlistItem {
             switch self {
-            case .movie(_, _, let watchlistIdentifier, _):
-                return watchlistIdentifier
+            case .movie(_, _, let watchlistItem):
+                return watchlistItem
             }
         }
     }
@@ -92,6 +92,7 @@ import MoviebookCommons
     // MARK: Instance Properties
 
     @Published private(set) var isLoading: Bool = true
+    @Published private(set) var error: WebServiceError? = nil
     @Published private(set) var items: [Item] = []
 
     private var subscriptions: Set<AnyCancellable> = []
@@ -116,13 +117,28 @@ import MoviebookCommons
                 }
 
                 if let requestManager {
-                    Task {
-                        try await self?.set(items: result, section: section, requestManager: requestManager)
-                        self?.isLoading = false
-                    }
+                    self?.setItemsOrRetry(items: result, section: section, requestManager: requestManager)
                 }
             }
             .store(in: &subscriptions)
+    }
+
+    private func setItemsOrRetry(items: [WatchlistItem], section: Section, requestManager: RequestManager) {
+        Task {
+            do {
+                self.isLoading = true
+                self.error = nil
+
+                try await set(items: items, section: section, requestManager: requestManager)
+                self.isLoading = false
+
+            } catch {
+                self.isLoading = false
+                self.error = WebServiceError.failedToLoad(id: .init(), retry: { [weak self] in
+                    self?.setItemsOrRetry(items: items, section: section, requestManager: requestManager)
+                })
+            }
+        }
     }
 
     private func set(items: [WatchlistItem], section: Section, requestManager: RequestManager) async throws {
@@ -134,9 +150,9 @@ import MoviebookCommons
                 group.addTask {
                     switch item.id {
                     case .movie(let id):
-                        let webService = MovieWebService(requestManager: requestManager)
+                        let webService = WebService.movieWebService(requestManager: requestManager)
                         let movie = try await webService.fetchMovie(with: id)
-                        return Item.movie(movie: movie, section: section, watchlistIdentifier: item.id, addedDate: item.date)
+                        return Item.movie(movie: movie, section: section, watchlistItem: item)
                     }
                 }
             }
