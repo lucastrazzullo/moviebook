@@ -272,11 +272,11 @@ final class NotificationsTests: XCTestCase {
 
 extension NotificationsTests: NotificationsDelegate {
 
-    func shouldRequestAuthorization() async -> Bool {
+    func shouldRequestAuthorization(forMovieWith title: String) async -> Bool {
         return true
     }
 
-    func shouldAuthorizeNotifications() {
+    func shouldAuthorizeNotifications(forMovieWith title: String) {
     }
 }
 
