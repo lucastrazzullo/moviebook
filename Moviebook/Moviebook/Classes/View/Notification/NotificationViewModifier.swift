@@ -40,7 +40,7 @@ private struct NotificationViewModifier: ViewModifier {
             .sheet(item: $notificationHandler.enableNotificationPromptDetails) { promptDetails in
                 EnableNotificationInSettingsView(promptDetails: promptDetails) { dontShowAnymore in
                     isPromptDisabled = dontShowAnymore
-                    notificationHandler.enableNotificationPromptDetails = nil
+                    notificationHandler.continueNotAuthorizedRequest()
                 }
                 .presentationDetents([.medium])
             }
@@ -57,7 +57,9 @@ private struct NotificationViewModifier: ViewModifier {
     @Published var notificationPromptDetails: NotificationPromptView.PromptDetails? = nil
     @Published var enableNotificationPromptDetails: EnableNotificationInSettingsView.PromptDetails? = nil
 
-    private var continuation: CheckedContinuation<Bool, Never>?
+    private var lastTimePromptWasShown: Date?
+    private var shouldRequestAuthorization: CheckedContinuation<Bool, Never>?
+    private var shouldAuthorizeNotifications: CheckedContinuation<Void, Never>?
 
     private let notifications: Notifications
     private let onReceiveNotification: (UNNotification) -> Void
@@ -76,31 +78,57 @@ private struct NotificationViewModifier: ViewModifier {
     }
 
     func continueAuthorizationRequest(with authorizationNeeded: Bool) {
-        continuation?.resume(returning: authorizationNeeded)
+        shouldRequestAuthorization?.resume(returning: authorizationNeeded)
+    }
+
+    func continueNotAuthorizedRequest() {
+        shouldAuthorizeNotifications?.resume()
     }
 }
 
 extension NotificationHandler: NotificationsDelegate {
 
     func shouldRequestAuthorization(forMovieWith title: String) async -> Bool {
+        if let lastTimePromptWasShown, Calendar.current.isDateInToday(lastTimePromptWasShown) {
+            return false
+        } else {
+            lastTimePromptWasShown = .now
+        }
+
         Task { @MainActor in
             notificationPromptDetails = NotificationPromptView.PromptDetails(movieTitle: title)
         }
 
         let shouldRequest = await withCheckedContinuation { continuation in
-            self.continuation = continuation
+            self.shouldRequestAuthorization = continuation
         }
 
         Task { @MainActor in
             notificationPromptDetails = nil
+            shouldRequestAuthorization = nil
         }
 
         return shouldRequest
     }
 
-    func shouldAuthorizeNotifications(forMovieWith title: String) {
+    func shouldAuthorizeNotifications(forMovieWith title: String) async {
+        if let lastTimePromptWasShown, Calendar.current.isDateInToday(lastTimePromptWasShown) {
+            return
+        } else {
+            lastTimePromptWasShown = .now
+        }
+
         Task { @MainActor in
             enableNotificationPromptDetails = EnableNotificationInSettingsView.PromptDetails(movieTitle: title)
+        }
+
+        await withCheckedContinuation { continuation in
+            self.shouldAuthorizeNotifications = continuation
+        }
+
+        Task { @MainActor in
+            enableNotificationPromptDetails = nil
+            shouldAuthorizeNotifications = nil
         }
     }
 }
@@ -113,7 +141,7 @@ extension NotificationHandler: UNUserNotificationCenterDelegate {
     }
 }
 
-// MARK: Views
+// MARK: - Views
 
 extension View {
 
@@ -197,20 +225,27 @@ struct EnableNotificationInSettingsView: View {
                     .padding(.horizontal)
             }
 
-            Button(action: {
-                if let appSettings = URL(string: UIApplication.openSettingsURLString), UIApplication.shared.canOpenURL(appSettings) {
-                    UIApplication.shared.open(appSettings)
+            VStack {
+                Button(action: {
+                    if let appSettings = URL(string: UIApplication.openSettingsURLString), UIApplication.shared.canOpenURL(appSettings) {
+                        UIApplication.shared.open(appSettings)
+                    }
+                    action(false)
+                }) {
+                    Text("Bring me to settings")
                 }
-                action(false)
-            }) {
-                Text("Ok")
-            }
-            .buttonStyle(OvalButtonStyle())
+                .buttonStyle(OvalButtonStyle())
 
-            Button(action: { action(true) }) {
-                Text("Don't show anymore").padding(.vertical)
+                Button(action: { action(false) }) {
+                    Text("I understand").padding(.vertical)
+                }
+                .foregroundStyle(.primary)
+
+                Button(action: { action(true) }) {
+                    Text("Don't show anymore").padding(.vertical)
+                }
+                .foregroundStyle(.primary)
             }
-            .foregroundStyle(.primary)
         }
         .padding()
     }
