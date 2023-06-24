@@ -13,7 +13,9 @@ import MoviebookTestSupport
 extension MockRequestManager {
 
     static let shared: RequestManager = {
-        let mockServer = BundleMockServer(bundleIdentifier: "it.lucastrazzullo.ios.TheMovieDb", resourceName: "Mocks")
+        let bundleIdentifier = "it.lucastrazzullo.ios.TheMovieDb"
+        let mockResourceName = "Mocks"
+        let mockServer = BundleMockServer(bundleIdentifier: bundleIdentifier, resourceName: mockResourceName)
 
         return MockRequestManager(server: mockServer)
     }()

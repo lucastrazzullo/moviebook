@@ -17,9 +17,7 @@ public struct TheMovieDbArtistWebService: ArtistWebService {
     }
 
     public func fetchArtist(with identifier: Artist.ID) async throws -> Artist {
-        let url = try TheMovieDbDataRequestFactory.makeURL(path: "person/\(identifier)", queryItems: [
-            URLQueryItem(name: "append_to_response", value: "credits")
-        ])
+        let url = try TheMovieDbUrlFactory.artist(identifier: identifier).makeUrl()
         let data = try await requestManager.request(from: url)
         return try JSONDecoder().decode(TMDBArtistResponse.self, from: data).result
     }

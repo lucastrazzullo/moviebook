@@ -8,7 +8,7 @@
 import Foundation
 import MoviebookCommon
 
-struct TMDBMovieDetailsResponse: Decodable {
+struct TMDBMovieDetailsResponse: Codable {
 
     enum Error: Swift.Error {
         case invalidDate
@@ -28,6 +28,12 @@ struct TMDBMovieDetailsResponse: Decodable {
     }
 
     let result: MovieDetails
+
+    // MARK: Object life cycle
+
+    init(result: MovieDetails) {
+        self.result = result
+    }
 
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
@@ -69,5 +75,23 @@ struct TMDBMovieDetailsResponse: Decodable {
                                    revenue: revenue,
                                    rating: rating,
                                    media: media)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        try container.encode(result.id, forKey: .id)
+        try container.encode(result.title, forKey: .title)
+        try container.encode(result.rating.value, forKey: .rating)
+        try container.encode(TheMovieDbResponseFactory.dateFormatter.string(from: result.release), forKey: .releaseDate)
+        try TMDBMovieMediaResponse(result: result.media).encode(to: encoder)
+
+        try container.encodeIfPresent(result.overview, forKey: .overview)
+        try container.encodeIfPresent(result.budget?.value, forKey: .budget)
+        try container.encodeIfPresent(result.revenue?.value, forKey: .revenue)
+
+        if let runtime = result.runtime {
+            try container.encode(runtime/60, forKey: .runtime)
+        }
     }
 }

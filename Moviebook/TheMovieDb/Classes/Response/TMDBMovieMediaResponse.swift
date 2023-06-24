@@ -8,16 +8,21 @@
 import Foundation
 import MoviebookCommon
 
-struct TMDBMovieMediaResponse: Decodable {
+struct TMDBMovieMediaResponse: Codable {
 
     enum CodingKeys: String, CodingKey {
         case posterPath = "poster_path"
         case backdropPath = "backdrop_path"
         case videos = "videos"
-        case title = "title"
     }
 
     let result: MovieMedia
+
+    // MARK: Object life cycle
+
+    init(result: MovieMedia) {
+        self.result = result
+    }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -44,5 +49,13 @@ struct TMDBMovieMediaResponse: Decodable {
                                  backdropUrl: backdropUrl,
                                  backdropPreviewUrl: backdropPreviewUrl,
                                  videos: videos)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        try container.encode(result.posterUrl.lastPathComponent, forKey: .posterPath)
+        try container.encode(result.backdropUrl.lastPathComponent, forKey: .backdropPath)
+        try container.encode(result.videos.map(TMDBMovieVideoResponse.init(result:)), forKey: .videos)
     }
 }

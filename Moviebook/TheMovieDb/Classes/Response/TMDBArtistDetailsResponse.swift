@@ -8,7 +8,7 @@
 import Foundation
 import MoviebookCommon
 
-struct TMDBArtistDetailsResponse: Decodable {
+struct TMDBArtistDetailsResponse: Codable {
 
     enum CodingKeys: String, CodingKey {
         case id = "id"
@@ -22,6 +22,12 @@ struct TMDBArtistDetailsResponse: Decodable {
     }
 
     let result: ArtistDetails
+
+    // MARK: Object life cycle
+
+    init(result: ArtistDetails) {
+        self.result = result
+    }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -55,5 +61,18 @@ struct TMDBArtistDetailsResponse: Decodable {
                                     biography: biography,
                                     character: character,
                                     popularity: popularity)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+
+        try container.encode(result.id, forKey: .id)
+        try container.encode(result.name, forKey: .name)
+        try container.encodeIfPresent(result.birthday, forKey: .birthday)
+        try container.encodeIfPresent(result.deathday, forKey: .deathday)
+        try container.encode(result.imagePreviewUrl.lastPathComponent, forKey: .imagePath)
+        try container.encodeIfPresent(result.biography, forKey: .biography)
+        try container.encodeIfPresent(result.character, forKey: .character)
+        try container.encodeIfPresent(result.popularity, forKey: .popularity)
     }
 }

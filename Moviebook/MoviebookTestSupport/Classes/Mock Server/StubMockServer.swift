@@ -25,6 +25,9 @@ public final class StubMockServer: MockServer {
     // MARK: Public methods
 
     public func addStub(_ stub: MockStub) {
+        if let index = stubs.firstIndex(where: { $0.url == stub.url }) {
+            stubs.remove(at: index)
+        }
         self.stubs.append(stub)
     }
 

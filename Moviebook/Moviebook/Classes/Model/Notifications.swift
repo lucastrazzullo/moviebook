@@ -26,7 +26,7 @@ protocol UserNotificationCenter: AnyObject {
 
     func pendingNotificationRequests() async -> [UNNotificationRequest]
     func add(_ request: UNNotificationRequest) async throws
-    func removePendingNotificationRequests(withIdentifiers: [String])
+    func removePendingNotificationRequests(withIdentifiers: [String]) async
 }
 
 extension UNUserNotificationCenter: UserNotificationCenter {
@@ -140,7 +140,7 @@ final class Notifications {
     private func remove(notificationWith identifier: String) async {
         let notifications = await notificationCenter.pendingNotificationRequests()
         if notifications.contains(where: { $0.identifier == identifier }) {
-            notificationCenter.removePendingNotificationRequests(withIdentifiers: [identifier])
+            await notificationCenter.removePendingNotificationRequests(withIdentifiers: [identifier])
         }
     }
 
