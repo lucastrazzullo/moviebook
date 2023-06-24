@@ -57,6 +57,7 @@ private struct NotificationViewModifier: ViewModifier {
     @Published var notificationPromptDetails: NotificationPromptView.PromptDetails? = nil
     @Published var enableNotificationPromptDetails: EnableNotificationInSettingsView.PromptDetails? = nil
 
+    private var lastTimePromptWasShown: Date?
     private var shouldRequestAuthorization: CheckedContinuation<Bool, Never>?
     private var shouldAuthorizeNotifications: CheckedContinuation<Void, Never>?
 
@@ -88,6 +89,12 @@ private struct NotificationViewModifier: ViewModifier {
 extension NotificationHandler: NotificationsDelegate {
 
     func shouldRequestAuthorization(forMovieWith title: String) async -> Bool {
+        if let lastTimePromptWasShown, Calendar.current.isDateInToday(lastTimePromptWasShown) {
+            return false
+        } else {
+            lastTimePromptWasShown = .now
+        }
+
         Task { @MainActor in
             notificationPromptDetails = NotificationPromptView.PromptDetails(movieTitle: title)
         }
@@ -105,6 +112,12 @@ extension NotificationHandler: NotificationsDelegate {
     }
 
     func shouldAuthorizeNotifications(forMovieWith title: String) async {
+        if let lastTimePromptWasShown, Calendar.current.isDateInToday(lastTimePromptWasShown) {
+            return
+        } else {
+            lastTimePromptWasShown = .now
+        }
+
         Task { @MainActor in
             enableNotificationPromptDetails = EnableNotificationInSettingsView.PromptDetails(movieTitle: title)
         }
@@ -128,7 +141,7 @@ extension NotificationHandler: UNUserNotificationCenterDelegate {
     }
 }
 
-// MARK: Views
+// MARK: - Views
 
 extension View {
 
@@ -212,20 +225,27 @@ struct EnableNotificationInSettingsView: View {
                     .padding(.horizontal)
             }
 
-            Button(action: {
-                if let appSettings = URL(string: UIApplication.openSettingsURLString), UIApplication.shared.canOpenURL(appSettings) {
-                    UIApplication.shared.open(appSettings)
+            VStack {
+                Button(action: {
+                    if let appSettings = URL(string: UIApplication.openSettingsURLString), UIApplication.shared.canOpenURL(appSettings) {
+                        UIApplication.shared.open(appSettings)
+                    }
+                    action(false)
+                }) {
+                    Text("Bring me to settings")
                 }
-                action(false)
-            }) {
-                Text("Ok")
-            }
-            .buttonStyle(OvalButtonStyle())
+                .buttonStyle(OvalButtonStyle())
 
-            Button(action: { action(true) }) {
-                Text("Don't show anymore").padding(.vertical)
+                Button(action: { action(false) }) {
+                    Text("I understand").padding(.vertical)
+                }
+                .foregroundStyle(.primary)
+
+                Button(action: { action(true) }) {
+                    Text("Don't show anymore").padding(.vertical)
+                }
+                .foregroundStyle(.primary)
             }
-            .foregroundStyle(.primary)
         }
         .padding()
     }
