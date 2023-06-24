@@ -106,18 +106,16 @@ final class Notifications {
     // MARK: Notifications
 
     private func scheduleIfNeeded(notificationWith identifier: String, for movie: Movie) async throws {
-        let notifications = await notificationCenter.pendingNotificationRequests()
+        let pendingNotifications = await notificationCenter.pendingNotificationRequests()
 
-        if let scheduledNotification = notifications.first(where: { $0.identifier == identifier }) {
+        if let scheduledNotification = pendingNotifications.first(where: { $0.identifier == identifier }) {
             if let trigger = scheduledNotification.trigger as? UNCalendarNotificationTrigger,
                let triggerDate = trigger.nextTriggerDate(), triggerDate != movie.details.release {
                 await remove(notificationWith: identifier)
-
-                if movie.details.release > Date.now {
-                    try await schedule(notificationWith: identifier, for: movie)
-                }
             }
-        } else if movie.details.release > Date.now {
+        }
+
+        if movie.details.release > Date.now {
             try await schedule(notificationWith: identifier, for: movie)
         }
     }
