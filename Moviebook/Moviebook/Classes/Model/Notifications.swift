@@ -12,7 +12,7 @@ import MoviebookCommon
 
 protocol NotificationsDelegate: AnyObject, UNUserNotificationCenterDelegate {
     func shouldRequestAuthorization(forMovieWith title: String) async -> Bool
-    func shouldAuthorizeNotifications()
+    func shouldAuthorizeNotifications(forMovieWith title: String)
 }
 
 // MARK: Notification center
@@ -155,7 +155,7 @@ final class Notifications {
                 throw Error.notificationsNotAuthorized
             }
         case .denied:
-            delegate?.shouldAuthorizeNotifications()
+            delegate?.shouldAuthorizeNotifications(forMovieWith: title)
             throw Error.notificationsNotAuthorized
         default:
             throw Error.notificationsNotAuthorized

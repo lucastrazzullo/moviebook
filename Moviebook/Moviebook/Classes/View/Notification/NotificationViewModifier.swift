@@ -28,12 +28,19 @@ private struct NotificationViewModifier: ViewModifier {
                     notificationHandler.stop()
                 }
             }
-            .sheet(item: $notificationHandler.promptDetails) { promptDetails in
+            .sheet(item: $notificationHandler.notificationPromptDetails) { promptDetails in
                 NotificationPromptView(promptDetails: promptDetails) {
                     notificationHandler.continueAuthorizationRequest(with: true)
                 } onDeclined: { dontShowAnymore in
                     isPromptDisabled = dontShowAnymore
                     notificationHandler.continueAuthorizationRequest(with: false)
+                }
+                .presentationDetents([.medium])
+            }
+            .sheet(item: $notificationHandler.enableNotificationPromptDetails) { promptDetails in
+                EnableNotificationInSettingsView(promptDetails: promptDetails) { dontShowAnymore in
+                    isPromptDisabled = dontShowAnymore
+                    notificationHandler.enableNotificationPromptDetails = nil
                 }
                 .presentationDetents([.medium])
             }
@@ -47,7 +54,8 @@ private struct NotificationViewModifier: ViewModifier {
 
 @MainActor private final class NotificationHandler: NSObject, ObservableObject {
 
-    @Published var promptDetails: NotificationPromptView.PromptDetails? = nil
+    @Published var notificationPromptDetails: NotificationPromptView.PromptDetails? = nil
+    @Published var enableNotificationPromptDetails: EnableNotificationInSettingsView.PromptDetails? = nil
 
     private var continuation: CheckedContinuation<Bool, Never>?
 
@@ -75,19 +83,25 @@ private struct NotificationViewModifier: ViewModifier {
 extension NotificationHandler: NotificationsDelegate {
 
     func shouldRequestAuthorization(forMovieWith title: String) async -> Bool {
-        promptDetails = NotificationPromptView.PromptDetails(movieTitle: title)
+        Task { @MainActor in
+            notificationPromptDetails = NotificationPromptView.PromptDetails(movieTitle: title)
+        }
 
         let shouldRequest = await withCheckedContinuation { continuation in
             self.continuation = continuation
         }
 
-        promptDetails = nil
+        Task { @MainActor in
+            notificationPromptDetails = nil
+        }
 
         return shouldRequest
     }
 
-    func shouldAuthorizeNotifications() {
-
+    func shouldAuthorizeNotifications(forMovieWith title: String) {
+        Task { @MainActor in
+            enableNotificationPromptDetails = EnableNotificationInSettingsView.PromptDetails(movieTitle: title)
+        }
     }
 }
 
@@ -114,7 +128,6 @@ struct NotificationPromptView: View {
         var id: String {
             return movieTitle
         }
-
         let movieTitle: String
     }
 
@@ -158,8 +171,65 @@ struct NotificationPromptView: View {
     }
 }
 
+struct EnableNotificationInSettingsView: View {
+
+    struct PromptDetails: Identifiable {
+        var id: String {
+            return movieTitle
+        }
+        let movieTitle: String
+    }
+
+    let promptDetails: PromptDetails
+    let action: (_ dontShowAnymore: Bool) -> Void
+
+    var body: some View {
+        VStack(spacing: 32) {
+            VStack(spacing: 8) {
+                HStack {
+                    Image(systemName: "calendar")
+                    Text("Get notified")
+                }
+                .font(.title.bold())
+
+                Text("Go to Settings > Moviebook > Notifications and enable notifications if you want to be notified when **\(promptDetails.movieTitle)** is released.")
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+            }
+
+            Button(action: {
+                if let appSettings = URL(string: UIApplication.openSettingsURLString), UIApplication.shared.canOpenURL(appSettings) {
+                    UIApplication.shared.open(appSettings)
+                }
+                action(false)
+            }) {
+                Text("Ok")
+            }
+            .buttonStyle(OvalButtonStyle())
+
+            Button(action: { action(true) }) {
+                Text("Don't show anymore").padding(.vertical)
+            }
+            .foregroundStyle(.primary)
+        }
+        .padding()
+    }
+}
+
 struct NotificationPromptView_Previews: PreviewProvider {
     static var previews: some View {
-        NotificationPromptView(promptDetails: .init(movieTitle: "Movie title")) {} onDeclined: { _ in }
+        Group {
+            ScrollView() {}
+                .sheet(item: .constant(NotificationPromptView.PromptDetails(movieTitle: "Movie title"))) { promptDetails in
+                    NotificationPromptView(promptDetails: promptDetails) {} onDeclined: { _ in }
+                        .presentationDetents([.medium])
+                }
+
+            ScrollView() {}
+                .sheet(item: .constant(EnableNotificationInSettingsView.PromptDetails(movieTitle: "Movie title"))) { promptDetails in
+                    EnableNotificationInSettingsView(promptDetails: promptDetails) { _ in }
+                        .presentationDetents([.medium])
+                }
+        }
     }
 }
