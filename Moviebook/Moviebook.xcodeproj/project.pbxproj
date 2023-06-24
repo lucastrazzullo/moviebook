@@ -90,11 +90,7 @@
 		816E65212A45A64A007AEED1 /* WebService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 816E65202A45A64A007AEED1 /* WebService.swift */; };
 		816E65242A45AACB007AEED1 /* TheMovieDbImageRequestFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 816E65232A45AACB007AEED1 /* TheMovieDbImageRequestFactory.swift */; };
 		816E652A2A45ABFB007AEED1 /* MoviebookCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 811124AF2A43511F009133C2 /* MoviebookCommon.framework */; };
-		816E652B2A45ABFB007AEED1 /* MoviebookCommon.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 811124AF2A43511F009133C2 /* MoviebookCommon.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		816E652F2A45AC00007AEED1 /* MoviebookCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 811124AF2A43511F009133C2 /* MoviebookCommon.framework */; };
-		816E65302A45AC00007AEED1 /* MoviebookCommon.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 811124AF2A43511F009133C2 /* MoviebookCommon.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		816E65342A45AC4F007AEED1 /* MoviebookCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 811124AF2A43511F009133C2 /* MoviebookCommon.framework */; };
-		816E65352A45AC4F007AEED1 /* MoviebookCommon.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 811124AF2A43511F009133C2 /* MoviebookCommon.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		816E65392A45AC6F007AEED1 /* TheMovieDb.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 816E64F42A459916007AEED1 /* TheMovieDb.framework */; };
 		816E653A2A45AC6F007AEED1 /* TheMovieDb.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 816E64F42A459916007AEED1 /* TheMovieDb.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		816E653E2A45B05B007AEED1 /* RequestManager+Mock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 816E653D2A45B05B007AEED1 /* RequestManager+Mock.swift */; };
@@ -119,6 +115,7 @@
 		81B7DBF92A14050300AF9118 /* ExploreHorizontalSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B7DBF82A14050300AF9118 /* ExploreHorizontalSectionView.swift */; };
 		81B7DBFB2A14BE1A00AF9118 /* ExploreContentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B7DBFA2A14BE1A00AF9118 /* ExploreContentViewModel.swift */; };
 		81B7DBFF2A162F3500AF9118 /* EmptyWatchlistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B7DBFE2A162F3500AF9118 /* EmptyWatchlistView.swift */; };
+		81BF6CF82A47435E00B58891 /* MoviebookCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 811124AF2A43511F009133C2 /* MoviebookCommon.framework */; };
 		81D254742A066836006EBC1F /* RetriableErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81D254732A066836006EBC1F /* RetriableErrorView.swift */; };
 		81D60DA72A312D060045AA0B /* RemoteImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81D60DA62A312D060045AA0B /* RemoteImage.swift */; };
 		81D60DB22A3341760045AA0B /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 81D60D8E2A30F3860045AA0B /* WidgetKit.framework */; };
@@ -165,27 +162,6 @@
 			remoteGlobalIDString = 8111249C2A434F65009133C2;
 			remoteInfo = MoviebookTestSupport;
 		};
-		816E652C2A45ABFB007AEED1 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 8169FB1128C204450054BCE6 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 811124AE2A43511F009133C2;
-			remoteInfo = MoviebookCommon;
-		};
-		816E65312A45AC01007AEED1 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 8169FB1128C204450054BCE6 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 811124AE2A43511F009133C2;
-			remoteInfo = MoviebookCommon;
-		};
-		816E65362A45AC4F007AEED1 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 8169FB1128C204450054BCE6 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 811124AE2A43511F009133C2;
-			remoteInfo = MoviebookCommon;
-		};
 		816E653B2A45AC6F007AEED1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 8169FB1128C204450054BCE6 /* Project object */;
@@ -222,7 +198,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				816E652B2A45ABFB007AEED1 /* MoviebookCommon.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -233,7 +208,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				816E65302A45AC00007AEED1 /* MoviebookCommon.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -244,7 +218,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				816E65352A45AC4F007AEED1 /* MoviebookCommon.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -449,7 +422,7 @@
 			files = (
 				81D60DB32A3341760045AA0B /* SwiftUI.framework in Frameworks */,
 				81D60DB22A3341760045AA0B /* WidgetKit.framework in Frameworks */,
-				816E65342A45AC4F007AEED1 /* MoviebookCommon.framework in Frameworks */,
+				81BF6CF82A47435E00B58891 /* MoviebookCommon.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1017,7 +990,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				816E65322A45AC01007AEED1 /* PBXTargetDependency */,
 			);
 			name = MoviebookTestSupport;
 			productName = MoviebookTestSupport;
@@ -1117,7 +1089,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				816E652D2A45ABFB007AEED1 /* PBXTargetDependency */,
 			);
 			name = TheMovieDb;
 			productName = TheMovieDb;
@@ -1136,7 +1107,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				816E65372A45AC4F007AEED1 /* PBXTargetDependency */,
 			);
 			name = WatchNextWidgetExtension;
 			productName = WatchNextWidgetExtension;
@@ -1440,21 +1410,6 @@
 			target = 8111249C2A434F65009133C2 /* MoviebookTestSupport */;
 			targetProxy = 816E64E42A43596C007AEED1 /* PBXContainerItemProxy */;
 		};
-		816E652D2A45ABFB007AEED1 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 811124AE2A43511F009133C2 /* MoviebookCommon */;
-			targetProxy = 816E652C2A45ABFB007AEED1 /* PBXContainerItemProxy */;
-		};
-		816E65322A45AC01007AEED1 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 811124AE2A43511F009133C2 /* MoviebookCommon */;
-			targetProxy = 816E65312A45AC01007AEED1 /* PBXContainerItemProxy */;
-		};
-		816E65372A45AC4F007AEED1 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 811124AE2A43511F009133C2 /* MoviebookCommon */;
-			targetProxy = 816E65362A45AC4F007AEED1 /* PBXContainerItemProxy */;
-		};
 		816E653C2A45AC6F007AEED1 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 816E64F32A459916007AEED1 /* TheMovieDb */;
@@ -1755,7 +1710,7 @@
 		8169FB4328C204450054BCE6 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Moviebook/MoviebookDebug.entitlements;
@@ -1795,7 +1750,7 @@
 		8169FB4428C204450054BCE6 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = NO;
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Moviebook/Moviebook.entitlements;
