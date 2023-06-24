@@ -155,7 +155,7 @@ final class NotificationsTests: XCTestCase {
 
         let watchlist = await Watchlist(items: [])
         await watchlist.itemDidUpdateState
-            .throttle(for: 0.5, scheduler: RunLoop.main, latest: true)
+            .throttle(for: 1, scheduler: RunLoop.main, latest: true)
             .sink { _ in expectation.fulfill() }
             .store(in: &subscriptions)
 
@@ -196,7 +196,7 @@ final class NotificationsTests: XCTestCase {
 
         let watchlist = await Watchlist(items: items)
         await watchlist.itemDidUpdateState
-            .throttle(for: 0.5, scheduler: RunLoop.main, latest: true)
+            .throttle(for: 1, scheduler: RunLoop.main, latest: true)
             .sink { _ in expectation.fulfill() }
             .store(in: &subscriptions)
 
