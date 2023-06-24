@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import MoviebookCommons
+import MoviebookCommon
 
 @MainActor final class MovieViewModel: ObservableObject {
 
@@ -38,7 +38,7 @@ import MoviebookCommons
     private func loadMovie(requestManager: RequestManager) {
         Task {
             do {
-                setMovie(try await MovieWebService(requestManager: requestManager).fetchMovie(with: movieId))
+                setMovie(try await WebService.movieWebService(requestManager: requestManager).fetchMovie(with: movieId))
             } catch {
                 self.error = .failedToLoad(id: .init(), retry: { [weak self, weak requestManager] in
                     if let requestManager {

@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import MoviebookCommons
+import MoviebookCommon
 
 struct WatchlistView: View {
 
@@ -159,6 +159,8 @@ private struct ContentView: View {
         Group {
             if viewModel.isLoading {
                 LoaderView()
+            } else if let error = viewModel.error {
+                RetriableErrorView(retry: error.retry).padding()
             } else if viewModel.items.isEmpty {
                 WatchlistEmptyListView(
                     shouldShowTopBar: $shouldShowTopBar,
@@ -366,10 +368,12 @@ private struct WatchlistItemView: View {
 }
 
 #if DEBUG
+import MoviebookTestSupport
+
 struct WatchlistView_Previews: PreviewProvider {
     static var previews: some View {
         WatchlistView()
-            .environment(\.requestManager, MockRequestManager())
+            .environment(\.requestManager, MockRequestManager.shared)
             .environmentObject(Watchlist(items: [
                 WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
                 WatchlistItem(id: .movie(id: 353081), state: .toWatch(info: .init(date: .now, suggestion: nil))),
@@ -377,14 +381,14 @@ struct WatchlistView_Previews: PreviewProvider {
             ]))
 
         WatchlistView()
-            .environment(\.requestManager, MockRequestManager())
+            .environment(\.requestManager, MockRequestManager.shared)
             .environmentObject(Watchlist(items: [
                 WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
                 WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: nil)))
             ]))
 
         WatchlistView()
-            .environment(\.requestManager, MockRequestManager())
+            .environment(\.requestManager, MockRequestManager.shared)
             .environmentObject(Watchlist(items: []))
     }
 }

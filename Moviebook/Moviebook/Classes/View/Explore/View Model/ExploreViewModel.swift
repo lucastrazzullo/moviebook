@@ -7,7 +7,7 @@
 
 import Foundation
 import Combine
-import MoviebookCommons
+import MoviebookCommon
 
 @MainActor final class ExploreViewModel: ObservableObject {
 
@@ -40,13 +40,13 @@ import MoviebookCommons
             let response: (results: [MovieDetails], nextPage: Int?)
             switch self {
             case .nowPlaying:
-                response = try await MovieWebService(requestManager: requestManager).fetchNowPlaying(page: page)
+                response = try await WebService.movieWebService(requestManager: requestManager).fetchNowPlaying(page: page)
             case .upcoming:
-                response = try await MovieWebService(requestManager: requestManager).fetchUpcoming(page: page)
+                response = try await WebService.movieWebService(requestManager: requestManager).fetchUpcoming(page: page)
             case .popular:
-                response = try await MovieWebService(requestManager: requestManager).fetchPopular(page: page)
+                response = try await WebService.movieWebService(requestManager: requestManager).fetchPopular(page: page)
             case .topRated:
-                response = try await MovieWebService(requestManager: requestManager).fetchTopRated(page: page)
+                response = try await WebService.movieWebService(requestManager: requestManager).fetchTopRated(page: page)
             }
             return (results: .movies(response.results), nextPage: response.nextPage)
         }

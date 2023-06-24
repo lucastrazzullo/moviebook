@@ -12,6 +12,7 @@ struct OvalButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
+            .frame(maxWidth: .infinity)
             .font(.title3.bold())
             .foregroundColor(.white)
             .padding(22)

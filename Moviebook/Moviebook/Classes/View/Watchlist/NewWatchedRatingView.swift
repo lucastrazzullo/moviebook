@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import MoviebookCommons
+import MoviebookCommon
 
 struct NewWatchedRatingView: View {
 
@@ -109,7 +109,7 @@ struct NewWatchedRatingView: View {
         .safeAreaInset(edge: .bottom) {
             VStack(spacing: 24) {
                 Button(action: save) {
-                    Text("Save").frame(maxWidth: .infinity)
+                    Text("Save")
                 }
                 .buttonStyle(OvalButtonStyle())
 
@@ -132,7 +132,7 @@ struct NewWatchedRatingView: View {
         .task {
             switch itemIdentifier {
             case .movie(let id):
-                let webService = MovieWebService(requestManager: requestManager)
+                let webService = WebService.movieWebService(requestManager: requestManager)
                 let movie = try? await webService.fetchMovie(with: id)
                 title = movie?.details.title
                 imageUrl = movie?.details.media.posterPreviewUrl
@@ -161,7 +161,6 @@ struct NewWatchedRatingView: View {
     }
 }
 
-#if DEBUG
 struct WatchlistAddToWatchedView_Previews: PreviewProvider {
     static var previews: some View {
         NewWatchedRatingView(itemIdentifier: .movie(id: 954))
@@ -170,4 +169,3 @@ struct WatchlistAddToWatchedView_Previews: PreviewProvider {
             ]))
     }
 }
-#endif

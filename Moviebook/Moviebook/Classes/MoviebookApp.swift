@@ -7,22 +7,22 @@
 
 import SwiftUI
 import CoreSpotlight
-import MoviebookCommons
+import MoviebookCommon
 
 @MainActor private final class Moviebook: ObservableObject {
 
     @Published var watchlist: Watchlist?
     @Published var error: Error?
 
+    let notifications: Notifications = Notifications()
+
     private let storage: Storage = Storage()
-    private var notifications: Notifications?
 
     func start(requestManager: RequestManager) async {
         do {
             let watchlist = try await storage.loadWatchlist(requestManager: requestManager)
-
             self.watchlist = watchlist
-            self.notifications = Notifications(watchlist: watchlist, requestManager: requestManager)
+            await self.notifications.schedule(for: watchlist, requestManager: requestManager)
         } catch {
             self.error = error
         }
@@ -50,6 +50,7 @@ struct MoviebookApp: App {
                     makeLoaderView()
                 }
             }
+            .onReceiveNotification(from: application.notifications, perform: openDeeplink(with:))
             .onOpenURL(perform: openDeeplink(with:))
             .onContinueUserActivity(CSSearchableItemActionType, perform: openDeeplink(with:))
             .task { await application.start(requestManager: requestManager) }
@@ -66,6 +67,13 @@ struct MoviebookApp: App {
 
     private func openDeeplink(with userActivity: NSUserActivity) {
         if let deeplink = Spotlight.deeplink(from: userActivity) {
+            open(deeplink: deeplink)
+        }
+    }
+
+    private func openDeeplink(with notification: UNNotification) {
+        if let url = URL(string: notification.request.content.categoryIdentifier),
+           let deeplink = Deeplink(rawValue: url) {
             open(deeplink: deeplink)
         }
     }

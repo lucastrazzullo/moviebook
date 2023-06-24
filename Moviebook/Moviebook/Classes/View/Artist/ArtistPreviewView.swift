@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import MoviebookCommons
+import MoviebookCommon
 
 struct ArtistPreviewView: View {
 
@@ -51,11 +51,13 @@ struct ArtistPreviewView: View {
 }
 
 #if DEBUG
+import MoviebookTestSupport
+
 struct ArtistPreviewView_Previews: PreviewProvider {
     static var previews: some View {
         ScrollView(showsIndicators: false) {
             ArtistPreviewViewPreview()
-                .environment(\.requestManager, MockRequestManager())
+                .environment(\.requestManager, MockRequestManager.shared)
                 .environmentObject(Watchlist(items: []))
         }
     }
@@ -75,7 +77,7 @@ private struct ArtistPreviewViewPreview: View {
             }
         }
         .task {
-            let webService = ArtistWebService(requestManager: requestManager)
+            let webService = WebService.artistWebService(requestManager: requestManager)
             artist = try! await webService.fetchArtist(with: 287)
         }
     }

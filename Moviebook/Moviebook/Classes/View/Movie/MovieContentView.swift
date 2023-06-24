@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import MoviebookCommons
+import MoviebookCommon
 
 struct MovieContentView: View {
 
@@ -300,11 +300,14 @@ private struct CastView: View {
 }
 
 #if DEBUG
+import MoviebookTestSupport
+
 struct MovieContentView_Previews: PreviewProvider {
     static var previews: some View {
         ScrollView(showsIndicators: false) {
             MovieContentViewPreview()
                 .environmentObject(Watchlist(items: []))
+                .environment(\.requestManager, MockRequestManager.shared)
         }
     }
 }
@@ -327,7 +330,7 @@ private struct MovieContentViewPreview: View {
             }
         }
         .task {
-            let webService = MovieWebService(requestManager: requestManager)
+            let webService = WebService.movieWebService(requestManager: requestManager)
             movie = try! await webService.fetchMovie(with: 353081)
         }
     }

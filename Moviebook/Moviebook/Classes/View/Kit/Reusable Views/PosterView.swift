@@ -41,7 +41,6 @@ struct PosterView: View {
     }
 }
 
-#if DEBUG
 struct PosterView_Previews: PreviewProvider {
     static var previews: some View {
         PosterView(isImageLoaded: .constant(false),
@@ -50,4 +49,3 @@ struct PosterView_Previews: PreviewProvider {
                    posterUrl: nil)
     }
 }
-#endif

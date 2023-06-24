@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import MoviebookCommons
+import MoviebookCommon
 
 struct WatchlistButton<LabelType>: View where LabelType: View  {
 
@@ -197,7 +197,6 @@ struct WatermarkWatchlistButton: View {
     }
 }
 
-#if DEBUG
 struct WatchlistButton_Previews: PreviewProvider {
     static let toWatchItem = WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil)))
     static let watchedItem = WatchlistItem(id: .movie(id: 954), state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: .init(date: .now, suggestion: nil), rating: 6.4, date: .now)))
@@ -226,4 +225,3 @@ struct WatchlistButton_Previews: PreviewProvider {
         .cornerRadius(12)
     }
 }
-#endif
