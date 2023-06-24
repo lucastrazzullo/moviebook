@@ -130,7 +130,7 @@ struct NewToWatchSuggestionView: View {
         .safeAreaInset(edge: .bottom) {
             VStack(spacing: 24) {
                 Button(action: save) {
-                    Text("Save").frame(maxWidth: .infinity)
+                    Text("Save")
                 }
                 .buttonStyle(OvalButtonStyle())
 

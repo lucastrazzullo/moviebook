@@ -11,7 +11,7 @@ import UserNotifications
 import MoviebookCommon
 
 protocol NotificationsDelegate: AnyObject, UNUserNotificationCenterDelegate {
-    func shouldRequestAuthorization() async -> Bool
+    func shouldRequestAuthorization(forMovieWith title: String) async -> Bool
     func shouldAuthorizeNotifications()
 }
 
@@ -121,7 +121,7 @@ final class Notifications {
     }
 
     private func schedule(notificationWith identifier: String, for movie: Movie) async throws {
-        try await requestAuthorization()
+        try await requestAuthorization(forMovieWith: movie.details.title)
 
         let content = UNMutableNotificationContent()
         content.title = movie.details.title
@@ -142,14 +142,14 @@ final class Notifications {
         }
     }
 
-    private func requestAuthorization() async throws {
+    private func requestAuthorization(forMovieWith title: String) async throws {
         let status = await notificationCenter.getAuthorizationStatus()
 
         switch status {
         case .authorized:
             return
         case .notDetermined:
-            if let shouldRequestAuthorization = await delegate?.shouldRequestAuthorization(), shouldRequestAuthorization {
+            if let shouldRequestAuthorization = await delegate?.shouldRequestAuthorization(forMovieWith: title), shouldRequestAuthorization {
                 try await notificationCenter.requestAuthorization(options: [.alert])
             } else {
                 throw Error.notificationsNotAuthorized
