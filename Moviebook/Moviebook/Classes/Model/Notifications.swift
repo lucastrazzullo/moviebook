@@ -12,7 +12,7 @@ import MoviebookCommon
 
 protocol NotificationsDelegate: AnyObject, UNUserNotificationCenterDelegate {
     func shouldRequestAuthorization(forMovieWith title: String) async -> Bool
-    func shouldAuthorizeNotifications(forMovieWith title: String)
+    func shouldAuthorizeNotifications(forMovieWith title: String) async
 }
 
 // MARK: Notification center
@@ -61,13 +61,9 @@ final class Notifications {
     // MARK: Internal methods
 
     func schedule(for watchlist: Watchlist, requestManager: RequestManager) async {
-        await withThrowingTaskGroup(of: Void.self) { group in
-            let items = await watchlist.items
-            for item in items {
-                group.addTask {
-                    try await self.schedule(for: item, requestManager: requestManager)
-                }
-            }
+        let items = await watchlist.items
+        for item in items {
+            try? await self.schedule(for: item, requestManager: requestManager)
         }
 
         await watchlist.itemDidUpdateState
@@ -155,7 +151,7 @@ final class Notifications {
                 throw Error.notificationsNotAuthorized
             }
         case .denied:
-            delegate?.shouldAuthorizeNotifications(forMovieWith: title)
+            await delegate?.shouldAuthorizeNotifications(forMovieWith: title)
             throw Error.notificationsNotAuthorized
         default:
             throw Error.notificationsNotAuthorized

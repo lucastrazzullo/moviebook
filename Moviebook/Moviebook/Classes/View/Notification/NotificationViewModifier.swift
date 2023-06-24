@@ -40,7 +40,7 @@ private struct NotificationViewModifier: ViewModifier {
             .sheet(item: $notificationHandler.enableNotificationPromptDetails) { promptDetails in
                 EnableNotificationInSettingsView(promptDetails: promptDetails) { dontShowAnymore in
                     isPromptDisabled = dontShowAnymore
-                    notificationHandler.enableNotificationPromptDetails = nil
+                    notificationHandler.continueNotAuthorizedRequest()
                 }
                 .presentationDetents([.medium])
             }
@@ -57,7 +57,8 @@ private struct NotificationViewModifier: ViewModifier {
     @Published var notificationPromptDetails: NotificationPromptView.PromptDetails? = nil
     @Published var enableNotificationPromptDetails: EnableNotificationInSettingsView.PromptDetails? = nil
 
-    private var continuation: CheckedContinuation<Bool, Never>?
+    private var shouldRequestAuthorization: CheckedContinuation<Bool, Never>?
+    private var shouldAuthorizeNotifications: CheckedContinuation<Void, Never>?
 
     private let notifications: Notifications
     private let onReceiveNotification: (UNNotification) -> Void
@@ -76,7 +77,11 @@ private struct NotificationViewModifier: ViewModifier {
     }
 
     func continueAuthorizationRequest(with authorizationNeeded: Bool) {
-        continuation?.resume(returning: authorizationNeeded)
+        shouldRequestAuthorization?.resume(returning: authorizationNeeded)
+    }
+
+    func continueNotAuthorizedRequest() {
+        shouldAuthorizeNotifications?.resume()
     }
 }
 
@@ -88,19 +93,29 @@ extension NotificationHandler: NotificationsDelegate {
         }
 
         let shouldRequest = await withCheckedContinuation { continuation in
-            self.continuation = continuation
+            self.shouldRequestAuthorization = continuation
         }
 
         Task { @MainActor in
             notificationPromptDetails = nil
+            shouldRequestAuthorization = nil
         }
 
         return shouldRequest
     }
 
-    func shouldAuthorizeNotifications(forMovieWith title: String) {
+    func shouldAuthorizeNotifications(forMovieWith title: String) async {
         Task { @MainActor in
             enableNotificationPromptDetails = EnableNotificationInSettingsView.PromptDetails(movieTitle: title)
+        }
+
+        await withCheckedContinuation { continuation in
+            self.shouldAuthorizeNotifications = continuation
+        }
+
+        Task { @MainActor in
+            enableNotificationPromptDetails = nil
+            shouldAuthorizeNotifications = nil
         }
     }
 }
