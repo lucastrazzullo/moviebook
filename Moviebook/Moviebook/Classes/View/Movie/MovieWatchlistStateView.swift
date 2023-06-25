@@ -43,14 +43,6 @@ struct MovieWatchlistStateView: View {
 
 private struct WatchedView: View {
 
-    private static let formatter: DateFormatter = {
-        let relativeDateFormatter = DateFormatter()
-        relativeDateFormatter.timeStyle = .none
-        relativeDateFormatter.dateStyle = .medium
-        relativeDateFormatter.doesRelativeDateFormatting = true
-        return relativeDateFormatter
-    }()
-
     @EnvironmentObject var watchlist: Watchlist
 
     @Binding var presentedItem: NavigationItem?
@@ -79,7 +71,7 @@ private struct WatchedView: View {
                 Spacer()
 
                 VStack(alignment: .trailing) {
-                    Text("You watched this movie \(Self.formatter.string(from: info.date).lowercased())")
+                    Text("You watched this movie")
                         .fixedSize(horizontal: false, vertical: true)
                         .font(.subheadline)
                         .multilineTextAlignment(.trailing)
