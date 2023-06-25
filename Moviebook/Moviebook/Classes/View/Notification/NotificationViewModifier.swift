@@ -28,7 +28,9 @@ private struct NotificationViewModifier: ViewModifier {
                     notificationHandler.stop()
                 }
             }
-            .sheet(item: $notificationHandler.notificationPromptDetails) { promptDetails in
+            .sheet(item: $notificationHandler.notificationPromptDetails, onDismiss: {
+                notificationHandler.continueAuthorizationRequest(with: false)
+            }) { promptDetails in
                 NotificationPromptView(promptDetails: promptDetails) {
                     notificationHandler.continueAuthorizationRequest(with: true)
                 } onDeclined: { dontShowAnymore in
@@ -37,7 +39,9 @@ private struct NotificationViewModifier: ViewModifier {
                 }
                 .presentationDetents([.medium])
             }
-            .sheet(item: $notificationHandler.enableNotificationPromptDetails) { promptDetails in
+            .sheet(item: $notificationHandler.enableNotificationPromptDetails, onDismiss: {
+                notificationHandler.continueNotAuthorizedRequest()
+            }) { promptDetails in
                 EnableNotificationInSettingsView(promptDetails: promptDetails) { dontShowAnymore in
                     isPromptDisabled = dontShowAnymore
                     notificationHandler.continueNotAuthorizedRequest()
