@@ -26,6 +26,7 @@ struct MovieContentView: View {
 
             MovieWatchlistStateView(
                 movieId: movie.id,
+                movieReleaseDate: movie.details.release,
                 movieBackdropPreviewUrl: movie.details.media.backdropPreviewUrl
             )
 
@@ -41,7 +42,7 @@ struct MovieContentView: View {
             }
 
             if !specs.isEmpty {
-                SpecsView(title: "Specs", items: specs)
+                SpecsView(title: "Info", items: specs)
             }
 
             if let collection = movie.collection, let list = collection.list, !list.isEmpty {

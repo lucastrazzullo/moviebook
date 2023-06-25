@@ -108,14 +108,14 @@ private struct SpecsRow<ContentType: View>: View {
 
 struct SpecsView_Previews: PreviewProvider {
     static var previews: some View {
-        SpecsView(title: "Specs", items: [
+        SpecsView(title: "Info", items: [
             .date(Date(), label: "Today"),
             .currency(100, code: "EUR", label: "Currency"),
             .duration(600, label: "Duration"),
             .list(["Element 1", "Element 2"], label: "List")
         ])
 
-        SpecsView(title: "Specs", items: [
+        SpecsView(title: "Info", items: [
             .date(Date().addingTimeInterval(10000), label: "Today"),
             .currency(100, code: "EUR", label: "Currency"),
             .duration(600, label: "Duration"),

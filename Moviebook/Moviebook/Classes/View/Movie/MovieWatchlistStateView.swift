@@ -16,6 +16,7 @@ struct MovieWatchlistStateView: View {
     @EnvironmentObject var watchlist: Watchlist
 
     let movieId: Movie.ID
+    let movieReleaseDate: Date
     let movieBackdropPreviewUrl: URL?
 
     var body: some View {
@@ -23,12 +24,12 @@ struct MovieWatchlistStateView: View {
             if let state = watchlist.itemState(id: .movie(id: movieId)) {
                 switch state {
                 case .toWatch(let info):
-                    InWatchlistView(presentedItem: $presentedItem, movieId: movieId, info: info)
+                    InWatchlistView(presentedItem: $presentedItem, movieId: movieId, movieReleaseDate: movieReleaseDate, info: info)
                 case .watched(let info):
-                    WatchedView(presentedItem: $presentedItem, movieId: movieId, movieBackdropPreviewUrl: movieBackdropPreviewUrl, info: info)
+                    WatchedView(presentedItem: $presentedItem, movieId: movieId, movieReleaseDate: movieReleaseDate, movieBackdropPreviewUrl: movieBackdropPreviewUrl, info: info)
                 }
             } else {
-                AddToWatchlistView(movieId: movieId)
+                AddToWatchlistView(movieId: movieId, movieReleaseDate: movieReleaseDate)
             }
         }
         .frame(maxWidth: .infinity, alignment: .center)
@@ -42,19 +43,12 @@ struct MovieWatchlistStateView: View {
 
 private struct WatchedView: View {
 
-    private static let formatter: DateFormatter = {
-        let relativeDateFormatter = DateFormatter()
-        relativeDateFormatter.timeStyle = .none
-        relativeDateFormatter.dateStyle = .medium
-        relativeDateFormatter.doesRelativeDateFormatting = true
-        return relativeDateFormatter
-    }()
-
     @EnvironmentObject var watchlist: Watchlist
 
     @Binding var presentedItem: NavigationItem?
 
     let movieId: Movie.ID
+    let movieReleaseDate: Date
     let movieBackdropPreviewUrl: URL?
     let info: WatchlistItemWatchedInfo
 
@@ -77,12 +71,12 @@ private struct WatchedView: View {
                 Spacer()
 
                 VStack(alignment: .trailing) {
-                    Text("You watched this movie \(Self.formatter.string(from: info.date).lowercased())")
+                    Text("You watched this movie")
                         .fixedSize(horizontal: false, vertical: true)
                         .font(.subheadline)
                         .multilineTextAlignment(.trailing)
 
-                    WatermarkWatchlistButton(watchlistItemIdentifier: .movie(id: movieId))
+                    WatermarkWatchlistButton(watchlistItemIdentifier: .movie(id: movieId), watchlistItemReleaseDate: movieReleaseDate)
                 }
             }
             .foregroundColor(.white)
@@ -124,6 +118,7 @@ private struct InWatchlistView: View {
     @Binding var presentedItem: NavigationItem?
 
     let movieId: Movie.ID
+    let movieReleaseDate: Date
     let info: WatchlistItemToWatchInfo
 
     var body: some View {
@@ -140,11 +135,16 @@ private struct InWatchlistView: View {
             .padding(.top)
 
             VStack(spacing: 12) {
-                Button(action: { watchlist.update(state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: info, rating: nil, date: .now)), forItemWith: .movie(id: movieId)) }) {
-                    Image(systemName: WatchlistViewState.watched.icon)
-                    Text("Mark as watched").font(.headline)
+                if movieReleaseDate <= Date.now {
+                    Button(action: { watchlist.update(state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: info, rating: nil, date: .now)), forItemWith: .movie(id: movieId)) }) {
+                        HStack {
+                            Image(systemName: WatchlistViewState.watched.icon)
+                            Text("Mark as watched")
+                        }
+                    }
+                    .buttonStyle(OvalButtonStyle())
+                    .padding(.horizontal)
                 }
-                .buttonStyle(.borderedProminent)
 
                 if let suggestion = info.suggestion {
                     SuggestionView(
@@ -173,11 +173,12 @@ private struct AddToWatchlistView: View {
     @EnvironmentObject var watchlist: Watchlist
 
     let movieId: Movie.ID
+    let movieReleaseDate: Date
 
     var body: some View {
         VStack(alignment: .center, spacing: 24) {
             Text("Add to your watchlist")
-                .font(.headline.bold())
+                .font(.title3.bold())
 
             VStack(spacing: 16) {
                 Button(action: { watchlist.update(state: .toWatch(info: .init(date: .now, suggestion: nil)), forItemWith: .movie(id: movieId)) }) {
@@ -186,17 +187,18 @@ private struct AddToWatchlistView: View {
                         Text("I want to watch it").font(.headline)
                         Image(systemName: WatchlistViewState.none.icon)
                     }
-                    .font(.title)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(OvalButtonStyle())
 
-                Button(action: { watchlist.update(state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: .init(date: .now, suggestion: nil), rating: nil, date: .now)), forItemWith: .movie(id: movieId)) }) {
-                    HStack {
-                        Image(systemName: WatchlistViewState.watched.icon)
-                        Text("I watched it").underline()
+                if movieReleaseDate <= Date.now {
+                    Button(action: { watchlist.update(state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: .init(date: .now, suggestion: nil), rating: nil, date: .now)), forItemWith: .movie(id: movieId)) }) {
+                        HStack {
+                            Image(systemName: WatchlistViewState.watched.icon)
+                            Text("I watched it").underline()
+                        }
                     }
+                    .buttonStyle(.plain)
                 }
-                .buttonStyle(.plain)
             }
         }
         .padding()
@@ -245,6 +247,7 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
     static var previews: some View {
         MovieWatchlistStateView(
             movieId: 954,
+            movieReleaseDate: .now,
             movieBackdropPreviewUrl: try? TheMovieDbImageRequestFactory.makeURL(
                 format: .backdrop(
                     path: "/eDtsTxALld2gPw9lO1hQIJXqMHu.jpg",
@@ -258,6 +261,21 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
 
         MovieWatchlistStateView(
             movieId: 954,
+            movieReleaseDate: .now.addingTimeInterval(100000000),
+            movieBackdropPreviewUrl: try? TheMovieDbImageRequestFactory.makeURL(
+                format: .backdrop(
+                    path: "/eDtsTxALld2gPw9lO1hQIJXqMHu.jpg",
+                    size: .preview
+                )
+            )
+        )
+        .padding(24)
+        .fixedSize(horizontal: false, vertical: true)
+        .environmentObject(Watchlist(items: []))
+
+        MovieWatchlistStateView(
+            movieId: 954,
+            movieReleaseDate: .now,
             movieBackdropPreviewUrl: try? TheMovieDbImageRequestFactory.makeURL(
                 format: .backdrop(
                     path: "/eDtsTxALld2gPw9lO1hQIJXqMHu.jpg",
@@ -273,6 +291,23 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
 
         MovieWatchlistStateView(
             movieId: 954,
+            movieReleaseDate: .now.addingTimeInterval(100000000),
+            movieBackdropPreviewUrl: try? TheMovieDbImageRequestFactory.makeURL(
+                format: .backdrop(
+                    path: "/eDtsTxALld2gPw9lO1hQIJXqMHu.jpg",
+                    size: .preview
+                )
+            )
+        )
+        .padding(24)
+        .environmentObject(Watchlist(items: [
+            WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
+            WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: nil)))
+        ]))
+
+        MovieWatchlistStateView(
+            movieId: 954,
+            movieReleaseDate: .now,
             movieBackdropPreviewUrl: try? TheMovieDbImageRequestFactory.makeURL(
                 format: .backdrop(
                     path: "/eDtsTxALld2gPw9lO1hQIJXqMHu.jpg",
@@ -288,6 +323,23 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
 
         MovieWatchlistStateView(
             movieId: 954,
+            movieReleaseDate: .now.addingTimeInterval(1000000000),
+            movieBackdropPreviewUrl: try? TheMovieDbImageRequestFactory.makeURL(
+                format: .backdrop(
+                    path: "/eDtsTxALld2gPw9lO1hQIJXqMHu.jpg",
+                    size: .preview
+                )
+            )
+        )
+        .padding(24)
+        .environmentObject(Watchlist(items: [
+            WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: .init(owner: "Valerio", comment: "This is really nice")))),
+            WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: nil)))
+        ]))
+
+        MovieWatchlistStateView(
+            movieId: 954,
+            movieReleaseDate: .now,
             movieBackdropPreviewUrl: try? TheMovieDbImageRequestFactory.makeURL(
                 format: .backdrop(
                     path: "/eDtsTxALld2gPw9lO1hQIJXqMHu.jpg",
@@ -302,6 +354,7 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
 
         MovieWatchlistStateView(
             movieId: 954,
+            movieReleaseDate: .now,
             movieBackdropPreviewUrl: try? TheMovieDbImageRequestFactory.makeURL(
                 format: .backdrop(
                     path: "/eDtsTxALld2gPw9lO1hQIJXqMHu.jpg",
@@ -316,6 +369,7 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
 
         MovieWatchlistStateView(
             movieId: 954,
+            movieReleaseDate: .now,
             movieBackdropPreviewUrl: try? TheMovieDbImageRequestFactory.makeURL(
                 format: .backdrop(
                     path: "/eDtsTxALld2gPw9lO1hQIJXqMHu.jpg",

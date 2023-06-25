@@ -74,9 +74,9 @@ struct MoviePreviewView: View {
             }
             .onTapGesture(perform: { onSelected?() })
 
-            if let movieId = details?.id {
+            if let details {
                 Spacer()
-                IconWatchlistButton(watchlistItemIdentifier: .movie(id: movieId))
+                IconWatchlistButton(watchlistItemIdentifier: .movie(id: details.id), watchlistItemReleaseDate: details.release)
                     .font(.headline)
             }
         }
