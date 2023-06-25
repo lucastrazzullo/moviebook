@@ -117,8 +117,10 @@ struct NewWatchedRatingView: View {
                     Text("Cancel")
                 }
                 .buttonStyle(.plain)
+                .foregroundColor(.primary)
             }
             .padding(.horizontal)
+            .padding(.bottom)
         }
         .onAppear {
             guard let watchlistState = watchlist.itemState(id: itemIdentifier) else {

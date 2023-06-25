@@ -138,8 +138,10 @@ struct NewToWatchSuggestionView: View {
                     Text("Cancel")
                 }
                 .buttonStyle(.plain)
+                .foregroundColor(.primary)
             }
             .padding(.horizontal)
+            .padding(.bottom)
         }
         .onAppear {
             if let toWatchSuggestion = toWatchInfo?.suggestion {
