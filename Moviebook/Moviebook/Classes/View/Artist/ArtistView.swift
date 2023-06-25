@@ -63,18 +63,9 @@ private struct ArtistTrailingHeaderView: View {
 
     var body: some View {
         WatermarkView {
-            ShareButton(artistDetails: artistDetails)
-        }
-    }
-}
-
-private struct ShareButton: View {
-
-    let artistDetails: ArtistDetails
-
-    var body: some View {
-        ShareLink(item: Deeplink.artist(identifier: artistDetails.id).rawValue) {
-            Image(systemName: "square.and.arrow.up")
+            ShareButton(deeplink: Deeplink.artist(identifier: artistDetails.id),
+                        previewTitle: artistDetails.name,
+                        previewImageUrl: artistDetails.imagePreviewUrl)
         }
     }
 }
@@ -84,8 +75,13 @@ import MoviebookTestSupport
 
 struct ArtistView_Previews: PreviewProvider {
     static var previews: some View {
-        ArtistView(artistId: 287, navigationPath: .constant(NavigationPath()))
-            .environment(\.requestManager, MockRequestManager.shared)
+        ScrollView {
+            ArtistView(artistId: 287, navigationPath: .constant(NavigationPath()))
+                .environment(\.requestManager, MockRequestManager.shared)
+                .environmentObject(Watchlist(items: [
+                    WatchlistItem(id: .movie(id: 353081), state: .toWatch(info: .init(date: .now, suggestion: .init(owner: "Valerio", comment: "This is really nice"))))
+                ]))
+        }
     }
 }
 #endif

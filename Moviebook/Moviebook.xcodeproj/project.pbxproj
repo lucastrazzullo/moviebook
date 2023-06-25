@@ -62,6 +62,7 @@
 		8169FB3D28C204450054BCE6 /* MoviebookUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8169FB3C28C204450054BCE6 /* MoviebookUITests.swift */; };
 		8169FB3F28C204450054BCE6 /* MoviebookUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8169FB3E28C204450054BCE6 /* MoviebookUITestsLaunchTests.swift */; };
 		8169FB5F28C20C420054BCE6 /* ExploreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8169FB5E28C20C420054BCE6 /* ExploreView.swift */; };
+		816B17172A4840CD007573DF /* ShareButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 816B17162A4840CD007573DF /* ShareButton.swift */; };
 		816E64E22A43596C007AEED1 /* MoviebookTestSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8111249D2A434F65009133C2 /* MoviebookTestSupport.framework */; };
 		816E64E32A43596C007AEED1 /* MoviebookTestSupport.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 8111249D2A434F65009133C2 /* MoviebookTestSupport.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		816E64E62A44B302007AEED1 /* WebServiceError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 812489BC29F04E85004A6BE6 /* WebServiceError.swift */; };
@@ -291,6 +292,7 @@
 		8169FB5A28C207A40054BCE6 /* Movie.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Movie.swift; sourceTree = "<group>"; };
 		8169FB5C28C207ED0054BCE6 /* Watchlist.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Watchlist.swift; sourceTree = "<group>"; };
 		8169FB5E28C20C420054BCE6 /* ExploreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreView.swift; sourceTree = "<group>"; };
+		816B17162A4840CD007573DF /* ShareButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareButton.swift; sourceTree = "<group>"; };
 		816E64EB2A44B6A3007AEED1 /* StubMockServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StubMockServer.swift; sourceTree = "<group>"; };
 		816E64ED2A44B6B7007AEED1 /* BundleMockServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BundleMockServer.swift; sourceTree = "<group>"; };
 		816E64F42A459916007AEED1 /* TheMovieDb.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = TheMovieDb.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -516,6 +518,7 @@
 				81A395DE29F528FA00800F7E /* SpecsView.swift */,
 				81A395E229F5994900800F7E /* ExpandibleOverviewView.swift */,
 				81D254732A066836006EBC1F /* RetriableErrorView.swift */,
+				816B17162A4840CD007573DF /* ShareButton.swift */,
 			);
 			path = "Reusable Views";
 			sourceTree = "<group>";
@@ -1309,6 +1312,7 @@
 				81989ED22A08F9CA00547584 /* Spotlight.swift in Sources */,
 				8111247A2A40EA9B009133C2 /* Notifications.swift in Sources */,
 				8169FB1D28C204450054BCE6 /* MoviebookApp.swift in Sources */,
+				816B17172A4840CD007573DF /* ShareButton.swift in Sources */,
 				811124822A422287009133C2 /* NotificationViewModifier.swift in Sources */,
 				81B7DBF92A14050300AF9118 /* ExploreHorizontalSectionView.swift in Sources */,
 				8112AF0529152FA80041475D /* MovieVideoPlayer.swift in Sources */,

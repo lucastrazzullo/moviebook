@@ -85,24 +85,15 @@ struct MovieView: View {
 }
 
 private struct MovieTrailingHeaderView: View {
-
+    
     let movieDetails: MovieDetails
-
+    
     var body: some View {
         WatermarkView {
             IconWatchlistButton(watchlistItemIdentifier: .movie(id: movieDetails.id), watchlistItemReleaseDate: movieDetails.release)
-            ShareButton(movieDetails: movieDetails)
-        }
-    }
-}
-
-private struct ShareButton: View {
-
-    let movieDetails: MovieDetails
-
-    var body: some View {
-        ShareLink(item: Deeplink.movie(identifier: movieDetails.id).rawValue) {
-            Image(systemName: "square.and.arrow.up")
+            ShareButton(deeplink: Deeplink.movie(identifier: movieDetails.id),
+                        previewTitle: movieDetails.title,
+                        previewImageUrl: movieDetails.media.posterPreviewUrl)
         }
     }
 }
