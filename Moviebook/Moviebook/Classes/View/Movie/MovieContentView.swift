@@ -26,6 +26,7 @@ struct MovieContentView: View {
 
             MovieWatchlistStateView(
                 movieId: movie.id,
+                movieReleaseDate: movie.details.release,
                 movieBackdropPreviewUrl: movie.details.media.backdropPreviewUrl
             )
 

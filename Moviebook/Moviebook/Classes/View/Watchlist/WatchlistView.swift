@@ -351,7 +351,8 @@ private struct WatchlistItemView: View {
                     Menu {
                         WatchlistOptions(
                             presentedItem: $presentedItem,
-                            watchlistItemIdentifier: watchlistIdentifier
+                            watchlistItemIdentifier: watchlistIdentifier,
+                            watchlistItemReleaseDate: movie.details.release
                         )
                     } label: {
                         WatchlistLabel(itemState: watchlist.itemState(id: watchlistIdentifier))

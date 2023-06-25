@@ -90,7 +90,7 @@ private struct MovieTrailingHeaderView: View {
 
     var body: some View {
         WatermarkView {
-            IconWatchlistButton(watchlistItemIdentifier: .movie(id: movieDetails.id))
+            IconWatchlistButton(watchlistItemIdentifier: .movie(id: movieDetails.id), watchlistItemReleaseDate: movieDetails.release)
             ShareButton(movieDetails: movieDetails)
         }
     }
