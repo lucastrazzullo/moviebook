@@ -154,7 +154,7 @@ extension View {
     }
 }
 
-struct NotificationPromptView: View {
+private struct NotificationPromptView: View {
 
     struct PromptDetails: Identifiable {
         var id: String {
@@ -203,7 +203,7 @@ struct NotificationPromptView: View {
     }
 }
 
-struct EnableNotificationInSettingsView: View {
+private struct EnableNotificationInSettingsView: View {
 
     struct PromptDetails: Identifiable {
         var id: String {

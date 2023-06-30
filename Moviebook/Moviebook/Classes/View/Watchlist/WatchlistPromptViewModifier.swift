@@ -95,87 +95,6 @@ private enum WatchlistPromptDestination: Identifiable {
     }
 }
 
-private struct WatchlistPromptItem: View {
-
-    @MainActor private final class MovieInfoLoader: ObservableObject {
-
-        @Published var movie: Movie?
-
-        func load(requestManager: RequestManager, movieIdentifier: Movie.ID) async throws {
-            let webService = WebService.movieWebService(requestManager: requestManager)
-            self.movie = try await webService.fetchMovie(with: movieIdentifier)
-        }
-    }
-
-    @Environment(\.requestManager) var requestManager
-
-    @StateObject private var loader: MovieInfoLoader = MovieInfoLoader()
-
-    let prompt: WatchlistPrompt
-    let timeDuration: TimeInterval
-    let timeRemaining: TimeInterval
-    let action: () -> Void
-
-    var body: some View {
-        HStack(spacing: 24) {
-            HStack(spacing: 12) {
-                AsyncImage(url: loader.movie?.details.media.posterPreviewUrl) { image in
-                    image.resizable().aspectRatio(contentMode: .fit)
-                } placeholder: {
-                    Color.gray
-                }
-                .frame(width: 60, height: 90)
-                .cornerRadius(8)
-
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(loader.movie?.details.title ?? "Loading")
-                        .lineLimit(2)
-                        .font(.subheadline)
-                    Text(prompt.description)
-                        .font(.callout)
-                        .underline()
-                        .foregroundColor(.secondary)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            Button(action: action) {
-                VStack(spacing: 6) {
-                    HStack(spacing: 4) {
-                        prompt.actionIcon
-                        Text(prompt.actionLabel)
-                    }
-                    .font(.footnote)
-                    .foregroundColor(.white)
-                    .padding(.vertical, 4)
-                    .padding(.horizontal, 8)
-                    .background(
-                        ZStack {
-                            GeometryReader { reader in
-                                let width = max(0, timeRemaining / timeDuration * reader.size.width)
-                                Rectangle().fill(Color.secondary)
-                                Rectangle().fill(Color.accentColor)
-                                    .frame(width: width, alignment: .leading)
-                            }
-                        }
-                        .mask(Capsule())
-                    )
-                }
-            }
-            .tint(Color.accentColor)
-            .fixedSize()
-        }
-        .padding()
-        .background(Rectangle().fill(.thinMaterial).ignoresSafeArea())
-        .task {
-            switch prompt.item.id {
-            case .movie(let id):
-                try? await self.loader.load(requestManager: requestManager, movieIdentifier: id)
-            }
-        }
-    }
-}
-
 private struct WatchlistPromptModifier: ViewModifier {
 
     @MainActor private final class TimerController: ObservableObject {
@@ -265,10 +184,93 @@ private struct WatchlistPromptModifier: ViewModifier {
     }
 }
 
+// MARK: Views
+
 extension View {
 
     func watchlistPrompt(duration: TimeInterval) -> some View {
         self.modifier(WatchlistPromptModifier(duration: duration))
+    }
+}
+
+private struct WatchlistPromptItem: View {
+
+    @MainActor private final class MovieInfoLoader: ObservableObject {
+
+        @Published var movie: Movie?
+
+        func load(requestManager: RequestManager, movieIdentifier: Movie.ID) async throws {
+            let webService = WebService.movieWebService(requestManager: requestManager)
+            self.movie = try await webService.fetchMovie(with: movieIdentifier)
+        }
+    }
+
+    @Environment(\.requestManager) var requestManager
+
+    @StateObject private var loader: MovieInfoLoader = MovieInfoLoader()
+
+    let prompt: WatchlistPrompt
+    let timeDuration: TimeInterval
+    let timeRemaining: TimeInterval
+    let action: () -> Void
+
+    var body: some View {
+        HStack(spacing: 24) {
+            HStack(spacing: 12) {
+                AsyncImage(url: loader.movie?.details.media.posterPreviewUrl) { image in
+                    image.resizable().aspectRatio(contentMode: .fit)
+                } placeholder: {
+                    Color.gray
+                }
+                .frame(width: 60, height: 90)
+                .cornerRadius(8)
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(loader.movie?.details.title ?? "Loading")
+                        .lineLimit(2)
+                        .font(.subheadline)
+                    Text(prompt.description)
+                        .font(.callout)
+                        .underline()
+                        .foregroundColor(.secondary)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Button(action: action) {
+                VStack(spacing: 6) {
+                    HStack(spacing: 4) {
+                        prompt.actionIcon
+                        Text(prompt.actionLabel)
+                    }
+                    .font(.footnote)
+                    .foregroundColor(.white)
+                    .padding(.vertical, 4)
+                    .padding(.horizontal, 8)
+                    .background(
+                        ZStack {
+                            GeometryReader { reader in
+                                let width = max(0, timeRemaining / timeDuration * reader.size.width)
+                                Rectangle().fill(Color.secondary)
+                                Rectangle().fill(Color.accentColor)
+                                    .frame(width: width, alignment: .leading)
+                            }
+                        }
+                        .mask(Capsule())
+                    )
+                }
+            }
+            .tint(Color.accentColor)
+            .fixedSize()
+        }
+        .padding()
+        .background(Rectangle().fill(.thinMaterial).ignoresSafeArea())
+        .task {
+            switch prompt.item.id {
+            case .movie(let id):
+                try? await self.loader.load(requestManager: requestManager, movieIdentifier: id)
+            }
+        }
     }
 }
 
