@@ -31,7 +31,7 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
             label(watchlist.itemState(id: watchlistItemIdentifier))
         }
         .sheet(item: $presentedItem) { item in
-            NavigationDestination(navigationPath: $presentedItemNavigationPath, item: item)
+            Navigation(path: $presentedItemNavigationPath, presentingItem: item)
         }
     }
 

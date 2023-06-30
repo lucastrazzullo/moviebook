@@ -36,7 +36,7 @@ struct MovieWatchlistStateView: View {
         .background(.thinMaterial)
         .cornerRadius(24)
         .sheet(item: $presentedItem) { item in
-            NavigationDestination(navigationPath: $presentedItemNavigationPath, item: item)
+            Navigation(path: $presentedItemNavigationPath, presentingItem: item)
         }
     }
 }

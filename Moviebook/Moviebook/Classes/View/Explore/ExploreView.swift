@@ -21,7 +21,7 @@ struct ExploreView: View {
     @State private var presentedItem: NavigationItem?
 
     var body: some View {
-        NavigationView {
+        SwiftUI.NavigationView {
             List {
                 if !searchViewModel.dataProvider.searchKeyword.isEmpty {
                     ExploreVerticalSectionView(viewModel: searchViewModel.content, presentedItem: $presentedItem)
