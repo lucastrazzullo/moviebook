@@ -151,34 +151,32 @@ private struct WatchProvidersView: View {
             }
             .tint(.black)
             .font(.title2)
+            .padding()
 
-            if let collection = watch.collection(for: currentRegion) {
-                if !collection.free.isEmpty {
-                    VStack(alignment: .leading) {
-                        Text("Free").font(.headline)
-                        providerList(providers: collection.free)
+            Group {
+                if let collection = watch.collection(for: currentRegion) {
+                    if !collection.free.isEmpty {
+                        providerList(header: "Free", providers: collection.free)
                     }
-                }
 
-                if !(collection.rent + collection.buy).isEmpty {
-                    VStack(alignment: .leading) {
-                        Text("Rent or Buy").font(.headline)
-                        providerList(providers: collection.rent + collection.buy)
+                    if !(collection.rent + collection.buy).isEmpty {
+                        providerList(header: "Rent or Buy", providers: collection.rent + collection.buy)
                     }
-                }
-            } else {
-                VStack {
-                    Text("This movie has no watch providers yet")
+                } else {
+                    VStack {
+                        Text("This movie has no watch providers yet")
+                    }
                 }
             }
+            .padding(.leading)
+            .padding(.bottom)
         }
-        .padding()
-        .background(.yellow)
+        .background(.thinMaterial)
         .foregroundColor(.black)
         .cornerRadius(8)
     }
 
-    @ViewBuilder private func providerList(providers: [WatchProvider]) -> some View {
+    @ViewBuilder private func providerList(header: String, providers: [WatchProvider]) -> some View {
         var uniqueProviders = Set<WatchProvider>(providers)
         let providers = providers.filter { provider in
             if uniqueProviders.contains(provider) {
@@ -188,15 +186,27 @@ private struct WatchProvidersView: View {
                 return false
             }
         }
-        LazyVGrid(columns: [GridItem(), GridItem(), GridItem(), GridItem()]) {
-            ForEach(providers, id: \.name) { provider in
-                RemoteImage(url: provider.iconUrl, content: { image in
-                    image.resizable().aspectRatio(contentMode: .fit)
-                }, placeholder: {
-                    Rectangle().fill(.thinMaterial)
-                })
-                .cornerRadius(22)
+        VStack(alignment: .leading, spacing: 4) {
+            Text(header).font(.headline)
+            Divider()
+            VStack(alignment: .leading, spacing: 18) {
+                ForEach(providers, id: \.name) { provider in
+                    HStack {
+                        RemoteImage(url: provider.iconUrl, content: { image in
+                            image.resizable().aspectRatio(contentMode: .fit)
+                        }, placeholder: {
+                            Rectangle().fill(.thinMaterial)
+                        })
+                        .frame(height: 32)
+                        .cornerRadius(8)
+
+                        Text(provider.name)
+                            .font(.callout)
+                            .padding(.trailing)
+                    }
+                }
             }
+            .padding(.top, 8)
         }
     }
 
