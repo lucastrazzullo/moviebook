@@ -130,10 +130,13 @@ private struct ToolbarView: View {
             Spacer()
 
             Button(action: { presentedItem = .explore }) {
-                WatermarkView {
+                HStack {
                     Image(systemName: "magnifyingglass")
+                    Text("Browse")
                 }
             }
+            .buttonStyle(OvalButtonStyle(prominency: .small))
+            .fixedSize()
         }
     }
 }
