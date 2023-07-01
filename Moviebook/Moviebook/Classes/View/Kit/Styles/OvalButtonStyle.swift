@@ -31,6 +31,15 @@ struct OvalButtonStyle: ButtonStyle {
                 return 16
             }
         }
+
+        var font: Font {
+            switch self {
+            case .big:
+                return .title3
+            case .small:
+                return .subheadline
+            }
+        }
     }
 
     let prominency: Prominency
@@ -38,7 +47,7 @@ struct OvalButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .frame(maxWidth: .infinity)
-            .font(.title3.bold())
+            .font(prominency.font.bold())
             .foregroundColor(.white)
             .padding(prominency.padding)
             .background(Color.accentColor, in: RoundedRectangle(cornerRadius: prominency.cornerRadius))
@@ -46,5 +55,23 @@ struct OvalButtonStyle: ButtonStyle {
 
     init(prominency: Prominency = .big) {
         self.prominency = prominency
+    }
+}
+
+struct OvalButtonStyle_Previews: PreviewProvider {
+
+    static var previews: some View {
+        VStack {
+            Button(action: {}) {
+                Text("Text")
+            }
+            .buttonStyle(OvalButtonStyle(prominency: .big))
+
+            Button(action: {}) {
+                Text("Text")
+            }
+            .buttonStyle(OvalButtonStyle(prominency: .small))
+        }
+        .padding()
     }
 }
