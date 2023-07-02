@@ -187,7 +187,9 @@ struct IconWatchlistButton: View {
     var body: some View {
         WatchlistButton(watchlistItemIdentifier: watchlistItemIdentifier, watchlistItemReleaseDate: watchlistItemReleaseDate) { state in
             WatchlistIcon(itemState: state)
+                .padding(4)
         }
+        .padding(-4)
     }
 }
 

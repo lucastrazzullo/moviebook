@@ -34,6 +34,7 @@ struct OvalButtonStyle: ButtonStyle {
             .frame(maxWidth: .infinity)
             .ovalStyle(style)
             .fixedSize(horizontal: fixedSize, vertical: fixedSize)
+            .controlSize(.large)
     }
 }
 
