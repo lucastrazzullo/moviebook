@@ -26,9 +26,9 @@ struct WatchlistView: View {
     @State private var presentedItem: NavigationItem? = nil
 
     var body: some View {
-        TabView(selection: $currentSection) {
-            Group {
-                ForEach(WatchlistViewModel.Section.allCases) { section in
+        Group {
+            ForEach(WatchlistViewModel.Section.allCases) { section in
+                if section == currentSection {
                     ContentView(
                         presentedItem: $presentedItem,
                         shouldShowTopBar: $shouldShowTopBar,
@@ -38,11 +38,9 @@ struct WatchlistView: View {
                         topSpacing: topBarHeight,
                         bottomSpacing: bottomBarHeight
                     )
-                    .tag(section)
                 }
             }
         }
-        .tabViewStyle(.page(indexDisplayMode: .never))
         .ignoresSafeArea()
         .background(GeometryReader { geometry in
             Color.clear
@@ -77,7 +75,7 @@ struct WatchlistView: View {
     }
 
     private func setBarsHeight(safeAreaInsets: EdgeInsets) {
-        topBarHeight = safeAreaInsets.top / 2 + 20
+        topBarHeight = safeAreaInsets.top
         bottomBarHeight = safeAreaInsets.bottom
     }
 }
@@ -247,11 +245,12 @@ private struct WatchlistEmptyListView: View {
 
     var body: some View {
         EmptyWatchlistView(section: section)
-            .padding(.top, topSpacing - 20)
-            .padding(.bottom, bottomSpacing / 2)
+            .background(.thinMaterial)
+            .padding(.top, topSpacing)
+            .padding(.bottom, bottomSpacing)
             .onAppear {
-                shouldShowTopBar = true
-                shouldShowBottomBar = true
+                shouldShowTopBar = false
+                shouldShowBottomBar = false
             }
     }
 }
@@ -379,24 +378,30 @@ import MoviebookTestSupport
 
 struct WatchlistView_Previews: PreviewProvider {
     static var previews: some View {
-        WatchlistView()
-            .environment(\.requestManager, MockRequestManager.shared)
-            .environmentObject(Watchlist(items: [
-                WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
-                WatchlistItem(id: .movie(id: 353081), state: .toWatch(info: .init(date: .now, suggestion: nil))),
-                WatchlistItem(id: .movie(id: 616037), state: .watched(info: .init(toWatchInfo: .init(date: .now, suggestion: nil), date: .now)))
-            ]))
+        NavigationView {
+            WatchlistView()
+                .environment(\.requestManager, MockRequestManager.shared)
+                .environmentObject(Watchlist(items: [
+                    WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
+                    WatchlistItem(id: .movie(id: 353081), state: .toWatch(info: .init(date: .now, suggestion: nil))),
+                    WatchlistItem(id: .movie(id: 616037), state: .watched(info: .init(toWatchInfo: .init(date: .now, suggestion: nil), date: .now)))
+                ]))
+        }
 
-        WatchlistView()
-            .environment(\.requestManager, MockRequestManager.shared)
-            .environmentObject(Watchlist(items: [
-                WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
-                WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: nil)))
-            ]))
+        NavigationView {
+            WatchlistView()
+                .environment(\.requestManager, MockRequestManager.shared)
+                .environmentObject(Watchlist(items: [
+                    WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
+                    WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: nil)))
+                ]))
+        }
 
-        WatchlistView()
-            .environment(\.requestManager, MockRequestManager.shared)
-            .environmentObject(Watchlist(items: []))
+        NavigationView {
+            WatchlistView()
+                .environment(\.requestManager, MockRequestManager.shared)
+                .environmentObject(Watchlist(items: []))
+        }
     }
 }
 #endif

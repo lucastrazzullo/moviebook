@@ -86,7 +86,6 @@ struct EmptyWatchlistView: View {
         .frame(maxWidth: .infinity)
         .padding()
         .padding(.vertical)
-        .background(.thinMaterial)
         .task {
             try? await viewModel.start(requestManager: requestManager)
         }
