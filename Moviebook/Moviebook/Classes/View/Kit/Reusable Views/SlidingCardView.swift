@@ -84,17 +84,20 @@ private struct HeaderView<TrailingView: View>: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             HStack(alignment: .center) {
-                WatermarkView {
+                Group {
                     if !navigationPath.isEmpty {
                         Button(action: { navigationPath.removeLast() }) {
                             Image(systemName: "chevron.left")
+                                .frame(width: 18, height: 18, alignment: .center)
                         }
                     } else {
                         Button(action: dismiss.callAsFunction) {
                             Image(systemName: "chevron.down")
+                                .frame(width: 18, height: 18, alignment: .center)
                         }
                     }
                 }
+                .buttonStyle(OvalButtonStyle(.normal))
 
                 if shouldShowHeader {
                     Text(title)
@@ -107,6 +110,7 @@ private struct HeaderView<TrailingView: View>: View {
                 }
 
                 trailingView()
+                    .ovalStyle(.normal)
             }
             .padding(.horizontal)
         }
@@ -171,8 +175,13 @@ private struct SlidingCardViewPreview: View {
                     title: movie.details.title,
                     posterUrl: movie.details.media.posterUrl,
                     trailingHeaderView: {
-                        WatermarkView {
-                            Image(systemName: "play")
+                        HStack(spacing: 18) {
+                            Button(action: {}) {
+                                Image(systemName: "play")
+                            }
+                            Button(action: {}) {
+                                Image(systemName: "square.and.arrow.up")
+                            }
                         }
                     },
                     content: {

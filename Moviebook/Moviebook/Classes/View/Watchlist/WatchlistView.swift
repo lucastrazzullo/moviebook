@@ -103,9 +103,9 @@ private struct TopbarView: View {
                     }
                 }
             } label: {
-                WatermarkView {
-                    Image(systemName: "arrow.up.and.down.text.horizontal")
-                }
+                Image(systemName: "arrow.up.and.down.text.horizontal")
+                    .frame(width: 18, height: 18, alignment: .center)
+                    .ovalStyle(.normal)
             }
             .frame(maxWidth: .infinity, alignment: .trailing)
         }
@@ -135,7 +135,7 @@ private struct ToolbarView: View {
                     Text("Browse")
                 }
             }
-            .buttonStyle(OvalButtonStyle(prominency: .small))
+            .buttonStyle(OvalButtonStyle(.prominentSmall))
             .fixedSize()
         }
     }
@@ -350,7 +350,10 @@ private struct WatchlistItemView: View {
                 Spacer()
 
                 Menu {
-                    Button(action: { presentedItem = .movie(movie) }) { Label("Open", systemImage: "chevron.up") }
+                    Button { presentedItem = .movie(movie) } label: {
+                        Label("Open", systemImage: "chevron.up")
+                    }
+
                     Menu {
                         WatchlistOptions(
                             presentedItem: $presentedItem,
@@ -361,9 +364,9 @@ private struct WatchlistItemView: View {
                         WatchlistLabel(itemState: watchlist.itemState(id: watchlistIdentifier))
                     }
                 } label: {
-                    WatermarkView {
-                        WatchlistIcon(itemState: watchlist.itemState(id: watchlistIdentifier))
-                    }
+                    WatchlistIcon(itemState: watchlist.itemState(id: watchlistIdentifier))
+                        .frame(width: 18, height: 18)
+                        .ovalStyle(.normal)
                 }
                 .padding(12)
             }

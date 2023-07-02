@@ -150,7 +150,7 @@ struct WatchlistIcon: View {
         VStack(alignment: .leading) {
             Image(systemName: WatchlistViewState(itemState: itemState).icon)
             if let itemState, case .watched(let info) = itemState, let rating = info.rating {
-                Text(rating, format: .number.precision(.fractionLength(1))).font(.caption)
+                Text(rating, format: .number.precision(.fractionLength(1))).font(.caption2)
             }
         }
     }
@@ -187,24 +187,6 @@ struct IconWatchlistButton: View {
     var body: some View {
         WatchlistButton(watchlistItemIdentifier: watchlistItemIdentifier, watchlistItemReleaseDate: watchlistItemReleaseDate) { state in
             WatchlistIcon(itemState: state)
-                .padding(8)
-        }
-    }
-}
-
-struct WatermarkWatchlistButton: View {
-
-    let watchlistItemIdentifier: WatchlistItemIdentifier
-    let watchlistItemReleaseDate: Date
-
-    var body: some View {
-        WatchlistButton(watchlistItemIdentifier: watchlistItemIdentifier, watchlistItemReleaseDate: watchlistItemReleaseDate) { state in
-            Text(WatchlistViewState(itemState: state).label)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 8)
-                .background(.black.opacity(0.8))
-                .foregroundColor(.white)
-                .cornerRadius(8, antialiased: true)
         }
     }
 }
@@ -221,15 +203,6 @@ struct WatchlistButton_Previews: PreviewProvider {
                 .environmentObject(Watchlist(items: [toWatchItem]))
 
             IconWatchlistButton(watchlistItemIdentifier: .movie(id: 954), watchlistItemReleaseDate: .now)
-                .environmentObject(Watchlist(items: [watchedItem]))
-
-            WatermarkWatchlistButton(watchlistItemIdentifier: .movie(id: 954), watchlistItemReleaseDate: .now)
-                .environmentObject(Watchlist(items: []))
-
-            WatermarkWatchlistButton(watchlistItemIdentifier: .movie(id: 954), watchlistItemReleaseDate: .now)
-                .environmentObject(Watchlist(items: [toWatchItem]))
-
-            WatermarkWatchlistButton(watchlistItemIdentifier: .movie(id: 954), watchlistItemReleaseDate: .now)
                 .environmentObject(Watchlist(items: [watchedItem]))
         }
         .padding(44)

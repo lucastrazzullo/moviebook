@@ -51,10 +51,10 @@ struct MovieView: View {
                 MovieVideoPlayer(video: video, autoplay: true)
 
                 Button(action: { isVideoPresented = nil }) {
-                    WatermarkView {
-                        Image(systemName: "chevron.down")
-                    }
+                    Image(systemName: "chevron.down")
+                        .frame(width: 18, height: 18)
                 }
+                .buttonStyle(OvalButtonStyle(.normal))
                 .padding()
             }
         }
@@ -89,8 +89,9 @@ private struct MovieTrailingHeaderView: View {
     let movieDetails: MovieDetails
 
     var body: some View {
-        WatermarkView {
+        HStack(spacing: 18) {
             IconWatchlistButton(watchlistItemIdentifier: .movie(id: movieDetails.id), watchlistItemReleaseDate: movieDetails.release)
+
             ShareButton(movieDetails: movieDetails)
         }
     }
@@ -103,6 +104,7 @@ private struct ShareButton: View {
     var body: some View {
         ShareLink(item: Deeplink.movie(identifier: movieDetails.id).rawValue) {
             Image(systemName: "square.and.arrow.up")
+                .frame(width: 18, height: 18, alignment: .center)
         }
     }
 }

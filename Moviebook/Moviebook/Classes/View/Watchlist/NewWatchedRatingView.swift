@@ -85,9 +85,8 @@ struct NewWatchedRatingView: View {
 
                 HStack(spacing: 24) {
                     Button(action: { rating = max(0, rating - 0.5) }) {
-                        WatermarkView {
-                            Image(systemName: "minus")
-                        }
+                        Image(systemName: "minus")
+                            .frame(width: 18, height: 18)
                     }
 
                     CircularRatingView(rating: rating, label: "Your vote", style: .prominent)
@@ -95,12 +94,12 @@ struct NewWatchedRatingView: View {
                         .animation(.default, value: rating)
 
                     Button(action: { rating = min(CircularRatingView.ratingQuota, rating + 0.5) }) {
-                        WatermarkView {
-                            Image(systemName: "plus")
-                        }
+                        Image(systemName: "plus")
+                            .frame(width: 18, height: 18)
                     }
                 }
             }
+            .buttonStyle(OvalButtonStyle(.normal))
             .padding(.top)
             .padding()
             .foregroundColor(nil)

@@ -40,10 +40,9 @@
 		811124D82A4351CE009133C2 /* SequenceExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81D60E092A3493130045AA0B /* SequenceExtensions.swift */; };
 		8112AF0329152F900041475D /* YouTubePlayerKit in Frameworks */ = {isa = PBXBuildFile; productRef = 8112AF0229152F900041475D /* YouTubePlayerKit */; };
 		8112AF0529152FA80041475D /* MovieVideoPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8112AF0429152FA80041475D /* MovieVideoPlayer.swift */; };
-		8112AF0729153EA60041475D /* WatermarkView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8112AF0629153EA60041475D /* WatermarkView.swift */; };
 		8112AF0B2916DF5D0041475D /* MovieWatchlistStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8112AF0A2916DF5D0041475D /* MovieWatchlistStateView.swift */; };
-		81167A592A3F01C200B83369 /* OvalTextFieldStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81167A582A3F01C200B83369 /* OvalTextFieldStyle.swift */; };
-		81167A5D2A3F02D500B83369 /* OvalButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81167A5C2A3F02D500B83369 /* OvalButtonStyle.swift */; };
+		81167A592A3F01C200B83369 /* OvalTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81167A582A3F01C200B83369 /* OvalTextField.swift */; };
+		81167A5D2A3F02D500B83369 /* OvalButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81167A5C2A3F02D500B83369 /* OvalButton.swift */; };
 		812489C029F152C4004A6BE6 /* ExploreViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 812489BF29F152C4004A6BE6 /* ExploreViewModel.swift */; };
 		812489C229F15307004A6BE6 /* SearchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 812489C129F15307004A6BE6 /* SearchViewModel.swift */; };
 		812489CB29F15EC1004A6BE6 /* ArtistPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 812489CA29F15EC1004A6BE6 /* ArtistPreviewView.swift */; };
@@ -115,6 +114,7 @@
 		81B7DBFF2A162F3500AF9118 /* EmptyWatchlistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B7DBFE2A162F3500AF9118 /* EmptyWatchlistView.swift */; };
 		81BF6CF82A47435E00B58891 /* MoviebookCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 811124AF2A43511F009133C2 /* MoviebookCommon.framework */; };
 		81D254742A066836006EBC1F /* RetriableErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81D254732A066836006EBC1F /* RetriableErrorView.swift */; };
+		81D5122A2A516F1C009F80E7 /* OvalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81D512292A516F1C009F80E7 /* OvalView.swift */; };
 		81D60DA72A312D060045AA0B /* RemoteImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81D60DA62A312D060045AA0B /* RemoteImage.swift */; };
 		81D60DB22A3341760045AA0B /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 81D60D8E2A30F3860045AA0B /* WidgetKit.framework */; };
 		81D60DB32A3341760045AA0B /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 81D60D902A30F3860045AA0B /* SwiftUI.framework */; };
@@ -237,10 +237,9 @@
 		811124AF2A43511F009133C2 /* MoviebookCommon.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = MoviebookCommon.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		811124B12A43511F009133C2 /* MoviebookCommon.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MoviebookCommon.h; sourceTree = "<group>"; };
 		8112AF0429152FA80041475D /* MovieVideoPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieVideoPlayer.swift; sourceTree = "<group>"; };
-		8112AF0629153EA60041475D /* WatermarkView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatermarkView.swift; sourceTree = "<group>"; };
 		8112AF0A2916DF5D0041475D /* MovieWatchlistStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieWatchlistStateView.swift; sourceTree = "<group>"; };
-		81167A582A3F01C200B83369 /* OvalTextFieldStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OvalTextFieldStyle.swift; sourceTree = "<group>"; };
-		81167A5C2A3F02D500B83369 /* OvalButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OvalButtonStyle.swift; sourceTree = "<group>"; };
+		81167A582A3F01C200B83369 /* OvalTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OvalTextField.swift; sourceTree = "<group>"; };
+		81167A5C2A3F02D500B83369 /* OvalButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OvalButton.swift; sourceTree = "<group>"; };
 		812489BC29F04E85004A6BE6 /* WebServiceError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebServiceError.swift; sourceTree = "<group>"; };
 		812489BF29F152C4004A6BE6 /* ExploreViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreViewModel.swift; sourceTree = "<group>"; };
 		812489C129F15307004A6BE6 /* SearchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewModel.swift; sourceTree = "<group>"; };
@@ -336,6 +335,7 @@
 		81CDE62229150D3000A34BBC /* MovieVideo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieVideo.swift; sourceTree = "<group>"; };
 		81D2546F2A05AD3E006EBC1F /* WatchlistStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistStorage.swift; sourceTree = "<group>"; };
 		81D254732A066836006EBC1F /* RetriableErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetriableErrorView.swift; sourceTree = "<group>"; };
+		81D512292A516F1C009F80E7 /* OvalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OvalView.swift; sourceTree = "<group>"; };
 		81D60D8E2A30F3860045AA0B /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		81D60D902A30F3860045AA0B /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		81D60DA42A312BF40045AA0B /* ImageLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageLoader.swift; sourceTree = "<group>"; };
@@ -464,8 +464,9 @@
 			isa = PBXGroup;
 			children = (
 				8127C49A2A114778008C6EBC /* SegmentedPicker.swift */,
-				81167A582A3F01C200B83369 /* OvalTextFieldStyle.swift */,
-				81167A5C2A3F02D500B83369 /* OvalButtonStyle.swift */,
+				81167A582A3F01C200B83369 /* OvalTextField.swift */,
+				81167A5C2A3F02D500B83369 /* OvalButton.swift */,
+				81D512292A516F1C009F80E7 /* OvalView.swift */,
 			);
 			path = Styles;
 			sourceTree = "<group>";
@@ -483,7 +484,6 @@
 			isa = PBXGroup;
 			children = (
 				81A395D829F4104B00800F7E /* SlidingCardView.swift */,
-				8112AF0629153EA60041475D /* WatermarkView.swift */,
 				8128AB1B28F00CB6002FD343 /* RatingView.swift */,
 				81A69CC2290BCC3400724FB9 /* CircularRatingView.swift */,
 				81A395D429F40CD200800F7E /* LoaderView.swift */,
@@ -1238,10 +1238,11 @@
 				816E653E2A45B05B007AEED1 /* RequestManager+Mock.swift in Sources */,
 				816E65212A45A64A007AEED1 /* WebService.swift in Sources */,
 				81A395DB29F4191A00800F7E /* ArtistContentView.swift in Sources */,
+				81D5122A2A516F1C009F80E7 /* OvalView.swift in Sources */,
 				81A395D529F40CD200800F7E /* LoaderView.swift in Sources */,
 				812489C229F15307004A6BE6 /* SearchViewModel.swift in Sources */,
 				81A395D929F4104B00800F7E /* SlidingCardView.swift in Sources */,
-				81167A592A3F01C200B83369 /* OvalTextFieldStyle.swift in Sources */,
+				81167A592A3F01C200B83369 /* OvalTextField.swift in Sources */,
 				8194DF6329FE754800A3FC2D /* ArtistViewModel.swift in Sources */,
 				814A13E728F0488100477126 /* WatchlistButton.swift in Sources */,
 				8127C49B2A114778008C6EBC /* SegmentedPicker.swift in Sources */,
@@ -1264,11 +1265,10 @@
 				81B7DBF92A14050300AF9118 /* ExploreHorizontalSectionView.swift in Sources */,
 				8112AF0529152FA80041475D /* MovieVideoPlayer.swift in Sources */,
 				81A395D329F40B8700800F7E /* ArtistView.swift in Sources */,
-				81167A5D2A3F02D500B83369 /* OvalButtonStyle.swift in Sources */,
+				81167A5D2A3F02D500B83369 /* OvalButton.swift in Sources */,
 				8112AF0B2916DF5D0041475D /* MovieWatchlistStateView.swift in Sources */,
 				81D60DF42A3350B40045AA0B /* LegacyWatchlistStorage.swift in Sources */,
 				81D60DFF2A33567A0045AA0B /* Moviebook.xcdatamodeld in Sources */,
-				8112AF0729153EA60041475D /* WatermarkView.swift in Sources */,
 				81B7DBFF2A162F3500AF9118 /* EmptyWatchlistView.swift in Sources */,
 				81FCB2932A18E5BB00BFD280 /* WatchlistPromptViewModifier.swift in Sources */,
 				812E83C2294CC0F900D40E21 /* NewToWatchSuggestionView.swift in Sources */,

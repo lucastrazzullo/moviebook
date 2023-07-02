@@ -76,7 +76,10 @@ private struct WatchedView: View {
                         .font(.subheadline)
                         .multilineTextAlignment(.trailing)
 
-                    WatermarkWatchlistButton(watchlistItemIdentifier: .movie(id: movieId), watchlistItemReleaseDate: movieReleaseDate)
+                    WatchlistButton(watchlistItemIdentifier: .movie(id: movieId), watchlistItemReleaseDate: movieReleaseDate) { state in
+                        Text(WatchlistViewState(itemState: state).label)
+                            .ovalStyle(.normal)
+                    }
                 }
             }
             .foregroundColor(.white)
@@ -233,7 +236,7 @@ private struct SuggestionView: View {
             Button(action: { presentedItem = .watchlistAddToWatchReason(itemIdentifier: .movie(id: movieId)) }) {
                 Text("Update").font(.footnote)
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(OvalButtonStyle(.small))
         }
         .padding()
         .background(.ultraThinMaterial)
