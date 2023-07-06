@@ -90,9 +90,15 @@ private struct MovieTrailingHeaderView: View {
 
     var body: some View {
         HStack(spacing: 18) {
-            IconWatchlistButton(watchlistItemIdentifier: .movie(id: movieDetails.id), watchlistItemReleaseDate: movieDetails.release)
+            WatchlistButton(watchlistItemIdentifier: .movie(id: movieDetails.id), watchlistItemReleaseDate: movieDetails.release) { state, _ in
+                WatchlistIcon(itemState: state)
+                    .frame(width: 16, height: 16, alignment: .center)
+                    .padding(4)
+            }
 
             ShareButton(movieDetails: movieDetails)
+                .frame(width: 16, height: 16, alignment: .center)
+                .padding(4)
         }
     }
 }
@@ -104,7 +110,6 @@ private struct ShareButton: View {
     var body: some View {
         ShareLink(item: Deeplink.movie(identifier: movieDetails.id).rawValue) {
             Image(systemName: "square.and.arrow.up")
-                .frame(width: 18, height: 18, alignment: .center)
         }
     }
 }

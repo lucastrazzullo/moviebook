@@ -10,12 +10,14 @@ import MoviebookCommon
 
 struct WatchlistButton<LabelType>: View where LabelType: View  {
 
+    typealias LabelBuilder = (_ state: WatchlistItemState?, _ shouldShowBadge: Bool) -> LabelType
+
     @EnvironmentObject var watchlist: Watchlist
 
     @State private var presentedItem: NavigationItem?
     @State private var presentedItemNavigationPath: NavigationPath = NavigationPath()
 
-    @ViewBuilder let label: (WatchlistItemState?) -> LabelType
+    @ViewBuilder let label: LabelBuilder
 
     let watchlistItemIdentifier: WatchlistItemIdentifier
     let watchlistItemReleaseDate: Date
@@ -28,17 +30,30 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
                 watchlistItemReleaseDate: watchlistItemReleaseDate
             )
         } label: {
-            label(watchlist.itemState(id: watchlistItemIdentifier))
+            let state = watchlist.itemState(id: watchlistItemIdentifier)
+            label(state, shouldShowLabel(state: state))
         }
         .sheet(item: $presentedItem) { item in
             Navigation(path: $presentedItemNavigationPath, presentingItem: item)
         }
     }
 
-    init(watchlistItemIdentifier: WatchlistItemIdentifier, watchlistItemReleaseDate: Date, @ViewBuilder label: @escaping (WatchlistItemState?) -> LabelType) {
+    init(watchlistItemIdentifier: WatchlistItemIdentifier, watchlistItemReleaseDate: Date, @ViewBuilder label: @escaping LabelBuilder) {
         self.watchlistItemIdentifier = watchlistItemIdentifier
         self.watchlistItemReleaseDate = watchlistItemReleaseDate
         self.label = label
+    }
+
+    private func shouldShowLabel(state: WatchlistItemState?) -> Bool {
+        guard let state else {
+            return false
+        }
+        switch state {
+        case .toWatch(let info):
+            return info.suggestion == nil
+        case .watched(let info):
+            return info.rating == nil
+        }
     }
 }
 
@@ -185,11 +200,25 @@ struct IconWatchlistButton: View {
     let watchlistItemReleaseDate: Date
 
     var body: some View {
-        WatchlistButton(watchlistItemIdentifier: watchlistItemIdentifier, watchlistItemReleaseDate: watchlistItemReleaseDate) { state in
+        WatchlistButton(
+            watchlistItemIdentifier: watchlistItemIdentifier,
+            watchlistItemReleaseDate: watchlistItemReleaseDate,
+            label: { state, shouldShowBadge in
             WatchlistIcon(itemState: state)
-                .padding(4)
-        }
-        .padding(-4)
+                .frame(width: 18, height: 18, alignment: .center)
+                .ovalStyle(.normal)
+                .overlay(alignment: .topTrailing) {
+                    if shouldShowBadge {
+                        Circle()
+                            .fill(Color.accentColor)
+                            .frame(width: 8)
+                            .padding(2)
+                            .background(Circle().fill(.black))
+                    }
+                }
+                .compositingGroup()
+            }
+        )
     }
 }
 

@@ -51,7 +51,6 @@ struct WatchlistView: View {
                     setBarsHeight(safeAreaInsets: safeAreaInsets)
                 }
         })
-        .watchlistPrompt(duration: 5)
         .safeAreaInset(edge: .top) {
             TopbarView(
                 sorting: $currentSorting
@@ -312,8 +311,6 @@ private struct WatchlistListView: View {
 
 private struct WatchlistItemView: View {
 
-    @State private var shouldShowBadge: Bool = false
-
     @EnvironmentObject var watchlist: Watchlist
 
     @Binding var presentedItem: NavigationItem?
@@ -349,52 +346,12 @@ private struct WatchlistItemView: View {
 
                 Spacer()
 
-                Menu {
-                    Button { presentedItem = .movie(movie) } label: {
-                        Label("Open", systemImage: "chevron.up")
-                    }
-
-                    WatchlistOptions(
-                        presentedItem: $presentedItem,
-                        watchlistItemIdentifier: watchlistIdentifier,
-                        watchlistItemReleaseDate: movie.details.release
-                    )
-                } label: {
-                    WatchlistIcon(itemState: watchlist.itemState(id: watchlistIdentifier))
-                        .frame(width: 18, height: 18)
-                        .ovalStyle(.normal)
-                        .overlay(alignment: .topTrailing) {
-                            if shouldShowBadge {
-                                Circle()
-                                    .fill(Color.accentColor)
-                                    .frame(width: 8)
-                                    .padding(2)
-                                    .background(Circle().fill(.black))
-                            }
-                        }
-                }
+                IconWatchlistButton(
+                    watchlistItemIdentifier: watchlistIdentifier,
+                    watchlistItemReleaseDate: movie.details.release
+                )
             }
             .padding(10)
-        }
-        .onReceive(watchlist.itemDidUpdateState) { item in
-            updateBadgeAppearance(state: item.state)
-        }
-        .onAppear {
-            updateBadgeAppearance(state: watchlist.itemState(id: watchlistIdentifier))
-        }
-    }
-
-    private func updateBadgeAppearance(state: WatchlistItemState?) {
-        guard let state else {
-            shouldShowBadge = false
-            return
-        }
-
-        switch state {
-        case .toWatch(let info):
-            shouldShowBadge = info.suggestion == nil
-        case .watched(let info):
-            shouldShowBadge = info.rating == nil
         }
     }
 }

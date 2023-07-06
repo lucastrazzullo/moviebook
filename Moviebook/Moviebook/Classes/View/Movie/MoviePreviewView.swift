@@ -76,8 +76,10 @@ struct MoviePreviewView: View {
 
             if let details {
                 Spacer()
-                IconWatchlistButton(watchlistItemIdentifier: .movie(id: details.id), watchlistItemReleaseDate: details.release)
-                    .font(.headline)
+                IconWatchlistButton(
+                    watchlistItemIdentifier: .movie(id: details.id),
+                    watchlistItemReleaseDate: details.release
+                )
             }
         }
     }
