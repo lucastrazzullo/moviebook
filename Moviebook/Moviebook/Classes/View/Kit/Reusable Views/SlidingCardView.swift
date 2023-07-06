@@ -24,7 +24,7 @@ struct SlidingCardView<TrailingHeaderView: View, ContentView: View>: View {
     let title: String
     let posterUrl: URL?
 
-    @ViewBuilder let trailingHeaderView: () -> TrailingHeaderView
+    @ViewBuilder let trailingHeaderView: (_ compact: Bool) -> TrailingHeaderView
     @ViewBuilder let content: () -> ContentView
 
     var body: some View {
@@ -79,7 +79,7 @@ private struct HeaderView<TrailingView: View>: View {
     let title: String
     let shouldShowHeader: Bool
 
-    @ViewBuilder let trailingView: () -> TrailingView
+    @ViewBuilder let trailingView: (_ compact: Bool) -> TrailingView
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -109,8 +109,9 @@ private struct HeaderView<TrailingView: View>: View {
                     Spacer()
                 }
 
-                trailingView()
+                trailingView(shouldShowHeader)
                     .ovalStyle(.normal)
+                    .transition(.scale)
             }
             .padding(.horizontal)
         }
@@ -174,13 +175,27 @@ private struct SlidingCardViewPreview: View {
                     navigationPath: .constant(.init()),
                     title: movie.details.title,
                     posterUrl: movie.details.media.posterUrl,
-                    trailingHeaderView: {
-                        HStack(spacing: 18) {
-                            Button(action: {}) {
-                                Image(systemName: "play")
+                    trailingHeaderView: { compact in
+                        if compact {
+                            Menu {
+                                Button(action: {}) {
+                                    Image(systemName: "play")
+                                }
+                                Button(action: {}) {
+                                    Image(systemName: "square.and.arrow.up")
+                                }
+                            } label: {
+                                Image(systemName: "ellipsis")
+                                    .frame(width: 18, height: 18)
                             }
-                            Button(action: {}) {
-                                Image(systemName: "square.and.arrow.up")
+                        } else {
+                            HStack(spacing: 18) {
+                                Button(action: {}) {
+                                    Image(systemName: "play")
+                                }
+                                Button(action: {}) {
+                                    Image(systemName: "square.and.arrow.up")
+                                }
                             }
                         }
                     },
