@@ -24,6 +24,7 @@ struct WatchlistView: View {
 
     @State private var presentedItemNavigationPath = NavigationPath()
     @State private var presentedItem: NavigationItem? = nil
+    @State private var removedItem: WatchlistItem? = nil
 
     var body: some View {
         Group {
@@ -53,6 +54,7 @@ struct WatchlistView: View {
         })
         .safeAreaInset(edge: .top) {
             TopbarView(
+                removedItem: $removedItem,
                 sorting: $currentSorting
             )
             .padding()
@@ -71,6 +73,9 @@ struct WatchlistView: View {
         .sheet(item: $presentedItem) { item in
             Navigation(path: $presentedItemNavigationPath, presentingItem: item)
         }
+        .onReceive(watchlist.itemWasRemoved) { item in
+            removedItem = item
+        }
     }
 
     private func setBarsHeight(safeAreaInsets: EdgeInsets) {
@@ -81,7 +86,13 @@ struct WatchlistView: View {
 
 private struct TopbarView: View {
 
+    @Environment(\.requestManager) var requestManager
+    @EnvironmentObject var watchlist: Watchlist
+
+    @Binding var removedItem: WatchlistItem?
     @Binding var sorting: WatchlistViewModel.Sorting
+
+    @State private var removedMovie: MovieDetails?
 
     var body: some View {
         ZStack {
@@ -105,6 +116,49 @@ private struct TopbarView: View {
                     .ovalStyle(.normal)
             }
             .frame(maxWidth: .infinity, alignment: .trailing)
+
+            VStack {
+                if let removedMovie, let removedItem {
+                    HStack {
+                        RemoteImage(
+                            url: removedMovie.media.posterThumbnailUrl,
+                            content: { image in
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .cornerRadius(4)
+                            },
+                            placeholder: { Color.clear }
+                        )
+
+                        VStack(alignment: .leading) {
+                            Text("Removed")
+                            Button {
+                                self.watchlist.update(state: removedItem.state, forItemWith: removedItem.id)
+                                self.removedItem = nil
+                            } label: {
+                                Text("undo")
+                            }
+                        }
+                        .font(.caption)
+                    }
+                    .id(removedItem.id)
+                    .transition(.opacity)
+                }
+            }
+            .frame(height: 52)
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            .animation(.default, value: removedMovie)
+        }
+        .task {
+            if let removedItem {
+                switch removedItem.id {
+                case .movie(let id):
+                    let webService = WebService.movieWebService(requestManager: requestManager)
+                    removedMovie = try? await webService.fetchMovie(with: id).details
+                }
+            }
         }
     }
 }
