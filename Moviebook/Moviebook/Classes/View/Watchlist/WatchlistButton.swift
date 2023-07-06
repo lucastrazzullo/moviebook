@@ -55,7 +55,7 @@ struct WatchlistOptions: View {
             if let state = watchlist.itemState(id: watchlistItemIdentifier) {
                 switch state {
                 case .toWatch(let info):
-                    Button { presentedItem = .watchlistAddToWatchReason(itemIdentifier: watchlistItemIdentifier) } label: {
+                    Button(role: info.suggestion == nil ? .destructive : nil) { presentedItem = .watchlistAddToWatchReason(itemIdentifier: watchlistItemIdentifier) } label: {
                         if info.suggestion == nil {
                             Label("Add reason to watch", systemImage: "quote.opening")
                         } else {
@@ -72,7 +72,7 @@ struct WatchlistOptions: View {
                         }
                     }
                 case .watched(let info):
-                    Button { presentedItem = .watchlistAddRating(itemIdentifier: watchlistItemIdentifier) } label: {
+                    Button(role: info.rating == nil ? .destructive : nil) { presentedItem = .watchlistAddRating(itemIdentifier: watchlistItemIdentifier) } label: {
                         if info.rating == nil {
                             Label("Add rating", systemImage: "plus")
                         } else {

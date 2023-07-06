@@ -312,6 +312,8 @@ private struct WatchlistListView: View {
 
 private struct WatchlistItemView: View {
 
+    @State private var shouldShowBadge: Bool = false
+
     @EnvironmentObject var watchlist: Watchlist
 
     @Binding var presentedItem: NavigationItem?
@@ -343,7 +345,6 @@ private struct WatchlistItemView: View {
                     .padding(6)
                     .background(.yellow, in: RoundedRectangle(cornerRadius: 6))
                     .foregroundColor(.black)
-                    .padding(.leading, 12)
                 }
 
                 Spacer()
@@ -353,22 +354,47 @@ private struct WatchlistItemView: View {
                         Label("Open", systemImage: "chevron.up")
                     }
 
-                    Menu {
-                        WatchlistOptions(
-                            presentedItem: $presentedItem,
-                            watchlistItemIdentifier: watchlistIdentifier,
-                            watchlistItemReleaseDate: movie.details.release
-                        )
-                    } label: {
-                        WatchlistLabel(itemState: watchlist.itemState(id: watchlistIdentifier))
-                    }
+                    WatchlistOptions(
+                        presentedItem: $presentedItem,
+                        watchlistItemIdentifier: watchlistIdentifier,
+                        watchlistItemReleaseDate: movie.details.release
+                    )
                 } label: {
                     WatchlistIcon(itemState: watchlist.itemState(id: watchlistIdentifier))
                         .frame(width: 18, height: 18)
                         .ovalStyle(.normal)
+                        .overlay(alignment: .topTrailing) {
+                            if shouldShowBadge {
+                                Circle()
+                                    .fill(Color.accentColor)
+                                    .frame(width: 8)
+                                    .padding(2)
+                                    .background(Circle().fill(.black))
+                            }
+                        }
                 }
-                .padding(12)
             }
+            .padding(10)
+        }
+        .onReceive(watchlist.itemDidUpdateState) { item in
+            updateBadgeAppearance(state: item.state)
+        }
+        .onAppear {
+            updateBadgeAppearance(state: watchlist.itemState(id: watchlistIdentifier))
+        }
+    }
+
+    private func updateBadgeAppearance(state: WatchlistItemState?) {
+        guard let state else {
+            shouldShowBadge = false
+            return
+        }
+
+        switch state {
+        case .toWatch(let info):
+            shouldShowBadge = info.suggestion == nil
+        case .watched(let info):
+            shouldShowBadge = info.rating == nil
         }
     }
 }
@@ -383,7 +409,7 @@ struct WatchlistView_Previews: PreviewProvider {
                 .environment(\.requestManager, MockRequestManager.shared)
                 .environmentObject(Watchlist(items: [
                     WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
-                    WatchlistItem(id: .movie(id: 353081), state: .toWatch(info: .init(date: .now, suggestion: nil))),
+                    WatchlistItem(id: .movie(id: 353081), state: .toWatch(info: .init(date: .now, suggestion: .init(owner: "Valerio", comment: nil)))),
                     WatchlistItem(id: .movie(id: 616037), state: .watched(info: .init(toWatchInfo: .init(date: .now, suggestion: nil), date: .now)))
                 ]))
         }
@@ -393,7 +419,7 @@ struct WatchlistView_Previews: PreviewProvider {
                 .environment(\.requestManager, MockRequestManager.shared)
                 .environmentObject(Watchlist(items: [
                     WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
-                    WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: nil)))
+                    WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: .init(owner: "Valerio", comment: nil))))
                 ]))
         }
 
