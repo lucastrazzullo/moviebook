@@ -19,6 +19,8 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
     @ObservedObject var viewModel: ExploreContentViewModel
     @Binding var presentedItem: NavigationItem?
 
+    let pageWidth: CGFloat
+
     @ViewBuilder let viewAllDestination: () -> Destination
 
     var body: some View {
@@ -27,26 +29,25 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
                 RetriableErrorView(retry: error.retry)
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHGrid(rows: rows) {
+                    LazyHGrid(rows: rows, spacing: 18) {
                         switch viewModel.items {
                         case .movies(let movies):
                             ForEach(movies, id: \.self) { movieDetails in
                                 MoviePreviewView(details: movieDetails, style: .backdrop) {
                                     presentedItem = .movieWithIdentifier(movieDetails.id)
                                 }
-                                .frame(width: 300)
-                                .padding(.horizontal)
+                                .frame(width: pageWidth * 0.8)
                             }
                         case .artists(let artists):
                             ForEach(artists, id: \.self) { artistDetails in
                                 ArtistPreviewView(details: artistDetails) {
                                     presentedItem = .artistWithIdentifier(artistDetails.id)
                                 }
-                                .frame(width: 300)
-                                .padding(.horizontal)
+                                .frame(width: pageWidth * 0.8)
                             }
                         }
                     }
+                    .padding(.horizontal)
                 }
                 .listRowInsets(EdgeInsets())
             }
@@ -114,8 +115,10 @@ private struct ExploreHorizontalSectionViewPreview: View {
     @StateObject var viewModel: ExploreContentViewModel
 
     var body: some View {
-        List {
-            ExploreHorizontalSectionView(viewModel: viewModel, presentedItem: .constant(nil), viewAllDestination: { EmptyView() })
+        GeometryReader { geometry in
+            List {
+                ExploreHorizontalSectionView(viewModel: viewModel, presentedItem: .constant(nil), pageWidth: geometry.size.width, viewAllDestination: { EmptyView() })
+            }
         }
         .listStyle(.inset)
         .onAppear {
