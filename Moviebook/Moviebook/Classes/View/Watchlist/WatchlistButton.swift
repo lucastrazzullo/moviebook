@@ -10,7 +10,7 @@ import MoviebookCommon
 
 struct WatchlistButton<LabelType>: View where LabelType: View  {
 
-    typealias LabelBuilder = (_ state: WatchlistItemState?, _ shouldShowBadge: Bool) -> LabelType
+    typealias LabelBuilder = (_ state: WatchlistItemState?, _ shouldShowBadge: String?) -> LabelType
 
     @EnvironmentObject var watchlist: Watchlist
 
@@ -29,19 +29,19 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
             )
         } label: {
             let state = watchlist.itemState(id: watchlistItemIdentifier)
-            label(state, shouldShowLabel(state: state))
+            label(state, shouldShowBadge(state: state))
         }
     }
 
-    private func shouldShowLabel(state: WatchlistItemState?) -> Bool {
+    private func shouldShowBadge(state: WatchlistItemState?) -> String? {
         guard let state else {
-            return false
+            return nil
         }
         switch state {
         case .toWatch(let info):
-            return info.suggestion == nil
+            return info.suggestion == nil ? "quote.opening" : nil
         case .watched(let info):
-            return info.rating == nil
+            return info.rating == nil ? "star.fill" : nil
         }
     }
 }
@@ -195,20 +195,21 @@ struct IconWatchlistButton: View {
             watchlistItemIdentifier: watchlistItemIdentifier,
             watchlistItemReleaseDate: watchlistItemReleaseDate,
             presentedItem: $presentedItem,
-            label: { state, shouldShowBadge in
+            label: { state, badgeImageName in
             WatchlistIcon(itemState: state)
                 .frame(width: 18, height: 18, alignment: .center)
                 .ovalStyle(.normal)
                 .overlay(alignment: .topTrailing) {
-                    if shouldShowBadge {
-                        Circle()
-                            .fill(Color.accentColor)
+                    if let badgeImageName {
+                        Image(systemName: badgeImageName)
+                            .foregroundColor(Color.accentColor)
+                            .font(.system(size: 10))
                             .frame(width: 8)
-                            .padding(2)
-                            .background(Circle().fill(.black))
+                            .padding(6)
+                            .background(.ultraThickMaterial, in: Circle())
+                            .offset(CGSize(width: 8, height: -8))
                     }
                 }
-                .compositingGroup()
             }
         )
     }
