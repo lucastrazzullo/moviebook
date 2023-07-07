@@ -17,6 +17,9 @@ struct ArtistView: View {
     @StateObject private var viewModel: ArtistViewModel
     @State private var isErrorPresented: Bool = false
 
+    @State private var presentedItemNavigationPath: NavigationPath = NavigationPath()
+    @State private var presentedItem: NavigationItem?
+
     var body: some View {
         Group {
             if let artist = viewModel.artist {
@@ -27,7 +30,11 @@ struct ArtistView: View {
                     trailingHeaderView: { _ in
                         ShareButton(artistDetails: artist.details)
                     }, content: {
-                        ArtistContentView(navigationPath: $navigationPath, artist: artist)
+                        ArtistContentView(
+                            navigationPath: $navigationPath,
+                            presentedItem: $presentedItem,
+                            artist: artist
+                        )
                     }
                 )
             } else {
@@ -40,6 +47,9 @@ struct ArtistView: View {
             Button("Retry", role: .cancel) {
                 viewModel.error?.retry()
             }
+        }
+        .sheet(item: $presentedItem) { item in
+            Navigation(path: $presentedItemNavigationPath, presentingItem: item)
         }
         .onChange(of: viewModel.error) { error in
             isErrorPresented = error != nil

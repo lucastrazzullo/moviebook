@@ -14,13 +14,11 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
 
     @EnvironmentObject var watchlist: Watchlist
 
-    @State private var presentedItem: NavigationItem?
-    @State private var presentedItemNavigationPath: NavigationPath = NavigationPath()
-
-    @ViewBuilder let label: LabelBuilder
-
     let watchlistItemIdentifier: WatchlistItemIdentifier
     let watchlistItemReleaseDate: Date
+
+    @Binding var presentedItem: NavigationItem?
+    @ViewBuilder let label: LabelBuilder
 
     var body: some View {
         Menu {
@@ -33,15 +31,6 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
             let state = watchlist.itemState(id: watchlistItemIdentifier)
             label(state, shouldShowLabel(state: state))
         }
-        .sheet(item: $presentedItem) { item in
-            Navigation(path: $presentedItemNavigationPath, presentingItem: item)
-        }
-    }
-
-    init(watchlistItemIdentifier: WatchlistItemIdentifier, watchlistItemReleaseDate: Date, @ViewBuilder label: @escaping LabelBuilder) {
-        self.watchlistItemIdentifier = watchlistItemIdentifier
-        self.watchlistItemReleaseDate = watchlistItemReleaseDate
-        self.label = label
     }
 
     private func shouldShowLabel(state: WatchlistItemState?) -> Bool {
@@ -199,10 +188,13 @@ struct IconWatchlistButton: View {
     let watchlistItemIdentifier: WatchlistItemIdentifier
     let watchlistItemReleaseDate: Date
 
+    @Binding var presentedItem: NavigationItem?
+
     var body: some View {
         WatchlistButton(
             watchlistItemIdentifier: watchlistItemIdentifier,
             watchlistItemReleaseDate: watchlistItemReleaseDate,
+            presentedItem: $presentedItem,
             label: { state, shouldShowBadge in
             WatchlistIcon(itemState: state)
                 .frame(width: 18, height: 18, alignment: .center)
@@ -227,14 +219,26 @@ struct WatchlistButton_Previews: PreviewProvider {
     static let watchedItem = WatchlistItem(id: .movie(id: 954), state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: .init(date: .now, suggestion: nil), rating: 6.4, date: .now)))
     static var previews: some View {
         VStack(spacing: 44) {
-            IconWatchlistButton(watchlistItemIdentifier: .movie(id: 954), watchlistItemReleaseDate: .now)
-                .environmentObject(Watchlist(items: []))
+            IconWatchlistButton(
+                watchlistItemIdentifier: .movie(id: 954),
+                watchlistItemReleaseDate: .now,
+                presentedItem: .constant(nil)
+            )
+            .environmentObject(Watchlist(items: []))
 
-            IconWatchlistButton(watchlistItemIdentifier: .movie(id: 954), watchlistItemReleaseDate: .now)
-                .environmentObject(Watchlist(items: [toWatchItem]))
+            IconWatchlistButton(
+                watchlistItemIdentifier: .movie(id: 954),
+                watchlistItemReleaseDate: .now,
+                presentedItem: .constant(nil)
+            )
+            .environmentObject(Watchlist(items: [toWatchItem]))
 
-            IconWatchlistButton(watchlistItemIdentifier: .movie(id: 954), watchlistItemReleaseDate: .now)
-                .environmentObject(Watchlist(items: [watchedItem]))
+            IconWatchlistButton(
+                watchlistItemIdentifier: .movie(id: 954),
+                watchlistItemReleaseDate: .now,
+                presentedItem: .constant(nil)
+            )
+            .environmentObject(Watchlist(items: [watchedItem]))
         }
         .padding(44)
         .background(.thinMaterial)

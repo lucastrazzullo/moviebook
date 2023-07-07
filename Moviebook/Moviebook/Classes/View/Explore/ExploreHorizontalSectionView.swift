@@ -33,7 +33,7 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
                         switch viewModel.items {
                         case .movies(let movies):
                             ForEach(movies, id: \.self) { movieDetails in
-                                MoviePreviewView(details: movieDetails, style: .backdrop) {
+                                MoviePreviewView(details: movieDetails, presentedItem: $presentedItem, style: .backdrop) {
                                     presentedItem = .movieWithIdentifier(movieDetails.id)
                                 }
                                 .frame(width: pageWidth * 0.8)

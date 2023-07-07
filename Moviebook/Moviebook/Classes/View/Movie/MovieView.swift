@@ -19,6 +19,9 @@ struct MovieView: View {
     @State private var isVideoPresented: MovieVideo? = nil
     @State private var isErrorPresented: Bool = false
 
+    @State private var presentedItemNavigationPath: NavigationPath = NavigationPath()
+    @State private var presentedItem: NavigationItem?
+
     var body: some View {
         Group {
             if let movie = viewModel.movie {
@@ -28,12 +31,14 @@ struct MovieView: View {
                     posterUrl: movie.details.media.posterUrl,
                     trailingHeaderView: { compact in
                         MovieTrailingHeaderView(
+                            presentedItem: $presentedItem,
                             movieDetails: movie.details,
                             compact: compact
                         )
                     }, content: {
                         MovieContentView(
                             navigationPath: $navigationPath,
+                            presentedItem: $presentedItem,
                             movie: movie,
                             onVideoSelected: { video in
                                 isVideoPresented = video
@@ -58,6 +63,9 @@ struct MovieView: View {
                 .buttonStyle(OvalButtonStyle(.normal))
                 .padding()
             }
+        }
+        .sheet(item: $presentedItem) { item in
+            Navigation(path: $presentedItemNavigationPath, presentingItem: item)
         }
         .alert("Error", isPresented: $isErrorPresented) {
             Button("Retry", role: .cancel) {
@@ -87,13 +95,18 @@ struct MovieView: View {
 
 private struct MovieTrailingHeaderView: View {
 
+    @Binding var presentedItem: NavigationItem?
+
     let movieDetails: MovieDetails
     let compact: Bool
 
     var body: some View {
         if compact {
             Menu {
-                WatchlistButton(watchlistItemIdentifier: .movie(id: movieDetails.id), watchlistItemReleaseDate: movieDetails.release) { state, _ in
+                WatchlistButton(
+                    watchlistItemIdentifier: .movie(id: movieDetails.id),
+                    watchlistItemReleaseDate: movieDetails.release,
+                    presentedItem: $presentedItem) { state, _ in
                     WatchlistLabel(itemState: state)
                     WatchlistIcon(itemState: state)
                 }
@@ -105,7 +118,10 @@ private struct MovieTrailingHeaderView: View {
             }
         } else {
             HStack(spacing: 18) {
-                WatchlistButton(watchlistItemIdentifier: .movie(id: movieDetails.id), watchlistItemReleaseDate: movieDetails.release) { state, _ in
+                WatchlistButton(
+                    watchlistItemIdentifier: .movie(id: movieDetails.id),
+                    watchlistItemReleaseDate: movieDetails.release,
+                    presentedItem: $presentedItem) { state, _ in
                     WatchlistIcon(itemState: state)
                         .frame(width: 16, height: 16, alignment: .center)
                         .padding(4)

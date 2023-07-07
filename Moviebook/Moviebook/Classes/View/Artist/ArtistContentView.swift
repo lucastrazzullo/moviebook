@@ -13,6 +13,7 @@ struct ArtistContentView: View {
     @State private var isOverviewExpanded: Bool = false
 
     @Binding var navigationPath: NavigationPath
+    @Binding var presentedItem: NavigationItem?
 
     let artist: Artist
 
@@ -28,6 +29,7 @@ struct ArtistContentView: View {
 
             if !artist.filmography.isEmpty {
                 FilmographyView(
+                    presentedItem: $presentedItem,
                     movies: artist.filmography,
                     onMovieSelected: { identifier in
                         navigationPath.append(NavigationItem.movieWithIdentifier(identifier))
@@ -80,6 +82,8 @@ private struct HeaderView: View {
 
 private struct FilmographyView: View {
 
+    @Binding var presentedItem: NavigationItem?
+
     let movies: [MovieDetails]
     let onMovieSelected: (Movie.ID) -> Void
 
@@ -91,7 +95,7 @@ private struct FilmographyView: View {
             LazyVStack {
                 ForEach(movies) { movieDetails in
                     Group {
-                        MoviePreviewView(details: movieDetails) {
+                        MoviePreviewView(details: movieDetails, presentedItem: $presentedItem) {
                             onMovieSelected(movieDetails.id)
                         }
                     }
@@ -133,7 +137,7 @@ private struct ArtistCardPreview: View {
     var body: some View {
         Group {
             if let artist {
-                ArtistContentView(navigationPath: .constant(.init()), artist: artist)
+                ArtistContentView(navigationPath: .constant(.init()), presentedItem: .constant(nil), artist: artist)
             } else {
                 LoaderView()
             }

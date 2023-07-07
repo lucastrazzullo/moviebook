@@ -288,7 +288,8 @@ private struct WatchlistMovieItemView: View {
 
                 IconWatchlistButton(
                     watchlistItemIdentifier: watchlistIdentifier,
-                    watchlistItemReleaseDate: movie.details.release
+                    watchlistItemReleaseDate: movie.details.release,
+                    presentedItem: $presentedItem
                 )
             }
             .padding(10)

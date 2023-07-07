@@ -17,6 +17,8 @@ struct MoviePreviewView: View {
 
     @EnvironmentObject var watchlist: Watchlist
 
+    @Binding var presentedItem: NavigationItem?
+
     let style: Style
     let details: MovieDetails?
     let onSelected: (() -> Void)?
@@ -78,13 +80,15 @@ struct MoviePreviewView: View {
                 Spacer()
                 IconWatchlistButton(
                     watchlistItemIdentifier: .movie(id: details.id),
-                    watchlistItemReleaseDate: details.release
+                    watchlistItemReleaseDate: details.release,
+                    presentedItem: $presentedItem
                 )
             }
         }
     }
 
-    init(details: MovieDetails?, style: Style = .poster, onSelected: (() -> Void)? = nil) {
+    init(details: MovieDetails?, presentedItem: Binding<NavigationItem?>, style: Style = .poster, onSelected: (() -> Void)? = nil) {
+        self._presentedItem = presentedItem
         self.details = details
         self.style = style
         self.onSelected = onSelected
@@ -140,7 +144,7 @@ private struct MoviePreviewViewPreview: View {
     var body: some View {
         Group {
             if let movie {
-                MoviePreviewView(details: movie.details, style: style).padding()
+                MoviePreviewView(details: movie.details, presentedItem: .constant(nil), style: style).padding()
             } else {
                 LoaderView()
             }

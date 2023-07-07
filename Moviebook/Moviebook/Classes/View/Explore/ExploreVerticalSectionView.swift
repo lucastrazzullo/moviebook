@@ -22,7 +22,7 @@ struct ExploreVerticalSectionView: View {
             switch viewModel.items {
             case .movies(let movies):
                 ForEach(movies) { movieDetails in
-                    MoviePreviewView(details: movieDetails) {
+                    MoviePreviewView(details: movieDetails, presentedItem: $presentedItem) {
                         presentedItem = .movieWithIdentifier(movieDetails.id)
                     }
                 }
