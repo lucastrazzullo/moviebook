@@ -75,10 +75,15 @@ import MoviebookCommon
         }
     }
 
+    // MARK: Type properties
+
+    private static let storedSectionKey = "watchlistSection"
+    private static let storedSortingKey = "watchlistSorting"
+
     // MARK: Instance Properties
 
-    @Published var section: Section = .toWatch
-    @Published var sorting: Sorting = .lastAdded
+    @Published var section: Section
+    @Published var sorting: Sorting
 
     @Published private(set) var isLoading: Bool = true
     @Published private(set) var error: WebServiceError? = nil
@@ -86,6 +91,22 @@ import MoviebookCommon
 
     private var watchlistItems: [Section: [Item]] = [:]
     private var subscriptions: Set<AnyCancellable> = []
+
+    // MARK: Object life cycle
+
+    init() {
+        if let storedSection = UserDefaults.standard.value(forKey: Self.storedSectionKey) as? String {
+            self.section = Section(rawValue: storedSection) ?? .toWatch
+        } else {
+            self.section = .toWatch
+        }
+
+        if let storedSorting = UserDefaults.standard.value(forKey: Self.storedSortingKey) as? String {
+            self.sorting = Sorting(rawValue: storedSorting) ?? .lastAdded
+        } else {
+            self.sorting = .lastAdded
+        }
+    }
 
     // MARK: Internal methods
 
@@ -104,6 +125,10 @@ import MoviebookCommon
         Publishers.CombineLatest($section, $sorting)
             .sink { [weak self] section, sorting in
                 guard let self else { return }
+
+                UserDefaults.standard.set(section.rawValue, forKey: Self.storedSectionKey)
+                UserDefaults.standard.set(sorting.rawValue, forKey: Self.storedSortingKey)
+
                 Task {
                     await self.publishItems(section: section, sorting: sorting)
                 }
