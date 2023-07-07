@@ -65,103 +65,174 @@ import MoviebookCommon
     }
 
     enum Item: Identifiable, Equatable {
-        case movie(movie: Movie, section: Section, watchlistItem: WatchlistItem)
+        case movie(movie: Movie, watchlistItem: WatchlistItem)
 
-        var id: String {
+        var id: AnyHashable {
             switch self {
-            case .movie(let movie, let section, _):
-                return "\(movie.id): \(section.name)"
-            }
-        }
-
-        var section: Section {
-            switch self {
-            case .movie(_, let section, _):
-                return section
-            }
-        }
-
-        var watchlistItem: WatchlistItem {
-            switch self {
-            case .movie(_, _, let watchlistItem):
-                return watchlistItem
+            case .movie(_, let watchlistItem):
+                return watchlistItem.id
             }
         }
     }
 
     // MARK: Instance Properties
 
+    @Published var section: Section = .toWatch
+    @Published var sorting: Sorting = .lastAdded
+
     @Published private(set) var isLoading: Bool = true
     @Published private(set) var error: WebServiceError? = nil
     @Published private(set) var items: [Item] = []
 
+    private var watchlistItems: [Section: [Item]] = [:]
     private var subscriptions: Set<AnyCancellable> = []
 
     // MARK: Internal methods
 
-    func start(section: Section, watchlist: Watchlist, requestManager: RequestManager) {
+    func start(watchlist: Watchlist, requestManager: RequestManager) {
         watchlist.$items
             .removeDuplicates()
             .sink { [weak self, weak requestManager] items in
-                var result = [WatchlistItem]()
-
-                for item in items {
-                    switch (item.state, section) {
-                    case (.toWatch, .toWatch):
-                        result.append(item)
-                    case (.watched, .watched):
-                        result.append(item)
-                    default:
-                        continue
-                    }
+                guard let self, let requestManager else { return }
+                Task {
+                    await self.updateItems(items, requestManager: requestManager)
+                    await self.publishItems(section: self.section, sorting: self.sorting)
                 }
+            }
+            .store(in: &subscriptions)
 
-                if let requestManager {
-                    self?.setItemsOrRetry(items: result, section: section, requestManager: requestManager)
+        Publishers.CombineLatest($section, $sorting)
+            .sink { [weak self] section, sorting in
+                guard let self else { return }
+                Task {
+                    await self.publishItems(section: section, sorting: sorting)
                 }
             }
             .store(in: &subscriptions)
     }
 
-    private func setItemsOrRetry(items: [WatchlistItem], section: Section, requestManager: RequestManager) {
-        Task {
-            do {
-                self.isLoading = true
-                self.error = nil
+    // MARK: Private methods - Published items
 
-                try await set(items: items, section: section, requestManager: requestManager)
-                self.isLoading = false
+    private func publishItems(section: Section, sorting: Sorting) async {
+        self.items = watchlistItems[section]?.sorted(by: sort(sorting: sorting)) ?? []
+    }
 
-            } catch {
-                self.isLoading = false
-                self.error = WebServiceError.failedToLoad(id: .init(), retry: { [weak self] in
-                    self?.setItemsOrRetry(items: items, section: section, requestManager: requestManager)
-                })
+    // MARK: Private methods - Watchlist Items
+
+    private func updateItems(_ items: [WatchlistItem], requestManager: RequestManager) async {
+        var result = [Section: [WatchlistItem]]()
+        for section in Section.allCases {
+            result[section] = []
+        }
+
+        for item in items {
+            switch item.state {
+            case .toWatch:
+                result[.toWatch]?.append(item)
+            case .watched:
+                result[.watched]?.append(item)
+            }
+        }
+
+        await setItemsOrRetry(result, requestManager: requestManager)
+    }
+
+    private func setItemsOrRetry(_ items: [Section: [WatchlistItem]], requestManager: RequestManager) async {
+        do {
+            isLoading = true
+            error = nil
+
+            try await set(items: items, requestManager: requestManager)
+            isLoading = false
+
+        } catch {
+            self.isLoading = false
+            self.error = WebServiceError.failedToLoad(id: .init(), retry: { [weak self] in
+                Task {
+                    await self?.setItemsOrRetry(items, requestManager: requestManager)
+                }
+            })
+        }
+    }
+
+    private func set(items: [Section: [WatchlistItem]], requestManager: RequestManager) async throws {
+        self.watchlistItems = try await withThrowingTaskGroup(of: Item.self) { group in
+            var result = [Section: [Item]]()
+
+            for section in items.keys {
+                guard let items = items[section], !items.isEmpty else {
+                    continue
+                }
+
+                result[section] = []
+
+                for item in items {
+                    group.addTask {
+                        switch item.id {
+                        case .movie(let id):
+                            let webService = WebService.movieWebService(requestManager: requestManager)
+                            let movie = try await webService.fetchMovie(with: id)
+                            return Item.movie(movie: movie, watchlistItem: item)
+                        }
+                    }
+                }
+
+                for try await item in group {
+                    result[section]?.append(item)
+                }
+            }
+
+            return result
+        }
+    }
+
+    // MARK: Private methods - Sorting
+
+    private func sort(sorting: Sorting) -> (WatchlistSectionViewModel.Item, WatchlistSectionViewModel.Item) -> Bool {
+        return { lhs, rhs in
+            switch sorting {
+            case .lastAdded:
+                return self.addedDate(for: lhs) > self.addedDate(for: rhs)
+            case .rating:
+                return self.rating(for: lhs) > self.rating(for: rhs)
+            case .name:
+                return self.name(for: lhs) < self.name(for: rhs)
+            case .release:
+                return self.releaseDate(for: lhs) < self.releaseDate(for: rhs)
             }
         }
     }
 
-    private func set(items: [WatchlistItem], section: Section, requestManager: RequestManager) async throws {
-        self.items = try await withThrowingTaskGroup(of: Item.self) { group in
-            var result = [Item]()
-            result.reserveCapacity(items.count)
-
-            for item in items {
-                group.addTask {
-                    switch item.id {
-                    case .movie(let id):
-                        let webService = WebService.movieWebService(requestManager: requestManager)
-                        let movie = try await webService.fetchMovie(with: id)
-                        return Item.movie(movie: movie, section: section, watchlistItem: item)
-                    }
-                }
+    private func rating(for item: WatchlistSectionViewModel.Item) -> Float {
+        switch item {
+        case .movie(let movie, let watchlistItem):
+            switch watchlistItem.state {
+            case .toWatch:
+                return movie.details.rating.value
+            case .watched(let info):
+                return Float(info.rating ?? 0)
             }
+        }
+    }
 
-            for try await item in group {
-                result.append(item)
-            }
+    private func name(for item: WatchlistSectionViewModel.Item) -> String {
+        switch item {
+        case .movie(let movie, _):
+            return movie.details.title
+        }
+    }
 
-            return result
+    private func releaseDate(for item: WatchlistSectionViewModel.Item) -> Date {
+        switch item {
+        case .movie(let movie, _):
+            return movie.details.release
+        }
+    }
+
+    private func addedDate(for item: WatchlistSectionViewModel.Item) -> Date {
+        switch item {
+        case .movie(_, let watchlistItem):
+            return watchlistItem.date
         }
     }
 }

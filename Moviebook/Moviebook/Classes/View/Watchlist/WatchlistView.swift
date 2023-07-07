@@ -14,9 +14,7 @@ struct WatchlistView: View {
     @Environment(\.requestManager) var requestManager
     @EnvironmentObject var watchlist: Watchlist
 
-    @AppStorage("watchlistSection") private var currentSection: WatchlistSectionViewModel.Section = .toWatch
-    @AppStorage("watchlistSorting") private var currentSorting: WatchlistSectionViewModel.Sorting = .lastAdded
-
+    @StateObject private var sectionViewModel = WatchlistSectionViewModel()
     @StateObject private var undoViewModel: WatchlistUndoViewModel = WatchlistUndoViewModel()
 
     @State private var shouldShowTopBar: Bool = false
@@ -26,23 +24,18 @@ struct WatchlistView: View {
     @State private var presentedItem: NavigationItem? = nil
 
     var body: some View {
-        Group {
-            ForEach(WatchlistSectionViewModel.Section.allCases) { section in
-                if section == currentSection {
-                    ContentView(
-                        presentedItem: $presentedItem,
-                        shouldShowTopBar: $shouldShowTopBar,
-                        shouldShowBottomBar: $shouldShowBottomBar,
-                        section: section,
-                        sorting: currentSorting
-                    )
-                }
-            }
+        ZStack {
+            ContentView(
+                viewModel: sectionViewModel,
+                presentedItem: $presentedItem,
+                shouldShowTopBar: $shouldShowTopBar,
+                shouldShowBottomBar: $shouldShowBottomBar
+            )
         }
         .safeAreaInset(edge: .top) {
             TopbarView(
                 undoViewModel: undoViewModel,
-                sorting: $currentSorting
+                sorting: $sectionViewModel.sorting
             )
             .padding()
             .background(.thinMaterial.opacity(shouldShowTopBar ? 1 : 0))
@@ -50,7 +43,7 @@ struct WatchlistView: View {
         }
         .safeAreaInset(edge: .bottom) {
             ToolbarView(
-                currentSection: $currentSection,
+                currentSection: $sectionViewModel.section,
                 presentedItem: $presentedItem
             )
             .padding()
@@ -61,8 +54,11 @@ struct WatchlistView: View {
             Navigation(path: $presentedItemNavigationPath, presentingItem: item)
         }
         .onAppear {
+            sectionViewModel.start(watchlist: watchlist, requestManager: requestManager)
             undoViewModel.start(watchlist: watchlist, requestManager: requestManager)
         }
+        .animation(.default, value: undoViewModel.removedItem)
+        .animation(.default, value: sectionViewModel.items)
     }
 }
 
@@ -126,7 +122,6 @@ private struct TopbarView: View {
             }
             .frame(height: 52)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .animation(.default, value: undoViewModel.removedItem)
         }
     }
 }
@@ -165,14 +160,11 @@ private struct ContentView: View {
     @Environment(\.requestManager) var requestManager
     @EnvironmentObject var watchlist: Watchlist
 
-    @StateObject private var viewModel: WatchlistSectionViewModel = WatchlistSectionViewModel()
+    @ObservedObject var viewModel: WatchlistSectionViewModel
     @Binding var presentedItem: NavigationItem?
 
     @Binding var shouldShowTopBar: Bool
     @Binding var shouldShowBottomBar: Bool
-
-    let section: WatchlistSectionViewModel.Section
-    let sorting: WatchlistSectionViewModel.Sorting
 
     var body: some View {
         Group {
@@ -184,66 +176,16 @@ private struct ContentView: View {
                 WatchlistEmptyListView(
                     shouldShowTopBar: $shouldShowTopBar,
                     shouldShowBottomBar: $shouldShowBottomBar,
-                    section: section
+                    section: viewModel.section
                 )
             } else {
                 WatchlistListView(
+                    viewModel: viewModel,
                     presentedItem: $presentedItem,
                     shouldShowTopBar: $shouldShowTopBar,
-                    shouldShowBottomBar: $shouldShowBottomBar,
-                    section: section,
-                    items: viewModel.items.sorted(by: sort(lhs:rhs:))
+                    shouldShowBottomBar: $shouldShowBottomBar
                 )
             }
-        }
-        .onAppear {
-            viewModel.start(section: section, watchlist: watchlist, requestManager: requestManager)
-        }
-    }
-
-    private func sort(lhs: WatchlistSectionViewModel.Item, rhs: WatchlistSectionViewModel.Item) -> Bool {
-        switch sorting {
-        case .lastAdded:
-            return addedDate(for: lhs) > addedDate(for: rhs)
-        case .rating:
-            return rating(for: lhs) > rating(for: rhs)
-        case .name:
-            return name(for: lhs) < name(for: rhs)
-        case .release:
-            return releaseDate(for: lhs) < releaseDate(for: rhs)
-        }
-    }
-
-    private func rating(for item: WatchlistSectionViewModel.Item) -> Float {
-        switch item {
-        case .movie(let movie, _, let watchlistItem):
-            switch watchlistItem.state {
-            case .toWatch:
-                return movie.details.rating.value
-            case .watched(let info):
-                return Float(info.rating ?? 0)
-            }
-        }
-    }
-
-    private func name(for item: WatchlistSectionViewModel.Item) -> String {
-        switch item {
-        case .movie(let movie, _, _):
-            return movie.details.title
-        }
-    }
-
-    private func releaseDate(for item: WatchlistSectionViewModel.Item) -> Date {
-        switch item {
-        case .movie(let movie, _, _):
-            return movie.details.release
-        }
-    }
-
-    private func addedDate(for item: WatchlistSectionViewModel.Item) -> Date {
-        switch item {
-        case .movie(_, _, let watchlistItem):
-            return watchlistItem.date
         }
     }
 }
@@ -269,35 +211,28 @@ private struct WatchlistListView: View {
 
     @State private var scrollContent: ObservableScrollContent = .zero
 
+    @ObservedObject var viewModel: WatchlistSectionViewModel
     @Binding var presentedItem: NavigationItem?
 
     @Binding var shouldShowTopBar: Bool
     @Binding var shouldShowBottomBar: Bool
 
-    let section: WatchlistSectionViewModel.Section
-    let items: [WatchlistSectionViewModel.Item]
-
     var body: some View {
         GeometryReader { geometry in
             ObservableScrollView(scrollContent: $scrollContent, showsIndicators: false) { _ in
-                VStack(spacing: 0) {
-                    LazyVGrid(columns: [GridItem(spacing: 4), GridItem()], spacing: 4) {
-                        ForEach(items) { item in
-                            switch item {
-                            case .movie(let movie, _, let watchlistItem):
-                                WatchlistItemView(
-                                    presentedItem: $presentedItem,
-                                    movie: movie,
-                                    watchlistIdentifier: watchlistItem.id
-                                )
-                                .id(item.id)
-                                .transition(.opacity)
-                            }
+                LazyVGrid(columns: [GridItem(spacing: 4), GridItem()], spacing: 4) {
+                    ForEach(viewModel.items) { item in
+                        switch item {
+                        case .movie(let movie, let watchlistItem):
+                            WatchlistMovieItemView(
+                                presentedItem: $presentedItem,
+                                movie: movie,
+                                watchlistIdentifier: watchlistItem.id
+                            )
                         }
                     }
-                    .padding(.horizontal, 4)
                 }
-                .animation(.default, value: items)
+                .padding(.horizontal, 4)
                 .onChange(of: scrollContent) { info in
                     updateShouldShowBars(geometry: geometry)
                 }
@@ -314,7 +249,7 @@ private struct WatchlistListView: View {
     }
 }
 
-private struct WatchlistItemView: View {
+private struct WatchlistMovieItemView: View {
 
     @EnvironmentObject var watchlist: Watchlist
 
@@ -358,6 +293,7 @@ private struct WatchlistItemView: View {
             }
             .padding(10)
         }
+        .id(watchlistIdentifier)
     }
 }
 
