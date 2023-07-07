@@ -20,7 +20,8 @@ struct RetriableErrorView: View {
             Button(action: retry) {
                 Text("Retry")
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(OvalButtonStyle(.prominentSmall))
+            .fixedSize()
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal)

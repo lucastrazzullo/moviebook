@@ -31,7 +31,6 @@ struct ExploreView: View {
                             List {
                                 ExploreVerticalSectionView(viewModel: sectionViewModel, presentedItem: $presentedItem)
                             }
-                            .watchlistPrompt(duration: 5)
                             .listStyle(.inset)
                             .scrollIndicators(.hidden)
                             .navigationTitle(sectionViewModel.title)
@@ -39,7 +38,6 @@ struct ExploreView: View {
                     }
                 }
             }
-            .watchlistPrompt(duration: 5)
             .listStyle(.inset)
             .scrollIndicators(.hidden)
             .scrollDismissesKeyboard(.immediately)

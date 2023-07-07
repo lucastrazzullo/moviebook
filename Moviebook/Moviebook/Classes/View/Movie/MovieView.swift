@@ -26,9 +26,10 @@ struct MovieView: View {
                     navigationPath: $navigationPath,
                     title: movie.details.title,
                     posterUrl: movie.details.media.posterUrl,
-                    trailingHeaderView: {
+                    trailingHeaderView: { compact in
                         MovieTrailingHeaderView(
-                            movieDetails: movie.details
+                            movieDetails: movie.details,
+                            compact: compact
                         )
                     }, content: {
                         MovieContentView(
@@ -51,10 +52,10 @@ struct MovieView: View {
                 MovieVideoPlayer(video: video, autoplay: true)
 
                 Button(action: { isVideoPresented = nil }) {
-                    WatermarkView {
-                        Image(systemName: "chevron.down")
-                    }
+                    Image(systemName: "chevron.down")
+                        .frame(width: 18, height: 18)
                 }
+                .buttonStyle(OvalButtonStyle(.normal))
                 .padding()
             }
         }
@@ -87,11 +88,33 @@ struct MovieView: View {
 private struct MovieTrailingHeaderView: View {
 
     let movieDetails: MovieDetails
+    let compact: Bool
 
     var body: some View {
-        WatermarkView {
-            IconWatchlistButton(watchlistItemIdentifier: .movie(id: movieDetails.id), watchlistItemReleaseDate: movieDetails.release)
-            ShareButton(movieDetails: movieDetails)
+        if compact {
+            Menu {
+                WatchlistButton(watchlistItemIdentifier: .movie(id: movieDetails.id), watchlistItemReleaseDate: movieDetails.release) { state, _ in
+                    WatchlistLabel(itemState: state)
+                    WatchlistIcon(itemState: state)
+                }
+
+                ShareButton(movieDetails: movieDetails)
+            } label: {
+                Image(systemName: "ellipsis")
+                    .frame(width: 18, height: 18, alignment: .center)
+            }
+        } else {
+            HStack(spacing: 18) {
+                WatchlistButton(watchlistItemIdentifier: .movie(id: movieDetails.id), watchlistItemReleaseDate: movieDetails.release) { state, _ in
+                    WatchlistIcon(itemState: state)
+                        .frame(width: 16, height: 16, alignment: .center)
+                        .padding(4)
+                }
+
+                ShareButton(movieDetails: movieDetails)
+                    .frame(width: 16, height: 16, alignment: .center)
+                    .padding(4)
+            }
         }
     }
 }
@@ -102,7 +125,7 @@ private struct ShareButton: View {
 
     var body: some View {
         ShareLink(item: Deeplink.movie(identifier: movieDetails.id).rawValue) {
-            Image(systemName: "square.and.arrow.up")
+            Label("Share", systemImage: "square.and.arrow.up")
         }
     }
 }

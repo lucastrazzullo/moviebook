@@ -36,7 +36,7 @@ struct MovieWatchlistStateView: View {
         .background(.thinMaterial)
         .cornerRadius(24)
         .sheet(item: $presentedItem) { item in
-            NavigationDestination(navigationPath: $presentedItemNavigationPath, item: item)
+            Navigation(path: $presentedItemNavigationPath, presentingItem: item)
         }
     }
 }
@@ -76,7 +76,10 @@ private struct WatchedView: View {
                         .font(.subheadline)
                         .multilineTextAlignment(.trailing)
 
-                    WatermarkWatchlistButton(watchlistItemIdentifier: .movie(id: movieId), watchlistItemReleaseDate: movieReleaseDate)
+                    WatchlistButton(watchlistItemIdentifier: .movie(id: movieId), watchlistItemReleaseDate: movieReleaseDate) { state, shouldShowBadge in
+                        Text(WatchlistViewState(itemState: state).label)
+                            .ovalStyle(.normal)
+                    }
                 }
             }
             .foregroundColor(.white)
@@ -233,7 +236,7 @@ private struct SuggestionView: View {
             Button(action: { presentedItem = .watchlistAddToWatchReason(itemIdentifier: .movie(id: movieId)) }) {
                 Text("Update").font(.footnote)
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(OvalButtonStyle(.small))
         }
         .padding()
         .background(.ultraThinMaterial)
