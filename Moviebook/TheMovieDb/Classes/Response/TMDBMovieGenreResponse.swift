@@ -8,6 +8,11 @@
 import Foundation
 import MoviebookCommon
 
+struct TMDBMovieGenresResponse: Codable {
+
+    let genres: [TMDBMovieGenreResponse]
+}
+
 struct TMDBMovieGenreResponse: Codable {
 
     enum CodingKeys: String, CodingKey {

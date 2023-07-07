@@ -47,32 +47,14 @@ public struct TheMovieDbMovieWebService: MovieWebService {
         return WatchProviders(collections: Dictionary(uniqueKeysWithValues: results))
     }
 
-    public func fetchPopular(page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?) {
-        let url = try TheMovieDbUrlFactory.popularMovies(page: page).makeUrl()
+    public func fetchMovieGenres() async throws -> [MovieGenre] {
+        let url = try TheMovieDbUrlFactory.movieGenres.makeUrl()
         let data = try await requestManager.request(from: url)
-        let response = try JSONDecoder().decode(TMDBResponseWithListResults<TMDBMovieDetailsResponse>.self, from: data)
-
-        return (results: response.results.map(\.result), nextPage: response.nextPage)
+        return try JSONDecoder().decode(TMDBMovieGenresResponse.self, from: data).genres.map(\.result)
     }
 
-    public func fetchUpcoming(page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?) {
-        let url = try TheMovieDbUrlFactory.upcomingMovies(page: page).makeUrl()
-        let data = try await requestManager.request(from: url)
-        let response = try JSONDecoder().decode(TMDBResponseWithListResults<TMDBMovieDetailsResponse>.self, from: data)
-
-        return (results: response.results.map(\.result), nextPage: response.nextPage)
-    }
-
-    public func fetchTopRated(page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?) {
-        let url = try TheMovieDbUrlFactory.topRatedMovies(page: page).makeUrl()
-        let data = try await requestManager.request(from: url)
-        let response = try JSONDecoder().decode(TMDBResponseWithListResults<TMDBMovieDetailsResponse>.self, from: data)
-
-        return (results: response.results.map(\.result), nextPage: response.nextPage)
-    }
-
-    public func fetchNowPlaying(page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?) {
-        let url = try TheMovieDbUrlFactory.nowPlayingMovies(page: page).makeUrl()
+    public func fetch(discoverSection: DiscoverMovieSection, genre: MovieGenre.ID?, page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?) {
+        let url = try TheMovieDbUrlFactory.discover(page: page, section: discoverSection, genre: genre).makeUrl()
         let data = try await requestManager.request(from: url)
         let response = try JSONDecoder().decode(TMDBResponseWithListResults<TMDBMovieDetailsResponse>.self, from: data)
 

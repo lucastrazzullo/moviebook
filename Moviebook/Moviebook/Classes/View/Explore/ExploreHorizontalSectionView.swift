@@ -19,34 +19,38 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
     @ObservedObject var viewModel: ExploreContentViewModel
     @Binding var presentedItem: NavigationItem?
 
+    let pageWidth: CGFloat
+
     @ViewBuilder let viewAllDestination: () -> Destination
 
     var body: some View {
-        Section(header: HeaderView(title: viewModel.title, isLoading: viewModel.isLoading, shouldShowAll: viewModel.error == nil, destination: viewAllDestination)) {
+        Section(header: ExploreHorizontalSectionHeaderView(
+            title: viewModel.title,
+            isLoading: viewModel.isLoading,
+            destination: viewModel.error == nil ? viewAllDestination() : nil)) {
             if let error = viewModel.error {
                 RetriableErrorView(retry: error.retry)
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHGrid(rows: rows) {
+                    LazyHGrid(rows: rows, spacing: 18) {
                         switch viewModel.items {
                         case .movies(let movies):
                             ForEach(movies, id: \.self) { movieDetails in
-                                MoviePreviewView(details: movieDetails, style: .backdrop) {
+                                MoviePreviewView(details: movieDetails, presentedItem: $presentedItem, style: .backdrop) {
                                     presentedItem = .movieWithIdentifier(movieDetails.id)
                                 }
-                                .frame(width: 300)
-                                .padding(.horizontal)
+                                .frame(width: pageWidth * 0.8)
                             }
                         case .artists(let artists):
                             ForEach(artists, id: \.self) { artistDetails in
                                 ArtistPreviewView(details: artistDetails) {
                                     presentedItem = .artistWithIdentifier(artistDetails.id)
                                 }
-                                .frame(width: 300)
-                                .padding(.horizontal)
+                                .frame(width: pageWidth * 0.8)
                             }
                         }
                     }
+                    .padding(.horizontal)
                 }
                 .listRowInsets(EdgeInsets())
             }
@@ -55,13 +59,11 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
     }
 }
 
-private struct HeaderView<Destination: View>: View {
+private struct ExploreHorizontalSectionHeaderView<Destination: View>: View {
 
     let title: String
     let isLoading: Bool
-    let shouldShowAll: Bool
-
-    @ViewBuilder let destination: () -> Destination
+    let destination: Destination?
 
     var body: some View {
         HStack(spacing: 4) {
@@ -74,7 +76,7 @@ private struct HeaderView<Destination: View>: View {
                 ProgressView()
             }
 
-            if shouldShowAll {
+            if let destination {
                 Spacer()
                 NavigationLink(destination: destination) {
                     Text("Show all")
@@ -104,8 +106,8 @@ struct ExploreHorizontalSectionView_Previews: PreviewProvider {
 private struct ExploreHorizontalSectionViewPreview: View {
 
     struct DataProvider: ExploreContentDataProvider {
-        func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
-            let response = try await WebService.movieWebService(requestManager: requestManager).fetchPopular(page: page)
+        func fetch(requestManager: RequestManager, genre: MovieGenre.ID?, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
+            let response = try await WebService.movieWebService(requestManager: requestManager).fetch(discoverSection: .popular, genre: nil, page: page)
             return (results: .movies(response.results), nextPage: response.nextPage)
         }
     }
@@ -114,12 +116,18 @@ private struct ExploreHorizontalSectionViewPreview: View {
     @StateObject var viewModel: ExploreContentViewModel
 
     var body: some View {
-        List {
-            ExploreHorizontalSectionView(viewModel: viewModel, presentedItem: .constant(nil), viewAllDestination: { EmptyView() })
+        GeometryReader { geometry in
+            List {
+                ExploreHorizontalSectionView(
+                    viewModel: viewModel,
+                    presentedItem: .constant(nil),
+                    pageWidth: geometry.size.width,
+                    viewAllDestination: { EmptyView() })
+            }
         }
         .listStyle(.inset)
         .onAppear {
-            viewModel.fetch(requestManager: requestManager)
+            viewModel.fetch(requestManager: requestManager, genre: nil)
         }
     }
 

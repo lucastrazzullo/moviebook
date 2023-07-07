@@ -40,7 +40,8 @@ enum TheMovieDbDataRequestFactory {
         components.host = "api.themoviedb.org"
         components.queryItems = [
             URLQueryItem(name: "api_key", value: "9e718d9095bcf7e3e6dbe26672500060"),
-            URLQueryItem(name: "language", value: language)
+            URLQueryItem(name: "language", value: language),
+            URLQueryItem(name: "include_adult", value: "false")
         ]
         return components
     }

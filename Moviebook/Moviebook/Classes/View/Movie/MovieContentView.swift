@@ -13,6 +13,7 @@ struct MovieContentView: View {
     @State private var isOverviewExpanded: Bool = false
 
     @Binding var navigationPath: NavigationPath
+    @Binding var presentedItem: NavigationItem?
 
     let movie: Movie
     let onVideoSelected: (MovieVideo) -> Void
@@ -47,6 +48,7 @@ struct MovieContentView: View {
 
             if let collection = movie.collection, let list = collection.list, !list.isEmpty {
                 MovieCollectionView(
+                    presentedItem: $presentedItem,
                     title: "Collection",
                     movies: list,
                     highlightedMovieId: movie.id,
@@ -220,6 +222,8 @@ private struct WatchProvidersView: View {
 
 private struct MovieCollectionView: View {
 
+    @Binding var presentedItem: NavigationItem?
+
     let title: String
     let movies: [MovieDetails]
     let highlightedMovieId: Movie.ID?
@@ -244,7 +248,7 @@ private struct MovieCollectionView: View {
                                 }
                             }
 
-                        MoviePreviewView(details: movieDetails) {
+                        MoviePreviewView(details: movieDetails, presentedItem: $presentedItem) {
                             if highlightedMovieId != movieDetails.id {
                                 onMovieSelected(movieDetails.id)
                             }
@@ -333,6 +337,7 @@ private struct MovieContentViewPreview: View {
             if let movie {
                 MovieContentView(
                     navigationPath: .constant(NavigationPath()),
+                    presentedItem: .constant(nil),
                     movie: movie,
                     onVideoSelected: { _ in }
                 )

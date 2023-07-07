@@ -40,12 +40,12 @@ struct TMDBArtistDetailsResponse: Codable {
 
         var birthday: Date?
         if let birthdayString = try container.decodeIfPresent(String.self, forKey: .birthday) {
-            birthday = TheMovieDbResponseFactory.dateFormatter.date(from: birthdayString)
+            birthday = TheMovieDbFactory.dateFormatter.date(from: birthdayString)
         }
 
         var deathday: Date?
         if let deathdayString = try container.decodeIfPresent(String.self, forKey: .deathday) {
-            deathday = TheMovieDbResponseFactory.dateFormatter.date(from: deathdayString)
+            deathday = TheMovieDbFactory.dateFormatter.date(from: deathdayString)
         }
 
         let imagePath = try container.decode(String.self, forKey: .imagePath)

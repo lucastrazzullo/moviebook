@@ -76,7 +76,10 @@ private struct WatchedView: View {
                         .font(.subheadline)
                         .multilineTextAlignment(.trailing)
 
-                    WatchlistButton(watchlistItemIdentifier: .movie(id: movieId), watchlistItemReleaseDate: movieReleaseDate) { state, shouldShowBadge in
+                    WatchlistButton(
+                        watchlistItemIdentifier: .movie(id: movieId),
+                        watchlistItemReleaseDate: movieReleaseDate,
+                        presentedItem: $presentedItem) { state, shouldShowBadge in
                         Text(WatchlistViewState(itemState: state).label)
                             .ovalStyle(.normal)
                     }

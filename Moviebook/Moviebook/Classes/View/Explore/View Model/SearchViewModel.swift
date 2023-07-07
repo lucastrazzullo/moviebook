@@ -27,7 +27,7 @@ import MoviebookCommon
             self.searchKeyword = searchKeyword ?? ""
         }
 
-        func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
+        func fetch(requestManager: RequestManager, genre: MovieGenre.ID?, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
             let webService = WebService.searchWebService(requestManager: requestManager)
             switch searchScope {
             case .movie:
@@ -60,7 +60,7 @@ import MoviebookCommon
             .debounce(for: .seconds(1), scheduler: DispatchQueue.main)
             .sink(receiveValue: { [weak self, weak requestManager] keyword, scope in
                 if let requestManager, let self {
-                    self.content.fetch(requestManager: requestManager)
+                    self.content.fetch(requestManager: requestManager, genre: nil)
                 }
             })
             .store(in: &subscriptions)

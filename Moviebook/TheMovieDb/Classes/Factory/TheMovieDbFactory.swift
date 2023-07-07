@@ -1,5 +1,5 @@
 //
-//  TheMovieDbResponseFactory.swift
+//  TheMovieDbFactory.swift
 //  Moviebook
 //
 //  Created by Luca Strazzullo on 02/09/2022.
@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - Response with results
 
-enum TheMovieDbResponseFactory {
+enum TheMovieDbFactory {
 
     static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()

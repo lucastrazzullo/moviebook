@@ -22,48 +22,59 @@ struct ExploreView: View {
 
     var body: some View {
         NavigationView {
-            List {
-                if !searchViewModel.dataProvider.searchKeyword.isEmpty {
-                    ExploreVerticalSectionView(viewModel: searchViewModel.content, presentedItem: $presentedItem)
-                } else {
-                    ForEach(exploreViewModel.sections) { sectionViewModel in
-                        ExploreHorizontalSectionView(viewModel: sectionViewModel, presentedItem: $presentedItem) {
-                            List {
-                                ExploreVerticalSectionView(viewModel: sectionViewModel, presentedItem: $presentedItem)
+            GeometryReader { geometry in
+                List {
+                    if !searchViewModel.dataProvider.searchKeyword.isEmpty {
+                        ExploreVerticalSectionView(
+                            viewModel: searchViewModel.content,
+                            presentedItem: $presentedItem
+                        )
+                    } else {
+                        ExploreHorizontalMovieGenreSectionView(selectedGenre: $exploreViewModel.genre)
+
+                        ForEach(exploreViewModel.sections) { sectionViewModel in
+                            ExploreHorizontalSectionView(
+                                viewModel: sectionViewModel,
+                                presentedItem: $presentedItem,
+                                pageWidth: geometry.size.width) {
+                                List {
+                                    ExploreVerticalSectionView(viewModel: sectionViewModel, presentedItem: $presentedItem)
+                                }
+                                .listStyle(.inset)
+                                .scrollIndicators(.hidden)
+                                .navigationTitle(sectionViewModel.title)
                             }
-                            .listStyle(.inset)
-                            .scrollIndicators(.hidden)
-                            .navigationTitle(sectionViewModel.title)
                         }
                     }
                 }
-            }
-            .listStyle(.inset)
-            .scrollIndicators(.hidden)
-            .scrollDismissesKeyboard(.immediately)
-            .navigationTitle(NSLocalizedString("EXPLORE.TITLE", comment: ""))
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: dismiss.callAsFunction) {
-                        Text(NSLocalizedString("NAVIGATION.ACTION.DONE", comment: ""))
+                .listStyle(.inset)
+                .scrollIndicators(.hidden)
+                .scrollDismissesKeyboard(.immediately)
+                .navigationTitle(NSLocalizedString("EXPLORE.TITLE", comment: ""))
+                .animation(.default, value: exploreViewModel.genre)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button(action: dismiss.callAsFunction) {
+                            Text(NSLocalizedString("NAVIGATION.ACTION.DONE", comment: ""))
+                        }
                     }
                 }
-            }
-            .searchable(
-                text: $searchViewModel.dataProvider.searchKeyword,
-                prompt: NSLocalizedString("EXPLORE.SEARCH.PROMPT", comment: "")
-            )
-            .searchScopes($searchViewModel.dataProvider.searchScope) {
-                ForEach(SearchViewModel.DataProvider.Scope.allCases, id: \.self) { scope in
-                    Text(scope.rawValue.capitalized)
+                .searchable(
+                    text: $searchViewModel.dataProvider.searchKeyword,
+                    prompt: NSLocalizedString("EXPLORE.SEARCH.PROMPT", comment: "")
+                )
+                .searchScopes($searchViewModel.dataProvider.searchScope) {
+                    ForEach(SearchViewModel.DataProvider.Scope.allCases, id: \.self) { scope in
+                        Text(scope.rawValue.capitalized)
+                    }
                 }
-            }
-            .sheet(item: $presentedItem) { presentedItem in
-                Navigation(path: $presentedItemNavigationPath, presentingItem: presentedItem)
-            }
-            .onAppear {
-                searchViewModel.start(requestManager: requestManager)
-                exploreViewModel.start(requestManager: requestManager)
+                .sheet(item: $presentedItem) { presentedItem in
+                    Navigation(path: $presentedItemNavigationPath, presentingItem: presentedItem)
+                }
+                .onAppear {
+                    searchViewModel.start(requestManager: requestManager)
+                    exploreViewModel.start(requestManager: requestManager)
+                }
             }
         }
     }

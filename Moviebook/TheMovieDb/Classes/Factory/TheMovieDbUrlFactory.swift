@@ -15,10 +15,11 @@ public enum TheMovieDbUrlFactory {
     case movie(identifier: Movie.ID)
     case mocieCollection(identifier: MovieCollection.ID)
     case watchProviders(movieIdentifier: Movie.ID)
-    case popularMovies(page: Int?)
-    case upcomingMovies(page: Int?)
-    case topRatedMovies(page: Int?)
-    case nowPlayingMovies(page: Int?)
+    case movieGenres
+
+    // MARK: Discover
+
+    case discover(page: Int?, section: DiscoverMovieSection, genre: MovieGenre.ID?)
 
     // MARK: Artist
 
@@ -41,14 +42,57 @@ public enum TheMovieDbUrlFactory {
             return try TheMovieDbDataRequestFactory.makeURL(path: "collection/\(identifier)")
         case .watchProviders(let movieIdentifier):
             return try TheMovieDbDataRequestFactory.makeURL(path: "movie/\(movieIdentifier)/watch/providers")
-        case .popularMovies(let page):
-            return try Self.makePagedUrl(path: "movie/popular", page: page)
-        case .upcomingMovies(let page):
-            return try Self.makePagedUrl(path: "movie/upcoming", page: page)
-        case .topRatedMovies(let page):
-            return try Self.makePagedUrl(path: "movie/top_rated", page: page)
-        case .nowPlayingMovies(let page):
-            return try Self.makePagedUrl(path: "movie/now_playing", page: page)
+        case .movieGenres:
+            return try TheMovieDbDataRequestFactory.makeURL(path: "genre/movie/list")
+        case .discover(let page, let section, let genre):
+            var queryItems = [URLQueryItem]()
+            if let page {
+                queryItems.append(URLQueryItem(name: "page", value: String(page)))
+            }
+            if let genre {
+                queryItems.append(URLQueryItem(name: "with_genres", value: String(genre)))
+            }
+            switch section {
+            case .popular:
+                queryItems.append(URLQueryItem(name: "sort_by", value: "popularity.desc"))
+            case .topRated:
+                queryItems.append(URLQueryItem(name: "sort_by", value: "vote_average.desc"))
+                queryItems.append(URLQueryItem(name: "without_genres", value: "99,10755"))
+                queryItems.append(URLQueryItem(name: "vote_count.gte", value: "200"))
+            case .upcoming:
+                var laterDateComponent = DateComponents()
+                laterDateComponent.month = 5
+
+                let currentDate = Date.now
+                let laterDate = Calendar.current.date(byAdding: laterDateComponent, to: currentDate)
+
+                let releaseDateGte = TheMovieDbFactory.dateFormatter.string(for: currentDate)
+                let releaseDateLte = TheMovieDbFactory.dateFormatter.string(for: laterDate)
+
+                queryItems.append(URLQueryItem(name: "sort_by", value: "popularity.desc"))
+                queryItems.append(URLQueryItem(name: "with_release_type", value: "2|3"))
+                queryItems.append(URLQueryItem(name: "primary_release_date.gte", value: releaseDateGte))
+                queryItems.append(URLQueryItem(name: "primary_release_date.lte", value: releaseDateLte))
+            case .nowPlaying:
+                var earlierDateComponent = DateComponents()
+                earlierDateComponent.month = -2
+
+                var laterDateComponent = DateComponents()
+                laterDateComponent.month = 1
+
+                let currentDate = Date.now
+                let earlierDate = Calendar.current.date(byAdding: earlierDateComponent, to: currentDate)
+                let laterDate = Calendar.current.date(byAdding: laterDateComponent, to: currentDate)
+
+                let releaseDateGte = TheMovieDbFactory.dateFormatter.string(for: earlierDate)
+                let releaseDateLte = TheMovieDbFactory.dateFormatter.string(for: laterDate)
+
+                queryItems.append(URLQueryItem(name: "sort_by", value: "popularity.desc"))
+                queryItems.append(URLQueryItem(name: "with_release_type", value: "2|3"))
+                queryItems.append(URLQueryItem(name: "primary_release_date.gte", value: releaseDateGte))
+                queryItems.append(URLQueryItem(name: "primary_release_date.lte", value: releaseDateLte))
+            }
+            return try TheMovieDbDataRequestFactory.makeURL(path: "discover/movie", queryItems: queryItems)
         case .artist(let identifier):
             return try TheMovieDbDataRequestFactory.makeURL(path: "person/\(identifier)", queryItems: [
                 URLQueryItem(name: "append_to_response", value: "credits")
@@ -66,15 +110,5 @@ public enum TheMovieDbUrlFactory {
             }
             return try TheMovieDbDataRequestFactory.makeURL(path: "search/person", queryItems: queryItems)
         }
-    }
-
-    // MARK: - Private helper methods
-
-    private static func makePagedUrl(path: String, page: Int?) throws -> URL {
-        var queryItems = [URLQueryItem]()
-        if let page {
-            queryItems.append(URLQueryItem(name: "page", value: String(page)))
-        }
-        return try TheMovieDbDataRequestFactory.makeURL(path: path, queryItems: queryItems)
     }
 }

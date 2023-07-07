@@ -36,17 +36,17 @@ import MoviebookCommon
             }
         }
 
-        func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
+        func fetch(requestManager: RequestManager, genre: MovieGenre.ID?, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
             let response: (results: [MovieDetails], nextPage: Int?)
             switch self {
             case .nowPlaying:
-                response = try await WebService.movieWebService(requestManager: requestManager).fetchNowPlaying(page: page)
+                response = try await WebService.movieWebService(requestManager: requestManager).fetch(discoverSection: .nowPlaying, genre: genre, page: page)
             case .upcoming:
-                response = try await WebService.movieWebService(requestManager: requestManager).fetchUpcoming(page: page)
+                response = try await WebService.movieWebService(requestManager: requestManager).fetch(discoverSection: .upcoming, genre: genre, page: page)
             case .popular:
-                response = try await WebService.movieWebService(requestManager: requestManager).fetchPopular(page: page)
+                response = try await WebService.movieWebService(requestManager: requestManager).fetch(discoverSection: .popular, genre: genre, page: page)
             case .topRated:
-                response = try await WebService.movieWebService(requestManager: requestManager).fetchTopRated(page: page)
+                response = try await WebService.movieWebService(requestManager: requestManager).fetch(discoverSection: .topRated, genre: genre, page: page)
             }
             return (results: .movies(response.results), nextPage: response.nextPage)
         }
@@ -58,19 +58,27 @@ import MoviebookCommon
         ExploreContentViewModel(title: section.title, dataProvider: section)
     }
 
+    @Published var genre: MovieGenre?
+
     private var subscriptions: Set<AnyCancellable> = []
 
     // MARK: Instance methods
 
     func start(requestManager: RequestManager) {
-        for section in sections {
-            section.fetch(requestManager: requestManager)
-            section.objectWillChange
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self] _ in
-                    self?.objectWillChange.send()
+        $genre
+            .sink { [weak self, weak requestManager] genre in
+                guard let self, let requestManager else { return }
+
+                for section in sections {
+                    section.fetch(requestManager: requestManager, genre: genre?.id)
+                    section.objectWillChange
+                        .receive(on: DispatchQueue.main)
+                        .sink { [weak self] _ in
+                            self?.objectWillChange.send()
+                        }
+                        .store(in: &subscriptions)
                 }
-                .store(in: &subscriptions)
-        }
+            }
+            .store(in: &subscriptions)
     }
 }

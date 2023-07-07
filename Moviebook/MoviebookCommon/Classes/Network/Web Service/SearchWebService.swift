@@ -8,9 +8,6 @@
 import Foundation
 
 public protocol SearchWebService {
-
     func fetchMovies(with keyword: String, page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?)
     func fetchArtists(with keyword: String, page: Int?) async throws -> (results: [ArtistDetails], nextPage: Int?)
-
-    init(requestManager: RequestManager)
 }
