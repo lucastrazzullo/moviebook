@@ -9,5 +9,4 @@ import Foundation
 
 public protocol ArtistWebService {
     func fetchArtist(with identifier: Artist.ID) async throws -> Artist
-    init(requestManager: RequestManager)
 }

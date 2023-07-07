@@ -45,7 +45,7 @@ struct TMDBMovieDetailsResponse: Codable {
         let media = try TMDBMovieMediaResponse(from: decoder).result
 
         let releaseDateString = try values.decode(String.self, forKey: .releaseDate)
-        guard let releaseDate = TheMovieDbResponseFactory.dateFormatter.date(from: releaseDateString) else {
+        guard let releaseDate = TheMovieDbFactory.dateFormatter.date(from: releaseDateString) else {
             throw Error.invalidDate
         }
 
@@ -83,7 +83,7 @@ struct TMDBMovieDetailsResponse: Codable {
         try container.encode(result.id, forKey: .id)
         try container.encode(result.title, forKey: .title)
         try container.encode(result.rating.value, forKey: .rating)
-        try container.encode(TheMovieDbResponseFactory.dateFormatter.string(from: result.release), forKey: .releaseDate)
+        try container.encode(TheMovieDbFactory.dateFormatter.string(from: result.release), forKey: .releaseDate)
         try TMDBMovieMediaResponse(result: result.media).encode(to: encoder)
 
         try container.encodeIfPresent(result.overview, forKey: .overview)

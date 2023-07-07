@@ -7,15 +7,19 @@
 
 import Foundation
 
+public enum DiscoverMovieSection {
+    case popular
+    case upcoming
+    case topRated
+    case nowPlaying
+}
+
 public protocol MovieWebService {
 
     func fetchMovie(with identifier: Movie.ID) async throws -> Movie
     func fetchMovieCollection(with identifier: MovieCollection.ID) async throws -> MovieCollection
     func fetchWatchProviders(with movieIdentifier: Movie.ID) async throws -> WatchProviders
-    func fetchPopular(page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?)
-    func fetchUpcoming(page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?)
-    func fetchTopRated(page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?)
-    func fetchNowPlaying(page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?)
 
-    init(requestManager: RequestManager)
+    func fetchMovieGenres() async throws -> [MovieGenre]
+    func fetch(discoverSection: DiscoverMovieSection, genre: MovieGenre.ID?, page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?)
 }

@@ -25,7 +25,7 @@ enum ExploreContentItems {
 }
 
 protocol ExploreContentDataProvider {
-    func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?)
+    func fetch(requestManager: RequestManager, genre: MovieGenre.ID?, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?)
 }
 
 @MainActor final class ExploreContentViewModel: ObservableObject, Identifiable {
@@ -43,16 +43,16 @@ protocol ExploreContentDataProvider {
         self.dataProvider = dataProvider
     }
 
-    func fetch(requestManager: RequestManager, page: Int? = nil) {
+    func fetch(requestManager: RequestManager, genre: MovieGenre.ID?, page: Int? = nil) {
         Task {
             do {
                 isLoading = true
                 error = nil
                 fetchNextPage = nil
 
-                let response = try await self.dataProvider.fetch(requestManager: requestManager, page: page)
+                let response = try await self.dataProvider.fetch(requestManager: requestManager, genre: genre, page: page)
                 if let nextPage = response.nextPage {
-                    fetchNextPage = { [weak self] in self?.fetch(requestManager: requestManager, page: nextPage) }
+                    fetchNextPage = { [weak self] in self?.fetch(requestManager: requestManager, genre: genre, page: nextPage) }
                 }
 
                 if page == nil {
@@ -66,7 +66,7 @@ protocol ExploreContentDataProvider {
                 self.isLoading = false
                 self.error = .failedToLoad(id: .init()) { [weak self, weak requestManager] in
                     if let requestManager {
-                        self?.fetch(requestManager: requestManager)
+                        self?.fetch(requestManager: requestManager, genre: genre, page: page)
                     }
                 }
             }

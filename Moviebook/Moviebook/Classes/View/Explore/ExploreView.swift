@@ -25,10 +25,18 @@ struct ExploreView: View {
             GeometryReader { geometry in
                 List {
                     if !searchViewModel.dataProvider.searchKeyword.isEmpty {
-                        ExploreVerticalSectionView(viewModel: searchViewModel.content, presentedItem: $presentedItem)
+                        ExploreVerticalSectionView(
+                            viewModel: searchViewModel.content,
+                            presentedItem: $presentedItem
+                        )
                     } else {
+                        ExploreHorizontalMovieGenreSectionView(selectedGenre: $exploreViewModel.genre)
+
                         ForEach(exploreViewModel.sections) { sectionViewModel in
-                            ExploreHorizontalSectionView(viewModel: sectionViewModel, presentedItem: $presentedItem, pageWidth: geometry.size.width) {
+                            ExploreHorizontalSectionView(
+                                viewModel: sectionViewModel,
+                                presentedItem: $presentedItem,
+                                pageWidth: geometry.size.width) {
                                 List {
                                     ExploreVerticalSectionView(viewModel: sectionViewModel, presentedItem: $presentedItem)
                                 }
@@ -43,6 +51,7 @@ struct ExploreView: View {
                 .scrollIndicators(.hidden)
                 .scrollDismissesKeyboard(.immediately)
                 .navigationTitle(NSLocalizedString("EXPLORE.TITLE", comment: ""))
+                .animation(.default, value: exploreViewModel.genre)
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button(action: dismiss.callAsFunction) {
