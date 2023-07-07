@@ -21,7 +21,7 @@ struct ExploreView: View {
     @State private var presentedItem: NavigationItem?
 
     var body: some View {
-        SwiftUI.NavigationView {
+        NavigationView {
             List {
                 if !searchViewModel.dataProvider.searchKeyword.isEmpty {
                     ExploreVerticalSectionView(viewModel: searchViewModel.content, presentedItem: $presentedItem)
@@ -31,7 +31,6 @@ struct ExploreView: View {
                             List {
                                 ExploreVerticalSectionView(viewModel: sectionViewModel, presentedItem: $presentedItem)
                             }
-                            .watchlistPrompt(duration: 5)
                             .listStyle(.inset)
                             .scrollIndicators(.hidden)
                             .navigationTitle(sectionViewModel.title)
@@ -39,7 +38,6 @@ struct ExploreView: View {
                     }
                 }
             }
-            .watchlistPrompt(duration: 5)
             .listStyle(.inset)
             .scrollIndicators(.hidden)
             .scrollDismissesKeyboard(.immediately)

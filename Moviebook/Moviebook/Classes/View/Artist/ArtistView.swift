@@ -24,7 +24,7 @@ struct ArtistView: View {
                     navigationPath: $navigationPath,
                     title: artist.details.name,
                     posterUrl: artist.details.imageOriginalUrl,
-                    trailingHeaderView: {
+                    trailingHeaderView: { _ in
                         ShareButton(artistDetails: artist.details)
                     }, content: {
                         ArtistContentView(navigationPath: $navigationPath, artist: artist)
