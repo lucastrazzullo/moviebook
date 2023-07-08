@@ -18,13 +18,16 @@ struct ExploreHorizontalMovieGenreSectionView: View {
     @Binding var selectedGenre: MovieGenre?
 
     var body: some View {
-        Section(header: ExploreHorizontalSectionHeaderView(title: "Genres", isLoading: false)) {
+        VStack {
+            HeaderView(title: "Genres", isLoading: false)
+                .padding(.horizontal)
+
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack {
                     ForEach(genres) { genre in
                         Text(genre.name)
-                            .font(.subheadline)
-                            .padding(12)
+                            .font(.caption.bold())
+                            .padding(8)
                             .background(selectedGenre == genre ? .ultraThinMaterial : .ultraThickMaterial, in: RoundedRectangle(cornerRadius: 14))
                             .padding(2)
                             .background(.yellow, in: RoundedRectangle(cornerRadius: 16))
@@ -38,11 +41,9 @@ struct ExploreHorizontalMovieGenreSectionView: View {
                             }
                     }
                 }
-                .padding()
+                .padding(.horizontal)
             }
-            .listRowInsets(EdgeInsets())
         }
-        .listSectionSeparator(.hidden)
         .task {
             do {
                 let webService = WebService.movieWebService(requestManager: requestManager)
@@ -54,7 +55,7 @@ struct ExploreHorizontalMovieGenreSectionView: View {
     }
 }
 
-private struct ExploreHorizontalSectionHeaderView: View {
+private struct HeaderView: View {
 
     let title: String
     let isLoading: Bool
@@ -66,6 +67,8 @@ private struct ExploreHorizontalSectionHeaderView: View {
                 .bold()
                 .foregroundColor(.primary)
 
+            Spacer()
+
             if isLoading {
                 ProgressView()
             }
@@ -76,10 +79,9 @@ private struct ExploreHorizontalSectionHeaderView: View {
 #if DEBUG
 struct ExploreHorizontalGenreSection_Previews: PreviewProvider {
     static var previews: some View {
-        List {
+        ScrollView {
             ExploreHorizontalMovieGenreSectionView(selectedGenre: .constant(MovieGenre(id: 28, name: "Action")))
         }
-        .listStyle(.plain)
         .environment(\.requestManager, MockRequestManager.shared)
     }
 }

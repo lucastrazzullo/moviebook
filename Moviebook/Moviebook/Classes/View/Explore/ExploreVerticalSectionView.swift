@@ -14,7 +14,7 @@ struct ExploreVerticalSectionView: View {
     @Binding var presentedItem: NavigationItem?
 
     var body: some View {
-        Section {
+        LazyVStack {
             if let error = viewModel.error {
                 RetriableErrorView(retry: error.retry)
             }
@@ -42,8 +42,7 @@ struct ExploreVerticalSectionView: View {
                 LoaderView()
             }
         }
-        .listRowSeparator(.hidden)
-        .listSectionSeparator(.hidden)
+        .padding()
     }
 }
 
@@ -95,10 +94,9 @@ private struct ExploreSectionViewPreview: View {
     @ObservedObject var viewModel: ExploreContentViewModel
 
     var body: some View {
-        List {
+        ScrollView {
             ExploreVerticalSectionView(viewModel: viewModel, presentedItem: .constant(nil))
         }
-        .listStyle(.inset)
         .onAppear {
             viewModel.fetch(requestManager: requestManager)
         }

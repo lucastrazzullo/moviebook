@@ -23,36 +23,36 @@ struct ExploreView: View {
     var body: some View {
         NavigationView {
             GeometryReader { geometry in
-                List {
-                    if !searchViewModel.searchKeyword.isEmpty {
-                        ExploreVerticalSectionView(
-                            viewModel: searchViewModel.content,
-                            presentedItem: $presentedItem
-                        )
-                    } else {
-                        ExploreHorizontalMovieGenreSectionView(selectedGenre: $discoverViewModel.genre)
-
-                        ForEach(discoverViewModel.sectionsContent) { content in
-                            ExploreHorizontalSectionView(
-                                viewModel: content,
-                                presentedItem: $presentedItem,
-                                pageWidth: geometry.size.width,
-                                viewAllDestination: {
-                                    List {
-                                        ExploreVerticalSectionView(
-                                            viewModel: content,
-                                            presentedItem: $presentedItem
-                                        )
-                                    }
-                                    .listStyle(.inset)
-                                    .scrollIndicators(.hidden)
-                                    .navigationTitle(content.title + " " + (discoverViewModel.genre?.name ?? ""))
-                                }
+                ScrollView {
+                    LazyVStack(spacing: 24) {
+                        if !searchViewModel.searchKeyword.isEmpty {
+                            ExploreVerticalSectionView(
+                                viewModel: searchViewModel.content,
+                                presentedItem: $presentedItem
                             )
+                        } else {
+                            ExploreHorizontalMovieGenreSectionView(selectedGenre: $discoverViewModel.genre)
+
+                            ForEach(discoverViewModel.sectionsContent) { content in
+                                ExploreHorizontalSectionView(
+                                    viewModel: content,
+                                    presentedItem: $presentedItem,
+                                    pageWidth: geometry.size.width,
+                                    viewAllDestination: {
+                                        ScrollView {
+                                            ExploreVerticalSectionView(
+                                                viewModel: content,
+                                                presentedItem: $presentedItem
+                                            )
+                                        }
+                                        .scrollIndicators(.hidden)
+                                        .navigationTitle(content.title + " " + (discoverViewModel.genre?.name ?? ""))
+                                    }
+                                )
+                            }
                         }
                     }
                 }
-                .listStyle(.plain)
                 .scrollIndicators(.hidden)
                 .scrollDismissesKeyboard(.immediately)
                 .navigationTitle(NSLocalizedString("EXPLORE.TITLE", comment: ""))

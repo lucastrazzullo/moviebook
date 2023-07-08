@@ -24,10 +24,16 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
     @ViewBuilder let viewAllDestination: () -> Destination
 
     var body: some View {
-        Section(header: ExploreHorizontalSectionHeaderView(
-            title: viewModel.title,
-            isLoading: viewModel.isLoading,
-            destination: viewModel.error == nil ? viewAllDestination() : nil)) {
+        VStack {
+            HeaderView(
+                title: viewModel.title,
+                isLoading: viewModel.isLoading,
+                destination: viewModel.error == nil ? viewAllDestination() : nil
+            )
+            .padding(.horizontal)
+
+            Divider()
+
             if let error = viewModel.error {
                 RetriableErrorView(retry: error.retry)
             } else {
@@ -52,14 +58,13 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
                     }
                     .padding(.horizontal)
                 }
-                .listRowInsets(EdgeInsets())
             }
         }
-        .listSectionSeparator(.hidden, edges: .bottom)
+        .listRowInsets(EdgeInsets())
     }
 }
 
-private struct ExploreHorizontalSectionHeaderView<Destination: View>: View {
+private struct HeaderView<Destination: View>: View {
 
     let title: String
     let isLoading: Bool
@@ -81,6 +86,7 @@ private struct ExploreHorizontalSectionHeaderView<Destination: View>: View {
                 NavigationLink(destination: destination) {
                     Text("Show all")
                 }
+                .fixedSize()
             }
         }
     }
@@ -119,7 +125,7 @@ private struct ExploreHorizontalSectionViewPreview: View {
 
     var body: some View {
         GeometryReader { geometry in
-            List {
+            ScrollView {
                 ExploreHorizontalSectionView(
                     viewModel: viewModel,
                     presentedItem: .constant(nil),
@@ -127,7 +133,6 @@ private struct ExploreHorizontalSectionViewPreview: View {
                     viewAllDestination: { EmptyView() })
             }
         }
-        .listStyle(.inset)
         .onAppear {
             viewModel.fetch(requestManager: requestManager)
         }
