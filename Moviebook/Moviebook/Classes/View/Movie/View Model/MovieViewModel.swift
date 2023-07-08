@@ -16,6 +16,7 @@ import MoviebookCommon
     @Published var error: WebServiceError?
 
     private let movieId: Movie.ID
+    private var task: Task<Void, Never>?
 
     // MARK: Object life cycle
 
@@ -28,6 +29,10 @@ import MoviebookCommon
         self.setMovie(movie)
     }
 
+    deinit {
+        self.task?.cancel()
+    }
+
     // MARK: Instance methods
 
     func start(requestManager: RequestManager) {
@@ -36,9 +41,11 @@ import MoviebookCommon
     }
 
     private func loadMovie(requestManager: RequestManager) {
-        Task {
+        task = Task {
             do {
-                setMovie(try await WebService.movieWebService(requestManager: requestManager).fetchMovie(with: movieId))
+                let movie = try await WebService.movieWebService(requestManager: requestManager).fetchMovie(with: movieId)
+                guard let task, !task.isCancelled else { return }
+                setMovie(movie)
             } catch {
                 self.error = .failedToLoad(id: .init(), retry: { [weak self, weak requestManager] in
                     if let requestManager {
