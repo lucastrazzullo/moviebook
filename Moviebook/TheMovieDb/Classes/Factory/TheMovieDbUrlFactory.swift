@@ -13,7 +13,7 @@ public enum TheMovieDbUrlFactory {
     // MARK: Movie
 
     case movie(identifier: Movie.ID)
-    case mocieCollection(identifier: MovieCollection.ID)
+    case movieCollection(identifier: MovieCollection.ID)
     case watchProviders(movieIdentifier: Movie.ID)
     case movieGenres
 
@@ -24,6 +24,7 @@ public enum TheMovieDbUrlFactory {
     // MARK: Artist
 
     case artist(identifier: Artist.ID)
+    case popularArtists(page: Int?)
 
     // MARK: Search
 
@@ -38,7 +39,7 @@ public enum TheMovieDbUrlFactory {
             return try TheMovieDbDataRequestFactory.makeURL(path: "movie/\(identifier)", queryItems: [
                 URLQueryItem(name: "append_to_response", value: "credits,videos")
             ])
-        case .mocieCollection(let identifier):
+        case .movieCollection(let identifier):
             return try TheMovieDbDataRequestFactory.makeURL(path: "collection/\(identifier)")
         case .watchProviders(let movieIdentifier):
             return try TheMovieDbDataRequestFactory.makeURL(path: "movie/\(movieIdentifier)/watch/providers")
@@ -97,6 +98,12 @@ public enum TheMovieDbUrlFactory {
             return try TheMovieDbDataRequestFactory.makeURL(path: "person/\(identifier)", queryItems: [
                 URLQueryItem(name: "append_to_response", value: "credits")
             ])
+        case .popularArtists(let page):
+            var queryItems = [URLQueryItem]()
+            if let page {
+                queryItems.append(URLQueryItem(name: "page", value: String(page)))
+            }
+            return try TheMovieDbDataRequestFactory.makeURL(path: "person/popular", queryItems: queryItems)
         case .searchMovie(let keyword, let page):
             var queryItems = [URLQueryItem(name: "query", value: keyword)]
             if let page {

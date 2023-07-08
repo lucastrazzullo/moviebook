@@ -35,7 +35,7 @@ public struct TheMovieDbMovieWebService: MovieWebService {
     }
 
     public func fetchMovieCollection(with identifier: MovieCollection.ID) async throws -> MovieCollection {
-        let url = try TheMovieDbUrlFactory.mocieCollection(identifier: identifier).makeUrl()
+        let url = try TheMovieDbUrlFactory.movieCollection(identifier: identifier).makeUrl()
         let data = try await requestManager.request(from: url)
         return try JSONDecoder().decode(TMDBMovieCollectionResponse.self, from: data).result
     }

@@ -51,21 +51,40 @@ import MoviebookCommon
         }
     }
 
+    final class PopularArtists: Identifiable, ExploreContentDataProvider {
+
+        var title: String {
+            return "Popular artists"
+        }
+
+        func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
+            let response = try await WebService
+                .artistWebService(requestManager: requestManager)
+                .fetchPopular(page: page)
+
+            return (results: .artists(response.results), nextPage: response.nextPage)
+        }
+    }
+
     // MARK: Instance Properties
 
     @Published var genre: MovieGenre?
 
     let sectionsContent: [ExploreContentViewModel]
 
-    private let sections: [DiscoverSection]
+    private let sections: [ExploreContentDataProvider]
     private var subscriptions: Set<AnyCancellable> = []
 
     // MARK: Object life cycle
 
     init() {
-        self.sections = DiscoverMovieSection.allCases.map { section in
-            DiscoverSection(discoverSection: section, discoverGenre: nil)
-        }
+        self.sections = [
+            DiscoverSection(discoverSection: .popular, discoverGenre: nil),
+            DiscoverSection(discoverSection: .topRated, discoverGenre: nil),
+            DiscoverSection(discoverSection: .upcoming, discoverGenre: nil),
+            DiscoverSection(discoverSection: .topRated, discoverGenre: nil),
+            PopularArtists()
+        ]
         self.sectionsContent = sections.map { discoverSection in
             ExploreContentViewModel(dataProvider: discoverSection)
         }
@@ -79,7 +98,9 @@ import MoviebookCommon
                 guard let self, let requestManager else { return }
 
                 for section in sections {
-                    section.discoverGenre = genre?.id
+                    if let discoverSection = section as? DiscoverSection {
+                        discoverSection.discoverGenre = genre?.id
+                    }
                 }
                 for content in sectionsContent {
                     content.fetch(requestManager: requestManager)

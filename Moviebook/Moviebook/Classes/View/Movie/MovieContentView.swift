@@ -284,30 +284,9 @@ private struct CastView: View {
 
             LazyVGrid(columns: [GridItem(), GridItem(), GridItem()]) {
                 ForEach(cast) { artistDetails in
-                    ZStack(alignment: .bottomLeading) {
-                        RemoteImage(url: artistDetails.imagePreviewUrl, content: { image in
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                        }, placeholder: {
-                            Color
-                                .gray
-                                .opacity(0.2)
-                        })
-                        .aspectRatio(contentMode: .fit)
-                        .clipShape(RoundedRectangle(cornerRadius: 6))
-
-                        VStack(alignment: .leading) {
-                            if let character = artistDetails.character {
-                                Text(character).font(.caption).bold()
-                            }
-                            Text(artistDetails.name).font(.caption2)
-                        }
-                        .padding(6)
-                        .background(RoundedRectangle(cornerRadius: 4).foregroundStyle(.ultraThinMaterial))
-                        .padding(4)
-                    }
-                    .onTapGesture(perform: { onArtistSelected(artistDetails.id) })
+                    ArtistPreviewView(details: artistDetails, onSelected: {
+                        onArtistSelected(artistDetails.id)
+                    })
                 }
             }
         }

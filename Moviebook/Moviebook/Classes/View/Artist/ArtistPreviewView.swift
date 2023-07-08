@@ -14,39 +14,35 @@ struct ArtistPreviewView: View {
     let onSelected: (() -> Void)?
 
     var body: some View {
-        HStack(alignment: .center) {
-            HStack(alignment: .center, spacing: 8) {
-                ZStack(alignment: .bottomTrailing) {
-                    RemoteImage(
-                        url: details.imagePreviewUrl,
-                        content: { image in
-                            image
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                        },
-                        placeholder: {
-                            Color
-                                .gray
-                                .opacity(0.2)
-                        }
-                    )
+        ZStack(alignment: .bottomLeading) {
+            RemoteImage(url: details.imagePreviewUrl, content: { image in
+                image
+                    .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 120)
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
-                    .padding(.trailing, 4)
-                    .padding(.bottom, 4)
-                }
+            }, placeholder: {
+                Color
+                    .gray
+                    .opacity(0.2)
+            })
+            .clipShape(RoundedRectangle(cornerRadius: 6))
 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(details.name)
-                        .lineLimit(3)
-                        .font(.headline)
-                        .frame(maxWidth: 140, alignment: .leading)
+            VStack(alignment: .leading) {
+                if let character = details.character {
+                    Text(character)
+                        .font(.caption.bold())
                 }
-                .padding(.vertical, 4)
+                Text(details.name)
+                    .font(.caption2)
+                    .multilineTextAlignment(.leading)
             }
-            .onTapGesture(perform: { onSelected?() })
+            .padding(6)
+            .background(
+                RoundedRectangle(cornerRadius: 4)
+                    .foregroundStyle(.ultraThinMaterial)
+            )
+            .padding(4)
         }
+        .onTapGesture(perform: { onSelected?() })
     }
 }
 

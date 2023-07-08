@@ -9,4 +9,5 @@ import Foundation
 
 public protocol ArtistWebService {
     func fetchArtist(with identifier: Artist.ID) async throws -> Artist
+    func fetchPopular(page: Int?) async throws -> (results: [ArtistDetails], nextPage: Int?)
 }

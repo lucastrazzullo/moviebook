@@ -14,22 +14,26 @@ struct ExploreVerticalSectionView: View {
     @Binding var presentedItem: NavigationItem?
 
     var body: some View {
-        LazyVStack {
+        VStack {
             if let error = viewModel.error {
                 RetriableErrorView(retry: error.retry)
             }
 
             switch viewModel.items {
             case .movies(let movies):
-                ForEach(movies) { movieDetails in
-                    MoviePreviewView(details: movieDetails, presentedItem: $presentedItem) {
-                        presentedItem = .movieWithIdentifier(movieDetails.id)
+                LazyVStack {
+                    ForEach(movies) { movieDetails in
+                        MoviePreviewView(details: movieDetails, presentedItem: $presentedItem) {
+                            presentedItem = .movieWithIdentifier(movieDetails.id)
+                        }
                     }
                 }
             case .artists(let artists):
-                ForEach(artists, id: \.self) { artistDetails in
-                    ArtistPreviewView(details: artistDetails) {
-                        presentedItem = .artistWithIdentifier(artistDetails.id)
+                LazyVGrid(columns: [GridItem(), GridItem(), GridItem()]) {
+                    ForEach(artists, id: \.self) { artistDetails in
+                        ArtistPreviewView(details: artistDetails) {
+                            presentedItem = .artistWithIdentifier(artistDetails.id)
+                        }
                     }
                 }
             }
