@@ -18,6 +18,8 @@ struct OvalButtonStyle: ButtonStyle {
             return false
         case .prominentSmall:
             return false
+        case .prominentTiny:
+            return true
         case .normal:
             return true
         case .small:

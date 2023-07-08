@@ -46,22 +46,35 @@ struct ExploreView: View {
                                     }
                                     .listStyle(.inset)
                                     .scrollIndicators(.hidden)
-                                    .navigationTitle(content.title)
+                                    .navigationTitle(content.title + " " + (discoverViewModel.genre?.name ?? ""))
                                 }
                             )
                         }
                     }
                 }
-                .listStyle(.inset)
+                .listStyle(.plain)
                 .scrollIndicators(.hidden)
                 .scrollDismissesKeyboard(.immediately)
                 .navigationTitle(NSLocalizedString("EXPLORE.TITLE", comment: ""))
-                .animation(.default, value: discoverViewModel.genre)
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button(action: dismiss.callAsFunction) {
                             Text(NSLocalizedString("NAVIGATION.ACTION.DONE", comment: ""))
                         }
+                    }
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        VStack {
+                            if let genre = discoverViewModel.genre {
+                                Button(action: { self.discoverViewModel.genre = nil }) {
+                                    HStack {
+                                        Image(systemName: "x.square.fill")
+                                        Text(genre.name)
+                                    }
+                                }
+                                .buttonStyle(OvalButtonStyle(.small))
+                            }
+                        }
+                        .animation(.default, value: discoverViewModel.genre)
                     }
                 }
                 .searchable(

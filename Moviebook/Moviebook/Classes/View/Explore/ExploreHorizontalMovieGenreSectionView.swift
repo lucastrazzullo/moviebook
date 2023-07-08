@@ -18,7 +18,7 @@ struct ExploreHorizontalMovieGenreSectionView: View {
     @Binding var selectedGenre: MovieGenre?
 
     var body: some View {
-        Section(header: ExploreHorizontalSectionHeaderView(title: "Genres", isLoading: false, selectedGenre: $selectedGenre)) {
+        Section(header: ExploreHorizontalSectionHeaderView(title: "Genres", isLoading: false)) {
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack {
                     ForEach(genres) { genre in
@@ -59,8 +59,6 @@ private struct ExploreHorizontalSectionHeaderView: View {
     let title: String
     let isLoading: Bool
 
-    @Binding var selectedGenre: MovieGenre?
-
     var body: some View {
         HStack(spacing: 4) {
             Text(title)
@@ -70,17 +68,6 @@ private struct ExploreHorizontalSectionHeaderView: View {
 
             if isLoading {
                 ProgressView()
-            }
-
-            if let selectedGenre {
-                Spacer()
-                Button { self.selectedGenre = nil } label: {
-                    HStack {
-                        Text(selectedGenre.name)
-                        Image(systemName: "delete.left.fill")
-                    }
-                    .font(.subheadline)
-                }
             }
         }
     }

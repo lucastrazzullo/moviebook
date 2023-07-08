@@ -12,6 +12,7 @@ struct OvalViewModifier: ViewModifier {
     enum Style {
         case prominent
         case prominentSmall
+        case prominentTiny
         case normal
         case small
 
@@ -21,6 +22,8 @@ struct OvalViewModifier: ViewModifier {
                 return 22
             case .prominentSmall:
                 return 12
+            case .prominentTiny:
+                return 8
             case .normal:
                 return 10
             case .small:
@@ -34,6 +37,8 @@ struct OvalViewModifier: ViewModifier {
                 return 24
             case .prominentSmall:
                 return 16
+            case .prominentTiny:
+                return 12
             case .normal:
                 return 16
             case .small:
@@ -47,6 +52,8 @@ struct OvalViewModifier: ViewModifier {
                 return .title3
             case .prominentSmall:
                 return .subheadline
+            case .prominentTiny:
+                return .subheadline
             case .normal:
                 return .footnote
             case .small:
@@ -56,9 +63,7 @@ struct OvalViewModifier: ViewModifier {
 
         var background: Color {
             switch self {
-            case .prominent:
-                return Color.accentColor
-            case .prominentSmall:
+            case .prominent, .prominentSmall, .prominentTiny:
                 return Color.accentColor
             case .normal:
                 return Color.black.opacity(0.8)
