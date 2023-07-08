@@ -38,7 +38,7 @@ struct WatchlistView: View {
                 sorting: $sectionViewModel.sorting
             )
             .padding()
-            .background(.thinMaterial.opacity(shouldShowTopBar ? 1 : 0))
+            .background(.thickMaterial.opacity(shouldShowTopBar ? 1 : 0))
             .animation(.easeOut(duration: 0.12), value: shouldShowTopBar)
         }
         .safeAreaInset(edge: .bottom) {
@@ -47,7 +47,7 @@ struct WatchlistView: View {
                 presentedItem: $presentedItem
             )
             .padding()
-            .background(.thinMaterial.opacity(shouldShowBottomBar ? 1 : 0))
+            .background(.thickMaterial.opacity(shouldShowBottomBar ? 1 : 0))
             .animation(.easeOut(duration: 0.12), value: shouldShowBottomBar)
         }
         .sheet(item: $presentedItem) { item in
