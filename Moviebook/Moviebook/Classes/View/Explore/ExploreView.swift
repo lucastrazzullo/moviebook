@@ -16,6 +16,7 @@ struct ExploreView: View {
 
     @StateObject private var searchViewModel: SearchViewModel
     @StateObject private var discoverViewModel: DiscoverViewModel
+    @StateObject private var discoverGenresViewModel: DiscoverGenresViewModel
 
     @State private var presentedItemNavigationPath: NavigationPath = NavigationPath()
     @State private var presentedItem: NavigationItem?
@@ -31,7 +32,10 @@ struct ExploreView: View {
                                 presentedItem: $presentedItem
                             )
                         } else {
-                            ExploreHorizontalMovieGenreSectionView(selectedGenre: $discoverViewModel.genre)
+                            ExploreHorizontalMovieGenreSectionView(
+                                selectedGenre: $discoverViewModel.genre,
+                                genres: discoverGenresViewModel.genres
+                            )
 
                             ForEach(discoverViewModel.sectionsContent) { content in
                                 ExploreHorizontalSectionView(
@@ -46,7 +50,15 @@ struct ExploreView: View {
                                             )
                                         }
                                         .scrollIndicators(.hidden)
-                                        .navigationTitle(content.title + " " + (discoverViewModel.genre?.name ?? ""))
+                                        .navigationTitle(content.title)
+                                        .toolbar {
+                                            ToolbarItem(placement: .navigationBarTrailing) {
+                                                GenresPicker(
+                                                    selectedGenre: $discoverViewModel.genre,
+                                                    genres: discoverGenresViewModel.genres
+                                                )
+                                            }
+                                        }
                                     }
                                 )
                             }
@@ -57,24 +69,16 @@ struct ExploreView: View {
                 .scrollDismissesKeyboard(.immediately)
                 .navigationTitle(NSLocalizedString("EXPLORE.TITLE", comment: ""))
                 .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        GenresPicker(
+                            selectedGenre: $discoverViewModel.genre,
+                            genres: discoverGenresViewModel.genres
+                        )
+                    }
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button(action: dismiss.callAsFunction) {
                             Text(NSLocalizedString("NAVIGATION.ACTION.DONE", comment: ""))
                         }
-                    }
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        VStack {
-                            if let genre = discoverViewModel.genre {
-                                Button(action: { self.discoverViewModel.genre = nil }) {
-                                    HStack {
-                                        Image(systemName: "x.square.fill")
-                                        Text(genre.name)
-                                    }
-                                }
-                                .buttonStyle(OvalButtonStyle(.small))
-                            }
-                        }
-                        .animation(.default, value: discoverViewModel.genre)
                     }
                 }
                 .searchable(
@@ -92,6 +96,7 @@ struct ExploreView: View {
                 .onAppear {
                     searchViewModel.start(requestManager: requestManager)
                     discoverViewModel.start(requestManager: requestManager)
+                    discoverGenresViewModel.start(requestManager: requestManager)
                 }
             }
         }
@@ -100,6 +105,43 @@ struct ExploreView: View {
     init() {
         self._searchViewModel = StateObject(wrappedValue: SearchViewModel(scope: .movie, query: ""))
         self._discoverViewModel = StateObject(wrappedValue: DiscoverViewModel())
+        self._discoverGenresViewModel = StateObject(wrappedValue: DiscoverGenresViewModel())
+    }
+}
+
+private struct GenresPicker: View {
+
+    @Binding var selectedGenre: MovieGenre?
+
+    let genres: [MovieGenre]
+
+    var body: some View {
+        if let selectedGenre {
+            Menu {
+                Button(role: .destructive) { self.selectedGenre = nil } label: {
+                    Text("Remove filter")
+                    Image(systemName: "xmark")
+                }
+
+                ForEach(genres, id: \.self) { genre in
+                    Button { self.selectedGenre = genre } label: {
+                        Text(genre.name)
+                        if selectedGenre == genre {
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                }
+            } label: {
+                HStack {
+                    Text(selectedGenre.name)
+                    Image(systemName: "chevron.up.chevron.down")
+                }
+                .font(.caption.bold())
+                .foregroundColor(.black)
+                .padding(6)
+                .background(.yellow, in: RoundedRectangle(cornerRadius: 10))
+            }
+        }
     }
 }
 

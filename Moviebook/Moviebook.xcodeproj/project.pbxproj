@@ -116,6 +116,7 @@
 		81B7DBFF2A162F3500AF9118 /* EmptyWatchlistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B7DBFE2A162F3500AF9118 /* EmptyWatchlistView.swift */; };
 		81BF6CF82A47435E00B58891 /* MoviebookCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 811124AF2A43511F009133C2 /* MoviebookCommon.framework */; };
 		81D254742A066836006EBC1F /* RetriableErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81D254732A066836006EBC1F /* RetriableErrorView.swift */; };
+		81D285DB2A59F852003EF7E7 /* DiscoverGenresViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81D285DA2A59F852003EF7E7 /* DiscoverGenresViewModel.swift */; };
 		81D5122A2A516F1C009F80E7 /* OvalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81D512292A516F1C009F80E7 /* OvalView.swift */; };
 		81D60DA72A312D060045AA0B /* RemoteImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81D60DA62A312D060045AA0B /* RemoteImage.swift */; };
 		81D60DB22A3341760045AA0B /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 81D60D8E2A30F3860045AA0B /* WidgetKit.framework */; };
@@ -338,6 +339,7 @@
 		81CDE62229150D3000A34BBC /* MovieVideo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieVideo.swift; sourceTree = "<group>"; };
 		81D2546F2A05AD3E006EBC1F /* WatchlistStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistStorage.swift; sourceTree = "<group>"; };
 		81D254732A066836006EBC1F /* RetriableErrorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RetriableErrorView.swift; sourceTree = "<group>"; };
+		81D285DA2A59F852003EF7E7 /* DiscoverGenresViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverGenresViewModel.swift; sourceTree = "<group>"; };
 		81D512292A516F1C009F80E7 /* OvalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OvalView.swift; sourceTree = "<group>"; };
 		81D60D8E2A30F3860045AA0B /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		81D60D902A30F3860045AA0B /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -762,6 +764,7 @@
 			children = (
 				81B7DBFA2A14BE1A00AF9118 /* ExploreContentViewModel.swift */,
 				812489BF29F152C4004A6BE6 /* DiscoverViewModel.swift */,
+				81D285DA2A59F852003EF7E7 /* DiscoverGenresViewModel.swift */,
 				812489C129F15307004A6BE6 /* SearchViewModel.swift */,
 			);
 			path = "View Model";
@@ -1241,6 +1244,7 @@
 				816E653E2A45B05B007AEED1 /* RequestManager+Mock.swift in Sources */,
 				816E65212A45A64A007AEED1 /* WebService.swift in Sources */,
 				81A395DB29F4191A00800F7E /* ArtistContentView.swift in Sources */,
+				81D285DB2A59F852003EF7E7 /* DiscoverGenresViewModel.swift in Sources */,
 				81D5122A2A516F1C009F80E7 /* OvalView.swift in Sources */,
 				81A395D529F40CD200800F7E /* LoaderView.swift in Sources */,
 				812489C229F15307004A6BE6 /* SearchViewModel.swift in Sources */,

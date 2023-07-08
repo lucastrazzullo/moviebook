@@ -13,9 +13,9 @@ struct ExploreHorizontalMovieGenreSectionView: View {
 
     @Environment(\.requestManager) var requestManager
 
-    @State private var genres: [MovieGenre] = []
-
     @Binding var selectedGenre: MovieGenre?
+
+    let genres: [MovieGenre]
 
     var body: some View {
         VStack {
@@ -42,14 +42,6 @@ struct ExploreHorizontalMovieGenreSectionView: View {
                     }
                 }
                 .padding(.horizontal)
-            }
-        }
-        .task {
-            do {
-                let webService = WebService.movieWebService(requestManager: requestManager)
-                self.genres = try await webService.fetchMovieGenres()
-            } catch {
-                print(error)
             }
         }
     }
@@ -80,9 +72,10 @@ private struct HeaderView: View {
 struct ExploreHorizontalGenreSection_Previews: PreviewProvider {
     static var previews: some View {
         ScrollView {
-            ExploreHorizontalMovieGenreSectionView(selectedGenre: .constant(MovieGenre(id: 28, name: "Action")))
+            ExploreHorizontalMovieGenreSectionView(
+                selectedGenre: .constant(MovieGenre(id: 28, name: "Action")),
+                genres: [MovieGenre(id: 28, name: "Action"), MovieGenre(id: 12, name: "Adventure")])
         }
-        .environment(\.requestManager, MockRequestManager.shared)
     }
 }
 #endif
