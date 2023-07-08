@@ -25,12 +25,12 @@ enum ExploreContentItems {
 }
 
 protocol ExploreContentDataProvider {
-    func fetch(requestManager: RequestManager, genre: MovieGenre.ID?, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?)
+    var title: String { get }
+
+    func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?)
 }
 
 @MainActor final class ExploreContentViewModel: ObservableObject, Identifiable {
-
-    let dataProvider: ExploreContentDataProvider
 
     @Published var title: String
     @Published var items: ExploreContentItems = .movies([])
@@ -38,21 +38,25 @@ protocol ExploreContentDataProvider {
     @Published var error: WebServiceError? = nil
     @Published var fetchNextPage: (() -> Void)?
 
-    init(title: String, dataProvider: ExploreContentDataProvider) {
-        self.title = title
+    private let dataProvider: ExploreContentDataProvider
+
+    init(dataProvider: ExploreContentDataProvider) {
         self.dataProvider = dataProvider
+        self.title = dataProvider.title
     }
 
-    func fetch(requestManager: RequestManager, genre: MovieGenre.ID?, page: Int? = nil) {
+    func fetch(requestManager: RequestManager, page: Int? = nil) {
         Task {
             do {
+                title = dataProvider.title
+
                 isLoading = true
                 error = nil
                 fetchNextPage = nil
 
-                let response = try await self.dataProvider.fetch(requestManager: requestManager, genre: genre, page: page)
+                let response = try await self.dataProvider.fetch(requestManager: requestManager, page: page)
                 if let nextPage = response.nextPage {
-                    fetchNextPage = { [weak self] in self?.fetch(requestManager: requestManager, genre: genre, page: nextPage) }
+                    fetchNextPage = { [weak self] in self?.fetch(requestManager: requestManager, page: nextPage) }
                 }
 
                 if page == nil {
@@ -60,13 +64,14 @@ protocol ExploreContentDataProvider {
                 } else {
                     items = items.appending(items: response.results)
                 }
+
                 isLoading = false
 
             } catch {
                 self.isLoading = false
                 self.error = .failedToLoad(id: .init()) { [weak self, weak requestManager] in
                     if let requestManager {
-                        self?.fetch(requestManager: requestManager, genre: genre, page: page)
+                        self?.fetch(requestManager: requestManager, page: page)
                     }
                 }
             }

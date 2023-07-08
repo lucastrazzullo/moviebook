@@ -15,7 +15,8 @@ struct ExploreView: View {
     @EnvironmentObject var watchlist: Watchlist
 
     @StateObject private var searchViewModel: SearchViewModel
-    @StateObject private var exploreViewModel: ExploreViewModel
+    @StateObject private var discoverViewModel: DiscoverViewModel
+    @StateObject private var discoverGenresViewModel: DiscoverGenresViewModel
 
     @State private var presentedItemNavigationPath: NavigationPath = NavigationPath()
     @State private var presentedItem: NavigationItem?
@@ -23,36 +24,57 @@ struct ExploreView: View {
     var body: some View {
         NavigationView {
             GeometryReader { geometry in
-                List {
-                    if !searchViewModel.dataProvider.searchKeyword.isEmpty {
-                        ExploreVerticalSectionView(
-                            viewModel: searchViewModel.content,
-                            presentedItem: $presentedItem
-                        )
-                    } else {
-                        ExploreHorizontalMovieGenreSectionView(selectedGenre: $exploreViewModel.genre)
+                ScrollView {
+                    LazyVStack(spacing: 24) {
+                        if !searchViewModel.searchKeyword.isEmpty {
+                            ExploreVerticalSectionView(
+                                viewModel: searchViewModel.content,
+                                presentedItem: $presentedItem
+                            )
+                        } else {
+                            ExploreHorizontalMovieGenreSectionView(
+                                selectedGenre: $discoverViewModel.genre,
+                                genres: discoverGenresViewModel.genres
+                            )
 
-                        ForEach(exploreViewModel.sections) { sectionViewModel in
-                            ExploreHorizontalSectionView(
-                                viewModel: sectionViewModel,
-                                presentedItem: $presentedItem,
-                                pageWidth: geometry.size.width) {
-                                List {
-                                    ExploreVerticalSectionView(viewModel: sectionViewModel, presentedItem: $presentedItem)
-                                }
-                                .listStyle(.inset)
-                                .scrollIndicators(.hidden)
-                                .navigationTitle(sectionViewModel.title)
+                            ForEach(discoverViewModel.sectionsContent) { content in
+                                ExploreHorizontalSectionView(
+                                    viewModel: content,
+                                    presentedItem: $presentedItem,
+                                    pageWidth: geometry.size.width,
+                                    viewAllDestination: {
+                                        ScrollView {
+                                            ExploreVerticalSectionView(
+                                                viewModel: content,
+                                                presentedItem: $presentedItem
+                                            )
+                                        }
+                                        .scrollIndicators(.hidden)
+                                        .navigationTitle(content.title)
+                                        .toolbar {
+                                            ToolbarItem(placement: .navigationBarTrailing) {
+                                                GenresPicker(
+                                                    selectedGenre: $discoverViewModel.genre,
+                                                    genres: discoverGenresViewModel.genres
+                                                )
+                                            }
+                                        }
+                                    }
+                                )
                             }
                         }
                     }
                 }
-                .listStyle(.inset)
                 .scrollIndicators(.hidden)
                 .scrollDismissesKeyboard(.immediately)
                 .navigationTitle(NSLocalizedString("EXPLORE.TITLE", comment: ""))
-                .animation(.default, value: exploreViewModel.genre)
                 .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        GenresPicker(
+                            selectedGenre: $discoverViewModel.genre,
+                            genres: discoverGenresViewModel.genres
+                        )
+                    }
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button(action: dismiss.callAsFunction) {
                             Text(NSLocalizedString("NAVIGATION.ACTION.DONE", comment: ""))
@@ -60,11 +82,11 @@ struct ExploreView: View {
                     }
                 }
                 .searchable(
-                    text: $searchViewModel.dataProvider.searchKeyword,
+                    text: $searchViewModel.searchKeyword,
                     prompt: NSLocalizedString("EXPLORE.SEARCH.PROMPT", comment: "")
                 )
-                .searchScopes($searchViewModel.dataProvider.searchScope) {
-                    ForEach(SearchViewModel.DataProvider.Scope.allCases, id: \.self) { scope in
+                .searchScopes($searchViewModel.searchScope) {
+                    ForEach(SearchViewModel.Search.Scope.allCases, id: \.self) { scope in
                         Text(scope.rawValue.capitalized)
                     }
                 }
@@ -73,15 +95,53 @@ struct ExploreView: View {
                 }
                 .onAppear {
                     searchViewModel.start(requestManager: requestManager)
-                    exploreViewModel.start(requestManager: requestManager)
+                    discoverViewModel.start(requestManager: requestManager)
+                    discoverGenresViewModel.start(requestManager: requestManager)
                 }
             }
         }
     }
 
     init() {
-        self._searchViewModel = StateObject(wrappedValue: SearchViewModel(scope: .movie, query: nil))
-        self._exploreViewModel = StateObject(wrappedValue: ExploreViewModel())
+        self._searchViewModel = StateObject(wrappedValue: SearchViewModel(scope: .movie, query: ""))
+        self._discoverViewModel = StateObject(wrappedValue: DiscoverViewModel())
+        self._discoverGenresViewModel = StateObject(wrappedValue: DiscoverGenresViewModel())
+    }
+}
+
+private struct GenresPicker: View {
+
+    @Binding var selectedGenre: MovieGenre?
+
+    let genres: [MovieGenre]
+
+    var body: some View {
+        if let selectedGenre {
+            Menu {
+                Button(role: .destructive) { self.selectedGenre = nil } label: {
+                    Text("Remove filter")
+                    Image(systemName: "xmark")
+                }
+
+                ForEach(genres, id: \.self) { genre in
+                    Button { self.selectedGenre = genre } label: {
+                        Text(genre.name)
+                        if selectedGenre == genre {
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                }
+            } label: {
+                HStack {
+                    Text(selectedGenre.name)
+                    Image(systemName: "chevron.up.chevron.down")
+                }
+                .font(.caption.bold())
+                .foregroundColor(.black)
+                .padding(6)
+                .background(.yellow, in: RoundedRectangle(cornerRadius: 10))
+            }
+        }
     }
 }
 

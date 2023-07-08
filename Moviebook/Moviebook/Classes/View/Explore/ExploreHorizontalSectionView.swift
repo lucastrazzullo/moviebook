@@ -24,10 +24,16 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
     @ViewBuilder let viewAllDestination: () -> Destination
 
     var body: some View {
-        Section(header: ExploreHorizontalSectionHeaderView(
-            title: viewModel.title,
-            isLoading: viewModel.isLoading,
-            destination: viewModel.error == nil ? viewAllDestination() : nil)) {
+        VStack {
+            HeaderView(
+                title: viewModel.title,
+                isLoading: viewModel.isLoading,
+                destination: viewModel.error == nil ? viewAllDestination() : nil
+            )
+            .padding(.horizontal)
+
+            Divider()
+
             if let error = viewModel.error {
                 RetriableErrorView(retry: error.retry)
             } else {
@@ -52,14 +58,13 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
                     }
                     .padding(.horizontal)
                 }
-                .listRowInsets(EdgeInsets())
             }
         }
-        .listSectionSeparator(.hidden, edges: .bottom)
+        .listRowInsets(EdgeInsets())
     }
 }
 
-private struct ExploreHorizontalSectionHeaderView<Destination: View>: View {
+private struct HeaderView<Destination: View>: View {
 
     let title: String
     let isLoading: Bool
@@ -81,6 +86,7 @@ private struct ExploreHorizontalSectionHeaderView<Destination: View>: View {
                 NavigationLink(destination: destination) {
                     Text("Show all")
                 }
+                .fixedSize()
             }
         }
     }
@@ -106,8 +112,10 @@ struct ExploreHorizontalSectionView_Previews: PreviewProvider {
 private struct ExploreHorizontalSectionViewPreview: View {
 
     struct DataProvider: ExploreContentDataProvider {
-        func fetch(requestManager: RequestManager, genre: MovieGenre.ID?, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
-            let response = try await WebService.movieWebService(requestManager: requestManager).fetch(discoverSection: .popular, genre: nil, page: page)
+        var title: String = "Mock"
+        func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
+            let response = try await WebService.movieWebService(requestManager: requestManager)
+                .fetch(discoverSection: .popular, genre: nil, page: page)
             return (results: .movies(response.results), nextPage: response.nextPage)
         }
     }
@@ -117,7 +125,7 @@ private struct ExploreHorizontalSectionViewPreview: View {
 
     var body: some View {
         GeometryReader { geometry in
-            List {
+            ScrollView {
                 ExploreHorizontalSectionView(
                     viewModel: viewModel,
                     presentedItem: .constant(nil),
@@ -125,14 +133,13 @@ private struct ExploreHorizontalSectionViewPreview: View {
                     viewAllDestination: { EmptyView() })
             }
         }
-        .listStyle(.inset)
         .onAppear {
-            viewModel.fetch(requestManager: requestManager, genre: nil)
+            viewModel.fetch(requestManager: requestManager)
         }
     }
 
     init() {
-        _viewModel = StateObject(wrappedValue: ExploreContentViewModel(title: "Title", dataProvider: DataProvider()))
+        _viewModel = StateObject(wrappedValue: ExploreContentViewModel(dataProvider: DataProvider()))
     }
 }
 #endif
