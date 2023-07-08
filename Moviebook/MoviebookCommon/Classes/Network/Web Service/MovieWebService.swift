@@ -7,7 +7,7 @@
 
 import Foundation
 
-public enum DiscoverMovieSection {
+public enum DiscoverMovieSection: CaseIterable {
     case popular
     case upcoming
     case topRated

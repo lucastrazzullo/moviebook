@@ -106,8 +106,10 @@ struct ExploreHorizontalSectionView_Previews: PreviewProvider {
 private struct ExploreHorizontalSectionViewPreview: View {
 
     struct DataProvider: ExploreContentDataProvider {
-        func fetch(requestManager: RequestManager, genre: MovieGenre.ID?, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
-            let response = try await WebService.movieWebService(requestManager: requestManager).fetch(discoverSection: .popular, genre: nil, page: page)
+        var title: String = "Mock"
+        func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
+            let response = try await WebService.movieWebService(requestManager: requestManager)
+                .fetch(discoverSection: .popular, genre: nil, page: page)
             return (results: .movies(response.results), nextPage: response.nextPage)
         }
     }
@@ -127,12 +129,12 @@ private struct ExploreHorizontalSectionViewPreview: View {
         }
         .listStyle(.inset)
         .onAppear {
-            viewModel.fetch(requestManager: requestManager, genre: nil)
+            viewModel.fetch(requestManager: requestManager)
         }
     }
 
     init() {
-        _viewModel = StateObject(wrappedValue: ExploreContentViewModel(title: "Title", dataProvider: DataProvider()))
+        _viewModel = StateObject(wrappedValue: ExploreContentViewModel(dataProvider: DataProvider()))
     }
 }
 #endif

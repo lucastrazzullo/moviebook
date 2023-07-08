@@ -15,7 +15,7 @@ struct ExploreView: View {
     @EnvironmentObject var watchlist: Watchlist
 
     @StateObject private var searchViewModel: SearchViewModel
-    @StateObject private var exploreViewModel: ExploreViewModel
+    @StateObject private var discoverViewModel: DiscoverViewModel
 
     @State private var presentedItemNavigationPath: NavigationPath = NavigationPath()
     @State private var presentedItem: NavigationItem?
@@ -24,26 +24,31 @@ struct ExploreView: View {
         NavigationView {
             GeometryReader { geometry in
                 List {
-                    if !searchViewModel.dataProvider.searchKeyword.isEmpty {
+                    if !searchViewModel.searchKeyword.isEmpty {
                         ExploreVerticalSectionView(
                             viewModel: searchViewModel.content,
                             presentedItem: $presentedItem
                         )
                     } else {
-                        ExploreHorizontalMovieGenreSectionView(selectedGenre: $exploreViewModel.genre)
+                        ExploreHorizontalMovieGenreSectionView(selectedGenre: $discoverViewModel.genre)
 
-                        ForEach(exploreViewModel.sections) { sectionViewModel in
+                        ForEach(discoverViewModel.sectionsContent) { content in
                             ExploreHorizontalSectionView(
-                                viewModel: sectionViewModel,
+                                viewModel: content,
                                 presentedItem: $presentedItem,
-                                pageWidth: geometry.size.width) {
-                                List {
-                                    ExploreVerticalSectionView(viewModel: sectionViewModel, presentedItem: $presentedItem)
+                                pageWidth: geometry.size.width,
+                                viewAllDestination: {
+                                    List {
+                                        ExploreVerticalSectionView(
+                                            viewModel: content,
+                                            presentedItem: $presentedItem
+                                        )
+                                    }
+                                    .listStyle(.inset)
+                                    .scrollIndicators(.hidden)
+                                    .navigationTitle(content.title)
                                 }
-                                .listStyle(.inset)
-                                .scrollIndicators(.hidden)
-                                .navigationTitle(sectionViewModel.title)
-                            }
+                            )
                         }
                     }
                 }
@@ -51,7 +56,7 @@ struct ExploreView: View {
                 .scrollIndicators(.hidden)
                 .scrollDismissesKeyboard(.immediately)
                 .navigationTitle(NSLocalizedString("EXPLORE.TITLE", comment: ""))
-                .animation(.default, value: exploreViewModel.genre)
+                .animation(.default, value: discoverViewModel.genre)
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button(action: dismiss.callAsFunction) {
@@ -60,11 +65,11 @@ struct ExploreView: View {
                     }
                 }
                 .searchable(
-                    text: $searchViewModel.dataProvider.searchKeyword,
+                    text: $searchViewModel.searchKeyword,
                     prompt: NSLocalizedString("EXPLORE.SEARCH.PROMPT", comment: "")
                 )
-                .searchScopes($searchViewModel.dataProvider.searchScope) {
-                    ForEach(SearchViewModel.DataProvider.Scope.allCases, id: \.self) { scope in
+                .searchScopes($searchViewModel.searchScope) {
+                    ForEach(SearchViewModel.Search.Scope.allCases, id: \.self) { scope in
                         Text(scope.rawValue.capitalized)
                     }
                 }
@@ -73,15 +78,15 @@ struct ExploreView: View {
                 }
                 .onAppear {
                     searchViewModel.start(requestManager: requestManager)
-                    exploreViewModel.start(requestManager: requestManager)
+                    discoverViewModel.start(requestManager: requestManager)
                 }
             }
         }
     }
 
     init() {
-        self._searchViewModel = StateObject(wrappedValue: SearchViewModel(scope: .movie, query: nil))
-        self._exploreViewModel = StateObject(wrappedValue: ExploreViewModel())
+        self._searchViewModel = StateObject(wrappedValue: SearchViewModel(scope: .movie, query: ""))
+        self._discoverViewModel = StateObject(wrappedValue: DiscoverViewModel())
     }
 }
 
