@@ -45,7 +45,7 @@ struct ExploreView: View {
                                     ExploreHorizontalSectionView(
                                         viewModel: content,
                                         presentedItem: $presentedItem,
-                                        pageWidth: geometry.size.width,
+                                        geometry: geometry,
                                         viewAllDestination: {
                                             ScrollView {
                                                 ExploreVerticalSectionView(
