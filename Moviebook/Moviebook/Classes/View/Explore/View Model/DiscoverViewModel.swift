@@ -80,7 +80,7 @@ import MoviebookCommon
     init() {
         self.sections = [
             DiscoverSection(discoverSection: .popular, discoverGenre: nil),
-            DiscoverSection(discoverSection: .topRated, discoverGenre: nil),
+            DiscoverSection(discoverSection: .nowPlaying, discoverGenre: nil),
             DiscoverSection(discoverSection: .upcoming, discoverGenre: nil),
             DiscoverSection(discoverSection: .topRated, discoverGenre: nil),
             PopularArtists()
