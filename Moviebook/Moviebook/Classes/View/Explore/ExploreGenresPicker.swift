@@ -57,6 +57,7 @@ struct ExploreGenresPicker: View {
     }
 }
 
+#if DEBUG
 struct ExploreGenresPicker_Previews: PreviewProvider {
 
     static var viewModel = DiscoverGenresViewModel()
@@ -68,3 +69,4 @@ struct ExploreGenresPicker_Previews: PreviewProvider {
             }
     }
 }
+#endif
