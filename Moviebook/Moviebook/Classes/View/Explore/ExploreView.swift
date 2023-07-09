@@ -21,11 +21,13 @@ struct ExploreView: View {
     @State private var presentedItemNavigationPath: NavigationPath = NavigationPath()
     @State private var presentedItem: NavigationItem?
 
+    private let stickyScrollingSpace: String = "stickyScrollingSpace"
+
     var body: some View {
         NavigationView {
             GeometryReader { geometry in
                 ScrollView {
-                    LazyVStack(spacing: 24) {
+                    VStack(spacing: 24) {
                         if !searchViewModel.searchKeyword.isEmpty {
                             ExploreVerticalSectionView(
                                 viewModel: searchViewModel.content,
@@ -36,45 +38,43 @@ struct ExploreView: View {
                                 selectedGenre: $discoverViewModel.genre,
                                 genres: discoverGenresViewModel.genres
                             )
+                            .stickingToTop(coordinateSpaceName: stickyScrollingSpace)
 
-                            ForEach(discoverViewModel.sectionsContent) { content in
-                                ExploreHorizontalSectionView(
-                                    viewModel: content,
-                                    presentedItem: $presentedItem,
-                                    pageWidth: geometry.size.width,
-                                    viewAllDestination: {
-                                        ScrollView {
-                                            ExploreVerticalSectionView(
-                                                viewModel: content,
-                                                presentedItem: $presentedItem
-                                            )
-                                        }
-                                        .scrollIndicators(.hidden)
-                                        .navigationTitle(content.title)
-                                        .toolbar {
-                                            ToolbarItem(placement: .navigationBarTrailing) {
-                                                GenresPicker(
-                                                    selectedGenre: $discoverViewModel.genre,
-                                                    genres: discoverGenresViewModel.genres
+                            LazyVStack {
+                                ForEach(discoverViewModel.sectionsContent) { content in
+                                    ExploreHorizontalSectionView(
+                                        viewModel: content,
+                                        presentedItem: $presentedItem,
+                                        pageWidth: geometry.size.width,
+                                        viewAllDestination: {
+                                            ScrollView {
+                                                ExploreVerticalSectionView(
+                                                    viewModel: content,
+                                                    presentedItem: $presentedItem
                                                 )
                                             }
+                                            .scrollIndicators(.hidden)
+                                            .navigationTitle(content.title)
+                                            .toolbar {
+                                                ToolbarItem(placement: .navigationBarTrailing) {
+                                                    GenresPicker(
+                                                        selectedGenre: $discoverViewModel.genre,
+                                                        genres: discoverGenresViewModel.genres
+                                                    )
+                                                }
+                                            }
                                         }
-                                    }
-                                )
+                                    )
+                                }
                             }
                         }
                     }
                 }
+                .coordinateSpace(name: stickyScrollingSpace)
                 .scrollIndicators(.hidden)
                 .scrollDismissesKeyboard(.immediately)
                 .navigationTitle(NSLocalizedString("EXPLORE.TITLE", comment: ""))
                 .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        GenresPicker(
-                            selectedGenre: $discoverViewModel.genre,
-                            genres: discoverGenresViewModel.genres
-                        )
-                    }
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button(action: dismiss.callAsFunction) {
                             Text(NSLocalizedString("NAVIGATION.ACTION.DONE", comment: ""))
