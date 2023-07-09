@@ -40,7 +40,7 @@ struct StickyHeader: ViewModifier {
         VStack(spacing: 0) {
             content
                 .padding(.vertical)
-                .background(Material.thickMaterial.opacity(state.backgroundOpacity))
+                .background(Material.regularMaterial.opacity(state.backgroundOpacity))
 
             Divider().opacity(state.backgroundOpacity)
         }

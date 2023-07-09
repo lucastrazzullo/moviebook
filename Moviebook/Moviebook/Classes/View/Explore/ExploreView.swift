@@ -34,11 +34,8 @@ struct ExploreView: View {
                                 presentedItem: $presentedItem
                             )
                         } else {
-                            ExploreHorizontalMovieGenreSectionView(
-                                selectedGenre: $discoverViewModel.genre,
-                                genres: discoverGenresViewModel.genres
-                            )
-                            .stickingToTop(coordinateSpaceName: stickyScrollingSpace)
+                            ExploreHorizontalMovieGenreSectionView(viewModel: discoverGenresViewModel)
+                                .stickingToTop(coordinateSpaceName: stickyScrollingSpace)
 
                             LazyVStack {
                                 ForEach(discoverViewModel.sectionsContent) { content in
@@ -57,10 +54,7 @@ struct ExploreView: View {
                                             .navigationTitle(content.title)
                                             .toolbar {
                                                 ToolbarItem(placement: .navigationBarTrailing) {
-                                                    GenresPicker(
-                                                        selectedGenre: $discoverViewModel.genre,
-                                                        genres: discoverGenresViewModel.genres
-                                                    )
+                                                    ExploreGenresPicker(viewModel: discoverGenresViewModel)
                                                 }
                                             }
                                         }
@@ -94,9 +88,12 @@ struct ExploreView: View {
                     Navigation(path: $presentedItemNavigationPath, presentingItem: presentedItem)
                 }
                 .onAppear {
-                    searchViewModel.start(requestManager: requestManager)
-                    discoverViewModel.start(requestManager: requestManager)
                     discoverGenresViewModel.start(requestManager: requestManager)
+                    searchViewModel.start(requestManager: requestManager)
+                    discoverViewModel.update(selectedGenres: discoverGenresViewModel.selectedGenres, requestManager: requestManager)
+                }
+                .onChange(of: discoverGenresViewModel.selectedGenres) { selectedGenres in
+                    discoverViewModel.update(selectedGenres: selectedGenres, requestManager: requestManager)
                 }
             }
         }
@@ -106,42 +103,6 @@ struct ExploreView: View {
         self._searchViewModel = StateObject(wrappedValue: SearchViewModel(scope: .movie, query: ""))
         self._discoverViewModel = StateObject(wrappedValue: DiscoverViewModel())
         self._discoverGenresViewModel = StateObject(wrappedValue: DiscoverGenresViewModel())
-    }
-}
-
-private struct GenresPicker: View {
-
-    @Binding var selectedGenre: MovieGenre?
-
-    let genres: [MovieGenre]
-
-    var body: some View {
-        if let selectedGenre {
-            Menu {
-                Button(role: .destructive) { self.selectedGenre = nil } label: {
-                    Text("Remove filter")
-                    Image(systemName: "xmark")
-                }
-
-                ForEach(genres, id: \.self) { genre in
-                    Button { self.selectedGenre = genre } label: {
-                        Text(genre.name)
-                        if selectedGenre == genre {
-                            Image(systemName: "checkmark")
-                        }
-                    }
-                }
-            } label: {
-                HStack {
-                    Text(selectedGenre.name)
-                    Image(systemName: "chevron.up.chevron.down")
-                }
-                .font(.caption.bold())
-                .foregroundColor(.black)
-                .padding(6)
-                .background(.yellow, in: RoundedRectangle(cornerRadius: 10))
-            }
-        }
     }
 }
 

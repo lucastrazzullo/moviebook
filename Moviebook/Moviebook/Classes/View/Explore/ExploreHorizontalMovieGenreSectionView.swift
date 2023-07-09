@@ -11,58 +11,46 @@ import MoviebookTestSupport
 
 struct ExploreHorizontalMovieGenreSectionView: View {
 
-    @Environment(\.requestManager) var requestManager
-
-    @Binding var selectedGenre: MovieGenre?
-
-    let genres: [MovieGenre]
+    @ObservedObject var viewModel: DiscoverGenresViewModel
 
     var body: some View {
         VStack {
-            HeaderView(title: "Genres", isLoading: false)
-                .padding(.horizontal)
+            VStack(alignment: .leading) {
+                Text("Genres")
+                    .font(.title3)
+                    .bold()
+                    .foregroundColor(.primary)
+
+                Text(viewModel.selectedGenres.map(\.name).sorted().joined(separator: ", "))
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack {
-                    ForEach(genres) { genre in
+                    ForEach(viewModel.genres) { genre in
                         Text(genre.name)
                             .font(.caption.bold())
                             .padding(8)
-                            .background(selectedGenre == genre ? .ultraThinMaterial : .ultraThickMaterial, in: RoundedRectangle(cornerRadius: 14))
+                            .background(
+                                viewModel.selectedGenres.contains(genre) ? .ultraThinMaterial : .ultraThickMaterial,
+                                in: RoundedRectangle(cornerRadius: 14)
+                            )
                             .padding(2)
                             .background(.yellow, in: RoundedRectangle(cornerRadius: 16))
                             .id(genre.id)
                             .onTapGesture {
-                                if let selectedGenre, selectedGenre == genre {
-                                    self.selectedGenre = nil
+                                if viewModel.selectedGenres.contains(genre) {
+                                    self.viewModel.selectedGenres.remove(genre)
                                 } else {
-                                    self.selectedGenre = genre
+                                    self.viewModel.selectedGenres.insert(genre)
                                 }
                             }
                     }
                 }
-                .padding(.horizontal)
-            }
-        }
-    }
-}
-
-private struct HeaderView: View {
-
-    let title: String
-    let isLoading: Bool
-
-    var body: some View {
-        HStack(spacing: 4) {
-            Text(title)
-                .font(.title3)
-                .bold()
-                .foregroundColor(.primary)
-
-            Spacer()
-
-            if isLoading {
-                ProgressView()
+                .padding(.horizontal, 8)
             }
         }
     }
@@ -70,11 +58,15 @@ private struct HeaderView: View {
 
 #if DEBUG
 struct ExploreHorizontalGenreSection_Previews: PreviewProvider {
+
+    static var viewModel = DiscoverGenresViewModel()
+
     static var previews: some View {
         ScrollView {
-            ExploreHorizontalMovieGenreSectionView(
-                selectedGenre: .constant(MovieGenre(id: 28, name: "Action")),
-                genres: [MovieGenre(id: 28, name: "Action"), MovieGenre(id: 12, name: "Adventure")])
+            ExploreHorizontalMovieGenreSectionView(viewModel: viewModel)
+        }
+        .onAppear {
+            viewModel.start(requestManager: MockRequestManager.shared)
         }
     }
 }
