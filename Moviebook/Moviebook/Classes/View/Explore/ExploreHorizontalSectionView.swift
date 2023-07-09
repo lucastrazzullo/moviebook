@@ -19,55 +19,55 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
 
     var body: some View {
         VStack {
-            if !viewModel.items.isEmpty {
-                HeaderView(
-                    title: viewModel.title,
-                    isLoading: viewModel.isLoading,
-                    destination: viewModel.error == nil ? viewAllDestination() : nil
-                )
-                .padding(.horizontal)
-                
-                Divider()
+            VStack {
+                if !viewModel.items.isEmpty {
+                    HeaderView(
+                        title: viewModel.title,
+                        isLoading: viewModel.isLoading,
+                        destination: viewModel.error == nil ? viewAllDestination() : nil
+                    )
+                    .padding(.horizontal)
+
+                    Divider()
+                }
             }
+            .padding(.vertical)
 
             if let error = viewModel.error {
                 RetriableErrorView(retry: error.retry).padding()
             } else if !viewModel.items.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    VStack {
-                        switch viewModel.items {
-                        case .movies(let movies):
-                            LazyHGrid(rows: [
-                                GridItem(.fixed(120)),
-                                GridItem(.fixed(120)),
-                                GridItem(.fixed(120))
-                            ], spacing: 18) {
-                                ForEach(movies, id: \.self) { movieDetails in
-                                    MoviePreviewView(details: movieDetails, presentedItem: $presentedItem, style: .backdrop) {
-                                        presentedItem = .movieWithIdentifier(movieDetails.id)
-                                    }
-                                    .frame(width: geometry.frame(in: .global).size.width * 0.85)
-                                }
+                switch viewModel.items {
+                case .movies(let movies):
+                    PagedHorizontalGridView(
+                        items: movies,
+                        spacing: 16,
+                        pageWidth: geometry.frame(in: .global).size.width * 0.85,
+                        rows: 3,
+                        itemView: { movieDetails in
+                            MoviePreviewView(details: movieDetails, presentedItem: $presentedItem, style: .backdrop) {
+                                presentedItem = .movieWithIdentifier(movieDetails.id)
                             }
-                        case .artists(let artists):
-                            LazyHGrid(rows: [
-                                GridItem(.fixed(160), spacing: 0),
-                                GridItem(.fixed(160), spacing: 0)
-                            ]) {
-                                ForEach(artists, id: \.self) { artistDetails in
-                                    ArtistPreviewView(details: artistDetails) {
-                                        presentedItem = .artistWithIdentifier(artistDetails.id)
-                                    }
-                                    .frame(width: geometry.frame(in: .global).size.width / 4)
-                                }
-                            }
+                            .frame(width: geometry.frame(in: .global).size.width * 0.85)
                         }
-                    }
-                    .padding(.horizontal)
+                    )
+
+                case .artists(let artists):
+                    PagedHorizontalGridView(
+                        items: artists,
+                        spacing: 16,
+                        pageWidth: geometry.frame(in: .global).size.width * 0.8,
+                        rows: 2,
+                        itemView: { artistDetails in
+                            ArtistPreviewView(details: artistDetails) {
+                                presentedItem = .artistWithIdentifier(artistDetails.id)
+                            }
+                            .frame(width: geometry.frame(in: .global).size.width / 4)
+                            .frame(height: 160)
+                        }
+                    )
                 }
             }
         }
-        .listRowInsets(EdgeInsets())
     }
 }
 
@@ -145,13 +145,13 @@ private struct ExploreHorizontalSectionViewPreview: View {
         GeometryReader { geometry in
             ScrollView {
                 ExploreHorizontalSectionView(
-                    viewModel: artistsViewModel,
+                    viewModel: moviesViewModel,
                     presentedItem: .constant(nil),
                     geometry: geometry,
                     viewAllDestination: { EmptyView() })
 
                 ExploreHorizontalSectionView(
-                    viewModel: moviesViewModel,
+                    viewModel: artistsViewModel,
                     presentedItem: .constant(nil),
                     geometry: geometry,
                     viewAllDestination: { EmptyView() })

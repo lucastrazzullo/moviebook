@@ -27,7 +27,7 @@ struct ExploreView: View {
         NavigationView {
             GeometryReader { geometry in
                 ScrollView {
-                    VStack(spacing: 24) {
+                    VStack {
                         if !searchViewModel.searchKeyword.isEmpty {
                             ExploreVerticalSectionView(
                                 viewModel: searchViewModel.content,
@@ -37,7 +37,7 @@ struct ExploreView: View {
                             ExploreHorizontalMovieGenreSectionView(viewModel: discoverGenresViewModel)
                                 .stickingToTop(coordinateSpaceName: stickyScrollingSpace)
 
-                            LazyVStack {
+                            LazyVStack(spacing: 12) {
                                 ForEach(discoverViewModel.sectionsContent) { content in
                                     ExploreHorizontalSectionView(
                                         viewModel: content,
