@@ -37,22 +37,26 @@ struct StickyHeader: ViewModifier {
     @State private var state: CurrentState = .idle
 
     func body(content: Content) -> some View {
-        content
-            .padding(.vertical)
-            .background(Material.thickMaterial.opacity(state.backgroundOpacity))
-            .offset(y: state.yOffset)
-            .zIndex(1)
-            .overlay {
-                GeometryReader { geometry in
-                    let frame = geometry.frame(in: .named(coordinateSpaceName))
-                    let state = frame.minY < 0
-                        ? CurrentState.sticking(offset: frame.origin.y)
-                        : CurrentState.idle
-                    Color.clear
-                        .onAppear { self.state = state }
-                        .onChange(of: state) { self.state = $0 }
-                }
+        VStack(spacing: 0) {
+            content
+                .padding(.vertical)
+                .background(Material.thickMaterial.opacity(state.backgroundOpacity))
+
+            Divider().opacity(state.backgroundOpacity)
+        }
+        .offset(y: state.yOffset)
+        .zIndex(1)
+        .overlay {
+            GeometryReader { geometry in
+                let frame = geometry.frame(in: .named(coordinateSpaceName))
+                let state = frame.minY < 0
+                    ? CurrentState.sticking(offset: frame.origin.y)
+                    : CurrentState.idle
+                Color.clear
+                    .onAppear { self.state = state }
+                    .onChange(of: state) { self.state = $0 }
             }
+        }
     }
 
     init(coordinateSpaceName: String) {
