@@ -79,6 +79,9 @@ struct MoviebookApp: App {
     }
 
     private func open(deeplink: Deeplink) {
+        if presentedItem != nil {
+            presentedItem = nil
+        }
         switch deeplink {
         case .watchlist:
             presentedItem = nil
