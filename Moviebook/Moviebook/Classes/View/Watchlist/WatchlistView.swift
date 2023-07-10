@@ -136,7 +136,7 @@ private struct ContentView: View {
 
     var body: some View {
         Group {
-            if viewModel.isLoading {
+            if viewModel.isLoading, viewModel.items.isEmpty {
                 LoaderView()
             } else if let error = viewModel.error {
                 RetriableErrorView(retry: error.retry)
