@@ -90,6 +90,7 @@ private struct TopbarView: View {
             .frame(maxWidth: .infinity, alignment: .trailing)
 
             WatchlistUndoView(undoViewModel: undoViewModel)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 }

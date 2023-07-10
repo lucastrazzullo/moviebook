@@ -46,7 +46,6 @@ struct WatchlistUndoView: View {
             }
         }
         .frame(height: 52)
-        .frame(maxWidth: .infinity, alignment: .leading)
         .onAppear {
             undoViewModel.start(watchlist: watchlist, requestManager: requestManager)
         }
