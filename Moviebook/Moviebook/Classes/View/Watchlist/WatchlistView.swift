@@ -40,6 +40,7 @@ struct WatchlistView: View {
             .padding()
             .background(.thickMaterial.opacity(shouldShowTopBar ? 1 : 0))
             .animation(.easeOut(duration: 0.12), value: shouldShowTopBar)
+            .animation(.default, value: undoViewModel.removedItem)
         }
         .safeAreaInset(edge: .bottom) {
             ToolbarView(
@@ -88,8 +89,12 @@ private struct TopbarView: View {
             }
             .frame(maxWidth: .infinity, alignment: .trailing)
 
-            WatchlistUndoView(undoViewModel: undoViewModel)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            VStack {
+                WatchlistUndoView(undoViewModel: undoViewModel)
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
         }
     }
 }
