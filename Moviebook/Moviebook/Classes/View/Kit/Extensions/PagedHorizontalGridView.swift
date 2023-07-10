@@ -30,7 +30,9 @@ struct PagedHorizontalGridView<Item: Identifiable & Hashable, ItemView: View>: V
                     VStack(alignment: .leading, spacing: spacing) {
                         ForEach(column*rows..<column*rows+rows, id: \.self) { index in
                             if items.indices.contains(index) {
-                                itemView(items[index])
+                                let item = items[index]
+                                itemView(item)
+                                    .id(item.id)
                             }
                         }
                     }
