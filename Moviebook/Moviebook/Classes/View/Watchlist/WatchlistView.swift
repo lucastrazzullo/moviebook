@@ -108,13 +108,14 @@ private struct TopbarView: View {
 
                         VStack(alignment: .leading) {
                             Text("Removed")
-                            Button {
-                                undoViewModel.undo(watchlist: watchlist, removedItem: removedItem)
-                            } label: {
-                                Text("undo")
-                            }
+                            Text("undo")
+                                .bold()
+                                .foregroundColor(.accentColor)
                         }
                         .font(.caption)
+                    }
+                    .onTapGesture {
+                        undoViewModel.undo(watchlist: watchlist, removedItem: removedItem)
                     }
                     .id(removedItem.id)
                     .transition(.asymmetric(insertion: .opacity, removal: .move(edge: .leading).combined(with: .opacity)))
