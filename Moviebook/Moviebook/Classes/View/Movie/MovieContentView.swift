@@ -151,7 +151,7 @@ private struct WatchProvidersView: View {
                     }
                 }
             }
-            .tint(.black)
+            .tint(.primary)
             .font(.title2)
             .padding()
 
@@ -174,7 +174,6 @@ private struct WatchProvidersView: View {
             .padding(.bottom)
         }
         .background(.thinMaterial)
-        .foregroundColor(.black)
         .cornerRadius(8)
     }
 
