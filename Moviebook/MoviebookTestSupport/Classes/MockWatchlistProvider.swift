@@ -46,6 +46,6 @@ import MoviebookCommon
     }
 
     private func makeSuggestion() -> WatchlistItemToWatchInfo.Suggestion {
-        return WatchlistItemToWatchInfo.Suggestion(owner: "Valerio", comment: "This is really nice")
+        return WatchlistItemToWatchInfo.Suggestion(owner: "Valerio", comment: "This is a really nice movie. I watched already two times, and can't wait to watch it again!")
     }
 }
