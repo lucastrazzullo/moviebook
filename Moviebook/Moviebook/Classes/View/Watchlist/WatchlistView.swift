@@ -56,7 +56,6 @@ struct WatchlistView: View {
         .onAppear {
             sectionViewModel.start(watchlist: watchlist, requestManager: requestManager)
         }
-        .animation(.default, value: undoViewModel.removedItem)
         .animation(.default, value: sectionViewModel.items)
     }
 }
