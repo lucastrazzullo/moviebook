@@ -133,13 +133,13 @@ struct EmptyWatchlistView_Previews: PreviewProvider {
     static var previews: some View {
         EmptyWatchlistView(section: .toWatch)
             .environment(\.requestManager, MockRequestManager.shared)
-            .environmentObject(Watchlist(items: []))
+            .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .empty))
             .listRowSeparator(.hidden)
             .listSectionSeparator(.hidden)
 
         EmptyWatchlistView(section: .watched)
             .environment(\.requestManager, MockRequestManager.shared)
-            .environmentObject(Watchlist(items: []))
+            .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .empty))
             .listRowSeparator(.hidden)
             .listSectionSeparator(.hidden)
     }

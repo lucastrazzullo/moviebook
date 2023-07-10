@@ -162,11 +162,15 @@ struct NewWatchedRatingView: View {
     }
 }
 
+#if DEBUG
+import MoviebookTestSupport
 struct WatchlistAddToWatchedView_Previews: PreviewProvider {
     static var previews: some View {
         NewWatchedRatingView(itemIdentifier: .movie(id: 954))
-            .environmentObject(Watchlist(items: [
-                WatchlistItem(id: .movie(id: 954), state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: .init(date: .now, suggestion: .init(owner: "Valerio", comment: "Molto bello")), rating: 6, date: .now)))
-            ]))
+            .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .toWatchItems(withSuggestion: true)))
+
+        NewWatchedRatingView(itemIdentifier: .movie(id: 954))
+            .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .watchedItems(withSuggestion: true, withRating: true)))
     }
 }
+#endif

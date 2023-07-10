@@ -299,7 +299,7 @@ struct MovieContentView_Previews: PreviewProvider {
     static var previews: some View {
         ScrollView(showsIndicators: false) {
             MovieContentViewPreview()
-                .environmentObject(Watchlist(items: []))
+                .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .empty))
                 .environment(\.requestManager, MockRequestManager.shared)
         }
     }

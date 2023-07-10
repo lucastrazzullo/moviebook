@@ -7,7 +7,6 @@
 
 import SwiftUI
 import MoviebookCommon
-import MoviebookTestSupport
 
 struct ExploreHorizontalMovieGenreSectionView: View {
 
@@ -57,6 +56,8 @@ struct ExploreHorizontalMovieGenreSectionView: View {
 }
 
 #if DEBUG
+import MoviebookTestSupport
+
 struct ExploreHorizontalGenreSection_Previews: PreviewProvider {
 
     static var viewModel = DiscoverGenresViewModel()

@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import MoviebookTestSupport
 
 struct ExploreGenresPicker: View {
 
@@ -58,6 +57,8 @@ struct ExploreGenresPicker: View {
 }
 
 #if DEBUG
+import MoviebookTestSupport
+
 struct ExploreGenresPicker_Previews: PreviewProvider {
 
     static var viewModel = DiscoverGenresViewModel()

@@ -112,6 +112,9 @@
 		81A889AF2A5AA57A00E4F69A /* StickyHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A889AE2A5AA57A00E4F69A /* StickyHeader.swift */; };
 		81A889B12A5ADDE500E4F69A /* ExploreGenresPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A889B02A5ADDE500E4F69A /* ExploreGenresPicker.swift */; };
 		81A889B32A5AEF1B00E4F69A /* PagedHorizontalGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A889B22A5AEF1B00E4F69A /* PagedHorizontalGridView.swift */; };
+		81A889B52A5BDFF500E4F69A /* WatchlistUndoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A889B42A5BDFF500E4F69A /* WatchlistUndoView.swift */; };
+		81A889B72A5BEDEB00E4F69A /* Watchlist+Mock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A889B62A5BEDEB00E4F69A /* Watchlist+Mock.swift */; };
+		81A889B92A5BEE6600E4F69A /* MockWatchlistProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A889B82A5BEE6600E4F69A /* MockWatchlistProvider.swift */; };
 		81B29B002A3C6BD10095F76B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8169FB2028C204450054BCE6 /* Assets.xcassets */; };
 		81B7DBF72A1400C500AF9118 /* ExploreVerticalSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B7DBF62A1400C500AF9118 /* ExploreVerticalSectionView.swift */; };
 		81B7DBF92A14050300AF9118 /* ExploreHorizontalSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B7DBF82A14050300AF9118 /* ExploreHorizontalSectionView.swift */; };
@@ -333,6 +336,9 @@
 		81A889AE2A5AA57A00E4F69A /* StickyHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StickyHeader.swift; sourceTree = "<group>"; };
 		81A889B02A5ADDE500E4F69A /* ExploreGenresPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreGenresPicker.swift; sourceTree = "<group>"; };
 		81A889B22A5AEF1B00E4F69A /* PagedHorizontalGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PagedHorizontalGridView.swift; sourceTree = "<group>"; };
+		81A889B42A5BDFF500E4F69A /* WatchlistUndoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistUndoView.swift; sourceTree = "<group>"; };
+		81A889B62A5BEDEB00E4F69A /* Watchlist+Mock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Watchlist+Mock.swift"; sourceTree = "<group>"; };
+		81A889B82A5BEE6600E4F69A /* MockWatchlistProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockWatchlistProvider.swift; sourceTree = "<group>"; };
 		81B7DBF42A13F7B900AF9118 /* WatchProviders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchProviders.swift; sourceTree = "<group>"; };
 		81B7DBF62A1400C500AF9118 /* ExploreVerticalSectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreVerticalSectionView.swift; sourceTree = "<group>"; };
 		81B7DBF82A14050300AF9118 /* ExploreHorizontalSectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreHorizontalSectionView.swift; sourceTree = "<group>"; };
@@ -452,6 +458,7 @@
 			isa = PBXGroup;
 			children = (
 				814D46E428C23999000D7ABD /* MockRequestManager.swift */,
+				81A889B82A5BEE6600E4F69A /* MockWatchlistProvider.swift */,
 				816E64EA2A44B696007AEED1 /* Mock Server */,
 			);
 			path = Classes;
@@ -659,6 +666,7 @@
 				81989ED12A08F9CA00547584 /* Spotlight.swift */,
 				816E65202A45A64A007AEED1 /* WebService.swift */,
 				816E653D2A45B05B007AEED1 /* RequestManager+Mock.swift */,
+				81A889B62A5BEDEB00E4F69A /* Watchlist+Mock.swift */,
 				8194DF702A04FABB00A3FC2D /* Storage */,
 			);
 			path = Model;
@@ -753,6 +761,7 @@
 				8169FB1E28C204450054BCE6 /* WatchlistView.swift */,
 				81B7DBFE2A162F3500AF9118 /* EmptyWatchlistView.swift */,
 				814A13E628F0488100477126 /* WatchlistButton.swift */,
+				81A889B42A5BDFF500E4F69A /* WatchlistUndoView.swift */,
 				812E83C1294CC0F900D40E21 /* NewToWatchSuggestionView.swift */,
 				812E83C3294DCEC600D40E21 /* NewWatchedRatingView.swift */,
 			);
@@ -1208,6 +1217,7 @@
 				816E64EE2A44B6B7007AEED1 /* BundleMockServer.swift in Sources */,
 				811124A42A434F7B009133C2 /* MockServer.swift in Sources */,
 				811124A52A434F7B009133C2 /* MockRequestManager.swift in Sources */,
+				81A889B92A5BEE6600E4F69A /* MockWatchlistProvider.swift in Sources */,
 				816E64EC2A44B6A3007AEED1 /* StubMockServer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1278,7 +1288,9 @@
 				81828ACA28DDB736006D696C /* MovieView.swift in Sources */,
 				8169FB1F28C204450054BCE6 /* WatchlistView.swift in Sources */,
 				81989ED22A08F9CA00547584 /* Spotlight.swift in Sources */,
+				81A889B72A5BEDEB00E4F69A /* Watchlist+Mock.swift in Sources */,
 				8111247A2A40EA9B009133C2 /* Notifications.swift in Sources */,
+				81A889B52A5BDFF500E4F69A /* WatchlistUndoView.swift in Sources */,
 				8169FB1D28C204450054BCE6 /* MoviebookApp.swift in Sources */,
 				811124822A422287009133C2 /* NotificationViewModifier.swift in Sources */,
 				81B7DBF92A14050300AF9118 /* ExploreHorizontalSectionView.swift in Sources */,

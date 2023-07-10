@@ -55,7 +55,6 @@ struct WatchlistView: View {
         }
         .onAppear {
             sectionViewModel.start(watchlist: watchlist, requestManager: requestManager)
-            undoViewModel.start(watchlist: watchlist, requestManager: requestManager)
         }
         .animation(.default, value: undoViewModel.removedItem)
         .animation(.default, value: sectionViewModel.items)
@@ -63,8 +62,6 @@ struct WatchlistView: View {
 }
 
 private struct TopbarView: View {
-
-    @EnvironmentObject var watchlist: Watchlist
 
     @ObservedObject var undoViewModel: WatchlistUndoViewModel
     @Binding var sorting: WatchlistSectionViewModel.Sorting
@@ -92,37 +89,7 @@ private struct TopbarView: View {
             }
             .frame(maxWidth: .infinity, alignment: .trailing)
 
-            VStack {
-                if let removedItem = undoViewModel.removedItem {
-                    HStack {
-                        RemoteImage(
-                            url: removedItem.imageUrl,
-                            content: { image in
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .cornerRadius(4)
-                            },
-                            placeholder: { Color.clear }
-                        )
-
-                        VStack(alignment: .leading) {
-                            Text("Removed")
-                            Text("undo")
-                                .bold()
-                                .foregroundColor(.accentColor)
-                        }
-                        .font(.caption)
-                    }
-                    .onTapGesture {
-                        undoViewModel.undo(watchlist: watchlist, removedItem: removedItem)
-                    }
-                    .id(removedItem.id)
-                    .transition(.asymmetric(insertion: .opacity, removal: .move(edge: .leading).combined(with: .opacity)))
-                }
-            }
-            .frame(height: 52)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            WatchlistUndoView(undoViewModel: undoViewModel)
         }
     }
 }
@@ -309,26 +276,19 @@ struct WatchlistView_Previews: PreviewProvider {
         NavigationView {
             WatchlistView()
                 .environment(\.requestManager, MockRequestManager.shared)
-                .environmentObject(Watchlist(items: [
-                    WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
-                    WatchlistItem(id: .movie(id: 353081), state: .toWatch(info: .init(date: .now, suggestion: .init(owner: "Valerio", comment: nil)))),
-                    WatchlistItem(id: .movie(id: 616037), state: .watched(info: .init(toWatchInfo: .init(date: .now, suggestion: nil), date: .now)))
-                ]))
+                .environmentObject(MockWatchlistProvider.shared.watchlist())
         }
 
         NavigationView {
             WatchlistView()
                 .environment(\.requestManager, MockRequestManager.shared)
-                .environmentObject(Watchlist(items: [
-                    WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
-                    WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: .init(owner: "Valerio", comment: nil))))
-                ]))
+                .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .toWatchItems(withSuggestion: true)))
         }
 
         NavigationView {
             WatchlistView()
                 .environment(\.requestManager, MockRequestManager.shared)
-                .environmentObject(Watchlist(items: []))
+                .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .empty))
         }
     }
 }

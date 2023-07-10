@@ -5,11 +5,12 @@
 //  Created by Luca Strazzullo on 23/06/2023.
 //
 
+#if DEBUG
+
 import Foundation
 import MoviebookCommon
 import MoviebookTestSupport
 
-#if DEBUG
 extension MockRequestManager {
 
     static let shared: RequestManager = {

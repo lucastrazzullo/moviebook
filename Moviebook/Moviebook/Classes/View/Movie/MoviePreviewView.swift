@@ -124,10 +124,7 @@ struct MoviePreviewView_Previews: PreviewProvider {
                 MoviePreviewViewPreview(movieId: 353081, style: .poster)
                 MoviePreviewViewPreview(movieId: 616037, style: .backdrop)
             }
-            .environmentObject(Watchlist(items: [
-                WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
-                WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: nil)))
-            ]))
+            .environmentObject(MockWatchlistProvider.shared.watchlist())
             .environment(\.requestManager, MockRequestManager.shared)
         }
     }
