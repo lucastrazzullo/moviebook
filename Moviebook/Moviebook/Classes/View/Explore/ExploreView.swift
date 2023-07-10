@@ -37,7 +37,7 @@ struct ExploreView: View {
                             ExploreHorizontalMovieGenreSectionView(viewModel: discoverGenresViewModel)
                                 .stickingToTop(coordinateSpaceName: stickyScrollingSpace)
 
-                            LazyVStack(spacing: 12) {
+                            VStack(spacing: 12) {
                                 ForEach(discoverViewModel.sectionsContent) { content in
                                     ExploreHorizontalSectionView(
                                         viewModel: content,
@@ -90,7 +90,7 @@ struct ExploreView: View {
                 .onAppear {
                     discoverGenresViewModel.start(requestManager: requestManager)
                     searchViewModel.start(requestManager: requestManager)
-                    discoverViewModel.update(selectedGenres: discoverGenresViewModel.selectedGenres, requestManager: requestManager)
+                    discoverViewModel.start(selectedGenres: discoverGenresViewModel.selectedGenres, watchlist: watchlist, requestManager: requestManager)
                 }
                 .onChange(of: discoverGenresViewModel.selectedGenres) { selectedGenres in
                     discoverViewModel.update(selectedGenres: selectedGenres, requestManager: requestManager)
