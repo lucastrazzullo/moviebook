@@ -19,7 +19,8 @@ public enum TheMovieDbUrlFactory {
 
     // MARK: Discover
 
-    case discover(page: Int?, section: DiscoverMovieSection, genres: [MovieGenre.ID])
+    case movies(genres: [MovieGenre.ID], page: Int?)
+    case discover(section: DiscoverMovieSection, genres: [MovieGenre.ID], page: Int?)
 
     // MARK: Artist
 
@@ -45,7 +46,19 @@ public enum TheMovieDbUrlFactory {
             return try TheMovieDbDataRequestFactory.makeURL(path: "movie/\(movieIdentifier)/watch/providers")
         case .movieGenres:
             return try TheMovieDbDataRequestFactory.makeURL(path: "genre/movie/list")
-        case .discover(let page, let section, let genres):
+        case .movies(let genres, let page):
+            var queryItems = [URLQueryItem]()
+            if let page {
+                queryItems.append(URLQueryItem(name: "page", value: String(page)))
+            }
+            if !genres.isEmpty {
+                let genresString = genres
+                    .map { String($0) }
+                    .joined(separator: ",")
+                queryItems.append(URLQueryItem(name: "with_genres", value: genresString))
+            }
+            return try TheMovieDbDataRequestFactory.makeURL(path: "discover/movie", queryItems: queryItems)
+        case .discover(let section, let genres, let page):
             var queryItems = [URLQueryItem]()
             if let page {
                 queryItems.append(URLQueryItem(name: "page", value: String(page)))

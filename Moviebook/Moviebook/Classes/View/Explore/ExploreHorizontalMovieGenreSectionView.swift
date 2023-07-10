@@ -51,6 +51,7 @@ struct ExploreHorizontalMovieGenreSectionView: View {
                 }
                 .padding(.horizontal, 8)
             }
+            .fixedSize(horizontal: false, vertical: true)
         }
     }
 }

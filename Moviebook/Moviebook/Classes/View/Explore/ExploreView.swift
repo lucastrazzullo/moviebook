@@ -90,10 +90,7 @@ struct ExploreView: View {
                 .onAppear {
                     discoverGenresViewModel.start(requestManager: requestManager)
                     searchViewModel.start(requestManager: requestManager)
-                    discoverViewModel.start(selectedGenres: discoverGenresViewModel.selectedGenres, watchlist: watchlist, requestManager: requestManager)
-                }
-                .onChange(of: discoverGenresViewModel.selectedGenres) { selectedGenres in
-                    discoverViewModel.update(selectedGenres: selectedGenres, requestManager: requestManager)
+                    discoverViewModel.start(selectedGenres: discoverGenresViewModel.$selectedGenres, watchlist: watchlist, requestManager: requestManager)
                 }
             }
         }

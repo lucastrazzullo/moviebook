@@ -53,8 +53,16 @@ public struct TheMovieDbMovieWebService: MovieWebService {
         return try JSONDecoder().decode(TMDBMovieGenresResponse.self, from: data).genres.map(\.result)
     }
 
+    public func fetchMovies(genres: [MovieGenre.ID], page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?) {
+        let url = try TheMovieDbUrlFactory.movies(genres: genres, page: page).makeUrl()
+        let data = try await requestManager.request(from: url)
+        let response = try JSONDecoder().decode(TMDBResponseWithListResults<TMDBMovieDetailsResponse>.self, from: data)
+
+        return (results: response.results.map(\.result), nextPage: response.nextPage)
+    }
+
     public func fetch(discoverSection: DiscoverMovieSection, genres: [MovieGenre.ID], page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?) {
-        let url = try TheMovieDbUrlFactory.discover(page: page, section: discoverSection, genres: genres).makeUrl()
+        let url = try TheMovieDbUrlFactory.discover(section: discoverSection, genres: genres, page: page).makeUrl()
         let data = try await requestManager.request(from: url)
         let response = try JSONDecoder().decode(TMDBResponseWithListResults<TMDBMovieDetailsResponse>.self, from: data)
 
