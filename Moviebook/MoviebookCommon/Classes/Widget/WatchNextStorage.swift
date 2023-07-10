@@ -82,7 +82,7 @@ public actor WatchNextStorage {
             }
         }
 
-        if identifiers.isEmpty, let nowPlayingMovies = try? await webService.fetch(discoverSection: .nowPlaying, genre: nil, page: nil) {
+        if identifiers.isEmpty, let nowPlayingMovies = try? await webService.fetch(discoverSection: .nowPlaying, genres: [], page: nil) {
             identifiers = nowPlayingMovies.results.map { movie in .movie(id: movie.id) }
         }
 

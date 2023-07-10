@@ -17,9 +17,12 @@ struct NewWatchedRatingView: View {
 
     @State private var title: String?
     @State private var imageUrl: URL?
-    @State private var rating: Double = 6
+    @State private var currentRating: Double = 6
+    @State private var ratingOffset: Double = 0
 
-    let itemIdentifier: WatchlistItemIdentifier
+    private var rating: Double {
+        return currentRating + ratingOffset
+    }
 
     private var toWatchInfo: WatchlistItemToWatchInfo? {
         guard let watchlistState = watchlist.itemState(id: itemIdentifier) else {
@@ -34,6 +37,10 @@ struct NewWatchedRatingView: View {
         }
     }
 
+    private let quota: Double = 10.0
+
+    let itemIdentifier: WatchlistItemIdentifier
+
     var body: some View {
         ZStack {
             if let imageUrl {
@@ -42,10 +49,10 @@ struct NewWatchedRatingView: View {
                     content: { image in image.resizable().aspectRatio(contentMode: .fill) },
                     placeholder: { Color.clear }
                 )
-                .overlay(.regularMaterial)
+                .overlay(.thickMaterial)
             }
 
-            VStack(spacing: 44) {
+            VStack(spacing: 32) {
                 if let title {
                     VStack {
                         Text("Add your rating")
@@ -69,6 +76,7 @@ struct NewWatchedRatingView: View {
                             Text(comment)
                                 .fixedSize(horizontal: false, vertical: true)
                                 .font(.body)
+                                .frame(maxWidth: 220)
                         }
                     }
                     .padding(18)
@@ -81,25 +89,77 @@ struct NewWatchedRatingView: View {
                             .background(Color.accentColor, in: Capsule())
                             .offset(x: -18, y: -14)
                     }
+                } else if let imageUrl {
+                    RemoteImage(
+                        url: imageUrl,
+                        content: { image in image.resizable().aspectRatio(contentMode: .fit) },
+                        placeholder: { Color.clear }
+                    )
+                    .cornerRadius(24)
                 }
 
-                HStack(spacing: 24) {
-                    Button(action: { rating = max(0, rating - 0.5) }) {
-                        Image(systemName: "minus")
-                            .frame(width: 18, height: 18)
+                VStack(spacing: 24) {
+                    VStack {
+                        HStack(alignment: .firstTextBaseline, spacing: 2) {
+                            Text(rating, format: .number).font(.title)
+                            Text("/").font(.body)
+                            Text(quota, format: .number).font(.body)
+                        }
+                        Text("Your vote").foregroundColor(.secondary)
                     }
 
-                    CircularRatingView(rating: rating, label: "Your vote", style: .prominent)
-                        .frame(height: 200)
-                        .animation(.default, value: rating)
+                    Group {
+                        GeometryReader { geometry in
+                            Rectangle()
+                                .foregroundStyle(.thinMaterial)
+                                .overlay(
+                                    ZStack(alignment: .leading) {
+                                        Rectangle()
+                                            .foregroundColor(.yellow)
+                                            .frame(width: geometry.size.width * (rating / quota))
 
-                    Button(action: { rating = min(CircularRatingView.ratingQuota, rating + 0.5) }) {
-                        Image(systemName: "plus")
-                            .frame(width: 18, height: 18)
+                                        HStack(spacing: geometry.size.width / quota) {
+                                            ForEach(0..<9) { _ in
+                                                Rectangle()
+                                                    .foregroundStyle(.primary.opacity(0.3))
+                                                    .frame(width: 1)
+                                            }
+                                        }
+                                        .frame(width: geometry.size.width)
+                                    }
+                                )
+                                .compositingGroup()
+                                .cornerRadius(24)
+                                .shadow(color: .black.opacity(0.2), radius: 8)
+                                .simultaneousGesture(DragGesture(minimumDistance: 2)
+                                    .onChanged { value in
+                                        let offset = value.translation.width / geometry.size.width * quota
+                                        let minimumAllowedOffset = -currentRating
+                                        let maximumAllowedOffset = quota - currentRating
+                                        let measuredOffset = max(minimumAllowedOffset, min(maximumAllowedOffset, offset))
+                                        let roundedOffset = round((measuredOffset) * 10) / 10
+                                        if ratingOffset != roundedOffset {
+                                            ratingOffset = roundedOffset
+                                        }
+                                    }
+                                    .onEnded { value in
+                                        currentRating = currentRating + ratingOffset
+                                        ratingOffset = 0
+                                    }
+                                )
+                        }
+                    }
+                    .frame(height: 64)
+                    .onChange(of: ratingOffset) { _ in
+                        UISelectionFeedbackGenerator().selectionChanged()
                     }
                 }
+                .padding(24)
+                .background(.thickMaterial)
+                .background(.primary)
+                .compositingGroup()
+                .cornerRadius(28)
             }
-            .buttonStyle(OvalButtonStyle(.normal))
             .padding(.top)
             .padding()
             .foregroundColor(nil)
@@ -127,7 +187,7 @@ struct NewWatchedRatingView: View {
             }
 
             if case .watched(let info) = watchlistState, let rating = info.rating {
-                self.rating = rating
+                self.currentRating = rating
             }
         }
         .task {
@@ -162,11 +222,15 @@ struct NewWatchedRatingView: View {
     }
 }
 
+#if DEBUG
+import MoviebookTestSupport
 struct WatchlistAddToWatchedView_Previews: PreviewProvider {
     static var previews: some View {
         NewWatchedRatingView(itemIdentifier: .movie(id: 954))
-            .environmentObject(Watchlist(items: [
-                WatchlistItem(id: .movie(id: 954), state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: .init(date: .now, suggestion: .init(owner: "Valerio", comment: "Molto bello")), rating: 6, date: .now)))
-            ]))
+            .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .watchedItems(withSuggestion: false, withRating: true)))
+
+        NewWatchedRatingView(itemIdentifier: .movie(id: 954))
+            .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .watchedItems(withSuggestion: true, withRating: true)))
     }
 }
+#endif

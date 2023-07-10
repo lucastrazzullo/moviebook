@@ -10,57 +10,64 @@ import MoviebookCommon
 
 struct ExploreHorizontalSectionView<Destination: View>: View {
 
-    private let rows: [GridItem] = [
-        GridItem(.fixed(120)),
-        GridItem(.fixed(120)),
-        GridItem(.fixed(120))
-    ]
-
     @ObservedObject var viewModel: ExploreContentViewModel
     @Binding var presentedItem: NavigationItem?
 
-    let pageWidth: CGFloat
+    let geometry: GeometryProxy
 
     @ViewBuilder let viewAllDestination: () -> Destination
 
     var body: some View {
         VStack {
-            HeaderView(
-                title: viewModel.title,
-                isLoading: viewModel.isLoading,
-                destination: viewModel.error == nil ? viewAllDestination() : nil
-            )
-            .padding(.horizontal)
+            VStack {
+                if !viewModel.items.isEmpty {
+                    HeaderView(
+                        title: viewModel.title,
+                        isLoading: viewModel.isLoading,
+                        destination: viewModel.error == nil ? viewAllDestination() : nil
+                    )
+                    .padding(.horizontal)
 
-            Divider()
+                    Divider()
+                }
+            }
+            .padding(.vertical)
 
             if let error = viewModel.error {
-                RetriableErrorView(retry: error.retry)
-            } else {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHGrid(rows: rows, spacing: 18) {
-                        switch viewModel.items {
-                        case .movies(let movies):
-                            ForEach(movies, id: \.self) { movieDetails in
-                                MoviePreviewView(details: movieDetails, presentedItem: $presentedItem, style: .backdrop) {
-                                    presentedItem = .movieWithIdentifier(movieDetails.id)
-                                }
-                                .frame(width: pageWidth * 0.8)
+                RetriableErrorView(retry: error.retry).padding()
+            } else if !viewModel.items.isEmpty {
+                switch viewModel.items {
+                case .movies(let movies):
+                    PagedHorizontalGridView(
+                        items: movies,
+                        spacing: 16,
+                        pageWidth: geometry.frame(in: .global).size.width * 0.85,
+                        rows: 3,
+                        itemView: { movieDetails in
+                            MoviePreviewView(details: movieDetails, presentedItem: $presentedItem, style: .backdrop) {
+                                presentedItem = .movieWithIdentifier(movieDetails.id)
                             }
-                        case .artists(let artists):
-                            ForEach(artists, id: \.self) { artistDetails in
-                                ArtistPreviewView(details: artistDetails) {
-                                    presentedItem = .artistWithIdentifier(artistDetails.id)
-                                }
-                                .frame(width: pageWidth * 0.8)
-                            }
+                            .frame(width: geometry.frame(in: .global).size.width * 0.85)
                         }
-                    }
-                    .padding(.horizontal)
+                    )
+
+                case .artists(let artists):
+                    PagedHorizontalGridView(
+                        items: artists,
+                        spacing: 16,
+                        pageWidth: geometry.frame(in: .global).size.width * 0.8,
+                        rows: 2,
+                        itemView: { artistDetails in
+                            ArtistPreviewView(details: artistDetails) {
+                                presentedItem = .artistWithIdentifier(artistDetails.id)
+                            }
+                            .frame(width: geometry.frame(in: .global).size.width / 4)
+                            .frame(height: 160)
+                        }
+                    )
                 }
             }
         }
-        .listRowInsets(EdgeInsets())
     }
 }
 
@@ -81,8 +88,9 @@ private struct HeaderView<Destination: View>: View {
                 ProgressView()
             }
 
+            Spacer()
+
             if let destination {
-                Spacer()
                 NavigationLink(destination: destination) {
                     Text("Show all")
                 }
@@ -102,44 +110,59 @@ struct ExploreHorizontalSectionView_Previews: PreviewProvider {
             ExploreHorizontalSectionViewPreview()
         }
         .environment(\.requestManager, MockRequestManager.shared)
-        .environmentObject(Watchlist(items: [
-            WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
-            WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: nil)))
-        ]))
+        .environmentObject(MockWatchlistProvider.shared.watchlist())
     }
 }
 
 private struct ExploreHorizontalSectionViewPreview: View {
 
-    struct DataProvider: ExploreContentDataProvider {
-        var title: String = "Mock"
+    struct MovieDataProvider: ExploreContentDataProvider {
+        var title: String = "Movies"
         func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
             let response = try await WebService.movieWebService(requestManager: requestManager)
-                .fetch(discoverSection: .popular, genre: nil, page: page)
+                .fetch(discoverSection: .popular, genres: [], page: page)
             return (results: .movies(response.results), nextPage: response.nextPage)
         }
     }
 
+    struct ArtistDataProvider: ExploreContentDataProvider {
+        var title: String = "Artists"
+        func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
+            let response = try await WebService.artistWebService(requestManager: requestManager)
+                .fetchPopular(page: page)
+            return (results: .artists(response.results), nextPage: response.nextPage)
+        }
+    }
+
     @Environment(\.requestManager) var requestManager
-    @StateObject var viewModel: ExploreContentViewModel
+    @StateObject var moviesViewModel: ExploreContentViewModel
+    @StateObject var artistsViewModel: ExploreContentViewModel
 
     var body: some View {
         GeometryReader { geometry in
             ScrollView {
                 ExploreHorizontalSectionView(
-                    viewModel: viewModel,
+                    viewModel: moviesViewModel,
                     presentedItem: .constant(nil),
-                    pageWidth: geometry.size.width,
+                    geometry: geometry,
+                    viewAllDestination: { EmptyView() })
+
+                ExploreHorizontalSectionView(
+                    viewModel: artistsViewModel,
+                    presentedItem: .constant(nil),
+                    geometry: geometry,
                     viewAllDestination: { EmptyView() })
             }
         }
         .onAppear {
-            viewModel.fetch(requestManager: requestManager)
+            moviesViewModel.fetch(requestManager: requestManager)
+            artistsViewModel.fetch(requestManager: requestManager)
         }
     }
 
     init() {
-        _viewModel = StateObject(wrappedValue: ExploreContentViewModel(dataProvider: DataProvider()))
+        _moviesViewModel = StateObject(wrappedValue: ExploreContentViewModel(dataProvider: MovieDataProvider()))
+        _artistsViewModel = StateObject(wrappedValue: ExploreContentViewModel(dataProvider: ArtistDataProvider()))
     }
 }
 #endif

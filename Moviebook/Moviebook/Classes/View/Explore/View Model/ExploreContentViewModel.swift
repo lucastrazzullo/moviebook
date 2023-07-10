@@ -12,6 +12,15 @@ enum ExploreContentItems {
     case movies([MovieDetails])
     case artists([ArtistDetails])
 
+    var isEmpty: Bool {
+        switch self {
+        case .movies(let array):
+            return array.isEmpty
+        case .artists(let array):
+            return array.isEmpty
+        }
+    }
+
     func appending(items: ExploreContentItems) -> Self {
         switch (self, items) {
         case (let .movies(movies), let .movies(newMovies)):

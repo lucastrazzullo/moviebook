@@ -10,6 +10,8 @@ import MoviebookCommon
 
 @MainActor final class DiscoverGenresViewModel: ObservableObject {
 
+    @Published var selectedGenres: Set<MovieGenre> = []
+
     @Published private(set) var genres: [MovieGenre] = []
     @Published private(set) var error: WebServiceError?
 

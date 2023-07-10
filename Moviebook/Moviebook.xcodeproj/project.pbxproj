@@ -109,6 +109,12 @@
 		81A395DF29F528FA00800F7E /* SpecsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A395DE29F528FA00800F7E /* SpecsView.swift */; };
 		81A395E329F5994900800F7E /* ExpandibleOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A395E229F5994900800F7E /* ExpandibleOverviewView.swift */; };
 		81A69CC3290BCC3400724FB9 /* CircularRatingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A69CC2290BCC3400724FB9 /* CircularRatingView.swift */; };
+		81A889AF2A5AA57A00E4F69A /* StickyHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A889AE2A5AA57A00E4F69A /* StickyHeader.swift */; };
+		81A889B12A5ADDE500E4F69A /* ExploreGenresPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A889B02A5ADDE500E4F69A /* ExploreGenresPicker.swift */; };
+		81A889B32A5AEF1B00E4F69A /* PagedHorizontalGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A889B22A5AEF1B00E4F69A /* PagedHorizontalGridView.swift */; };
+		81A889B52A5BDFF500E4F69A /* WatchlistUndoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A889B42A5BDFF500E4F69A /* WatchlistUndoView.swift */; };
+		81A889B72A5BEDEB00E4F69A /* Watchlist+Mock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A889B62A5BEDEB00E4F69A /* Watchlist+Mock.swift */; };
+		81A889B92A5BEE6600E4F69A /* MockWatchlistProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81A889B82A5BEE6600E4F69A /* MockWatchlistProvider.swift */; };
 		81B29B002A3C6BD10095F76B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8169FB2028C204450054BCE6 /* Assets.xcassets */; };
 		81B7DBF72A1400C500AF9118 /* ExploreVerticalSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B7DBF62A1400C500AF9118 /* ExploreVerticalSectionView.swift */; };
 		81B7DBF92A14050300AF9118 /* ExploreHorizontalSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B7DBF82A14050300AF9118 /* ExploreHorizontalSectionView.swift */; };
@@ -327,6 +333,12 @@
 		81A69CC2290BCC3400724FB9 /* CircularRatingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircularRatingView.swift; sourceTree = "<group>"; };
 		81A69CC4290C398200724FB9 /* Rating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rating.swift; sourceTree = "<group>"; };
 		81A69CC6290E7AC000724FB9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		81A889AE2A5AA57A00E4F69A /* StickyHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StickyHeader.swift; sourceTree = "<group>"; };
+		81A889B02A5ADDE500E4F69A /* ExploreGenresPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreGenresPicker.swift; sourceTree = "<group>"; };
+		81A889B22A5AEF1B00E4F69A /* PagedHorizontalGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PagedHorizontalGridView.swift; sourceTree = "<group>"; };
+		81A889B42A5BDFF500E4F69A /* WatchlistUndoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistUndoView.swift; sourceTree = "<group>"; };
+		81A889B62A5BEDEB00E4F69A /* Watchlist+Mock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Watchlist+Mock.swift"; sourceTree = "<group>"; };
+		81A889B82A5BEE6600E4F69A /* MockWatchlistProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockWatchlistProvider.swift; sourceTree = "<group>"; };
 		81B7DBF42A13F7B900AF9118 /* WatchProviders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchProviders.swift; sourceTree = "<group>"; };
 		81B7DBF62A1400C500AF9118 /* ExploreVerticalSectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreVerticalSectionView.swift; sourceTree = "<group>"; };
 		81B7DBF82A14050300AF9118 /* ExploreHorizontalSectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreHorizontalSectionView.swift; sourceTree = "<group>"; };
@@ -446,6 +458,7 @@
 			isa = PBXGroup;
 			children = (
 				814D46E428C23999000D7ABD /* MockRequestManager.swift */,
+				81A889B82A5BEE6600E4F69A /* MockWatchlistProvider.swift */,
 				816E64EA2A44B696007AEED1 /* Mock Server */,
 			);
 			path = Classes;
@@ -479,7 +492,9 @@
 			isa = PBXGroup;
 			children = (
 				81828ACB28DDC7A4006D696C /* ObservableScrollView.swift */,
+				81A889B22A5AEF1B00E4F69A /* PagedHorizontalGridView.swift */,
 				81D60DA62A312D060045AA0B /* RemoteImage.swift */,
+				81A889AE2A5AA57A00E4F69A /* StickyHeader.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -507,6 +522,7 @@
 				81B7DBF62A1400C500AF9118 /* ExploreVerticalSectionView.swift */,
 				81B7DBF82A14050300AF9118 /* ExploreHorizontalSectionView.swift */,
 				819213092A58652F0075AC17 /* ExploreHorizontalMovieGenreSectionView.swift */,
+				81A889B02A5ADDE500E4F69A /* ExploreGenresPicker.swift */,
 			);
 			path = Explore;
 			sourceTree = "<group>";
@@ -650,6 +666,7 @@
 				81989ED12A08F9CA00547584 /* Spotlight.swift */,
 				816E65202A45A64A007AEED1 /* WebService.swift */,
 				816E653D2A45B05B007AEED1 /* RequestManager+Mock.swift */,
+				81A889B62A5BEDEB00E4F69A /* Watchlist+Mock.swift */,
 				8194DF702A04FABB00A3FC2D /* Storage */,
 			);
 			path = Model;
@@ -744,6 +761,7 @@
 				8169FB1E28C204450054BCE6 /* WatchlistView.swift */,
 				81B7DBFE2A162F3500AF9118 /* EmptyWatchlistView.swift */,
 				814A13E628F0488100477126 /* WatchlistButton.swift */,
+				81A889B42A5BDFF500E4F69A /* WatchlistUndoView.swift */,
 				812E83C1294CC0F900D40E21 /* NewToWatchSuggestionView.swift */,
 				812E83C3294DCEC600D40E21 /* NewWatchedRatingView.swift */,
 			);
@@ -1199,6 +1217,7 @@
 				816E64EE2A44B6B7007AEED1 /* BundleMockServer.swift in Sources */,
 				811124A42A434F7B009133C2 /* MockServer.swift in Sources */,
 				811124A52A434F7B009133C2 /* MockRequestManager.swift in Sources */,
+				81A889B92A5BEE6600E4F69A /* MockWatchlistProvider.swift in Sources */,
 				816E64EC2A44B6A3007AEED1 /* StubMockServer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1253,6 +1272,7 @@
 				8194DF6329FE754800A3FC2D /* ArtistViewModel.swift in Sources */,
 				814A13E728F0488100477126 /* WatchlistButton.swift in Sources */,
 				8127C49B2A114778008C6EBC /* SegmentedPicker.swift in Sources */,
+				81A889B32A5AEF1B00E4F69A /* PagedHorizontalGridView.swift in Sources */,
 				812489CB29F15EC1004A6BE6 /* ArtistPreviewView.swift in Sources */,
 				81A395D729F40E0D00800F7E /* PosterView.swift in Sources */,
 				81A395DF29F528FA00800F7E /* SpecsView.swift in Sources */,
@@ -1263,11 +1283,14 @@
 				81B7DBFB2A14BE1A00AF9118 /* ExploreContentViewModel.swift in Sources */,
 				8194DF6029FE746D00A3FC2D /* MovieViewModel.swift in Sources */,
 				8128AB1C28F00CB6002FD343 /* RatingView.swift in Sources */,
+				81A889B12A5ADDE500E4F69A /* ExploreGenresPicker.swift in Sources */,
 				817C42A729FC190C00FB3FD6 /* WatchlistSectionViewModel.swift in Sources */,
 				81828ACA28DDB736006D696C /* MovieView.swift in Sources */,
 				8169FB1F28C204450054BCE6 /* WatchlistView.swift in Sources */,
 				81989ED22A08F9CA00547584 /* Spotlight.swift in Sources */,
+				81A889B72A5BEDEB00E4F69A /* Watchlist+Mock.swift in Sources */,
 				8111247A2A40EA9B009133C2 /* Notifications.swift in Sources */,
+				81A889B52A5BDFF500E4F69A /* WatchlistUndoView.swift in Sources */,
 				8169FB1D28C204450054BCE6 /* MoviebookApp.swift in Sources */,
 				811124822A422287009133C2 /* NotificationViewModifier.swift in Sources */,
 				81B7DBF92A14050300AF9118 /* ExploreHorizontalSectionView.swift in Sources */,
@@ -1275,6 +1298,7 @@
 				81A395D329F40B8700800F7E /* ArtistView.swift in Sources */,
 				81167A5D2A3F02D500B83369 /* OvalButton.swift in Sources */,
 				813C09A72A5816B90044E16E /* WatchlistUndoViewModel.swift in Sources */,
+				81A889AF2A5AA57A00E4F69A /* StickyHeader.swift in Sources */,
 				8112AF0B2916DF5D0041475D /* MovieWatchlistStateView.swift in Sources */,
 				81D60DF42A3350B40045AA0B /* LegacyWatchlistStorage.swift in Sources */,
 				81D60DFF2A33567A0045AA0B /* Moviebook.xcdatamodeld in Sources */,

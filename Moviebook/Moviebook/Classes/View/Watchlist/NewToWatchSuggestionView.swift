@@ -181,9 +181,12 @@ struct NewToWatchSuggestionView: View {
     }
 }
 
+#if DEBUG
+import MoviebookTestSupport
 struct NewToWatchSuggestionView_Previews: PreviewProvider {
     static var previews: some View {
         NewToWatchSuggestionView(itemIdentifier: .movie(id: 954))
-            .environmentObject(Watchlist(items: []))
+            .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .empty))
     }
 }
+#endif

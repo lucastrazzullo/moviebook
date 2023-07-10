@@ -31,9 +31,18 @@ struct RemoteImage<Content: View, Placeholder: View>: View {
                 placeholder()
             }
         }
-        .task {
-            if let url {
-                image = try? await imageLoader.fetch(url)
+        .onAppear {
+            Task {
+                if let url {
+                    image = try? await imageLoader.fetch(url)
+                }
+            }
+        }
+        .onChange(of: url) { url in
+            Task {
+                if let url {
+                    image = try? await imageLoader.fetch(url)
+                }
             }
         }
     }

@@ -215,9 +215,10 @@ struct IconWatchlistButton: View {
     }
 }
 
+#if DEBUG
+import MoviebookTestSupport
+
 struct WatchlistButton_Previews: PreviewProvider {
-    static let toWatchItem = WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil)))
-    static let watchedItem = WatchlistItem(id: .movie(id: 954), state: .watched(info: WatchlistItemWatchedInfo(toWatchInfo: .init(date: .now, suggestion: nil), rating: 6.4, date: .now)))
     static var previews: some View {
         VStack(spacing: 44) {
             IconWatchlistButton(
@@ -225,24 +226,25 @@ struct WatchlistButton_Previews: PreviewProvider {
                 watchlistItemReleaseDate: .now,
                 presentedItem: .constant(nil)
             )
-            .environmentObject(Watchlist(items: []))
+            .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .empty))
 
             IconWatchlistButton(
                 watchlistItemIdentifier: .movie(id: 954),
                 watchlistItemReleaseDate: .now,
                 presentedItem: .constant(nil)
             )
-            .environmentObject(Watchlist(items: [toWatchItem]))
+            .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .toWatchItems(withSuggestion: true)))
 
             IconWatchlistButton(
                 watchlistItemIdentifier: .movie(id: 954),
                 watchlistItemReleaseDate: .now,
                 presentedItem: .constant(nil)
             )
-            .environmentObject(Watchlist(items: [watchedItem]))
+            .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .watchedItems(withSuggestion: true, withRating: true)))
         }
         .padding(44)
         .background(.thinMaterial)
         .cornerRadius(12)
     }
 }
+#endif

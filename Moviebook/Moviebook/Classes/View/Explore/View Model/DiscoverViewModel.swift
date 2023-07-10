@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 import Combine
 import MoviebookCommon
 
@@ -33,11 +34,11 @@ import MoviebookCommon
         }
 
         let discoverSection: DiscoverMovieSection
-        var discoverGenre: MovieGenre.ID?
+        var discoverGenres: [MovieGenre.ID]
 
-        init(discoverSection: DiscoverMovieSection, discoverGenre: MovieGenre.ID?) {
+        init(discoverSection: DiscoverMovieSection, discoverGenres: [MovieGenre.ID] = []) {
             self.discoverSection = discoverSection
-            self.discoverGenre = discoverGenre
+            self.discoverGenres = discoverGenres
         }
 
         // MARK: ExploreContentDataProvider
@@ -45,27 +46,43 @@ import MoviebookCommon
         func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
             let response = try await WebService
                 .movieWebService(requestManager: requestManager)
-                .fetch(discoverSection: discoverSection, genre: discoverGenre, page: page)
+                .fetch(discoverSection: discoverSection, genres: discoverGenres, page: page)
 
             return (results: .movies(response.results), nextPage: response.nextPage)
         }
     }
 
-    // MARK: Instance Properties
+    final class PopularArtists: Identifiable, ExploreContentDataProvider {
 
-    @Published var genre: MovieGenre?
+        var title: String {
+            return "Popular artists"
+        }
+
+        func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
+            let response = try await WebService
+                .artistWebService(requestManager: requestManager)
+                .fetchPopular(page: page)
+
+            return (results: .artists(response.results), nextPage: response.nextPage)
+        }
+    }
+
+    // MARK: Instance Properties
 
     let sectionsContent: [ExploreContentViewModel]
 
-    private let sections: [DiscoverSection]
-    private var subscriptions: Set<AnyCancellable> = []
+    private let sections: [ExploreContentDataProvider]
 
     // MARK: Object life cycle
 
     init() {
-        self.sections = DiscoverMovieSection.allCases.map { section in
-            DiscoverSection(discoverSection: section, discoverGenre: nil)
-        }
+        self.sections = [
+            DiscoverSection(discoverSection: .popular),
+            DiscoverSection(discoverSection: .nowPlaying),
+            DiscoverSection(discoverSection: .upcoming),
+            DiscoverSection(discoverSection: .topRated),
+            PopularArtists()
+        ]
         self.sectionsContent = sections.map { discoverSection in
             ExploreContentViewModel(dataProvider: discoverSection)
         }
@@ -73,18 +90,14 @@ import MoviebookCommon
 
     // MARK: Instance methods
 
-    func start(requestManager: RequestManager) {
-        $genre
-            .sink { [weak self, weak requestManager] genre in
-                guard let self, let requestManager else { return }
-
-                for section in sections {
-                    section.discoverGenre = genre?.id
-                }
-                for content in sectionsContent {
-                    content.fetch(requestManager: requestManager)
-                }
+    func update(selectedGenres: Set<MovieGenre>, requestManager: RequestManager) {
+        for section in sections {
+            if let discoverSection = section as? DiscoverSection {
+                discoverSection.discoverGenres = selectedGenres.map(\.id)
             }
-            .store(in: &subscriptions)
+        }
+        for content in sectionsContent {
+            content.fetch(requestManager: requestManager)
+        }
     }
 }

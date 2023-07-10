@@ -13,17 +13,18 @@ public enum TheMovieDbUrlFactory {
     // MARK: Movie
 
     case movie(identifier: Movie.ID)
-    case mocieCollection(identifier: MovieCollection.ID)
+    case movieCollection(identifier: MovieCollection.ID)
     case watchProviders(movieIdentifier: Movie.ID)
     case movieGenres
 
     // MARK: Discover
 
-    case discover(page: Int?, section: DiscoverMovieSection, genre: MovieGenre.ID?)
+    case discover(page: Int?, section: DiscoverMovieSection, genres: [MovieGenre.ID])
 
     // MARK: Artist
 
     case artist(identifier: Artist.ID)
+    case popularArtists(page: Int?)
 
     // MARK: Search
 
@@ -38,19 +39,22 @@ public enum TheMovieDbUrlFactory {
             return try TheMovieDbDataRequestFactory.makeURL(path: "movie/\(identifier)", queryItems: [
                 URLQueryItem(name: "append_to_response", value: "credits,videos")
             ])
-        case .mocieCollection(let identifier):
+        case .movieCollection(let identifier):
             return try TheMovieDbDataRequestFactory.makeURL(path: "collection/\(identifier)")
         case .watchProviders(let movieIdentifier):
             return try TheMovieDbDataRequestFactory.makeURL(path: "movie/\(movieIdentifier)/watch/providers")
         case .movieGenres:
             return try TheMovieDbDataRequestFactory.makeURL(path: "genre/movie/list")
-        case .discover(let page, let section, let genre):
+        case .discover(let page, let section, let genres):
             var queryItems = [URLQueryItem]()
             if let page {
                 queryItems.append(URLQueryItem(name: "page", value: String(page)))
             }
-            if let genre {
-                queryItems.append(URLQueryItem(name: "with_genres", value: String(genre)))
+            if !genres.isEmpty {
+                let genresString = genres
+                    .map { String($0) }
+                    .joined(separator: ",")
+                queryItems.append(URLQueryItem(name: "with_genres", value: genresString))
             }
             switch section {
             case .popular:
@@ -97,6 +101,12 @@ public enum TheMovieDbUrlFactory {
             return try TheMovieDbDataRequestFactory.makeURL(path: "person/\(identifier)", queryItems: [
                 URLQueryItem(name: "append_to_response", value: "credits")
             ])
+        case .popularArtists(let page):
+            var queryItems = [URLQueryItem]()
+            if let page {
+                queryItems.append(URLQueryItem(name: "page", value: String(page)))
+            }
+            return try TheMovieDbDataRequestFactory.makeURL(path: "person/popular", queryItems: queryItems)
         case .searchMovie(let keyword, let page):
             var queryItems = [URLQueryItem(name: "query", value: keyword)]
             if let page {

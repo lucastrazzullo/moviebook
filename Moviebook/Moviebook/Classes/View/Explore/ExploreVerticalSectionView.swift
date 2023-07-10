@@ -14,22 +14,26 @@ struct ExploreVerticalSectionView: View {
     @Binding var presentedItem: NavigationItem?
 
     var body: some View {
-        LazyVStack {
+        VStack {
             if let error = viewModel.error {
                 RetriableErrorView(retry: error.retry)
             }
 
             switch viewModel.items {
             case .movies(let movies):
-                ForEach(movies) { movieDetails in
-                    MoviePreviewView(details: movieDetails, presentedItem: $presentedItem) {
-                        presentedItem = .movieWithIdentifier(movieDetails.id)
+                LazyVStack {
+                    ForEach(movies) { movieDetails in
+                        MoviePreviewView(details: movieDetails, presentedItem: $presentedItem) {
+                            presentedItem = .movieWithIdentifier(movieDetails.id)
+                        }
                     }
                 }
             case .artists(let artists):
-                ForEach(artists, id: \.self) { artistDetails in
-                    ArtistPreviewView(details: artistDetails) {
-                        presentedItem = .artistWithIdentifier(artistDetails.id)
+                LazyVGrid(columns: [GridItem(), GridItem(), GridItem()]) {
+                    ForEach(artists, id: \.self) { artistDetails in
+                        ArtistPreviewView(details: artistDetails) {
+                            presentedItem = .artistWithIdentifier(artistDetails.id)
+                        }
                     }
                 }
             }
@@ -73,10 +77,7 @@ struct ExploreSectionView_Previews: PreviewProvider {
     static var previews: some View {
         ExploreSectionViewPreview()
             .environment(\.requestManager, MockRequestManager.shared)
-            .environmentObject(Watchlist(items: [
-                WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: nil))),
-                WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: nil)))
-            ]))
+            .environmentObject(MockWatchlistProvider.shared.watchlist())
     }
 }
 
@@ -85,7 +86,8 @@ private struct ExploreSectionViewPreview: View {
     struct DataProvider: ExploreContentDataProvider {
         var title: String = "Mock"
         func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
-            let response = try await WebService.movieWebService(requestManager: requestManager).fetch(discoverSection: .popular, genre: nil, page: page)
+            let response = try await WebService.movieWebService(requestManager: requestManager)
+                .fetch(discoverSection: .popular, genres: [], page: page)
             return (results: .movies(response.results), nextPage: response.nextPage)
         }
     }
