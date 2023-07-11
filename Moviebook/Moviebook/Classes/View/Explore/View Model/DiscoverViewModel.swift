@@ -69,7 +69,40 @@ import MoviebookCommon
 
     final class ForYou: Identifiable, ExploreContentDataProvider {
 
-        private var watchlistMovies: [Movie.ID] = []
+        struct WatchlistMovie {
+
+            enum Weight {
+                case exceptional
+                case important
+                case neutral
+                case unwanted
+            }
+
+            let id: Movie.ID
+            let weight: Weight
+
+            init?(watchlistItem: WatchlistItem) {
+                guard case .movie(let movieId) = watchlistItem.id else {
+                    return nil
+                }
+
+                if case .watched(let info) = watchlistItem.state, let rating = info.rating {
+                    self.weight = rating >= 9
+                        ? .exceptional
+                        : rating >= 7
+                            ? .important
+                            : rating < 6
+                                ? .unwanted
+                                : .neutral
+                } else {
+                    self.weight = .neutral
+                }
+
+                self.id = movieId
+            }
+        }
+
+        private var watchlistMovies: [WatchlistMovie] = []
         private var watchlistPopularKeywords: [MovieKeyword.ID] = []
         private var watchlistPopularGenres: [MovieGenre.ID] = []
 
@@ -88,21 +121,37 @@ import MoviebookCommon
                              genres: watchlistPopularGenres,
                              page: page)
 
-            let movieIdsSet = Set(watchlistMovies)
+            let movieIdsSet = Set(watchlistMovies.map(\.id))
             let results = response.results.filter { !movieIdsSet.contains($0.id) }
 
             return (results: .movies(results), nextPage: response.nextPage)
         }
 
         func update(watchlistItems: [WatchlistItem], requestManager: RequestManager) async {
-            watchlistMovies = watchlistItems
-                .compactMap { item in if case .movie(let id) = item.id { return id } else { return nil }}
+            watchlistMovies = watchlistItems.compactMap(WatchlistMovie.init(watchlistItem:))
 
             watchlistPopularKeywords = await withTaskGroup(of: [MovieKeyword.ID].self) { group in
-                for movieId in watchlistMovies {
+                for watchlistMovie in watchlistMovies {
                     group.addTask {
-                        let keywords = try? await WebService.movieWebService(requestManager: requestManager).fetchMovieKeywords(with: movieId)
-                        return keywords?.map(\.id) ?? []
+                        if case .unwanted = watchlistMovie.weight {
+                            return []
+                        }
+
+                        guard let keywords = try? await WebService.movieWebService(requestManager: requestManager)
+                            .fetchMovieKeywords(with: watchlistMovie.id) else {
+                            return []
+                        }
+
+                        switch watchlistMovie.weight {
+                        case .exceptional:
+                            return (keywords+keywords+keywords+keywords).map(\.id)
+                        case .important:
+                            return (keywords+keywords).map(\.id)
+                        case .neutral:
+                            return keywords.map(\.id)
+                        case .unwanted:
+                            return []
+                        }
                     }
                 }
 
@@ -115,10 +164,27 @@ import MoviebookCommon
             }
 
             watchlistPopularGenres = await withTaskGroup(of: [MovieGenre.ID].self) { group in
-                for movieId in watchlistMovies {
+                for watchlistMovie in watchlistMovies {
                     group.addTask {
-                        let movie = try? await WebService.movieWebService(requestManager: requestManager).fetchMovie(with: movieId)
-                        return movie?.genres.map(\.id) ?? []
+                        if case .unwanted = watchlistMovie.weight {
+                            return []
+                        }
+
+                        guard let genres = try? await WebService.movieWebService(requestManager: requestManager)
+                            .fetchMovie(with: watchlistMovie.id).genres else {
+                            return []
+                        }
+
+                        switch watchlistMovie.weight {
+                        case .exceptional:
+                            return (genres+genres+genres+genres).map(\.id)
+                        case .important:
+                            return (genres+genres).map(\.id)
+                        case .neutral:
+                            return genres.map(\.id)
+                        case .unwanted:
+                            return []
+                        }
                     }
                 }
 
