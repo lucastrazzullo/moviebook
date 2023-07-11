@@ -179,8 +179,12 @@ import MoviebookCommon
 
         guard let updateTask, !updateTask.isCancelled else { return }
 
-        for content in sectionsContent {
-            content.fetch(requestManager: requestManager)
+        await withTaskGroup(of: Void.self) { group in
+            for content in sectionsContent {
+                group.addTask {
+                    await content.fetch(requestManager: requestManager)
+                }
+            }
         }
     }
 }
