@@ -199,9 +199,9 @@ private struct WatchlistListView: View {
                     ForEach(viewModel.items) { item in
                         switch item {
                         case .movie(let movie, let watchlistItem):
-                            WatchlistMovieItemView(
+                            MovieShelfPreviewView(
                                 presentedItem: $presentedItem,
-                                movie: movie,
+                                movieDetails: movie.details,
                                 watchlistIdentifier: watchlistItem.id
                             )
                         }
@@ -221,55 +221,6 @@ private struct WatchlistListView: View {
     private func updateShouldShowBars(geometry: GeometryProxy) {
         shouldShowTopBar = scrollContent.offset > 0
         shouldShowBottomBar = -(scrollContent.offset - scrollContent.height) > geometry.size.height + 20
-    }
-}
-
-private struct WatchlistMovieItemView: View {
-
-    @EnvironmentObject var watchlist: Watchlist
-
-    @Binding var presentedItem: NavigationItem?
-
-    let movie: Movie
-    let watchlistIdentifier: WatchlistItemIdentifier
-
-    var body: some View {
-        Group {
-            RemoteImage(url: movie.details.media.posterPreviewUrl) { image in
-                image.resizable()
-            } placeholder: {
-                Color.gray.opacity(0.2)
-            }
-            .aspectRatio(contentMode: .fill)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .onTapGesture {
-                presentedItem = .movie(movie)
-            }
-        }
-        .overlay(alignment: .bottom) {
-            HStack(alignment: .center) {
-                if movie.details.release > Date.now {
-                    HStack(spacing: 4) {
-                        Text("Release")
-                        Text(movie.details.release, format: .dateTime.year())
-                    }
-                    .font(.caption2).bold()
-                    .padding(6)
-                    .background(.yellow, in: RoundedRectangle(cornerRadius: 6))
-                    .foregroundColor(.black)
-                }
-
-                Spacer()
-
-                IconWatchlistButton(
-                    watchlistItemIdentifier: watchlistIdentifier,
-                    watchlistItemReleaseDate: movie.details.release,
-                    presentedItem: $presentedItem
-                )
-            }
-            .padding(10)
-        }
-        .id(watchlistIdentifier)
     }
 }
 

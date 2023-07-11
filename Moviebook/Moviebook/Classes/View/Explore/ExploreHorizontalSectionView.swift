@@ -10,9 +10,15 @@ import MoviebookCommon
 
 struct ExploreHorizontalSectionView<Destination: View>: View {
 
+    enum Layout {
+        case shelf
+        case multirows
+    }
+
     @ObservedObject var viewModel: ExploreContentViewModel
     @Binding var presentedItem: NavigationItem?
 
+    let layout: Layout
     let geometry: GeometryProxy
 
     @ViewBuilder let viewAllDestination: () -> Destination
@@ -38,33 +44,65 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
                 } else {
                     switch viewModel.items {
                     case .movies(let movies):
-                        PagedHorizontalGridView(
-                            items: movies,
-                            spacing: 16,
-                            pageWidth: geometry.frame(in: .global).size.width * 0.85,
-                            rows: 3,
-                            itemView: { movieDetails in
-                                MoviePreviewView(details: movieDetails, presentedItem: $presentedItem, style: .backdrop) {
-                                    presentedItem = .movieWithIdentifier(movieDetails.id)
+                        switch layout {
+                        case .multirows:
+                            PagedHorizontalGridView(
+                                items: movies,
+                                spacing: 16,
+                                pageWidth: geometry.frame(in: .global).size.width * 0.85,
+                                rows: 3,
+                                itemView: { movieDetails in
+                                    MoviePreviewView(details: movieDetails, presentedItem: $presentedItem, style: .backdrop) {
+                                        presentedItem = .movieWithIdentifier(movieDetails.id)
+                                    }
+                                    .frame(width: geometry.frame(in: .global).size.width * 0.85)
                                 }
-                                .frame(width: geometry.frame(in: .global).size.width * 0.85)
+                            )
+                        case .shelf:
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack {
+                                    ForEach(movies) { movieDetails in
+                                        MovieShelfPreviewView(
+                                            presentedItem: $presentedItem,
+                                            movieDetails: movieDetails,
+                                            watchlistIdentifier: .movie(id: movieDetails.id)
+                                        )
+                                    }
+                                }
+                                .frame(height: 200)
+                                .padding(.horizontal)
                             }
-                        )
+                        }
                         
                     case .artists(let artists):
-                        PagedHorizontalGridView(
-                            items: artists,
-                            spacing: 16,
-                            pageWidth: geometry.frame(in: .global).size.width * 0.8,
-                            rows: 2,
-                            itemView: { artistDetails in
-                                ArtistPreviewView(details: artistDetails) {
-                                    presentedItem = .artistWithIdentifier(artistDetails.id)
+                        switch layout {
+                        case .multirows:
+                            PagedHorizontalGridView(
+                                items: artists,
+                                spacing: 16,
+                                pageWidth: geometry.frame(in: .global).size.width * 0.8,
+                                rows: 2,
+                                itemView: { artistDetails in
+                                    ArtistPreviewView(details: artistDetails) {
+                                        presentedItem = .artistWithIdentifier(artistDetails.id)
+                                    }
+                                    .frame(width: geometry.frame(in: .global).size.width / 4)
+                                    .frame(height: 160)
                                 }
-                                .frame(width: geometry.frame(in: .global).size.width / 4)
-                                .frame(height: 160)
+                            )
+                        case .shelf:
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack {
+                                    ForEach(artists) { artistDetails in
+                                        ArtistPreviewView(details: artistDetails) {
+                                            presentedItem = .artistWithIdentifier(artistDetails.id)
+                                        }
+                                    }
+                                }
+                                .frame(height: 200)
+                                .padding(.horizontal)
                             }
-                        )
+                        }
                     }
                 }
             }
@@ -153,17 +191,35 @@ private struct ExploreHorizontalSectionViewPreview: View {
     var body: some View {
         GeometryReader { geometry in
             ScrollView {
-                ExploreHorizontalSectionView(
-                    viewModel: moviesViewModel,
-                    presentedItem: .constant(nil),
-                    geometry: geometry,
-                    viewAllDestination: { EmptyView() })
+                VStack {
+                    ExploreHorizontalSectionView(
+                        viewModel: moviesViewModel,
+                        presentedItem: .constant(nil),
+                        layout: .shelf,
+                        geometry: geometry,
+                        viewAllDestination: { EmptyView() })
 
-                ExploreHorizontalSectionView(
-                    viewModel: artistsViewModel,
-                    presentedItem: .constant(nil),
-                    geometry: geometry,
-                    viewAllDestination: { EmptyView() })
+                    ExploreHorizontalSectionView(
+                        viewModel: moviesViewModel,
+                        presentedItem: .constant(nil),
+                        layout: .multirows,
+                        geometry: geometry,
+                        viewAllDestination: { EmptyView() })
+
+                    ExploreHorizontalSectionView(
+                        viewModel: artistsViewModel,
+                        presentedItem: .constant(nil),
+                        layout: .multirows,
+                        geometry: geometry,
+                        viewAllDestination: { EmptyView() })
+
+                    ExploreHorizontalSectionView(
+                        viewModel: artistsViewModel,
+                        presentedItem: .constant(nil),
+                        layout: .shelf,
+                        geometry: geometry,
+                        viewAllDestination: { EmptyView() })
+                }
             }
         }
         .onAppear {

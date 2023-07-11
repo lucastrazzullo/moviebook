@@ -54,6 +54,7 @@ protocol ExploreContentDataProvider {
     init(dataProvider: ExploreContentDataProvider) {
         self.dataProvider = dataProvider
         self.title = dataProvider.title
+        self.subtitle = dataProvider.subtitle
     }
 
     func fetch(requestManager: RequestManager, page: Int? = nil) {
