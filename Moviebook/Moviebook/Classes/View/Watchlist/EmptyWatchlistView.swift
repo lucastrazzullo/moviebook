@@ -23,9 +23,9 @@ struct EmptyWatchlistView: View {
                     group.addTask {
                         switch section {
                         case .toWatch:
-                            return (section: section, results: try await webService.fetch(discoverSection: .upcoming, genres: [], page: nil).results)
+                            return (section: section, results: try await webService.fetchMovies(discoverSection: .upcoming, genres: [], page: nil).results)
                         case .watched:
-                            return (section: section, results: try await webService.fetch(discoverSection: .popular, genres: [], page: nil).results)
+                            return (section: section, results: try await webService.fetchMovies(discoverSection: .popular, genres: [], page: nil).results)
                         }
                     }
                 }

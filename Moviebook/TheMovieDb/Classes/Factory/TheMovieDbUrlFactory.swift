@@ -15,11 +15,12 @@ public enum TheMovieDbUrlFactory {
     case movie(identifier: Movie.ID)
     case movieCollection(identifier: MovieCollection.ID)
     case watchProviders(movieIdentifier: Movie.ID)
+    case movieKeywords(movieIdentifier: Movie.ID)
     case movieGenres
 
     // MARK: Discover
 
-    case movies(genres: [MovieGenre.ID], page: Int?)
+    case movies(keywords: [MovieKeyword.ID], genres: [MovieGenre.ID], page: Int?)
     case discover(section: DiscoverMovieSection, genres: [MovieGenre.ID], page: Int?)
 
     // MARK: Artist
@@ -44,17 +45,25 @@ public enum TheMovieDbUrlFactory {
             return try TheMovieDbDataRequestFactory.makeURL(path: "collection/\(identifier)")
         case .watchProviders(let movieIdentifier):
             return try TheMovieDbDataRequestFactory.makeURL(path: "movie/\(movieIdentifier)/watch/providers")
+        case .movieKeywords(let movieIdentifier):
+            return try TheMovieDbDataRequestFactory.makeURL(path: "movie/\(movieIdentifier)/keywords")
         case .movieGenres:
             return try TheMovieDbDataRequestFactory.makeURL(path: "genre/movie/list")
-        case .movies(let genres, let page):
+        case .movies(let keywords, let genres, let page):
             var queryItems = [URLQueryItem]()
             if let page {
                 queryItems.append(URLQueryItem(name: "page", value: String(page)))
             }
+            if !keywords.isEmpty {
+                let keywordsString = keywords
+                    .map { String($0) }
+                    .joined(separator: "|")
+                queryItems.append(URLQueryItem(name: "with_keywords", value: keywordsString))
+            }
             if !genres.isEmpty {
                 let genresString = genres
                     .map { String($0) }
-                    .joined(separator: ",")
+                    .joined(separator: "|")
                 queryItems.append(URLQueryItem(name: "with_genres", value: genresString))
             }
             return try TheMovieDbDataRequestFactory.makeURL(path: "discover/movie", queryItems: queryItems)

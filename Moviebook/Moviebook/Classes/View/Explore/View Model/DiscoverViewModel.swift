@@ -46,7 +46,7 @@ import MoviebookCommon
         func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
             let response = try await WebService
                 .movieWebService(requestManager: requestManager)
-                .fetch(discoverSection: discoverSection, genres: discoverGenres, page: page)
+                .fetchMovies(discoverSection: discoverSection, genres: discoverGenres, page: page)
 
             return (results: .movies(response.results), nextPage: response.nextPage)
         }
@@ -70,6 +70,7 @@ import MoviebookCommon
     final class ForYou: Identifiable, ExploreContentDataProvider {
 
         private var watchlistMovies: [Movie.ID] = []
+        private var watchlistPopularKeywords: [MovieKeyword.ID] = []
         private var watchlistPopularGenres: [MovieGenre.ID] = []
 
         var title: String {
@@ -83,7 +84,9 @@ import MoviebookCommon
 
             let response = try await WebService
                 .movieWebService(requestManager: requestManager)
-                .fetchMovies(genres: watchlistPopularGenres, page: page)
+                .fetchMovies(keywords: watchlistPopularKeywords,
+                             genres: watchlistPopularGenres,
+                             page: page)
 
             let movieIdsSet = Set(watchlistMovies)
             let results = response.results.filter { !movieIdsSet.contains($0.id) }
@@ -94,6 +97,22 @@ import MoviebookCommon
         func update(watchlistItems: [WatchlistItem], requestManager: RequestManager) async {
             watchlistMovies = watchlistItems
                 .compactMap { item in if case .movie(let id) = item.id { return id } else { return nil }}
+
+            watchlistPopularKeywords = await withTaskGroup(of: [MovieKeyword.ID].self) { group in
+                for movieId in watchlistMovies {
+                    group.addTask {
+                        let keywords = try? await WebService.movieWebService(requestManager: requestManager).fetchMovieKeywords(with: movieId)
+                        return keywords?.map(\.id) ?? []
+                    }
+                }
+
+                var keywords: [MovieKeyword.ID] = []
+                for await response in group {
+                    keywords.append(contentsOf: response)
+                }
+
+                return getMostPopular(items: keywords, cap: 3)
+            }
 
             watchlistPopularGenres = await withTaskGroup(of: [MovieGenre.ID].self) { group in
                 for movieId in watchlistMovies {
@@ -108,20 +127,24 @@ import MoviebookCommon
                     genres.append(contentsOf: response)
                 }
 
-                var genresOccourrences: [MovieGenre.ID: Int] = [:]
-                for genre in genres {
-                    genresOccourrences[genre] = (genresOccourrences[genre] ?? 0) + 1
-                }
+                return getMostPopular(items: genres, cap: 3)
+            }
+        }
 
-                let sortedGenres = genresOccourrences.keys.sorted(by: { lhs, rhs in
-                    return genresOccourrences[lhs] ?? 0 > genresOccourrences[rhs] ?? 0
-                })
+        private func getMostPopular<Item: Hashable>(items: [Item], cap: Int) -> [Item] {
+            var itemsOccurrences: [Item: Int] = [:]
+            for item in items {
+                itemsOccurrences[item] = (itemsOccurrences[item] ?? 0) + 1
+            }
 
-                if sortedGenres.count > 3 {
-                    return Array(sortedGenres[0..<3])
-                } else {
-                    return sortedGenres
-                }
+            let sortedItems = itemsOccurrences.keys.sorted(by: { lhs, rhs in
+                return itemsOccurrences[lhs] ?? 0 > itemsOccurrences[rhs] ?? 0
+            })
+
+            if sortedItems.count > cap {
+                return Array(sortedItems[0..<cap])
+            } else {
+                return sortedItems
             }
         }
     }
