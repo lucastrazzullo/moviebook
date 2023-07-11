@@ -35,6 +35,7 @@ enum ExploreContentItems {
 
 protocol ExploreContentDataProvider {
     var title: String { get }
+    var subtitle: String? { get }
 
     func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?)
 }
@@ -42,6 +43,7 @@ protocol ExploreContentDataProvider {
 @MainActor final class ExploreContentViewModel: ObservableObject, Identifiable {
 
     @Published var title: String
+    @Published var subtitle: String?
     @Published var items: ExploreContentItems = .movies([])
     @Published var isLoading: Bool = false
     @Published var error: WebServiceError? = nil
@@ -58,6 +60,7 @@ protocol ExploreContentDataProvider {
         Task {
             do {
                 title = dataProvider.title
+                subtitle = dataProvider.subtitle
 
                 isLoading = true
                 error = nil

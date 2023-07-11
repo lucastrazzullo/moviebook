@@ -23,6 +23,7 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
                 VStack {
                     HeaderView(
                         title: viewModel.title,
+                        subtitle: viewModel.subtitle,
                         isLoading: viewModel.isLoading,
                         destination: viewModel.error == nil ? viewAllDestination() : nil
                     )
@@ -74,15 +75,24 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
 private struct HeaderView<Destination: View>: View {
 
     let title: String
+    let subtitle: String?
     let isLoading: Bool
     let destination: Destination?
 
     var body: some View {
-        HStack(spacing: 4) {
-            Text(title)
-                .font(.title3)
-                .bold()
-                .foregroundColor(.primary)
+        HStack(alignment: .lastTextBaseline, spacing: 4) {
+            VStack(alignment: .leading) {
+                Text(title)
+                    .font(.title3)
+                    .bold()
+                    .foregroundColor(.primary)
+
+                if let subtitle {
+                    Text(subtitle)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+            }
 
             if isLoading {
                 ProgressView()
@@ -117,7 +127,8 @@ struct ExploreHorizontalSectionView_Previews: PreviewProvider {
 private struct ExploreHorizontalSectionViewPreview: View {
 
     struct MovieDataProvider: ExploreContentDataProvider {
-        var title: String = "Movies"
+        let title: String = "Movies"
+        let subtitle: String? = "Subtitle"
         func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
             let response = try await WebService.movieWebService(requestManager: requestManager)
                 .fetchMovies(discoverSection: .popular, genres: [], page: page)
@@ -127,6 +138,7 @@ private struct ExploreHorizontalSectionViewPreview: View {
 
     struct ArtistDataProvider: ExploreContentDataProvider {
         var title: String = "Artists"
+        let subtitle: String? = "Subtitle"
         func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
             let response = try await WebService.artistWebService(requestManager: requestManager)
                 .fetchPopular(page: page)

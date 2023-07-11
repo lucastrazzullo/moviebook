@@ -23,6 +23,8 @@ import MoviebookCommon
             NSLocalizedString("EXPLORE.SEARCH.RESULTS", comment: "")
         }
 
+        let subtitle: String? = nil
+
         var searchScope: Scope
         var searchKeyword: String
 

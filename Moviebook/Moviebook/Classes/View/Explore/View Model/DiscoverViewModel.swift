@@ -33,6 +33,8 @@ import MoviebookCommon
             }
         }
 
+        let subtitle: String? = nil
+
         let discoverSection: DiscoverMovieSection
         var discoverGenres: [MovieGenre.ID]
 
@@ -57,6 +59,8 @@ import MoviebookCommon
         var title: String {
             return "Popular artists"
         }
+
+        let subtitle: String? = nil
 
         func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
             let response = try await WebService
@@ -106,9 +110,8 @@ import MoviebookCommon
         private var watchlistPopularKeywords: [MovieKeyword.ID] = []
         private var watchlistPopularGenres: [MovieGenre.ID] = []
 
-        var title: String {
-            return "For you"
-        }
+        let title: String = "For you"
+        let subtitle: String? = "based on your watchlist"
 
         func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
             guard !watchlistPopularGenres.isEmpty else {
