@@ -34,13 +34,13 @@ import MoviebookCommon
         }
 
         let subtitle: String? = nil
+        var genresFilter: [MovieGenre.ID]
 
-        let discoverSection: DiscoverMovieSection
-        var discoverGenres: [MovieGenre.ID]
+        private let discoverSection: DiscoverMovieSection
 
         init(discoverSection: DiscoverMovieSection, discoverGenres: [MovieGenre.ID] = []) {
             self.discoverSection = discoverSection
-            self.discoverGenres = discoverGenres
+            self.genresFilter = discoverGenres
         }
 
         // MARK: ExploreContentDataProvider
@@ -48,7 +48,7 @@ import MoviebookCommon
         func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
             let response = try await WebService
                 .movieWebService(requestManager: requestManager)
-                .fetchMovies(discoverSection: discoverSection, genres: discoverGenres, page: page)
+                .fetchMovies(discoverSection: discoverSection, genres: genresFilter, page: page)
 
             return (results: .movies(response.results), nextPage: response.nextPage)
         }
@@ -106,12 +106,12 @@ import MoviebookCommon
             }
         }
 
+        let title: String = "For you"
+        let subtitle: String? = "based on your watchlist"
+
         private var watchlistMovies: [WatchlistMovie] = []
         private var watchlistPopularKeywords: [MovieKeyword.ID] = []
         private var watchlistPopularGenres: [MovieGenre.ID] = []
-
-        let title: String = "For you"
-        let subtitle: String? = "based on your watchlist"
 
         func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
             guard !watchlistPopularGenres.isEmpty else {
@@ -222,25 +222,20 @@ import MoviebookCommon
 
     @Published private(set) var sectionsContent: [ExploreContentViewModel] = []
 
-    private var sections: [ExploreContentDataProvider] = []
-
     private var updateTask: Task<Void, Never>?
     private var subscriptions: Set<AnyCancellable> = []
 
     // MARK: Object life cycle
 
     init() {
-        self.sections = [
-            ForYou(),
-            DiscoverSection(discoverSection: .popular),
-            DiscoverSection(discoverSection: .nowPlaying),
-            DiscoverSection(discoverSection: .upcoming),
-            DiscoverSection(discoverSection: .topRated),
-            PopularArtists()
+        self.sectionsContent = [
+            ExploreContentViewModel(dataProvider: ForYou()),
+            ExploreContentViewModel(dataProvider: DiscoverSection(discoverSection: .popular)),
+            ExploreContentViewModel(dataProvider: DiscoverSection(discoverSection: .nowPlaying)),
+            ExploreContentViewModel(dataProvider: DiscoverSection(discoverSection: .upcoming)),
+            ExploreContentViewModel(dataProvider: DiscoverSection(discoverSection: .topRated)),
+            ExploreContentViewModel(dataProvider: PopularArtists())
         ]
-        self.sectionsContent = sections.map { content in
-            ExploreContentViewModel(dataProvider: content)
-        }
     }
 
     // MARK: Instance methods
@@ -260,20 +255,16 @@ import MoviebookCommon
     }
 
     private func update(selectedGenres: Set<MovieGenre>, watchlistItems: [WatchlistItem], requestManager: RequestManager) async {
-        for section in sections {
-            if let discoverSection = section as? DiscoverSection {
-                discoverSection.discoverGenres = selectedGenres.map(\.id)
-            }
-            if let discoverSection = section as? ForYou {
-                await discoverSection.update(watchlistItems: watchlistItems, requestManager: requestManager)
-            }
-        }
-
-        guard let updateTask, !updateTask.isCancelled else { return }
-
         await withTaskGroup(of: Void.self) { group in
             for content in sectionsContent {
                 group.addTask {
+                    if let discoverSection = content.dataProvider as? DiscoverSection {
+                        discoverSection.genresFilter = selectedGenres.map(\.id)
+                    }
+                    if let forYouSection = content.dataProvider as? ForYou {
+                        await forYouSection.update(watchlistItems: watchlistItems, requestManager: requestManager)
+                    }
+
                     await content.fetch(requestManager: requestManager)
                 }
             }

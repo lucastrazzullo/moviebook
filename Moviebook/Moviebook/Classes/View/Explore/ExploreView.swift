@@ -52,11 +52,6 @@ struct ExploreView: View {
                                             }
                                             .scrollIndicators(.hidden)
                                             .navigationTitle(content.title)
-                                            .toolbar {
-                                                ToolbarItem(placement: .navigationBarTrailing) {
-                                                    ExploreGenresPicker(viewModel: discoverGenresViewModel)
-                                                }
-                                            }
                                         }
                                     )
                                 }

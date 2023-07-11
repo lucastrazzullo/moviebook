@@ -49,7 +49,7 @@ protocol ExploreContentDataProvider {
     @Published var error: WebServiceError? = nil
     @Published var fetchNextPage: (() -> Void)?
 
-    private let dataProvider: ExploreContentDataProvider
+    let dataProvider: ExploreContentDataProvider
 
     init(dataProvider: ExploreContentDataProvider) {
         self.dataProvider = dataProvider
