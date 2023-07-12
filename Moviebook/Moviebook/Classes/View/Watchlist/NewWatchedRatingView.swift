@@ -137,7 +137,7 @@ struct NewWatchedRatingView: View {
                                         let minimumAllowedOffset = -currentRating
                                         let maximumAllowedOffset = quota - currentRating
                                         let measuredOffset = max(minimumAllowedOffset, min(maximumAllowedOffset, offset))
-                                        let roundedOffset = round((measuredOffset) * 10) / 10
+                                        let roundedOffset = round(measuredOffset)
                                         if ratingOffset != roundedOffset {
                                             ratingOffset = roundedOffset
                                         }

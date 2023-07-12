@@ -10,7 +10,6 @@ import MoviebookCommon
 
 enum NavigationItem: Identifiable, Hashable {
     case explore
-    case movie(_ movie: Movie)
     case movieWithIdentifier(_ id: Movie.ID)
     case artistWithIdentifier(_ id: Artist.ID)
     case watchlistAddToWatchReason(itemIdentifier: WatchlistItemIdentifier)
@@ -20,8 +19,6 @@ enum NavigationItem: Identifiable, Hashable {
         switch self {
         case .explore:
             return "Explore"
-        case .movie(let movie):
-            return movie.id
         case .movieWithIdentifier(let id):
             return id
         case .artistWithIdentifier(let id):

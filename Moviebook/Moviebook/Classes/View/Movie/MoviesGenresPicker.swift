@@ -1,5 +1,5 @@
 //
-//  ExploreGenresPicker.swift
+//  MoviesGenresPicker.swift
 //  Moviebook
 //
 //  Created by Luca Strazzullo on 09/07/2023.
@@ -7,9 +7,9 @@
 
 import SwiftUI
 
-struct ExploreGenresPicker: View {
+struct MoviesGenresPicker: View {
 
-    @ObservedObject var viewModel: DiscoverGenresViewModel
+    @ObservedObject var viewModel: MovieGenresViewModel
 
     var body: some View {
         Menu {
@@ -61,10 +61,10 @@ import MoviebookTestSupport
 
 struct ExploreGenresPicker_Previews: PreviewProvider {
 
-    static var viewModel = DiscoverGenresViewModel()
+    static var viewModel = MovieGenresViewModel()
 
     static var previews: some View {
-        ExploreGenresPicker(viewModel: viewModel)
+        MoviesGenresPicker(viewModel: viewModel)
             .onAppear {
                 viewModel.start(requestManager: MockRequestManager.shared)
             }

@@ -84,10 +84,11 @@ struct ExploreSectionView_Previews: PreviewProvider {
 private struct ExploreSectionViewPreview: View {
 
     struct DataProvider: ExploreContentDataProvider {
-        var title: String = "Mock"
+        let title: String = "Mock"
+        let subtitle: String? = "Subtitle"
         func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
             let response = try await WebService.movieWebService(requestManager: requestManager)
-                .fetch(discoverSection: .popular, genres: [], page: page)
+                .fetchMovies(discoverSection: .popular, genres: [], page: page)
             return (results: .movies(response.results), nextPage: response.nextPage)
         }
     }
@@ -99,8 +100,8 @@ private struct ExploreSectionViewPreview: View {
         ScrollView {
             ExploreVerticalSectionView(viewModel: viewModel, presentedItem: .constant(nil))
         }
-        .onAppear {
-            viewModel.fetch(requestManager: requestManager)
+        .task {
+            await viewModel.fetch(requestManager: requestManager)
         }
     }
 

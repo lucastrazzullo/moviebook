@@ -1,5 +1,5 @@
 //
-//  DiscoverGenresViewModel.swift
+//  MovieGenresViewModel.swift
 //  Moviebook
 //
 //  Created by Luca Strazzullo on 08/07/2023.
@@ -8,7 +8,7 @@
 import Foundation
 import MoviebookCommon
 
-@MainActor final class DiscoverGenresViewModel: ObservableObject {
+@MainActor final class MovieGenresViewModel: ObservableObject {
 
     @Published var selectedGenres: Set<MovieGenre> = []
 

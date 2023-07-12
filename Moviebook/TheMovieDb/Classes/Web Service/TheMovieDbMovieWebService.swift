@@ -47,21 +47,27 @@ public struct TheMovieDbMovieWebService: MovieWebService {
         return WatchProviders(collections: Dictionary(uniqueKeysWithValues: results))
     }
 
+    public func fetchMovieKeywords(with movieIdentifier: Movie.ID) async throws -> [MovieKeyword] {
+        let url = try TheMovieDbUrlFactory.movieKeywords(movieIdentifier: movieIdentifier).makeUrl()
+        let data = try await requestManager.request(from: url)
+        return try JSONDecoder().decode(TMDBMovieKeywordsResponse.self, from: data).keywords.map(\.result)
+    }
+
     public func fetchMovieGenres() async throws -> [MovieGenre] {
         let url = try TheMovieDbUrlFactory.movieGenres.makeUrl()
         let data = try await requestManager.request(from: url)
         return try JSONDecoder().decode(TMDBMovieGenresResponse.self, from: data).genres.map(\.result)
     }
 
-    public func fetchMovies(genres: [MovieGenre.ID], page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?) {
-        let url = try TheMovieDbUrlFactory.movies(genres: genres, page: page).makeUrl()
+    public func fetchMovies(keywords: [MovieKeyword.ID], genres: [MovieGenre.ID], page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?) {
+        let url = try TheMovieDbUrlFactory.movies(keywords: keywords, genres: genres, page: page).makeUrl()
         let data = try await requestManager.request(from: url)
         let response = try JSONDecoder().decode(TMDBResponseWithListResults<TMDBMovieDetailsResponse>.self, from: data)
 
         return (results: response.results.map(\.result), nextPage: response.nextPage)
     }
 
-    public func fetch(discoverSection: DiscoverMovieSection, genres: [MovieGenre.ID], page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?) {
+    public func fetchMovies(discoverSection: DiscoverMovieSection, genres: [MovieGenre.ID], page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?) {
         let url = try TheMovieDbUrlFactory.discover(section: discoverSection, genres: genres, page: page).makeUrl()
         let data = try await requestManager.request(from: url)
         let response = try JSONDecoder().decode(TMDBResponseWithListResults<TMDBMovieDetailsResponse>.self, from: data)

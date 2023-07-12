@@ -34,8 +34,6 @@ private struct NavigationDestination: View {
         switch item {
         case .explore:
             ExploreView()
-        case .movie(let movie):
-            MovieView(movie: movie, navigationPath: $navigationPath)
         case .movieWithIdentifier(let id):
             MovieView(movieId: id, navigationPath: $navigationPath)
         case .artistWithIdentifier(let id):

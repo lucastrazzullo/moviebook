@@ -10,22 +10,16 @@ import MoviebookCommon
 
 struct ExploreHorizontalMovieGenreSectionView: View {
 
-    @ObservedObject var viewModel: DiscoverGenresViewModel
+    @ObservedObject var viewModel: MovieGenresViewModel
 
     var body: some View {
         VStack {
-            VStack(alignment: .leading) {
-                Text("Genres")
-                    .font(.title3)
-                    .bold()
-                    .foregroundColor(.primary)
-
-                Text(viewModel.selectedGenres.map(\.name).sorted().joined(separator: ", "))
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal)
+            Text("Genres")
+                .font(.title3)
+                .bold()
+                .foregroundColor(.primary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack {
@@ -61,7 +55,7 @@ import MoviebookTestSupport
 
 struct ExploreHorizontalGenreSection_Previews: PreviewProvider {
 
-    static var viewModel = DiscoverGenresViewModel()
+    static var viewModel = MovieGenresViewModel()
 
     static var previews: some View {
         ScrollView {

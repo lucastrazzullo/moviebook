@@ -23,6 +23,8 @@ import MoviebookCommon
             NSLocalizedString("EXPLORE.SEARCH.RESULTS", comment: "")
         }
 
+        let subtitle: String? = nil
+
         var searchScope: Scope
         var searchKeyword: String
 
@@ -73,7 +75,9 @@ import MoviebookCommon
                 self.search.searchKeyword = keyword
                 self.search.searchScope = scope
 
-                self.content.fetch(requestManager: requestManager)
+                Task {
+                    await self.content.fetch(requestManager: requestManager)
+                }
             })
             .store(in: &subscriptions)
     }
