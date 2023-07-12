@@ -807,8 +807,8 @@
 			isa = PBXGroup;
 			children = (
 				81B7DBFA2A14BE1A00AF9118 /* ExploreContentViewModel.swift */,
-				814BC2DB2A5E80F200F60606 /* Discover */,
 				812489C129F15307004A6BE6 /* SearchViewModel.swift */,
+				814BC2DB2A5E80F200F60606 /* Discover */,
 			);
 			path = "View Model";
 			sourceTree = "<group>";

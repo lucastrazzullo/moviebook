@@ -50,21 +50,27 @@ final class DiscoverForYou: Identifiable, ExploreContentDataProvider {
     private var watchlistPopularKeywords: [MovieKeyword.ID] = []
     private var watchlistPopularGenres: [MovieGenre.ID] = []
 
-    func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
+    func fetch(requestManager: RequestManager, page: Int?) async throws -> ExploreContentDataProvider.Response {
         if watchlistPopularGenres.isEmpty && watchlistPopularKeywords.isEmpty {
             return (results: .movies([]), nextPage: nil)
         }
 
-        let response = try await WebService
-            .movieWebService(requestManager: requestManager)
-            .fetchMovies(keywords: watchlistPopularKeywords,
-                         genres: watchlistPopularGenres,
-                         page: page)
+        var results: ExploreContentDataProvider.Response = (results: .movies([]), nextPage: page ?? 1)
+        while results.results.count < 10 && results.nextPage != nil {
+            let response = try await WebService
+                .movieWebService(requestManager: requestManager)
+                .fetchMovies(keywords: watchlistPopularKeywords,
+                             genres: watchlistPopularGenres,
+                             page: results.nextPage)
 
-        let movieIdsSet = Set(watchlistMovies.map(\.id))
-        let results = response.results.filter { !movieIdsSet.contains($0.id) }
+            let movieIdsSet = Set(watchlistMovies.map(\.id))
+            let filteredItems = response.results.filter { !movieIdsSet.contains($0.id) }
+            let resultItems = results.results.appending(items: .movies(filteredItems))
+            let resultNextPage = response.nextPage
+            results = (results: resultItems, nextPage: resultNextPage)
+        }
 
-        return (results: .movies(results), nextPage: response.nextPage)
+        return results
     }
 
     func update(watchlistItems: [WatchlistItem], requestManager: RequestManager) async {

@@ -21,6 +21,15 @@ enum ExploreContentItems {
         }
     }
 
+    var count: Int {
+        switch self {
+        case .movies(let array):
+            return array.count
+        case .artists(let array):
+            return array.count
+        }
+    }
+
     func appending(items: ExploreContentItems) -> Self {
         switch (self, items) {
         case (let .movies(movies), let .movies(newMovies)):
@@ -34,10 +43,12 @@ enum ExploreContentItems {
 }
 
 protocol ExploreContentDataProvider {
+    typealias Response = (results: ExploreContentItems, nextPage: Int?)
+
     var title: String { get }
     var subtitle: String? { get }
 
-    func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?)
+    func fetch(requestManager: RequestManager, page: Int?) async throws -> Response
 }
 
 @MainActor final class ExploreContentViewModel: ObservableObject, Identifiable {
@@ -55,6 +66,12 @@ protocol ExploreContentDataProvider {
         self.dataProvider = dataProvider
         self.title = dataProvider.title
         self.subtitle = dataProvider.subtitle
+    }
+
+    func updateDataProvider(performUpdate: (ExploreContentDataProvider) async -> Void) async {
+        isLoading = true
+        await performUpdate(dataProvider)
+        isLoading = false
     }
 
     func fetch(requestManager: RequestManager, page: Int? = nil) async {
