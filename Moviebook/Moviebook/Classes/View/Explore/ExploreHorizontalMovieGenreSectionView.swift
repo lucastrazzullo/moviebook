@@ -10,7 +10,7 @@ import MoviebookCommon
 
 struct ExploreHorizontalMovieGenreSectionView: View {
 
-    @ObservedObject var viewModel: DiscoverGenresViewModel
+    @ObservedObject var viewModel: MovieGenresViewModel
 
     var body: some View {
         VStack {
@@ -55,7 +55,7 @@ import MoviebookTestSupport
 
 struct ExploreHorizontalGenreSection_Previews: PreviewProvider {
 
-    static var viewModel = DiscoverGenresViewModel()
+    static var viewModel = MovieGenresViewModel()
 
     static var previews: some View {
         ScrollView {

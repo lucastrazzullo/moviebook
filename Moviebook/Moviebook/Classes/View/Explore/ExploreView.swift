@@ -16,7 +16,7 @@ struct ExploreView: View {
 
     @StateObject private var searchViewModel: SearchViewModel
     @StateObject private var discoverViewModel: DiscoverViewModel
-    @StateObject private var discoverGenresViewModel: DiscoverGenresViewModel
+    @StateObject private var movieGenresViewModel: MovieGenresViewModel
 
     @State private var presentedItemNavigationPath: NavigationPath = NavigationPath()
     @State private var presentedItem: NavigationItem?
@@ -34,7 +34,7 @@ struct ExploreView: View {
                                 presentedItem: $presentedItem
                             )
                         } else {
-                            ExploreHorizontalMovieGenreSectionView(viewModel: discoverGenresViewModel)
+                            ExploreHorizontalMovieGenreSectionView(viewModel: movieGenresViewModel)
                                 .stickingToTop(coordinateSpaceName: stickyScrollingSpace)
 
                             VStack(spacing: 12) {
@@ -84,9 +84,9 @@ struct ExploreView: View {
                     Navigation(path: $presentedItemNavigationPath, presentingItem: presentedItem)
                 }
                 .onAppear {
-                    discoverGenresViewModel.start(requestManager: requestManager)
+                    movieGenresViewModel.start(requestManager: requestManager)
                     searchViewModel.start(requestManager: requestManager)
-                    discoverViewModel.start(selectedGenres: discoverGenresViewModel.$selectedGenres, watchlist: watchlist, requestManager: requestManager)
+                    discoverViewModel.start(selectedGenres: movieGenresViewModel.$selectedGenres, watchlist: watchlist, requestManager: requestManager)
                 }
             }
         }
@@ -95,7 +95,7 @@ struct ExploreView: View {
     init() {
         self._searchViewModel = StateObject(wrappedValue: SearchViewModel(scope: .movie, query: ""))
         self._discoverViewModel = StateObject(wrappedValue: DiscoverViewModel())
-        self._discoverGenresViewModel = StateObject(wrappedValue: DiscoverGenresViewModel())
+        self._movieGenresViewModel = StateObject(wrappedValue: MovieGenresViewModel())
     }
 }
 
