@@ -114,7 +114,7 @@ import MoviebookCommon
         private var watchlistPopularGenres: [MovieGenre.ID] = []
 
         func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
-            guard !watchlistPopularGenres.isEmpty else {
+            if watchlistPopularGenres.isEmpty && watchlistPopularKeywords.isEmpty {
                 return (results: .movies([]), nextPage: nil)
             }
 
@@ -220,9 +220,8 @@ import MoviebookCommon
 
     // MARK: Instance Properties
 
-    @Published private(set) var sectionsContent: [ExploreContentViewModel] = []
+    let sectionsContent: [ExploreContentViewModel]
 
-    private var updateTask: Task<Void, Never>?
     private var subscriptions: Set<AnyCancellable> = []
 
     // MARK: Object life cycle
@@ -244,8 +243,7 @@ import MoviebookCommon
         Publishers.CombineLatest(selectedGenres, watchlist.$items)
             .sink { [weak self, weak requestManager] genres, watchlistItems in
                 guard let self, let requestManager else { return }
-                self.updateTask?.cancel()
-                self.updateTask = Task {
+                Task {
                     await self.update(selectedGenres: genres,
                                       watchlistItems: watchlistItems,
                                       requestManager: requestManager)

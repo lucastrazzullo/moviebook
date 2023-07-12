@@ -100,8 +100,8 @@ private struct ExploreSectionViewPreview: View {
         ScrollView {
             ExploreVerticalSectionView(viewModel: viewModel, presentedItem: .constant(nil))
         }
-        .onAppear {
-            viewModel.fetch(requestManager: requestManager)
+        .task {
+            await viewModel.fetch(requestManager: requestManager)
         }
     }
 

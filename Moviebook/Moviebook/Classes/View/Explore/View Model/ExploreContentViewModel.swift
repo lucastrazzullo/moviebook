@@ -42,12 +42,12 @@ protocol ExploreContentDataProvider {
 
 @MainActor final class ExploreContentViewModel: ObservableObject, Identifiable {
 
-    @Published var title: String
-    @Published var subtitle: String?
-    @Published var items: ExploreContentItems = .movies([])
-    @Published var isLoading: Bool = false
-    @Published var error: WebServiceError? = nil
-    @Published var fetchNextPage: (() -> Void)?
+    @Published private(set) var title: String
+    @Published private(set) var subtitle: String?
+    @Published private(set) var items: ExploreContentItems = .movies([])
+    @Published private(set) var isLoading: Bool = false
+    @Published private(set) var error: WebServiceError? = nil
+    @Published private(set) var fetchNextPage: (() -> Void)?
 
     let dataProvider: ExploreContentDataProvider
 
@@ -57,34 +57,38 @@ protocol ExploreContentDataProvider {
         self.subtitle = dataProvider.subtitle
     }
 
-    func fetch(requestManager: RequestManager, page: Int? = nil) {
-        Task {
-            do {
-                title = dataProvider.title
-                subtitle = dataProvider.subtitle
+    func fetch(requestManager: RequestManager, page: Int? = nil) async {
+        do {
+            title = dataProvider.title
+            subtitle = dataProvider.subtitle
 
-                isLoading = true
-                error = nil
-                fetchNextPage = nil
+            isLoading = true
+            error = nil
+            fetchNextPage = nil
 
-                let response = try await self.dataProvider.fetch(requestManager: requestManager, page: page)
-                if let nextPage = response.nextPage {
-                    fetchNextPage = { [weak self] in self?.fetch(requestManager: requestManager, page: nextPage) }
+            let response = try await self.dataProvider.fetch(requestManager: requestManager, page: page)
+            if let nextPage = response.nextPage {
+                fetchNextPage = { [weak self] in
+                    Task {
+                        await self?.fetch(requestManager: requestManager, page: nextPage)
+                    }
                 }
+            }
 
-                if page == nil {
-                    items = response.results
-                } else {
-                    items = items.appending(items: response.results)
-                }
+            if page == nil {
+                items = response.results
+            } else {
+                items = items.appending(items: response.results)
+            }
 
-                isLoading = false
+            isLoading = false
 
-            } catch {
-                self.isLoading = false
-                self.error = .failedToLoad(id: .init()) { [weak self, weak requestManager] in
-                    if let requestManager {
-                        self?.fetch(requestManager: requestManager, page: page)
+        } catch {
+            self.isLoading = false
+            self.error = .failedToLoad(id: .init()) { [weak self, weak requestManager] in
+                if let requestManager {
+                    Task {
+                        await self?.fetch(requestManager: requestManager, page: page)
                     }
                 }
             }

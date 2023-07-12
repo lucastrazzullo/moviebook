@@ -75,7 +75,9 @@ import MoviebookCommon
                 self.search.searchKeyword = keyword
                 self.search.searchScope = scope
 
-                self.content.fetch(requestManager: requestManager)
+                Task {
+                    await self.content.fetch(requestManager: requestManager)
+                }
             })
             .store(in: &subscriptions)
     }

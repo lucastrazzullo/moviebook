@@ -222,9 +222,9 @@ private struct ExploreHorizontalSectionViewPreview: View {
                 }
             }
         }
-        .onAppear {
-            moviesViewModel.fetch(requestManager: requestManager)
-            artistsViewModel.fetch(requestManager: requestManager)
+        .task {
+            await moviesViewModel.fetch(requestManager: requestManager)
+            await artistsViewModel.fetch(requestManager: requestManager)
         }
     }
 
