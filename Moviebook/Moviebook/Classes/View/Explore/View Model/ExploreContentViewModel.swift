@@ -68,10 +68,10 @@ protocol ExploreContentDataProvider {
         self.subtitle = dataProvider.subtitle
     }
 
-    func updateDataProvider(performUpdate: (ExploreContentDataProvider) async -> Void) async {
+    func update(requestManager: RequestManager, performUpdate: () async -> Void) async {
         isLoading = true
-        await performUpdate(dataProvider)
-        isLoading = false
+        await performUpdate()
+        await fetch(requestManager: requestManager)
     }
 
     func fetch(requestManager: RequestManager, page: Int? = nil) async {

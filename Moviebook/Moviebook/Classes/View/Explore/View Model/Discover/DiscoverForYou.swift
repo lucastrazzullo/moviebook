@@ -55,7 +55,7 @@ final class DiscoverForYou: Identifiable, ExploreContentDataProvider {
             return (results: .movies([]), nextPage: nil)
         }
 
-        var results: ExploreContentDataProvider.Response = (results: .movies([]), nextPage: page ?? 1)
+        var results: ExploreContentDataProvider.Response = (results: .movies([]), nextPage: 1)
         while results.results.count < 10 && results.nextPage != nil {
             let response = try await WebService
                 .movieWebService(requestManager: requestManager)
@@ -70,7 +70,7 @@ final class DiscoverForYou: Identifiable, ExploreContentDataProvider {
             results = (results: resultItems, nextPage: resultNextPage)
         }
 
-        return results
+        return (results: results.results, nextPage: nil)
     }
 
     func update(watchlistItems: [WatchlistItem], requestManager: RequestManager) async {
