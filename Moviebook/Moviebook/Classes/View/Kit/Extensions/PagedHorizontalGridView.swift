@@ -41,9 +41,13 @@ struct PagedHorizontalGridView<Item: Identifiable & Hashable, ItemView: View>: V
             .padding(.horizontal, spacing)
             .background(
                 GeometryReader { geometry in
-                    Color.clear.onAppear {
-                        contentSize = geometry.size
-                    }
+                    Color.clear
+                        .onAppear {
+                            contentSize = geometry.size
+                        }
+                        .onChange(of: geometry.size) { size in
+                            contentSize = size
+                        }
                 }
             )
             .offset(x: offset)
@@ -67,7 +71,6 @@ struct PagedHorizontalGridView<Item: Identifiable & Hashable, ItemView: View>: V
 
                     let distance = abs(gesture.predictedEndTranslation.width - gesture.translation.width)
                     let duration = max(0.2, 0.8 - distance / 400)
-
                     withAnimation(.easeOut(duration: duration)) {
                         offset = currentScrollOffset
                     }
@@ -95,7 +98,7 @@ struct PagedHorizontalGridView<Item: Identifiable & Hashable, ItemView: View>: V
 
     private var currentScrollOffset: CGFloat {
         let scrollOffset = -(CGFloat(page) * (pageWidth + spacing))
-        return max(scrollOffset, screenWidth - contentSize.width)
+        return min(0, max(scrollOffset, screenWidth - contentSize.width))
     }
 }
 
