@@ -8,7 +8,7 @@
 import Foundation
 import MoviebookCommon
 
-final class DiscoverForYou: Identifiable, ExploreContentDataProvider {
+final class DiscoverForYou: Identifiable {
 
     struct WatchlistMovie {
 
@@ -43,40 +43,16 @@ final class DiscoverForYou: Identifiable, ExploreContentDataProvider {
         }
     }
 
-    let title: String = "For you"
-    let subtitle: String? = "based on your watchlist"
-
     private var watchlistMovies: [WatchlistMovie] = []
-    private var watchlistPopularKeywords: [MovieKeyword.ID] = []
-    private var watchlistPopularGenres: [MovieGenre.ID] = []
+    private var keywordsFilter: [MovieKeyword.ID] = []
+    private var genresFilter: [MovieGenre.ID] = []
 
-    func fetch(requestManager: RequestManager, page: Int?) async throws -> ExploreContentDataProvider.Response {
-        if watchlistPopularGenres.isEmpty && watchlistPopularKeywords.isEmpty {
-            return (results: .movies([]), nextPage: nil)
-        }
+    // MARK: Private methods
 
-        var results: ExploreContentDataProvider.Response = (results: .movies([]), nextPage: 1)
-        while results.results.count < 10 && results.nextPage != nil {
-            let response = try await WebService
-                .movieWebService(requestManager: requestManager)
-                .fetchMovies(keywords: watchlistPopularKeywords,
-                             genres: watchlistPopularGenres,
-                             page: results.nextPage)
+    func update(genresFilter: [MovieGenre.ID], watchlistItemsFilter: [WatchlistItem], requestManager: RequestManager) async {
+        watchlistMovies = watchlistItemsFilter.compactMap(WatchlistMovie.init(watchlistItem:))
 
-            let movieIdsSet = Set(watchlistMovies.map(\.id))
-            let filteredItems = response.results.filter { !movieIdsSet.contains($0.id) }
-            let resultItems = results.results.appending(items: .movies(filteredItems))
-            let resultNextPage = response.nextPage
-            results = (results: resultItems, nextPage: resultNextPage)
-        }
-
-        return (results: results.results, nextPage: nil)
-    }
-
-    func update(watchlistItems: [WatchlistItem], requestManager: RequestManager) async {
-        watchlistMovies = watchlistItems.compactMap(WatchlistMovie.init(watchlistItem:))
-
-        watchlistPopularKeywords = await withTaskGroup(of: [MovieKeyword.ID].self) { group in
+        keywordsFilter = await withTaskGroup(of: [MovieKeyword.ID].self) { group in
             for watchlistMovie in watchlistMovies {
                 group.addTask {
                     await self.fetchItems(for: watchlistMovie, itemsProvider: {
@@ -92,27 +68,66 @@ final class DiscoverForYou: Identifiable, ExploreContentDataProvider {
                 keywords.append(contentsOf: response)
             }
 
-            return getMostPopular(items: keywords, cap: 3)
+            return keywords.getMostPopular(cap: 3)
         }
 
-        watchlistPopularGenres = await withTaskGroup(of: [MovieGenre.ID].self) { group in
-            for watchlistMovie in watchlistMovies {
-                group.addTask {
-                    await self.fetchItems(for: watchlistMovie, itemsProvider: {
-                        try await WebService.movieWebService(requestManager: requestManager)
-                            .fetchMovie(with: watchlistMovie.id)
-                            .genres.map(\.id)
-                    })
+        if genresFilter.isEmpty {
+            self.genresFilter = await withTaskGroup(of: [MovieGenre.ID].self) { group in
+                for watchlistMovie in watchlistMovies {
+                    group.addTask {
+                        await self.fetchItems(for: watchlistMovie, itemsProvider: {
+                            try await WebService.movieWebService(requestManager: requestManager)
+                                .fetchMovie(with: watchlistMovie.id)
+                                .genres.map(\.id)
+                        })
+                    }
                 }
-            }
 
-            var genres: [MovieGenre.ID] = []
-            for await response in group {
-                genres.append(contentsOf: response)
-            }
+                var genres: [MovieGenre.ID] = []
+                for await response in group {
+                    genres.append(contentsOf: response)
+                }
 
-            return getMostPopular(items: genres, cap: 3)
+                return genres.getMostPopular(cap: 3)
+            }
+        } else {
+            self.genresFilter = genresFilter
         }
+    }
+}
+
+extension DiscoverForYou: ExploreContentDataProvider {
+
+    var title: String {
+        return "For you"
+    }
+
+    var subtitle: String? {
+        return "Based on your watchlist"
+    }
+
+    func fetch(requestManager: RequestManager, page: Int?) async throws -> ExploreContentDataProvider.Response {
+        if genresFilter.isEmpty && keywordsFilter.isEmpty {
+            return (results: .movies([]), nextPage: nil)
+        }
+
+        var results: ExploreContentDataProvider.Response = (results: .movies([]), nextPage: page)
+        repeat {
+            let response = try await WebService
+                .movieWebService(requestManager: requestManager)
+                .fetchMovies(keywords: keywordsFilter,
+                             genres: genresFilter,
+                             page: results.nextPage)
+
+            let movieIdsSet = Set(watchlistMovies.map(\.id))
+            let filteredItems = response.results.filter { !movieIdsSet.contains($0.id) }
+            let resultItems = results.results.appending(items: .movies(filteredItems))
+            let resultNextPage = response.nextPage
+            results = (results: resultItems, nextPage: resultNextPage)
+
+        } while results.results.count < 10 && results.nextPage != nil
+
+        return results
     }
 
     private func fetchItems<Item>(for watchlistMovie: WatchlistMovie, itemsProvider: () async throws -> [Item]) async -> [Item] {
@@ -133,23 +148,6 @@ final class DiscoverForYou: Identifiable, ExploreContentDataProvider {
             return items
         case .unwanted:
             return []
-        }
-    }
-
-    private func getMostPopular<Item: Hashable>(items: [Item], cap: Int) -> [Item] {
-        var itemsOccurrences: [Item: Int] = [:]
-        for item in items {
-            itemsOccurrences[item] = (itemsOccurrences[item] ?? 0) + 1
-        }
-
-        let sortedItems = itemsOccurrences.keys.sorted(by: { lhs, rhs in
-            return itemsOccurrences[lhs] ?? 0 > itemsOccurrences[rhs] ?? 0
-        })
-
-        if sortedItems.count > cap {
-            return Array(sortedItems[0..<cap])
-        } else {
-            return sortedItems
         }
     }
 }

@@ -14,8 +14,9 @@ public enum TheMovieDbUrlFactory {
 
     case movie(identifier: Movie.ID)
     case movieCollection(identifier: MovieCollection.ID)
-    case watchProviders(movieIdentifier: Movie.ID)
+    case movieWatchProviders(movieIdentifier: Movie.ID)
     case movieKeywords(movieIdentifier: Movie.ID)
+    case movieCredits(movieIdentifier: Movie.ID)
     case movieGenres
 
     // MARK: Discover
@@ -43,10 +44,12 @@ public enum TheMovieDbUrlFactory {
             ])
         case .movieCollection(let identifier):
             return try TheMovieDbDataRequestFactory.makeURL(path: "collection/\(identifier)")
-        case .watchProviders(let movieIdentifier):
+        case .movieWatchProviders(let movieIdentifier):
             return try TheMovieDbDataRequestFactory.makeURL(path: "movie/\(movieIdentifier)/watch/providers")
         case .movieKeywords(let movieIdentifier):
             return try TheMovieDbDataRequestFactory.makeURL(path: "movie/\(movieIdentifier)/keywords")
+        case .movieCredits(let movieIdentifier):
+            return try TheMovieDbDataRequestFactory.makeURL(path: "movie/\(movieIdentifier)/credits")
         case .movieGenres:
             return try TheMovieDbDataRequestFactory.makeURL(path: "genre/movie/list")
         case .movies(let keywords, let genres, let page):

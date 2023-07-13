@@ -8,7 +8,30 @@
 import Foundation
 import MoviebookCommon
 
-final class DiscoverSection: Identifiable, ExploreContentDataProvider {
+final class DiscoverSection: Identifiable {
+
+    private let discoverSection: DiscoverMovieSection
+    private var genresFilter: [MovieGenre.ID] = []
+    private var watchedMoviesFilter: [Movie.ID] = []
+
+    init(discoverSection: DiscoverMovieSection) {
+        self.discoverSection = discoverSection
+    }
+
+    func update(genresFilter: [MovieGenre.ID], watchlistItems: [WatchlistItem]) async {
+        self.genresFilter = genresFilter
+        self.watchedMoviesFilter = watchlistItems
+            .compactMap { item in
+                if case .watched = item.state, case .movie(let id) = item.id {
+                    return id
+                } else {
+                    return nil
+                }
+            }
+    }
+}
+
+extension DiscoverSection: ExploreContentDataProvider {
 
     var id: String {
         return title
@@ -27,23 +50,25 @@ final class DiscoverSection: Identifiable, ExploreContentDataProvider {
         }
     }
 
-    let subtitle: String? = nil
-    var genresFilter: [MovieGenre.ID]
-
-    private let discoverSection: DiscoverMovieSection
-
-    init(discoverSection: DiscoverMovieSection, discoverGenres: [MovieGenre.ID] = []) {
-        self.discoverSection = discoverSection
-        self.genresFilter = discoverGenres
+    var subtitle: String? {
+        genresFilter.isEmpty ? nil : "Based on selected genres"
     }
 
-    // MARK: ExploreContentDataProvider
+    func fetch(requestManager: RequestManager, page: Int?) async throws -> ExploreContentDataProvider.Response {
+        var results: ExploreContentDataProvider.Response = (results: .movies([]), nextPage: page)
+        repeat {
+            let response = try await WebService
+                .movieWebService(requestManager: requestManager)
+                .fetchMovies(discoverSection: discoverSection, genres: genresFilter, page: results.nextPage)
 
-    func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
-        let response = try await WebService
-            .movieWebService(requestManager: requestManager)
-            .fetchMovies(discoverSection: discoverSection, genres: genresFilter, page: page)
+            let movieIdsSet = Set(watchedMoviesFilter)
+            let filteredItems = response.results.filter { !movieIdsSet.contains($0.id) }
+            let resultItems = results.results.appending(items: .movies(filteredItems))
+            let resultNextPage = response.nextPage
+            results = (results: resultItems, nextPage: resultNextPage)
 
-        return (results: .movies(response.results), nextPage: response.nextPage)
+        } while results.results.count < 10 && results.nextPage != nil
+
+        return results
     }
 }

@@ -76,7 +76,7 @@ struct ExploreView: View {
                     prompt: NSLocalizedString("EXPLORE.SEARCH.PROMPT", comment: "")
                 )
                 .searchScopes($searchViewModel.searchScope) {
-                    ForEach(SearchViewModel.Search.Scope.allCases, id: \.self) { scope in
+                    ForEach(SearchDataProvider.Scope.allCases, id: \.self) { scope in
                         Text(scope.rawValue.capitalized)
                     }
                 }

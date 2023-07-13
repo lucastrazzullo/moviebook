@@ -34,46 +34,29 @@ import MoviebookCommon
     // MARK: Instance methods
 
     func start(selectedGenres: Published<Set<MovieGenre>>.Publisher, watchlist: Watchlist, requestManager: RequestManager) {
-        watchlist.$items
-            .sink { [weak self, weak requestManager] watchlistItems in
+        Publishers.CombineLatest(selectedGenres, watchlist.$items)
+            .sink { [weak self, weak requestManager] genres, watchlistItems in
                 guard let self, let requestManager else { return }
                 Task {
-                    await self.update(watchlistItems: watchlistItems, requestManager: requestManager)
-                }
-            }
-            .store(in: &subscriptions)
-
-        selectedGenres
-            .sink { [weak self, weak requestManager] genres in
-                guard let self, let requestManager else { return }
-                Task {
-                    await self.update(selectedGenres: genres, requestManager: requestManager)
+                    await self.update(selectedGenres: genres.map(\.id), watchlistItems: watchlistItems, requestManager: requestManager)
                 }
             }
             .store(in: &subscriptions)
     }
 
-    private func update(watchlistItems: [WatchlistItem], requestManager: RequestManager) async {
+    private func update(selectedGenres: [MovieGenre.ID], watchlistItems: [WatchlistItem], requestManager: RequestManager) async {
         await withTaskGroup(of: Void.self) { group in
             for content in sectionsContent {
-                if let forYouSection = content.dataProvider as? DiscoverForYou {
-                    group.addTask {
-                        await content.update(requestManager: requestManager) {
-                            await forYouSection.update(watchlistItems: watchlistItems, requestManager: requestManager)
+                group.addTask {
+                    await content.fetch(requestManager: requestManager) { dataProvider in
+                        if let forYou = dataProvider as? DiscoverForYou {
+                            await forYou.update(genresFilter: selectedGenres, watchlistItemsFilter: watchlistItems, requestManager: requestManager)
                         }
-                    }
-                }
-            }
-        }
-    }
-
-    private func update(selectedGenres: Set<MovieGenre>, requestManager: RequestManager) async {
-        await withTaskGroup(of: Void.self) { group in
-            for content in sectionsContent {
-                if let discoverSection = content.dataProvider as? DiscoverSection {
-                    group.addTask {
-                        await content.update(requestManager: requestManager) {
-                            discoverSection.genresFilter = selectedGenres.map(\.id)
+                        if let discover = dataProvider as? DiscoverSection {
+                            await discover.update(genresFilter: selectedGenres, watchlistItems: watchlistItems)
+                        }
+                        if let artists = dataProvider as? DiscoverPopularArtists {
+                            await artists.update(watchlistItems: watchlistItems, requestManager: requestManager)
                         }
                     }
                 }

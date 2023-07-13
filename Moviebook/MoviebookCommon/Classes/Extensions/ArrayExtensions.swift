@@ -1,5 +1,5 @@
 //
-//  SequenceExtensions.swift
+//  ArrayExtensions.swift
 //  MoviebookCommons
 //
 //  Created by Luca Strazzullo on 10/06/2023.
@@ -32,5 +32,25 @@ extension Array {
         }
 
         return result
+    }
+}
+
+extension Array where Element: Hashable {
+
+    public func getMostPopular(cap: Int) -> [Element] {
+        var itemsOccurrences: [Element: Int] = [:]
+        for item in self {
+            itemsOccurrences[item] = (itemsOccurrences[item] ?? 0) + 1
+        }
+
+        let sortedItems = itemsOccurrences.keys.sorted(by: { lhs, rhs in
+            return itemsOccurrences[lhs] ?? 0 > itemsOccurrences[rhs] ?? 0
+        })
+
+        if sortedItems.count > cap {
+            return Array(sortedItems[0..<cap])
+        } else {
+            return sortedItems
+        }
     }
 }

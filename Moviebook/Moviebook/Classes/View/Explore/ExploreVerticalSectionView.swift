@@ -101,7 +101,7 @@ private struct ExploreSectionViewPreview: View {
             ExploreVerticalSectionView(viewModel: viewModel, presentedItem: .constant(nil))
         }
         .task {
-            await viewModel.fetch(requestManager: requestManager)
+            await viewModel.fetch(requestManager: requestManager) { _ in }
         }
     }
 
