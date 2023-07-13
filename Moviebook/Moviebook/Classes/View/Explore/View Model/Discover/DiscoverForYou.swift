@@ -43,9 +43,6 @@ final class DiscoverForYou: Identifiable {
         }
     }
 
-    let title: String = "For you"
-    let subtitle: String? = "based on your watchlist"
-
     private var watchlistMovies: [WatchlistMovie] = []
     private var keywordsFilter: [MovieKeyword.ID] = []
     private var genresFilter: [MovieGenre.ID] = []
@@ -71,7 +68,7 @@ final class DiscoverForYou: Identifiable {
                 keywords.append(contentsOf: response)
             }
 
-            return getMostPopular(items: keywords, cap: 3)
+            return keywords.getMostPopular(cap: 3)
         }
 
         if genresFilter.isEmpty {
@@ -91,32 +88,23 @@ final class DiscoverForYou: Identifiable {
                     genres.append(contentsOf: response)
                 }
 
-                return getMostPopular(items: genres, cap: 3)
+                return genres.getMostPopular(cap: 3)
             }
         } else {
             self.genresFilter = genresFilter
         }
     }
-
-    private func getMostPopular<Item: Hashable>(items: [Item], cap: Int) -> [Item] {
-        var itemsOccurrences: [Item: Int] = [:]
-        for item in items {
-            itemsOccurrences[item] = (itemsOccurrences[item] ?? 0) + 1
-        }
-
-        let sortedItems = itemsOccurrences.keys.sorted(by: { lhs, rhs in
-            return itemsOccurrences[lhs] ?? 0 > itemsOccurrences[rhs] ?? 0
-        })
-
-        if sortedItems.count > cap {
-            return Array(sortedItems[0..<cap])
-        } else {
-            return sortedItems
-        }
-    }
 }
 
 extension DiscoverForYou: ExploreContentDataProvider {
+
+    var title: String {
+        return "For you"
+    }
+
+    var subtitle: String? {
+        return "Based on your watchlist"
+    }
 
     func fetch(requestManager: RequestManager, page: Int?) async throws -> ExploreContentDataProvider.Response {
         if genresFilter.isEmpty && keywordsFilter.isEmpty {

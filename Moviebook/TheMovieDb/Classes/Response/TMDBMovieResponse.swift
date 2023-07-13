@@ -17,10 +17,6 @@ public struct TMDBMovieResponse: Codable {
         case credits = "credits"
     }
 
-    enum CreditsCodingKeys: String, CodingKey {
-        case cast = "cast"
-    }
-
     let result: Movie
 
     // MARK: Object life cycle
@@ -38,9 +34,7 @@ public struct TMDBMovieResponse: Codable {
         let production = try TMDBMovieProductionResponse(from: decoder).result
         let watch = WatchProviders(collections: [:])
         let collection = try container.decodeIfPresent(TMDBMovieCollectionResponse.self, forKey: .collection)?.result
-
-        let creditsContainer = try container.nestedContainer(keyedBy: CreditsCodingKeys.self, forKey: .credits)
-        let cast = try creditsContainer.decode([TMDBSafeItemResponse<TMDBArtistDetailsResponse>].self, forKey: .cast).compactMap(\.value).map(\.result)
+        let cast = try container.decode(TMDBMovieCastResponse.self, forKey: .credits).result
 
         self.result = Movie(id: id,
                             details: details,
@@ -58,12 +52,10 @@ public struct TMDBMovieResponse: Codable {
         try TMDBMovieDetailsResponse(result: result.details).encode(to: encoder)
         try container.encode(result.genres.map(TMDBMovieGenreResponse.init(result:)), forKey: .genres)
         try TMDBMovieProductionResponse(result: result.production).encode(to: encoder)
+        try container.encode(TMDBMovieCastResponse(result: result.cast), forKey: .credits)
 
         if let collection = result.collection {
             try container.encode(TMDBMovieCollectionResponse(result: collection), forKey: .collection)
         }
-
-        var castContainer = container.nestedContainer(keyedBy: CreditsCodingKeys.self, forKey: .credits)
-        try castContainer.encode(result.cast.map(TMDBArtistDetailsResponse.init(result:)), forKey: .cast)
     }
 }

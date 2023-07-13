@@ -51,7 +51,7 @@ extension DiscoverSection: ExploreContentDataProvider {
     }
 
     var subtitle: String? {
-        nil
+        genresFilter.isEmpty ? nil : "Based on selected genres"
     }
 
     func fetch(requestManager: RequestManager, page: Int?) async throws -> ExploreContentDataProvider.Response {

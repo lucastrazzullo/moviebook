@@ -122,22 +122,24 @@ private struct HeaderView<Destination: View>: View {
     let destination: Destination?
 
     var body: some View {
-        HStack(alignment: .lastTextBaseline, spacing: 4) {
+        HStack(alignment: .lastTextBaseline) {
             VStack(alignment: .leading) {
-                Text(title)
-                    .font(.title3)
-                    .bold()
-                    .foregroundColor(.primary)
+                HStack(spacing: 8) {
+                    Text(title)
+                        .font(.title3)
+                        .bold()
+                        .foregroundColor(.primary)
+
+                    if isLoading {
+                        ProgressView()
+                    }
+                }
 
                 if let subtitle {
                     Text(subtitle)
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
-            }
-
-            if isLoading {
-                ProgressView()
             }
 
             Spacer()

@@ -55,6 +55,9 @@ import MoviebookCommon
                         if let discover = dataProvider as? DiscoverSection {
                             await discover.update(genresFilter: selectedGenres, watchlistItems: watchlistItems)
                         }
+                        if let artists = dataProvider as? DiscoverPopularArtists {
+                            await artists.update(watchlistItems: watchlistItems, requestManager: requestManager)
+                        }
                     }
                 }
             }

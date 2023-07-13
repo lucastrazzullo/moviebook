@@ -27,7 +27,7 @@ public struct TheMovieDbMovieWebService: MovieWebService {
             movie.collection = try? await fetchMovieCollection(with: collectionIdentifier)
         }
 
-        if let watchProviders = try? await fetchWatchProviders(with: identifier) {
+        if let watchProviders = try? await fetchMovieWatchProviders(with: identifier) {
             movie.watch = watchProviders
         }
 
@@ -40,8 +40,8 @@ public struct TheMovieDbMovieWebService: MovieWebService {
         return try JSONDecoder().decode(TMDBMovieCollectionResponse.self, from: data).result
     }
 
-    public func fetchWatchProviders(with movieIdentifier: Movie.ID) async throws -> WatchProviders {
-        let url = try TheMovieDbUrlFactory.watchProviders(movieIdentifier: movieIdentifier).makeUrl()
+    public func fetchMovieWatchProviders(with movieIdentifier: Movie.ID) async throws -> WatchProviders {
+        let url = try TheMovieDbUrlFactory.movieWatchProviders(movieIdentifier: movieIdentifier).makeUrl()
         let data = try await requestManager.request(from: url)
         let results = try JSONDecoder().decode(TMDBResponseWithDictionaryResults<TMDBWatchProviderCollectionResponse>.self, from: data).results.map { key, value in (key, value.result) }
         return WatchProviders(collections: Dictionary(uniqueKeysWithValues: results))
@@ -51,6 +51,12 @@ public struct TheMovieDbMovieWebService: MovieWebService {
         let url = try TheMovieDbUrlFactory.movieKeywords(movieIdentifier: movieIdentifier).makeUrl()
         let data = try await requestManager.request(from: url)
         return try JSONDecoder().decode(TMDBMovieKeywordsResponse.self, from: data).keywords.map(\.result)
+    }
+
+    public func fetchMovieCast(with movieIdentifier: Movie.ID) async throws -> [ArtistDetails] {
+        let url = try TheMovieDbUrlFactory.movieCredits(movieIdentifier: movieIdentifier).makeUrl()
+        let data = try await requestManager.request(from: url)
+        return try JSONDecoder().decode(TMDBMovieCastResponse.self, from: data).result
     }
 
     public func fetchMovieGenres() async throws -> [MovieGenre] {
