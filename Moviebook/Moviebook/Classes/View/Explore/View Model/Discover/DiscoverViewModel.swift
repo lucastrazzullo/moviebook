@@ -53,7 +53,7 @@ import MoviebookCommon
                             await forYou.update(genresFilter: selectedGenres, watchlistItemsFilter: watchlistItems, requestManager: requestManager)
                         }
                         if let discover = dataProvider as? DiscoverSection {
-                            discover.genresFilter = selectedGenres
+                            await discover.update(genresFilter: selectedGenres, watchlistItems: watchlistItems)
                         }
                     }
                 }

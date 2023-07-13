@@ -123,8 +123,8 @@ extension DiscoverForYou: ExploreContentDataProvider {
             return (results: .movies([]), nextPage: nil)
         }
 
-        var results: ExploreContentDataProvider.Response = (results: .movies([]), nextPage: 1)
-        while results.results.count < 10 && results.nextPage != nil {
+        var results: ExploreContentDataProvider.Response = (results: .movies([]), nextPage: page)
+        repeat {
             let response = try await WebService
                 .movieWebService(requestManager: requestManager)
                 .fetchMovies(keywords: keywordsFilter,
@@ -136,9 +136,10 @@ extension DiscoverForYou: ExploreContentDataProvider {
             let resultItems = results.results.appending(items: .movies(filteredItems))
             let resultNextPage = response.nextPage
             results = (results: resultItems, nextPage: resultNextPage)
-        }
 
-        return (results: results.results, nextPage: nil)
+        } while results.results.count < 10 && results.nextPage != nil
+
+        return results
     }
 
     private func fetchItems<Item>(for watchlistMovie: WatchlistMovie, itemsProvider: () async throws -> [Item]) async -> [Item] {
