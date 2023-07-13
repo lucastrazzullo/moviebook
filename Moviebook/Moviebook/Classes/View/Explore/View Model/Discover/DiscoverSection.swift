@@ -8,7 +8,19 @@
 import Foundation
 import MoviebookCommon
 
-final class DiscoverSection: Identifiable, ExploreContentDataProvider {
+final class DiscoverSection: Identifiable {
+
+    var genresFilter: [MovieGenre.ID]
+
+    private let discoverSection: DiscoverMovieSection
+
+    init(discoverSection: DiscoverMovieSection, discoverGenres: [MovieGenre.ID] = []) {
+        self.discoverSection = discoverSection
+        self.genresFilter = discoverGenres
+    }
+}
+
+extension DiscoverSection: ExploreContentDataProvider {
 
     var id: String {
         return title
@@ -27,17 +39,9 @@ final class DiscoverSection: Identifiable, ExploreContentDataProvider {
         }
     }
 
-    let subtitle: String? = nil
-    var genresFilter: [MovieGenre.ID]
-
-    private let discoverSection: DiscoverMovieSection
-
-    init(discoverSection: DiscoverMovieSection, discoverGenres: [MovieGenre.ID] = []) {
-        self.discoverSection = discoverSection
-        self.genresFilter = discoverGenres
+    var subtitle: String? {
+        nil
     }
-
-    // MARK: ExploreContentDataProvider
 
     func fetch(requestManager: RequestManager, page: Int?) async throws -> ExploreContentDataProvider.Response {
         let response = try await WebService
