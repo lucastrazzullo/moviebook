@@ -147,7 +147,9 @@ private struct WatchProvidersView: View {
                 Spacer()
                 Picker("Region", selection: $currentRegion) {
                     ForEach(watch.regions, id: \.self) { region in
-                        Text(region)
+                        if let localizedRegion = Locale.current.localizedString(forRegionCode: region) {
+                            Text(localizedRegion).id(region)
+                        }
                     }
                 }
             }

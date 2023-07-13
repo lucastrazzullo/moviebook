@@ -34,15 +34,20 @@ enum TheMovieDbDataRequestFactory {
     
     private static func defaultURLComponents() -> URLComponents {
         let language = Locale.current.identifier
-        
-        var components = URLComponents()
-        components.scheme = "https"
-        components.host = "api.themoviedb.org"
-        components.queryItems = [
+        var queryItems: [URLQueryItem] = [
             URLQueryItem(name: "api_key", value: "9e718d9095bcf7e3e6dbe26672500060"),
             URLQueryItem(name: "language", value: language),
             URLQueryItem(name: "include_adult", value: "false")
         ]
+
+        if let region = Locale.current.region?.identifier {
+            queryItems.append(URLQueryItem(name: "region", value: region))
+        }
+        
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "api.themoviedb.org"
+        components.queryItems = queryItems
         return components
     }
 }
