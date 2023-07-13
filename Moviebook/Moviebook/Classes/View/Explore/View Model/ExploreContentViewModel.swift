@@ -48,7 +48,7 @@ protocol ExploreContentDataProvider {
     var title: String { get }
     var subtitle: String? { get }
 
-    func fetch(requestManager: RequestManager, genres: [MovieGenre.ID], watchlistItems: [WatchlistItem], page: Int?) async throws -> Response
+    func fetch(requestManager: RequestManager, page: Int?) async throws -> Response
 }
 
 @MainActor final class ExploreContentViewModel: ObservableObject, Identifiable {
@@ -68,8 +68,13 @@ protocol ExploreContentDataProvider {
         self.subtitle = dataProvider.subtitle
     }
 
-    func fetch(requestManager: RequestManager, genres: [MovieGenre.ID], watchlistItems: [WatchlistItem], page: Int? = nil) async {
+    func fetch(requestManager: RequestManager, page: Int? = nil, updateDataProvider: @escaping (ExploreContentDataProvider) async -> Void) async {
+        isLoading = true
+        await updateDataProvider(dataProvider)
+        await fetch(requestManager: requestManager, page: page)
+    }
 
+    private func fetch(requestManager: RequestManager, page: Int? = nil) async {
         do {
             title = dataProvider.title
             subtitle = dataProvider.subtitle
@@ -78,17 +83,11 @@ protocol ExploreContentDataProvider {
             error = nil
             fetchNextPage = nil
 
-            let response = try await self.dataProvider.fetch(requestManager: requestManager,
-                                                             genres: genres,
-                                                             watchlistItems: watchlistItems,
-                                                             page: page)
+            let response = try await self.dataProvider.fetch(requestManager: requestManager, page: page)
             if let nextPage = response.nextPage {
                 fetchNextPage = { [weak self] in
                     Task {
-                        await self?.fetch(requestManager: requestManager,
-                                          genres: genres,
-                                          watchlistItems: watchlistItems,
-                                          page: nextPage)
+                        await self?.fetch(requestManager: requestManager, page: nextPage)
                     }
                 }
             }
@@ -106,10 +105,7 @@ protocol ExploreContentDataProvider {
             self.error = .failedToLoad(id: .init()) { [weak self, weak requestManager] in
                 if let requestManager {
                     Task {
-                        await self?.fetch(requestManager: requestManager,
-                                          genres: genres,
-                                          watchlistItems: watchlistItems,
-                                          page: page)
+                        await self?.fetch(requestManager: requestManager, page: page)
                     }
                 }
             }

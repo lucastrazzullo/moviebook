@@ -39,7 +39,7 @@ final class DiscoverSection: Identifiable, ExploreContentDataProvider {
 
     // MARK: ExploreContentDataProvider
 
-    func fetch(requestManager: RequestManager, genres: [MovieGenre.ID], watchlistItems: [WatchlistItem], page: Int?) async throws -> ExploreContentDataProvider.Response {
+    func fetch(requestManager: RequestManager, page: Int?) async throws -> ExploreContentDataProvider.Response {
         let response = try await WebService
             .movieWebService(requestManager: requestManager)
             .fetchMovies(discoverSection: discoverSection, genres: genresFilter, page: page)

@@ -48,7 +48,14 @@ import MoviebookCommon
         await withTaskGroup(of: Void.self) { group in
             for content in sectionsContent {
                 group.addTask {
-                    await content.fetch(requestManager: requestManager, genres: selectedGenres, watchlistItems: watchlistItems)
+                    await content.fetch(requestManager: requestManager) { dataProvider in
+                        if let forYou = dataProvider as? DiscoverForYou {
+                            await forYou.update(genresFilter: selectedGenres, watchlistItemsFilter: watchlistItems, requestManager: requestManager)
+                        }
+                        if let discover = dataProvider as? DiscoverSection {
+                            discover.genresFilter = selectedGenres
+                        }
+                    }
                 }
             }
         }

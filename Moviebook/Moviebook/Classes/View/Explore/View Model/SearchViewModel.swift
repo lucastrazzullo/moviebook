@@ -33,7 +33,7 @@ import MoviebookCommon
             self.searchKeyword = searchKeyword
         }
 
-        func fetch(requestManager: RequestManager, genres: [MovieGenre.ID], watchlistItems: [WatchlistItem], page: Int?) async throws -> ExploreContentDataProvider.Response {
+        func fetch(requestManager: RequestManager, page: Int?) async throws -> ExploreContentDataProvider.Response {
             let webService = WebService.searchWebService(requestManager: requestManager)
             switch searchScope {
             case .movie:
@@ -53,15 +53,14 @@ import MoviebookCommon
 
     let content: ExploreContentViewModel
 
-    private let search: Search
     private var subscriptions: Set<AnyCancellable> = []
 
     init(scope: Search.Scope, query: String) {
         self.searchScope = scope
         self.searchKeyword = query
 
-        self.search = Search(searchScope: scope, searchKeyword: query)
-        self.content = ExploreContentViewModel(dataProvider: search)
+        let dataProvider = Search(searchScope: scope, searchKeyword: query)
+        self.content = ExploreContentViewModel(dataProvider: dataProvider)
     }
 
     // MARK: Search
@@ -72,11 +71,13 @@ import MoviebookCommon
             .sink(receiveValue: { [weak self, weak requestManager] keyword, scope in
                 guard let self, let requestManager else { return }
 
-                self.search.searchKeyword = keyword
-                self.search.searchScope = scope
-
                 Task {
-                    await self.content.fetch(requestManager: requestManager, genres: [], watchlistItems: [])
+                    await self.content.fetch(requestManager: requestManager) { dataProvider in
+                        if let search = dataProvider as? Search {
+                            search.searchKeyword = keyword
+                            search.searchScope = scope
+                        }
+                    }
                 }
             })
             .store(in: &subscriptions)
