@@ -16,7 +16,7 @@ final class DiscoverPopularArtists: Identifiable, ExploreContentDataProvider {
 
     let subtitle: String? = nil
 
-    func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
+    func fetch(requestManager: RequestManager, genres: [MovieGenre.ID], watchlistItems: [WatchlistItem], page: Int?) async throws -> ExploreContentDataProvider.Response {
         let response = try await WebService
             .artistWebService(requestManager: requestManager)
             .fetchPopular(page: page)

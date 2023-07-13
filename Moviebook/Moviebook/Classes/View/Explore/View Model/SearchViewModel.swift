@@ -33,7 +33,7 @@ import MoviebookCommon
             self.searchKeyword = searchKeyword
         }
 
-        func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
+        func fetch(requestManager: RequestManager, genres: [MovieGenre.ID], watchlistItems: [WatchlistItem], page: Int?) async throws -> ExploreContentDataProvider.Response {
             let webService = WebService.searchWebService(requestManager: requestManager)
             switch searchScope {
             case .movie:
@@ -76,7 +76,7 @@ import MoviebookCommon
                 self.search.searchScope = scope
 
                 Task {
-                    await self.content.fetch(requestManager: requestManager)
+                    await self.content.fetch(requestManager: requestManager, genres: [], watchlistItems: [])
                 }
             })
             .store(in: &subscriptions)

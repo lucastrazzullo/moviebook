@@ -171,9 +171,9 @@ private struct ExploreHorizontalSectionViewPreview: View {
     struct MovieDataProvider: ExploreContentDataProvider {
         let title: String = "Movies"
         let subtitle: String? = "Subtitle"
-        func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
+        func fetch(requestManager: RequestManager, genres: [MovieGenre.ID], watchlistItems: [WatchlistItem], page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
             let response = try await WebService.movieWebService(requestManager: requestManager)
-                .fetchMovies(discoverSection: .popular, genres: [], page: page)
+                .fetchMovies(discoverSection: .popular, genres: genres, page: page)
             return (results: .movies(response.results), nextPage: response.nextPage)
         }
     }
@@ -181,7 +181,7 @@ private struct ExploreHorizontalSectionViewPreview: View {
     struct ArtistDataProvider: ExploreContentDataProvider {
         var title: String = "Artists"
         let subtitle: String? = "Subtitle"
-        func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
+        func fetch(requestManager: RequestManager, genres: [MovieGenre.ID], watchlistItems: [WatchlistItem], page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
             let response = try await WebService.artistWebService(requestManager: requestManager)
                 .fetchPopular(page: page)
             return (results: .artists(response.results), nextPage: response.nextPage)
@@ -227,8 +227,8 @@ private struct ExploreHorizontalSectionViewPreview: View {
             }
         }
         .task {
-            await moviesViewModel.fetch(requestManager: requestManager)
-            await artistsViewModel.fetch(requestManager: requestManager)
+            await moviesViewModel.fetch(requestManager: requestManager, genres: [], watchlistItems: [])
+            await artistsViewModel.fetch(requestManager: requestManager, genres: [], watchlistItems: [])
         }
     }
 

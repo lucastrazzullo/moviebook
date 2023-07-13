@@ -86,7 +86,7 @@ private struct ExploreSectionViewPreview: View {
     struct DataProvider: ExploreContentDataProvider {
         let title: String = "Mock"
         let subtitle: String? = "Subtitle"
-        func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
+        func fetch(requestManager: RequestManager, genres: [MovieGenre.ID], watchlistItems: [WatchlistItem], page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
             let response = try await WebService.movieWebService(requestManager: requestManager)
                 .fetchMovies(discoverSection: .popular, genres: [], page: page)
             return (results: .movies(response.results), nextPage: response.nextPage)
@@ -101,7 +101,7 @@ private struct ExploreSectionViewPreview: View {
             ExploreVerticalSectionView(viewModel: viewModel, presentedItem: .constant(nil))
         }
         .task {
-            await viewModel.fetch(requestManager: requestManager)
+            await viewModel.fetch(requestManager: requestManager, genres: [], watchlistItems: [])
         }
     }
 
