@@ -42,15 +42,11 @@ extension DiscoverPopularArtists: ExploreContentDataProvider {
         } else {
             var allArtists: [ArtistDetails] = []
             for movieIdentifier in moviesInWatchlist {
-                do {
-                    let artists = try await WebService
-                        .movieWebService(requestManager: requestManager)
-                        .fetchMovieCast(with: movieIdentifier)
+                let artists = try await WebService
+                    .movieWebService(requestManager: requestManager)
+                    .fetchMovieCast(with: movieIdentifier)
 
-                    allArtists.append(contentsOf: artists)
-                } catch {
-                    print("***", error)
-                }
+                allArtists.append(contentsOf: artists)
             }
 
             return (results: .artists(allArtists.getMostPopular(cap: 21)), nextPage: nil)
