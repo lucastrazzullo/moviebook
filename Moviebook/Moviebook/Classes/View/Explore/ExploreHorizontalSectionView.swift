@@ -24,7 +24,7 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
     @ViewBuilder let viewAllDestination: () -> Destination
 
     var body: some View {
-        if !viewModel.items.isEmpty || viewModel.error != nil {
+        if !viewModel.items.isEmpty || viewModel.error != nil || viewModel.isLoading {
             VStack {
                 VStack {
                     HeaderView(
@@ -43,67 +43,91 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
                     if let error = viewModel.error {
                         RetriableErrorView(retry: error.retry).padding()
                     } else {
-                        switch viewModel.items {
-                        case .movies(let movies):
-                            switch layout {
-                            case .multirows:
-                                PagedHorizontalGridView(
-                                    items: movies,
-                                    spacing: 16,
-                                    pageWidth: geometry.frame(in: .global).size.width * 0.85,
-                                    rows: 3,
-                                    itemView: { movieDetails in
-                                        MoviePreviewView(details: movieDetails, presentedItem: $presentedItem, style: .backdrop) {
-                                            presentedItem = .movieWithIdentifier(movieDetails.id)
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            Group {
+                                switch layout {
+                                case .multirows:
+                                    let rows: [GridItem] = {
+                                        let numberOfRows = viewModel.isLoading ? 3 : min(3, viewModel.items.count)
+                                        switch viewModel.items {
+                                        case .movies:
+                                            return (0..<numberOfRows).map { _ in
+                                                GridItem(.fixed(100), spacing: 16)
+                                            }
+                                        case .artists:
+                                            return (0..<numberOfRows).map { _ in
+                                                GridItem(.fixed(150), spacing: 16)
+                                            }
                                         }
-                                        .frame(width: geometry.frame(in: .global).size.width * 0.85)
-                                    }
-                                )
-                            case .shelf:
-                                ScrollView(.horizontal, showsIndicators: false) {
-                                    HStack {
-                                        ForEach(movies) { movieDetails in
-                                            MovieShelfPreviewView(
-                                                presentedItem: $presentedItem,
-                                                movieDetails: movieDetails,
-                                                watchlistIdentifier: .movie(id: movieDetails.id)
-                                            )
-                                        }
-                                    }
-                                    .frame(height: 240)
-                                    .padding(.horizontal)
-                                }
-                            }
-
-                        case .artists(let artists):
-                            switch layout {
-                            case .multirows:
-                                PagedHorizontalGridView(
-                                    items: artists,
-                                    spacing: 16,
-                                    pageWidth: geometry.frame(in: .global).size.width * 0.8,
-                                    rows: 2,
-                                    itemView: { artistDetails in
-                                        ArtistPreviewView(details: artistDetails) {
-                                            presentedItem = .artistWithIdentifier(artistDetails.id)
-                                        }
-                                        .frame(width: geometry.frame(in: .global).size.width / 4)
-                                        .frame(height: 160)
-                                    }
-                                )
-                            case .shelf:
-                                ScrollView(.horizontal, showsIndicators: false) {
-                                    HStack {
-                                        ForEach(artists) { artistDetails in
-                                            ArtistPreviewView(details: artistDetails) {
-                                                presentedItem = .artistWithIdentifier(artistDetails.id)
+                                    }()
+                                    LazyHGrid(rows: rows, spacing: 16) {
+                                        switch viewModel.items {
+                                        case .movies(let movies):
+                                            if movies.isEmpty, viewModel.isLoading {
+                                                ForEach(0..<rows.count, id: \.self) { index in
+                                                    LoadingItem().frame(width: geometry.frame(in: .global).size.width * 0.85)
+                                                }
+                                            } else {
+                                                ForEach(movies) {  movieDetails in
+                                                    MoviePreviewView(details: movieDetails, presentedItem: $presentedItem, style: .backdrop) {
+                                                        presentedItem = .movieWithIdentifier(movieDetails.id)
+                                                    }
+                                                    .frame(width: geometry.frame(in: .global).size.width * 0.85)
+                                                }
+                                            }
+                                        case .artists(let artists):
+                                            if artists.isEmpty, viewModel.isLoading {
+                                                ForEach(0..<rows.count, id: \.self) { index in
+                                                    LoadingItem().frame(width: geometry.frame(in: .global).size.width / 4)
+                                                }
+                                            } else {
+                                                ForEach(artists) { artistDetails in
+                                                    ArtistPreviewView(details: artistDetails, shouldShowCharacter: false) {
+                                                        presentedItem = .artistWithIdentifier(artistDetails.id)
+                                                    }
+                                                    .frame(width: geometry.frame(in: .global).size.width / 4)
+                                                }
                                             }
                                         }
                                     }
-                                    .frame(height: 240)
-                                    .padding(.horizontal)
+                                case .shelf:
+                                    LazyHStack {
+                                        switch viewModel.items {
+                                        case .movies(let movies):
+                                            if movies.isEmpty, viewModel.isLoading {
+                                                ForEach(0..<Int(floor(geometry.frame(in: .global).size.width / 120)), id: \.self) { index in
+                                                    LoadingItem().frame(width: 180, height: 240)
+                                                }
+                                            } else {
+                                                ForEach(movies) { movieDetails in
+                                                    MovieShelfPreviewView(
+                                                        presentedItem: $presentedItem,
+                                                        movieDetails: movieDetails,
+                                                        watchlistIdentifier: .movie(id: movieDetails.id)
+                                                    )
+                                                    .frame(height: 240)
+                                                }
+                                            }
+                                        case .artists(let artists):
+                                            if artists.isEmpty, viewModel.isLoading {
+                                                ForEach(0..<Int(floor(geometry.frame(in: .global).size.width / 120)), id: \.self) { index in
+                                                    LoadingItem().frame(width: 180, height: 240)
+                                                }
+                                            } else {
+                                                LazyHStack {
+                                                    ForEach(artists) { artistDetails in
+                                                        ArtistPreviewView(details: artistDetails, shouldShowCharacter: false) {
+                                                            presentedItem = .artistWithIdentifier(artistDetails.id)
+                                                        }
+                                                        .frame(height: 240)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
+                            .padding(.horizontal)
                         }
                     }
                 }
@@ -111,6 +135,22 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
                 .disabled(viewModel.isLoading)
             }
         }
+    }
+}
+
+private struct LoadingItem: View {
+
+    @State private var opacity: CGFloat = 0.7
+
+    var body: some View {
+        Rectangle()
+            .background(.quaternary)
+            .overlay(.white.opacity(opacity))
+            .cornerRadius(12)
+            .onAppear {
+                opacity = 0.3
+            }
+            .animation(.linear(duration: 1).repeatForever().delay(Double.random(in: 0...1)), value: opacity)
     }
 }
 

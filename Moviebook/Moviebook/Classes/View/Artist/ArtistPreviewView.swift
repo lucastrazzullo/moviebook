@@ -11,6 +11,7 @@ import MoviebookCommon
 struct ArtistPreviewView: View {
 
     let details: ArtistDetails
+    let shouldShowCharacter: Bool
     let onSelected: (() -> Void)?
 
     var body: some View {
@@ -27,14 +28,15 @@ struct ArtistPreviewView: View {
             .clipShape(RoundedRectangle(cornerRadius: 6))
 
             VStack(alignment: .leading) {
-                if let character = details.character {
-                    Text(character)
-                        .font(.caption.bold())
-                }
                 Text(details.name)
-                    .font(.caption2)
-                    .multilineTextAlignment(.leading)
+                    .font(.caption.bold())
+
+                if let character = details.character, shouldShowCharacter {
+                    Text(character)
+                        .font(.caption2)
+                }
             }
+            .multilineTextAlignment(.leading)
             .padding(6)
             .background(
                 RoundedRectangle(cornerRadius: 4)
@@ -67,7 +69,7 @@ private struct ArtistPreviewViewPreview: View {
     var body: some View {
         Group {
             if let artist {
-                ArtistPreviewView(details: artist.details, onSelected: nil)
+                ArtistPreviewView(details: artist.details, shouldShowCharacter: true, onSelected: nil)
             } else {
                 LoaderView()
             }

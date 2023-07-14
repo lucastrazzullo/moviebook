@@ -37,7 +37,7 @@ extension Array {
 
 extension Array where Element: Hashable {
 
-    public func getMostPopular(cap: Int) -> [Element] {
+    public func getMostPopular(cap: Int?) -> [Element] {
         var itemsOccurrences: [Element: Int] = [:]
         for item in self {
             itemsOccurrences[item] = (itemsOccurrences[item] ?? 0) + 1
@@ -47,7 +47,7 @@ extension Array where Element: Hashable {
             return itemsOccurrences[lhs] ?? 0 > itemsOccurrences[rhs] ?? 0
         })
 
-        if sortedItems.count > cap {
+        if let cap, sortedItems.count > cap {
             return Array(sortedItems[0..<cap])
         } else {
             return sortedItems

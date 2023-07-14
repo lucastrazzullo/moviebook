@@ -18,6 +18,7 @@ struct ExploreView: View {
     @StateObject private var discoverViewModel: DiscoverViewModel
     @StateObject private var movieGenresViewModel: MovieGenresViewModel
 
+    @State private var started: Bool = false
     @State private var presentedItemNavigationPath: NavigationPath = NavigationPath()
     @State private var presentedItem: NavigationItem?
 
@@ -84,9 +85,12 @@ struct ExploreView: View {
                     Navigation(path: $presentedItemNavigationPath, presentingItem: presentedItem)
                 }
                 .onAppear {
-                    movieGenresViewModel.start(requestManager: requestManager)
-                    searchViewModel.start(requestManager: requestManager)
-                    discoverViewModel.start(selectedGenres: movieGenresViewModel.$selectedGenres, watchlist: watchlist, requestManager: requestManager)
+                    if !started {
+                        started = true
+                        movieGenresViewModel.start(requestManager: requestManager)
+                        searchViewModel.start(requestManager: requestManager)
+                        discoverViewModel.start(selectedGenres: movieGenresViewModel.$selectedGenres, watchlist: watchlist, requestManager: requestManager)
+                    }
                 }
             }
         }

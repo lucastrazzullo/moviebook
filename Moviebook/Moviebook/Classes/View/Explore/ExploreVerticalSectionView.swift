@@ -31,7 +31,7 @@ struct ExploreVerticalSectionView: View {
             case .artists(let artists):
                 LazyVGrid(columns: [GridItem(), GridItem(), GridItem()]) {
                     ForEach(artists, id: \.self) { artistDetails in
-                        ArtistPreviewView(details: artistDetails) {
+                        ArtistPreviewView(details: artistDetails, shouldShowCharacter: false) {
                             presentedItem = .artistWithIdentifier(artistDetails.id)
                         }
                     }

@@ -33,9 +33,9 @@ enum ExploreContentItems {
     func appending(items: ExploreContentItems) -> Self {
         switch (self, items) {
         case (let .movies(movies), let .movies(newMovies)):
-            return .movies(movies + newMovies)
+            return .movies((movies + newMovies).removeDuplicates(where: { $0.id == $1.id }))
         case (let .artists(artists), let .artists(newArtists)):
-            return .artists(artists + newArtists)
+            return .artists((artists + newArtists).removeDuplicates(where: { $0.id == $1.id }))
         default:
             return items
         }

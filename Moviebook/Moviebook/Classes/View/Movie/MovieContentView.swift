@@ -285,7 +285,7 @@ private struct CastView: View {
 
             LazyVGrid(columns: [GridItem(), GridItem(), GridItem()]) {
                 ForEach(cast) { artistDetails in
-                    ArtistPreviewView(details: artistDetails, onSelected: {
+                    ArtistPreviewView(details: artistDetails, shouldShowCharacter: true, onSelected: {
                         onArtistSelected(artistDetails.id)
                     })
                 }

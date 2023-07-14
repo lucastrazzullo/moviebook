@@ -24,6 +24,31 @@ final class DiscoverPopularArtists: Identifiable {
 
 extension DiscoverPopularArtists: ExploreContentDataProvider {
 
+    enum ContentPage: Int {
+        case capped = 0
+        case expanded = 1
+
+        var cap: Int? {
+            switch self {
+            case .capped:
+                return 24
+            case .expanded:
+                return nil
+            }
+        }
+
+        init?(rawValue: Int) {
+            switch rawValue {
+            case 0:
+                self = .capped
+            case 1:
+                self = .expanded
+            default:
+                return nil
+            }
+        }
+    }
+
     var title: String {
         return "Popular artists"
     }
@@ -34,26 +59,33 @@ extension DiscoverPopularArtists: ExploreContentDataProvider {
 
     func fetch(requestManager: RequestManager, page: Int?) async throws -> ExploreContentDataProvider.Response {
         if moviesInWatchlist.isEmpty {
-            let response = try await WebService
-                .artistWebService(requestManager: requestManager)
-                .fetchPopular(page: page)
-
-            return (results: .artists(response.results), nextPage: response.nextPage)
-        } else {
-            var allArtists: [ArtistDetails] = []
-            for movieIdentifier in moviesInWatchlist {
-                do {
-                    let artists = try await WebService
-                        .movieWebService(requestManager: requestManager)
-                        .fetchMovieCast(with: movieIdentifier)
-
-                    allArtists.append(contentsOf: artists)
-                } catch {
-                    print("***", error)
-                }
-            }
-
-            return (results: .artists(allArtists.getMostPopular(cap: 21)), nextPage: nil)
+            return (results: .movies([]), nextPage: nil)
         }
+
+        let currentPage: ContentPage
+        if let page {
+            currentPage = ContentPage(rawValue: page) ?? .capped
+        } else {
+            currentPage = .capped
+        }
+
+        var allArtists: [ArtistDetails] = []
+        for movieIdentifier in moviesInWatchlist {
+            let artists = try await WebService
+                .movieWebService(requestManager: requestManager)
+                .fetchMovieCast(with: movieIdentifier)
+
+            allArtists.append(contentsOf: artists)
+        }
+
+        let nextPage: ContentPage?
+        switch currentPage {
+        case .capped:
+            nextPage = .expanded
+        case .expanded:
+            nextPage = nil
+        }
+
+        return (results: .artists(allArtists.getMostPopular(cap: currentPage.cap)), nextPage: nextPage?.rawValue)
     }
 }
