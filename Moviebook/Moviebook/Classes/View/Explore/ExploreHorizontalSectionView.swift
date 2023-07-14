@@ -84,7 +84,7 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
                                     pageWidth: geometry.frame(in: .global).size.width * 0.8,
                                     rows: 2,
                                     itemView: { artistDetails in
-                                        ArtistPreviewView(details: artistDetails) {
+                                        ArtistPreviewView(details: artistDetails, shouldShowCharacter: false) {
                                             presentedItem = .artistWithIdentifier(artistDetails.id)
                                         }
                                         .frame(width: geometry.frame(in: .global).size.width / 4)
@@ -95,7 +95,7 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
                                 ScrollView(.horizontal, showsIndicators: false) {
                                     HStack {
                                         ForEach(artists) { artistDetails in
-                                            ArtistPreviewView(details: artistDetails) {
+                                            ArtistPreviewView(details: artistDetails, shouldShowCharacter: false) {
                                                 presentedItem = .artistWithIdentifier(artistDetails.id)
                                             }
                                         }
