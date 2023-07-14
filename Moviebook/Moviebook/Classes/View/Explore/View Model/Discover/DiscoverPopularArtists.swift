@@ -31,7 +31,7 @@ extension DiscoverPopularArtists: ExploreContentDataProvider {
         var cap: Int? {
             switch self {
             case .capped:
-                return 21
+                return 24
             case .expanded:
                 return nil
             }
