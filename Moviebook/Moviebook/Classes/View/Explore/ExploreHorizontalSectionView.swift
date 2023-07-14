@@ -43,64 +43,55 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
                     if let error = viewModel.error {
                         RetriableErrorView(retry: error.retry).padding()
                     } else {
-                        switch viewModel.items {
-                        case .movies(let movies):
-                            switch layout {
-                            case .multirows:
-                                PagedHorizontalGridView(
-                                    items: movies,
-                                    spacing: 16,
-                                    pageWidth: geometry.frame(in: .global).size.width * 0.85,
-                                    rows: 3,
-                                    itemView: { movieDetails in
-                                        MoviePreviewView(details: movieDetails, presentedItem: $presentedItem, style: .backdrop) {
-                                            presentedItem = .movieWithIdentifier(movieDetails.id)
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            switch viewModel.items {
+                            case .movies(let movies):
+                                switch layout {
+                                case .multirows:
+                                    LazyHGrid(rows: (0..<(min(3, movies.count))).map { _ in GridItem(.fixed(100), spacing: 16) }, spacing: 16) {
+                                        ForEach(movies) {  movieDetails in
+                                            MoviePreviewView(details: movieDetails, presentedItem: $presentedItem, style: .backdrop) {
+                                                presentedItem = .movieWithIdentifier(movieDetails.id)
+                                            }
+                                            .frame(width: geometry.frame(in: .global).size.width * 0.85)
                                         }
-                                        .frame(width: geometry.frame(in: .global).size.width * 0.85)
                                     }
-                                )
-                            case .shelf:
-                                ScrollView(.horizontal, showsIndicators: false) {
-                                    HStack {
+                                    .padding(.horizontal)
+                                case .shelf:
+                                    LazyHStack {
                                         ForEach(movies) { movieDetails in
                                             MovieShelfPreviewView(
                                                 presentedItem: $presentedItem,
                                                 movieDetails: movieDetails,
                                                 watchlistIdentifier: .movie(id: movieDetails.id)
                                             )
+                                            .frame(height: 240)
                                         }
                                     }
-                                    .frame(height: 240)
                                     .padding(.horizontal)
                                 }
-                            }
 
-                        case .artists(let artists):
-                            switch layout {
-                            case .multirows:
-                                PagedHorizontalGridView(
-                                    items: artists,
-                                    spacing: 16,
-                                    pageWidth: geometry.frame(in: .global).size.width * 0.8,
-                                    rows: 2,
-                                    itemView: { artistDetails in
-                                        ArtistPreviewView(details: artistDetails, shouldShowCharacter: false) {
-                                            presentedItem = .artistWithIdentifier(artistDetails.id)
-                                        }
-                                        .frame(width: geometry.frame(in: .global).size.width / 4)
-                                        .frame(height: 160)
-                                    }
-                                )
-                            case .shelf:
-                                ScrollView(.horizontal, showsIndicators: false) {
-                                    HStack {
+                            case .artists(let artists):
+                                switch layout {
+                                case .multirows:
+                                    LazyHGrid(rows: (0..<2).map { _ in GridItem(.fixed(150), spacing: 16) }, spacing: 16) {
                                         ForEach(artists) { artistDetails in
                                             ArtistPreviewView(details: artistDetails, shouldShowCharacter: false) {
                                                 presentedItem = .artistWithIdentifier(artistDetails.id)
                                             }
+                                            .frame(width: geometry.frame(in: .global).size.width / 4)
                                         }
                                     }
-                                    .frame(height: 240)
+                                    .padding(.horizontal)
+                                case .shelf:
+                                    LazyHStack {
+                                        ForEach(artists) { artistDetails in
+                                            ArtistPreviewView(details: artistDetails, shouldShowCharacter: false) {
+                                                presentedItem = .artistWithIdentifier(artistDetails.id)
+                                            }
+                                            .frame(height: 240)
+                                        }
+                                    }
                                     .padding(.horizontal)
                                 }
                             }
