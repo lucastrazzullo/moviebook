@@ -10,82 +10,54 @@ import MoviebookCommon
 
 final class DiscoverPopularArtists: Identifiable {
 
-    private var moviesInWatchlist: [Movie.ID] = []
+    private var allArtists: [ArtistDetails] = []
+    private let numberOfItemsPerPage: Int = 24
 
     func update(watchlistItems: [WatchlistItem], requestManager: RequestManager) async {
-        moviesInWatchlist = watchlistItems.compactMap { watchlistItem in
+        let moviesInWatchlist = watchlistItems.compactMap { watchlistItem in
             switch watchlistItem.id {
             case .movie(id: let id):
                 return id
             }
+        }
+
+        allArtists = await withTaskGroup(of: [ArtistDetails].self) { group in
+            for movieIdentifier in moviesInWatchlist {
+                group.addTask {
+                    return (try? await WebService
+                        .movieWebService(requestManager: requestManager)
+                        .fetchMovieCast(with: movieIdentifier)) ?? []
+                }
+            }
+
+            var results = [ArtistDetails]()
+            for await response in group {
+                results.append(contentsOf: response)
+            }
+
+            return results
         }
     }
 }
 
 extension DiscoverPopularArtists: ExploreContentDataProvider {
 
-    enum ContentPage: Int {
-        case capped = 0
-        case expanded = 1
-
-        var cap: Int? {
-            switch self {
-            case .capped:
-                return 24
-            case .expanded:
-                return nil
-            }
-        }
-
-        init?(rawValue: Int) {
-            switch rawValue {
-            case 0:
-                self = .capped
-            case 1:
-                self = .expanded
-            default:
-                return nil
-            }
-        }
-    }
-
     var title: String {
         return "Popular artists"
     }
 
     var subtitle: String? {
-        return moviesInWatchlist.isEmpty ? nil : "Based on your watchlist"
+        return allArtists.isEmpty ? nil : "Based on your watchlist"
     }
 
     func fetch(requestManager: RequestManager, page: Int?) async throws -> ExploreContentDataProvider.Response {
-        if moviesInWatchlist.isEmpty {
-            return (results: .movies([]), nextPage: nil)
-        }
+        let currentPage = page ?? 0
 
-        let currentPage: ContentPage
-        if let page {
-            currentPage = ContentPage(rawValue: page) ?? .capped
-        } else {
-            currentPage = .capped
-        }
+        let bottomCap = currentPage * numberOfItemsPerPage
+        let topCap = bottomCap + numberOfItemsPerPage
+        let artists = allArtists.getMostPopular(bottomCap: bottomCap, topCap: topCap)
+        let nextPage = allArtists.count > topCap ? currentPage + 1 : nil
 
-        var allArtists: [ArtistDetails] = []
-        for movieIdentifier in moviesInWatchlist {
-            let artists = try await WebService
-                .movieWebService(requestManager: requestManager)
-                .fetchMovieCast(with: movieIdentifier)
-
-            allArtists.append(contentsOf: artists)
-        }
-
-        let nextPage: ContentPage?
-        switch currentPage {
-        case .capped:
-            nextPage = .expanded
-        case .expanded:
-            nextPage = nil
-        }
-
-        return (results: .artists(allArtists.getMostPopular(cap: currentPage.cap)), nextPage: nextPage?.rawValue)
+        return (results: .artists(artists), nextPage: nextPage)
     }
 }
