@@ -102,7 +102,7 @@
 		816E653E2A45B05B007AEED1 /* RequestManager+Mock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 816E653D2A45B05B007AEED1 /* RequestManager+Mock.swift */; };
 		816E653F2A45B215007AEED1 /* Mocks in Resources */ = {isa = PBXBuildFile; fileRef = 814D46E828C23CED000D7ABD /* Mocks */; };
 		816E65412A45B995007AEED1 /* TheMovieDbUrlFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 816E65402A45B995007AEED1 /* TheMovieDbUrlFactory.swift */; };
-		817C42A729FC190C00FB3FD6 /* WatchlistSectionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 817C42A629FC190C00FB3FD6 /* WatchlistSectionViewModel.swift */; };
+		817C42A729FC190C00FB3FD6 /* WatchlistViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 817C42A629FC190C00FB3FD6 /* WatchlistViewModel.swift */; };
 		81828ACA28DDB736006D696C /* MovieView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81828AC928DDB736006D696C /* MovieView.swift */; };
 		81828ACC28DDC7A4006D696C /* ObservableScrollView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81828ACB28DDC7A4006D696C /* ObservableScrollView.swift */; };
 		8192130A2A58652F0075AC17 /* ExploreHorizontalMovieGenreSectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 819213092A58652F0075AC17 /* ExploreHorizontalMovieGenreSectionView.swift */; };
@@ -328,7 +328,7 @@
 		816E65402A45B995007AEED1 /* TheMovieDbUrlFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TheMovieDbUrlFactory.swift; sourceTree = "<group>"; };
 		8175D6402A0940E3006BEE8E /* WatchProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchProvider.swift; sourceTree = "<group>"; };
 		8175D6422A095150006BEE8E /* WatchProviderCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchProviderCollection.swift; sourceTree = "<group>"; };
-		817C42A629FC190C00FB3FD6 /* WatchlistSectionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistSectionViewModel.swift; sourceTree = "<group>"; };
+		817C42A629FC190C00FB3FD6 /* WatchlistViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistViewModel.swift; sourceTree = "<group>"; };
 		817C42A829FC66EB00FB3FD6 /* Deeplink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Deeplink.swift; sourceTree = "<group>"; };
 		817C42AB29FD2D5200FB3FD6 /* Moviebook.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Moviebook.entitlements; sourceTree = "<group>"; };
 		81828AC928DDB736006D696C /* MovieView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieView.swift; sourceTree = "<group>"; };
@@ -811,7 +811,7 @@
 		8194DF5C29FE664F00A3FC2D /* View Model */ = {
 			isa = PBXGroup;
 			children = (
-				817C42A629FC190C00FB3FD6 /* WatchlistSectionViewModel.swift */,
+				817C42A629FC190C00FB3FD6 /* WatchlistViewModel.swift */,
 				813C09A62A5816B90044E16E /* WatchlistUndoViewModel.swift */,
 			);
 			path = "View Model";
@@ -1328,7 +1328,7 @@
 				814BC2E12A5E816600F60606 /* DiscoverForYou.swift in Sources */,
 				8128AB1C28F00CB6002FD343 /* RatingView.swift in Sources */,
 				81A889B12A5ADDE500E4F69A /* MoviesGenresPicker.swift in Sources */,
-				817C42A729FC190C00FB3FD6 /* WatchlistSectionViewModel.swift in Sources */,
+				817C42A729FC190C00FB3FD6 /* WatchlistViewModel.swift in Sources */,
 				81828ACA28DDB736006D696C /* MovieView.swift in Sources */,
 				8169FB1F28C204450054BCE6 /* WatchlistView.swift in Sources */,
 				81989ED22A08F9CA00547584 /* Spotlight.swift in Sources */,
@@ -1751,7 +1751,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.2.0;
+				MARKETING_VERSION = 3.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = it.lucastrazzullo.ios.moviebook;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1791,7 +1791,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.2.0;
+				MARKETING_VERSION = 3.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = it.lucastrazzullo.ios.moviebook;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1953,7 +1953,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 3.2.0;
+				MARKETING_VERSION = 3.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "it.lucastrazzullo.ios.moviebook.Moviebook-WatchNext-Widget";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1988,7 +1988,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 3.2.0;
+				MARKETING_VERSION = 3.2.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "it.lucastrazzullo.ios.moviebook.Moviebook-WatchNext-Widget";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

@@ -34,20 +34,11 @@ actor Storage {
         let watchlist = await Watchlist(items: watchlistItems)
         try await watchNextStorage.set(items: watchlistItems)
 
-        // Listen for watchlist updates
         await watchlist.itemsDidChange
             .removeDuplicates()
+            .debounce(for: .seconds(1), scheduler: DispatchQueue.main)
             .sink { items in Task {
                 try await watchlistStorage.store(items: items)
-                try await watchNextStorage.set(items: items)
-            }}
-            .store(in: &subscriptions)
-
-        // Listen for remote updates
-        await watchlistStorage.remoteUpdatesPublisher()
-            .removeDuplicates()
-            .sink { items in Task {
-                await watchlist.set(items: items)
                 try await watchNextStorage.set(items: items)
             }}
             .store(in: &subscriptions)

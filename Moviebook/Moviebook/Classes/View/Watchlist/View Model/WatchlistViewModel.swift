@@ -9,7 +9,7 @@ import Foundation
 import Combine
 import MoviebookCommon
 
-@MainActor final class WatchlistSectionViewModel: ObservableObject {
+@MainActor final class WatchlistViewModel: ObservableObject {
 
     // MARK: Types
 
@@ -67,7 +67,7 @@ import MoviebookCommon
     enum Item: Identifiable, Equatable {
         case movie(movie: Movie, watchlistItem: WatchlistItem)
 
-        var id: AnyHashable {
+        var id: WatchlistItemIdentifier {
             switch self {
             case .movie(_, let watchlistItem):
                 return watchlistItem.id
@@ -89,7 +89,7 @@ import MoviebookCommon
     @Published private(set) var error: WebServiceError? = nil
     @Published private(set) var items: [Item] = []
 
-    private var watchlistItems: [Section: [Item]] = [:]
+    private var allItems: [Section: [Item]] = [:]
     private var subscriptions: Set<AnyCancellable> = []
 
     // MARK: Object life cycle
@@ -110,14 +110,26 @@ import MoviebookCommon
 
     // MARK: Internal methods
 
-    func start(watchlist: Watchlist, requestManager: RequestManager) {
-        watchlist.$items
+    func start(watchlist: Watchlist, requestManager: RequestManager) async {
+        await loadItems(watchlist.items, requestManager: requestManager)
+
+        watchlist.itemWasRemoved
+            .sink { [weak self] item in
+                guard let self else { return }
+                Task {
+                    await self.removeItemAndPublish(item)
+                }
+            }
+            .store(in: &subscriptions)
+
+        watchlist.itemsDidChange
             .removeDuplicates()
             .sink { [weak self, weak requestManager] items in
                 guard let self, let requestManager else { return }
                 Task {
-                    await self.updateItems(items, requestManager: requestManager)
-                    await self.publishItems(section: self.section, sorting: self.sorting)
+                    let arrangedItems = await self.arrangedItems(items)
+                    let items = try await self.loadedItems(arrangedItems, requestManager: requestManager)
+                    self.updateAndPublishItems(items: items)
                 }
             }
             .store(in: &subscriptions)
@@ -129,22 +141,56 @@ import MoviebookCommon
                 UserDefaults.standard.set(section.rawValue, forKey: Self.storedSectionKey)
                 UserDefaults.standard.set(sorting.rawValue, forKey: Self.storedSortingKey)
 
-                Task {
-                    await self.publishItems(section: section, sorting: sorting)
-                }
+                self.publishItems(section: section, sorting: sorting)
             }
             .store(in: &subscriptions)
     }
 
-    // MARK: Private methods - Published items
+    // MARK: Private methods - Data flow
 
-    private func publishItems(section: Section, sorting: Sorting) async {
-        self.items = watchlistItems[section]?.sorted(by: sort(sorting: sorting)) ?? []
+    private func loadItems(_ items: [WatchlistItem], requestManager: RequestManager) async {
+        do {
+            isLoading = true
+            error = nil
+
+            let arrangedItems = await arrangedItems(items)
+            let items = try await loadedItems(arrangedItems, requestManager: requestManager)
+            updateAndPublishItems(items: items)
+
+            isLoading = false
+
+        } catch {
+            self.isLoading = false
+            self.error = WebServiceError.failedToLoad(id: .init(), retry: { [weak self] in
+                Task {
+                    await self?.loadItems(items, requestManager: requestManager)
+                }
+            })
+        }
     }
 
-    // MARK: Private methods - Watchlist Items
+    private func removeItemAndPublish(_ item: WatchlistItem) async {
+        for section in allItems.keys {
+            if let index = allItems[section]?.firstIndex(where: { $0.id == item.id }) {
+                allItems[section]?.remove(at: index)
+                continue
+            }
+        }
+        publishItems(section: section, sorting: sorting)
+    }
 
-    private func updateItems(_ items: [WatchlistItem], requestManager: RequestManager) async {
+    private func updateAndPublishItems(items: [Section: [Item]]) {
+        allItems = items
+        publishItems(section: section, sorting: sorting)
+    }
+
+    private func publishItems(section: Section, sorting: Sorting) {
+        items = allItems[section]?.sorted(by: sort(sorting: sorting)) ?? []
+    }
+
+    // MARK: Private methods - Data manipulation
+
+    private func arrangedItems(_ items: [WatchlistItem]) async -> [Section: [WatchlistItem]] {
         var result = [Section: [WatchlistItem]]()
         for section in Section.allCases {
             result[section] = []
@@ -159,29 +205,11 @@ import MoviebookCommon
             }
         }
 
-        await setItemsOrRetry(result, requestManager: requestManager)
+        return result
     }
 
-    private func setItemsOrRetry(_ items: [Section: [WatchlistItem]], requestManager: RequestManager) async {
-        do {
-            isLoading = true
-            error = nil
-
-            try await set(items: items, requestManager: requestManager)
-            isLoading = false
-
-        } catch {
-            self.isLoading = false
-            self.error = WebServiceError.failedToLoad(id: .init(), retry: { [weak self] in
-                Task {
-                    await self?.setItemsOrRetry(items, requestManager: requestManager)
-                }
-            })
-        }
-    }
-
-    private func set(items: [Section: [WatchlistItem]], requestManager: RequestManager) async throws {
-        self.watchlistItems = try await withThrowingTaskGroup(of: Item.self) { group in
+    private func loadedItems(_ items: [Section: [WatchlistItem]], requestManager: RequestManager) async throws -> [Section: [Item]] {
+        return try await withThrowingTaskGroup(of: Item.self) { group in
             var result = [Section: [Item]]()
 
             for section in items.keys {
@@ -193,11 +221,15 @@ import MoviebookCommon
 
                 for item in items {
                     group.addTask {
-                        switch item.id {
-                        case .movie(let id):
-                            let webService = WebService.movieWebService(requestManager: requestManager)
-                            let movie = try await webService.fetchMovie(with: id)
-                            return Item.movie(movie: movie, watchlistItem: item)
+                        if let cachedItem = await self.loadFromExistingItems(item: item) {
+                            return cachedItem
+                        } else {
+                            switch item.id {
+                            case .movie(let id):
+                                let webService = WebService.movieWebService(requestManager: requestManager)
+                                let movie = try await webService.fetchMovie(with: id)
+                                return Item.movie(movie: movie, watchlistItem: item)
+                            }
                         }
                     }
                 }
@@ -211,9 +243,18 @@ import MoviebookCommon
         }
     }
 
+    private func loadFromExistingItems(item: WatchlistItem) async -> Item? {
+        for section in allItems.keys {
+            if let index = allItems[section]?.firstIndex(where: { $0.id == item.id }) {
+                return allItems[section]?[index]
+            }
+        }
+        return nil
+    }
+
     // MARK: Private methods - Sorting
 
-    private func sort(sorting: Sorting) -> (WatchlistSectionViewModel.Item, WatchlistSectionViewModel.Item) -> Bool {
+    private func sort(sorting: Sorting) -> (WatchlistViewModel.Item, WatchlistViewModel.Item) -> Bool {
         return { lhs, rhs in
             switch sorting {
             case .lastAdded:
@@ -228,7 +269,7 @@ import MoviebookCommon
         }
     }
 
-    private func rating(for item: WatchlistSectionViewModel.Item) -> Float {
+    private func rating(for item: WatchlistViewModel.Item) -> Float {
         switch item {
         case .movie(let movie, let watchlistItem):
             switch watchlistItem.state {
@@ -240,21 +281,21 @@ import MoviebookCommon
         }
     }
 
-    private func name(for item: WatchlistSectionViewModel.Item) -> String {
+    private func name(for item: WatchlistViewModel.Item) -> String {
         switch item {
         case .movie(let movie, _):
             return movie.details.title
         }
     }
 
-    private func releaseDate(for item: WatchlistSectionViewModel.Item) -> Date {
+    private func releaseDate(for item: WatchlistViewModel.Item) -> Date {
         switch item {
         case .movie(let movie, _):
             return movie.details.release
         }
     }
 
-    private func addedDate(for item: WatchlistSectionViewModel.Item) -> Date {
+    private func addedDate(for item: WatchlistViewModel.Item) -> Date {
         switch item {
         case .movie(_, let watchlistItem):
             return watchlistItem.date
