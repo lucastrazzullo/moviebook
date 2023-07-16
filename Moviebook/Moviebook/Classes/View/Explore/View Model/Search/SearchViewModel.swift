@@ -23,8 +23,16 @@ import MoviebookCommon
         self.searchScope = scope
         self.searchKeyword = query
 
+        let defaultItems: ExploreContentItems = {
+            switch scope {
+            case .movie:
+                return .movies([])
+            case .artist:
+                return .artists([])
+            }
+        }()
         let dataProvider = SearchDataProvider(searchScope: scope, searchKeyword: query)
-        self.content = ExploreContentViewModel(dataProvider: dataProvider)
+        self.content = ExploreContentViewModel(dataProvider: dataProvider, items: defaultItems)
     }
 
     func start(requestManager: RequestManager) {

@@ -62,10 +62,11 @@ protocol ExploreContentDataProvider {
 
     let dataProvider: ExploreContentDataProvider
 
-    init(dataProvider: ExploreContentDataProvider) {
+    init(dataProvider: ExploreContentDataProvider, items: ExploreContentItems) {
         self.dataProvider = dataProvider
         self.title = dataProvider.title
         self.subtitle = dataProvider.subtitle
+        self.items = items
     }
 
     func fetch(requestManager: RequestManager, page: Int? = nil, updateDataProvider: @escaping (ExploreContentDataProvider) async -> Void) async {

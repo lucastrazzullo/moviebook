@@ -106,7 +106,7 @@ private struct ExploreSectionViewPreview: View {
     }
 
     init() {
-        viewModel = ExploreContentViewModel(dataProvider: DataProvider())
+        viewModel = ExploreContentViewModel(dataProvider: DataProvider(), items: .movies([]))
     }
 }
 #endif

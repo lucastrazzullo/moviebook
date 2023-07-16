@@ -22,12 +22,12 @@ import MoviebookCommon
 
     init() {
         self.sectionsContent = [
-            ExploreContentViewModel(dataProvider: DiscoverForYou()),
-            ExploreContentViewModel(dataProvider: DiscoverSection(discoverSection: .popular)),
-            ExploreContentViewModel(dataProvider: DiscoverSection(discoverSection: .nowPlaying)),
-            ExploreContentViewModel(dataProvider: DiscoverSection(discoverSection: .upcoming)),
-            ExploreContentViewModel(dataProvider: DiscoverSection(discoverSection: .topRated)),
-            ExploreContentViewModel(dataProvider: DiscoverPopularArtists())
+            ExploreContentViewModel(dataProvider: DiscoverForYou(), items: .movies([])),
+            ExploreContentViewModel(dataProvider: DiscoverSection(discoverSection: .popular), items: .movies([])),
+            ExploreContentViewModel(dataProvider: DiscoverSection(discoverSection: .nowPlaying), items: .movies([])),
+            ExploreContentViewModel(dataProvider: DiscoverSection(discoverSection: .upcoming), items: .movies([])),
+            ExploreContentViewModel(dataProvider: DiscoverSection(discoverSection: .topRated), items: .movies([])),
+            ExploreContentViewModel(dataProvider: DiscoverPopularArtists(), items: .artists([]))
         ]
     }
 
