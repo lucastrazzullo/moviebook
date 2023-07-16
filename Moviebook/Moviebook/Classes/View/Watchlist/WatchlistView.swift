@@ -14,7 +14,7 @@ struct WatchlistView: View {
     @Environment(\.requestManager) var requestManager
     @EnvironmentObject var watchlist: Watchlist
 
-    @StateObject private var sectionViewModel = WatchlistSectionViewModel()
+    @StateObject private var sectionViewModel = WatchlistViewModel()
     @StateObject private var undoViewModel: WatchlistUndoViewModel = WatchlistUndoViewModel()
 
     @State private var shouldShowTopBar: Bool = false
@@ -54,8 +54,8 @@ struct WatchlistView: View {
         .sheet(item: $presentedItem) { item in
             Navigation(path: $presentedItemNavigationPath, presentingItem: item)
         }
-        .onAppear {
-            sectionViewModel.start(watchlist: watchlist, requestManager: requestManager)
+        .task {
+            await sectionViewModel.start(watchlist: watchlist, requestManager: requestManager)
         }
         .animation(.default, value: sectionViewModel.items)
     }
@@ -64,7 +64,7 @@ struct WatchlistView: View {
 private struct TopbarView: View {
 
     @ObservedObject var undoViewModel: WatchlistUndoViewModel
-    @Binding var sorting: WatchlistSectionViewModel.Sorting
+    @Binding var sorting: WatchlistViewModel.Sorting
 
     var body: some View {
         ZStack {
@@ -73,7 +73,7 @@ private struct TopbarView: View {
 
             Menu {
                 Picker("Sorting", selection: $sorting) {
-                    ForEach(WatchlistSectionViewModel.Sorting.allCases, id: \.self) { sorting in
+                    ForEach(WatchlistViewModel.Sorting.allCases, id: \.self) { sorting in
                         HStack {
                             Text(sorting.label)
                             Spacer()
@@ -101,13 +101,13 @@ private struct TopbarView: View {
 
 private struct ToolbarView: View {
 
-    @Binding var currentSection: WatchlistSectionViewModel.Section
+    @Binding var currentSection: WatchlistViewModel.Section
     @Binding var presentedItem: NavigationItem?
 
     var body: some View {
         HStack {
             Picker("Section", selection: $currentSection) {
-                ForEach(WatchlistSectionViewModel.Section.allCases, id: \.self) { section in
+                ForEach(WatchlistViewModel.Section.allCases, id: \.self) { section in
                     Text(section.name)
                 }
             }
@@ -133,7 +133,7 @@ private struct ContentView: View {
     @Environment(\.requestManager) var requestManager
     @EnvironmentObject var watchlist: Watchlist
 
-    @ObservedObject var viewModel: WatchlistSectionViewModel
+    @ObservedObject var viewModel: WatchlistViewModel
     @Binding var presentedItem: NavigationItem?
 
     @Binding var shouldShowTopBar: Bool
@@ -170,7 +170,7 @@ private struct WatchlistEmptyListView: View {
     @Binding var shouldShowTopBar: Bool
     @Binding var shouldShowBottomBar: Bool
 
-    let section: WatchlistSectionViewModel.Section
+    let section: WatchlistViewModel.Section
 
     var body: some View {
         EmptyWatchlistView(section: section)
@@ -186,7 +186,7 @@ private struct WatchlistListView: View {
 
     @State private var scrollContent: ObservableScrollContent = .zero
 
-    @ObservedObject var viewModel: WatchlistSectionViewModel
+    @ObservedObject var viewModel: WatchlistViewModel
     @Binding var presentedItem: NavigationItem?
 
     @Binding var shouldShowTopBar: Bool

@@ -34,7 +34,7 @@ import MoviebookCommon
     // MARK: Instance methods
 
     func start(selectedGenres: Published<Set<MovieGenre>>.Publisher, watchlist: Watchlist, requestManager: RequestManager) {
-        Publishers.CombineLatest(selectedGenres, watchlist.$items)
+        Publishers.CombineLatest(selectedGenres, Publishers.Merge(Just(watchlist.items), watchlist.itemsDidChange))
             .sink { [weak self, weak requestManager] genres, watchlistItems in
                 guard let self, let requestManager else { return }
                 Task {

@@ -79,7 +79,7 @@ public struct WatchlistItemWatchedInfo: Hashable, Equatable {
 
 @MainActor public final class Watchlist: ObservableObject {
 
-    @Published public private(set) var items: [WatchlistItem] = []
+    public private(set) var items: [WatchlistItem] = []
 
     public let itemWasRemoved: PassthroughSubject<WatchlistItem, Never>
     public let itemDidUpdateState: PassthroughSubject<WatchlistItem, Never>
@@ -94,15 +94,13 @@ public struct WatchlistItemWatchedInfo: Hashable, Equatable {
 
     // MARK: Internal methods
 
-    public func set(items: [WatchlistItem]) {
-        self.items = items
-    }
-
     public func itemState(id: WatchlistItemIdentifier) -> WatchlistItemState? {
         return items.first(where: { $0.id == id })?.state
     }
 
     public func update(state: WatchlistItemState, forItemWith id: WatchlistItemIdentifier) {
+        objectWillChange.send()
+
         if let index = items.firstIndex(where: { $0.id == id }) {
             items[index].state = state
             itemDidUpdateState.send(items[index])
@@ -116,6 +114,8 @@ public struct WatchlistItemWatchedInfo: Hashable, Equatable {
     }
 
     public func remove(itemWith id: WatchlistItemIdentifier) {
+        objectWillChange.send()
+
         if let index = items.firstIndex(where: { $0.id == id }) {
             let item = items.remove(at: index)
             itemWasRemoved.send(item)
