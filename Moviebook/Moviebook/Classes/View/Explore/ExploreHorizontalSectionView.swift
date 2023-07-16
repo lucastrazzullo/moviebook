@@ -64,7 +64,7 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
                                         switch viewModel.items {
                                         case .movies(let movies):
                                             if movies.isEmpty, viewModel.isLoading {
-                                                ForEach(0..<rows.count, id: \.self) { index in
+                                                ForEach(0..<rows.count*2, id: \.self) { index in
                                                     LoadingItem().frame(width: geometry.frame(in: .global).size.width * 0.85)
                                                 }
                                             } else {
@@ -77,7 +77,7 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
                                             }
                                         case .artists(let artists):
                                             if artists.isEmpty, viewModel.isLoading {
-                                                ForEach(0..<rows.count, id: \.self) { index in
+                                                ForEach(0..<rows.count*4, id: \.self) { index in
                                                     LoadingItem().frame(width: geometry.frame(in: .global).size.width / 4)
                                                 }
                                             } else {
@@ -95,8 +95,8 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
                                         switch viewModel.items {
                                         case .movies(let movies):
                                             if movies.isEmpty, viewModel.isLoading {
-                                                ForEach(0..<Int(floor(geometry.frame(in: .global).size.width / 120)), id: \.self) { index in
-                                                    LoadingItem().frame(width: 180, height: 240)
+                                                ForEach(0..<Int(ceil(geometry.frame(in: .global).size.width / 160)), id: \.self) { index in
+                                                    LoadingItem().frame(width: 160, height: 240)
                                                 }
                                             } else {
                                                 ForEach(movies) { movieDetails in
@@ -110,8 +110,8 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
                                             }
                                         case .artists(let artists):
                                             if artists.isEmpty, viewModel.isLoading {
-                                                ForEach(0..<Int(floor(geometry.frame(in: .global).size.width / 120)), id: \.self) { index in
-                                                    LoadingItem().frame(width: 180, height: 240)
+                                                ForEach(0..<Int(ceil(geometry.frame(in: .global).size.width / 160)), id: \.self) { index in
+                                                    LoadingItem().frame(width: 160, height: 240)
                                                 }
                                             } else {
                                                 LazyHStack {
@@ -275,8 +275,8 @@ private struct ExploreHorizontalSectionViewPreview: View {
     }
 
     init() {
-        _moviesViewModel = StateObject(wrappedValue: ExploreContentViewModel(dataProvider: MovieDataProvider()))
-        _artistsViewModel = StateObject(wrappedValue: ExploreContentViewModel(dataProvider: ArtistDataProvider()))
+        _moviesViewModel = StateObject(wrappedValue: ExploreContentViewModel(dataProvider: MovieDataProvider(), items: .movies([])))
+        _artistsViewModel = StateObject(wrappedValue: ExploreContentViewModel(dataProvider: ArtistDataProvider(), items: .artists([])))
     }
 }
 #endif
