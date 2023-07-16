@@ -35,27 +35,6 @@ actor WatchlistStorage {
         return result
     }
 
-    func remoteUpdatesPublisher() -> AnyPublisher<[WatchlistItem], Never> {
-        return NotificationCenter.default.publisher(
-            for: NSNotification.Name.NSPersistentStoreRemoteChange,
-            object: persistentContainer.persistentStoreCoordinator
-        )
-        .compactMap { $0.name == NSNotification.Name.NSPersistentStoreRemoteChange ? $0 : nil }
-        .flatMap { _ in
-            Future<[WatchlistItem], Error> { promise in
-                Task {
-                    do {
-                        promise(.success(try await self.fetchWatchlistItems()))
-                    } catch {
-                        promise(.failure(error))
-                    }
-                }
-            }
-        }
-        .replaceError(with: [])
-        .eraseToAnyPublisher()
-    }
-
     func store(items: [WatchlistItem]) async throws {
         let storedItemsToWatch = try await fetchStoredItemsToWatch()
         let watchlistItemsToWatch = items.filter { if case .toWatch = $0.state { return true } else { return false }}
