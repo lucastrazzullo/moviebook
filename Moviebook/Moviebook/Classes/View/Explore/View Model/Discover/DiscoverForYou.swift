@@ -68,7 +68,7 @@ final class DiscoverForYou: Identifiable {
                 keywords.append(contentsOf: response)
             }
 
-            return keywords.getMostPopular(cap: 3)
+            return keywords.getMostPopular(topCap: 3)
         }
 
         if genresFilter.isEmpty {
@@ -88,7 +88,7 @@ final class DiscoverForYou: Identifiable {
                     genres.append(contentsOf: response)
                 }
 
-                return genres.getMostPopular(cap: 3)
+                return genres.getMostPopular(topCap: 3)
             }
         } else {
             self.genresFilter = genresFilter
