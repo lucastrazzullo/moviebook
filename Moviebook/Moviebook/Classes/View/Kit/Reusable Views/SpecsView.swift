@@ -31,10 +31,10 @@ struct SpecsView: View {
                 .padding(.leading)
 
             VStack(alignment: .leading, spacing: 12) {
-                ForEach(items, id: \.self) { item in
+                ForEach(Array(zip(items.indices, items)), id: \.0) { index, item in
                     switch item {
                     case .divider:
-                        Divider()
+                        Divider().id("divider\(index)")
                     case .item(let item):
                         switch item {
                         case .date(let date, let label):

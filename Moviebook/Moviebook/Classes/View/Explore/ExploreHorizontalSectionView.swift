@@ -102,8 +102,7 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
                                                 ForEach(movies) { movieDetails in
                                                     MovieShelfPreviewView(
                                                         presentedItem: $presentedItem,
-                                                        movieDetails: movieDetails,
-                                                        watchlistIdentifier: .movie(id: movieDetails.id)
+                                                        movieDetails: movieDetails
                                                     )
                                                     .frame(height: 240)
                                                 }

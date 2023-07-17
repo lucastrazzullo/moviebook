@@ -25,12 +25,6 @@ struct MovieContentView: View {
                 onPlayTrailer: onVideoSelected
             )
 
-            MovieWatchlistStateView(
-                movieId: movie.id,
-                movieReleaseDate: movie.details.release,
-                movieBackdropPreviewUrl: movie.details.media.backdropPreviewUrl
-            )
-
             if let overview = movie.details.overview, !overview.isEmpty {
                 ExpandibleOverviewView(
                     isExpanded: $isOverviewExpanded,
@@ -38,12 +32,18 @@ struct MovieContentView: View {
                 )
             }
 
-            if !movie.watch.isEmpty {
-                WatchProvidersView(watch: movie.watch)
-            }
+            MovieWatchlistStateView(
+                movieId: movie.id,
+                movieReleaseDate: movie.details.release,
+                movieBackdropPreviewUrl: movie.details.media.backdropPreviewUrl
+            )
 
             if !specs.isEmpty {
                 SpecsView(title: "Info", items: specs)
+            }
+
+            if !movie.watch.isEmpty {
+                WatchProvidersView(watch: movie.watch)
             }
 
             if let collection = movie.collection, let list = collection.list, !list.isEmpty {
@@ -236,31 +236,28 @@ private struct MovieCollectionView: View {
                 .font(.title2)
                 .padding(.horizontal)
 
-            LazyVStack(spacing: 0) {
-                ForEach(movies) { movieDetails in
-                    HStack(spacing: 12) {
-                        Text("\((movies.firstIndex(of: movieDetails) ?? 0) + 1)")
-                            .font(.title3.bold())
-                            .padding(8)
-                            .background {
-                                if highlightedMovieId == movieDetails.id {
-                                    Circle()
-                                        .foregroundColor(.green)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 0) {
+                    ForEach(movies) { movieDetails in
+                        HStack(spacing: 0) {
+                            Text("\((movies.firstIndex(of: movieDetails) ?? 0) + 1)")
+                                .font(.title3.bold())
+                                .padding(8)
+                                .padding(.leading, 8)
+                                .background {
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .foregroundColor(highlightedMovieId == movieDetails.id ? .green : .gray)
+                                        .offset(x: 8)
                                 }
-                            }
 
-                        MoviePreviewView(details: movieDetails, presentedItem: $presentedItem) {
-                            if highlightedMovieId != movieDetails.id {
-                                onMovieSelected(movieDetails.id)
-                            }
+                            MovieShelfPreviewView(
+                                presentedItem: $presentedItem,
+                                movieDetails: movieDetails
+                            )
+                            .disabled(highlightedMovieId == movieDetails.id)
                         }
-                    }
-                    .padding(8)
-                    .background {
-                        if let index = movies.firstIndex(of: movieDetails), index % 2 == 0 {
-                            RoundedRectangle(cornerRadius: 8)
-                                .foregroundStyle(.ultraThinMaterial.opacity(0.4))
-                        }
+                        .frame(height: 200)
+                        .padding(8)
                     }
                 }
             }
@@ -268,7 +265,7 @@ private struct MovieCollectionView: View {
         .foregroundColor(.white)
         .padding(4)
         .padding(.vertical)
-        .background(RoundedRectangle(cornerRadius: 8).fill(.black.opacity(0.8)))
+        .background(.black, in: RoundedRectangle(cornerRadius: 8))
     }
 }
 

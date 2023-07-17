@@ -198,11 +198,10 @@ private struct WatchlistListView: View {
                 LazyVGrid(columns: [GridItem(spacing: 4), GridItem()], spacing: 4) {
                     ForEach(viewModel.items) { item in
                         switch item {
-                        case .movie(let movie, let watchlistItem):
+                        case .movie(let movie, _):
                             MovieShelfPreviewView(
                                 presentedItem: $presentedItem,
-                                movieDetails: movie.details,
-                                watchlistIdentifier: watchlistItem.id
+                                movieDetails: movie.details
                             )
                         }
                     }
