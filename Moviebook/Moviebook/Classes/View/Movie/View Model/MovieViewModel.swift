@@ -24,11 +24,6 @@ import MoviebookCommon
         self.movieId = movieId
     }
 
-    init(movie: Movie) {
-        self.movieId = movie.id
-        self.setMovie(movie)
-    }
-
     deinit {
         self.task?.cancel()
     }
@@ -36,11 +31,6 @@ import MoviebookCommon
     // MARK: Instance methods
 
     func start(requestManager: RequestManager) {
-        guard movie == nil else { return }
-        loadMovie(requestManager: requestManager)
-    }
-
-    private func loadMovie(requestManager: RequestManager) {
         task = Task {
             do {
                 let movie = try await WebService.movieWebService(requestManager: requestManager).fetchMovie(with: movieId)
@@ -49,7 +39,7 @@ import MoviebookCommon
             } catch {
                 self.error = .failedToLoad(id: .init(), retry: { [weak self, weak requestManager] in
                     if let requestManager {
-                        self?.loadMovie(requestManager: requestManager)
+                        self?.start(requestManager: requestManager)
                     }
                 })
             }

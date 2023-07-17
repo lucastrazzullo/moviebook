@@ -10,7 +10,7 @@ import MoviebookCommon
 
 struct Navigation: View {
 
-    @Binding var path: NavigationPath
+    @State private var path: NavigationPath = NavigationPath()
 
     let presentingItem: NavigationItem
 
@@ -35,13 +35,13 @@ private struct NavigationDestination: View {
         case .explore:
             ExploreView()
         case .movieWithIdentifier(let id):
-            MovieView(movieId: id, navigationPath: $navigationPath)
+            MovieView(movieId: id, navigationPath: $navigationPath).id(id)
         case .artistWithIdentifier(let id):
-            ArtistView(artistId: id, navigationPath: $navigationPath)
+            ArtistView(artistId: id, navigationPath: $navigationPath).id(id)
         case .watchlistAddToWatchReason(let itemIdentifier):
-            NewToWatchSuggestionView(itemIdentifier: itemIdentifier)
+            NewToWatchSuggestionView(itemIdentifier: itemIdentifier).id(itemIdentifier.id)
         case .watchlistAddRating(let itemIdentifier):
-            NewWatchedRatingView(itemIdentifier: itemIdentifier)
+            NewWatchedRatingView(itemIdentifier: itemIdentifier).id(itemIdentifier.id)
         }
     }
 }

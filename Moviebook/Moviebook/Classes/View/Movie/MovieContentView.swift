@@ -296,7 +296,13 @@ private struct MovieRelatedView: View {
                     layout: .multirows,
                     containerWidth: containerWidth,
                     viewAllDestination: {
-                        EmptyView()
+                        ScrollView(showsIndicators: false) {
+                            ExploreVerticalSectionView(
+                                viewModel: viewModel,
+                                presentedItem: $presentedItem
+                            )
+                        }
+                        .navigationTitle(viewModel.title)
                     }
                 )
             }

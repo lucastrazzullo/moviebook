@@ -16,11 +16,9 @@ struct MovieView: View {
 
     @StateObject private var viewModel: MovieViewModel
 
+    @State private var presentedItem: NavigationItem?
     @State private var isVideoPresented: MovieVideo? = nil
     @State private var isErrorPresented: Bool = false
-
-    @State private var presentedItemNavigationPath: NavigationPath = NavigationPath()
-    @State private var presentedItem: NavigationItem?
 
     var body: some View {
         Group {
@@ -65,7 +63,7 @@ struct MovieView: View {
             }
         }
         .sheet(item: $presentedItem) { item in
-            Navigation(path: $presentedItemNavigationPath, presentingItem: item)
+            Navigation(presentingItem: item)
         }
         .alert("Error", isPresented: $isErrorPresented) {
             Button("Retry", role: .cancel) {
@@ -84,11 +82,6 @@ struct MovieView: View {
 
     init(movieId: Movie.ID, navigationPath: Binding<NavigationPath>) {
         self._viewModel = StateObject(wrappedValue: MovieViewModel(movieId: movieId))
-        self._navigationPath = navigationPath
-    }
-
-    init(movie: Movie, navigationPath: Binding<NavigationPath>) {
-        self._viewModel = StateObject(wrappedValue: MovieViewModel(movie: movie))
         self._navigationPath = navigationPath
     }
 }

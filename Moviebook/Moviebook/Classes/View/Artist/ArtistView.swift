@@ -15,10 +15,9 @@ struct ArtistView: View {
     @Binding private var navigationPath: NavigationPath
 
     @StateObject private var viewModel: ArtistViewModel
-    @State private var isErrorPresented: Bool = false
 
-    @State private var presentedItemNavigationPath: NavigationPath = NavigationPath()
     @State private var presentedItem: NavigationItem?
+    @State private var isErrorPresented: Bool = false
 
     var body: some View {
         Group {
@@ -49,7 +48,7 @@ struct ArtistView: View {
             }
         }
         .sheet(item: $presentedItem) { item in
-            Navigation(path: $presentedItemNavigationPath, presentingItem: item)
+            Navigation(presentingItem: item)
         }
         .onChange(of: viewModel.error) { error in
             isErrorPresented = error != nil

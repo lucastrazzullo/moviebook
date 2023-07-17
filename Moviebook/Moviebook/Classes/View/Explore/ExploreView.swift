@@ -19,7 +19,6 @@ struct ExploreView: View {
     @StateObject private var movieGenresViewModel: MovieGenresViewModel
 
     @State private var started: Bool = false
-    @State private var presentedItemNavigationPath: NavigationPath = NavigationPath()
     @State private var presentedItem: NavigationItem?
 
     private let stickyScrollingSpace: String = "stickyScrollingSpace"
@@ -46,13 +45,12 @@ struct ExploreView: View {
                                         layout: content.dataProvider is DiscoverRelated ? .shelf : .multirows,
                                         containerWidth: geometry.size.width,
                                         viewAllDestination: {
-                                            ScrollView {
+                                            ScrollView(showsIndicators: false) {
                                                 ExploreVerticalSectionView(
                                                     viewModel: content,
                                                     presentedItem: $presentedItem
                                                 )
                                             }
-                                            .scrollIndicators(.hidden)
                                             .navigationTitle(content.title)
                                         }
                                     )
@@ -82,7 +80,7 @@ struct ExploreView: View {
                     }
                 }
                 .sheet(item: $presentedItem) { presentedItem in
-                    Navigation(path: $presentedItemNavigationPath, presentingItem: presentedItem)
+                    Navigation(presentingItem: presentedItem)
                 }
                 .onAppear {
                     if !started {
