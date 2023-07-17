@@ -44,17 +44,14 @@ enum ExploreContentItems {
 
 protocol ExploreContentDataProvider {
     typealias Response = (results: ExploreContentItems, nextPage: Int?)
-
-    var title: String { get }
-    var subtitle: String? { get }
-
     func fetch(requestManager: RequestManager, page: Int?) async throws -> Response
 }
 
 @MainActor final class ExploreContentViewModel: ObservableObject, Identifiable {
 
-    @Published private(set) var title: String
-    @Published private(set) var subtitle: String?
+    let title: String
+    let subtitle: String?
+
     @Published private(set) var items: ExploreContentItems = .movies([])
     @Published private(set) var isLoading: Bool = false
     @Published private(set) var error: WebServiceError? = nil
@@ -62,10 +59,10 @@ protocol ExploreContentDataProvider {
 
     let dataProvider: ExploreContentDataProvider
 
-    init(dataProvider: ExploreContentDataProvider, items: ExploreContentItems) {
+    init(dataProvider: ExploreContentDataProvider, title: String, subtitle: String?, items: ExploreContentItems) {
         self.dataProvider = dataProvider
-        self.title = dataProvider.title
-        self.subtitle = dataProvider.subtitle
+        self.title = title
+        self.subtitle = subtitle
         self.items = items
     }
 
@@ -77,9 +74,6 @@ protocol ExploreContentDataProvider {
 
     private func fetch(requestManager: RequestManager, page: Int? = nil) async {
         do {
-            title = dataProvider.title
-            subtitle = dataProvider.subtitle
-
             isLoading = true
             error = nil
             fetchNextPage = nil

@@ -15,12 +15,6 @@ final class SearchDataProvider: ExploreContentDataProvider {
         case artist
     }
 
-    var title: String {
-        NSLocalizedString("EXPLORE.SEARCH.RESULTS", comment: "")
-    }
-
-    let subtitle: String? = nil
-
     var searchScope: Scope
     var searchKeyword: String
 

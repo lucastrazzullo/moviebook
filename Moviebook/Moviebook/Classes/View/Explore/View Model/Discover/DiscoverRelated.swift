@@ -1,5 +1,5 @@
 //
-//  DiscoverForYou.swift
+//  DiscoverRelated.swift
 //  Moviebook
 //
 //  Created by Luca Strazzullo on 12/07/2023.
@@ -8,9 +8,9 @@
 import Foundation
 import MoviebookCommon
 
-final class DiscoverForYou: Identifiable {
+final class DiscoverRelated {
 
-    struct WatchlistMovie {
+    struct ReferenceMovie {
 
         enum Weight {
             case exceptional
@@ -21,6 +21,11 @@ final class DiscoverForYou: Identifiable {
 
         let id: Movie.ID
         let weight: Weight
+
+        init(id: Movie.ID, weight: Weight) {
+            self.id = id
+            self.weight = weight
+        }
 
         init?(watchlistItem: WatchlistItem) {
             guard case .movie(let movieId) = watchlistItem.id else {
@@ -43,17 +48,16 @@ final class DiscoverForYou: Identifiable {
         }
     }
 
-    private var watchlistMovies: [WatchlistMovie] = []
+    private var referenceMovies: [ReferenceMovie] = []
     private var keywordsFilter: [MovieKeyword.ID] = []
     private var genresFilter: [MovieGenre.ID] = []
 
     // MARK: Private methods
 
-    func update(genresFilter: [MovieGenre.ID], watchlistItemsFilter: [WatchlistItem], requestManager: RequestManager) async {
-        watchlistMovies = watchlistItemsFilter.compactMap(WatchlistMovie.init(watchlistItem:))
-
-        keywordsFilter = await withTaskGroup(of: [MovieKeyword.ID].self) { group in
-            for watchlistMovie in watchlistMovies {
+    func update(genresFilter: [MovieGenre.ID], referenceMovies: [ReferenceMovie], requestManager: RequestManager) async {
+        self.referenceMovies = referenceMovies
+        self.keywordsFilter = await withTaskGroup(of: [MovieKeyword.ID].self) { group in
+            for watchlistMovie in referenceMovies {
                 group.addTask {
                     await self.fetchItems(for: watchlistMovie, itemsProvider: {
                         try await WebService.movieWebService(requestManager: requestManager)
@@ -73,7 +77,7 @@ final class DiscoverForYou: Identifiable {
 
         if genresFilter.isEmpty {
             self.genresFilter = await withTaskGroup(of: [MovieGenre.ID].self) { group in
-                for watchlistMovie in watchlistMovies {
+                for watchlistMovie in referenceMovies {
                     group.addTask {
                         await self.fetchItems(for: watchlistMovie, itemsProvider: {
                             try await WebService.movieWebService(requestManager: requestManager)
@@ -96,21 +100,14 @@ final class DiscoverForYou: Identifiable {
     }
 }
 
-extension DiscoverForYou: ExploreContentDataProvider {
-
-    var title: String {
-        return "For you"
-    }
-
-    var subtitle: String? {
-        return "Based on your watchlist"
-    }
+extension DiscoverRelated: ExploreContentDataProvider {
 
     func fetch(requestManager: RequestManager, page: Int?) async throws -> ExploreContentDataProvider.Response {
         if genresFilter.isEmpty && keywordsFilter.isEmpty {
             return (results: .movies([]), nextPage: nil)
         }
 
+        let movieIdsSet = Set(referenceMovies.map(\.id))
         var results: ExploreContentDataProvider.Response = (results: .movies([]), nextPage: page)
         repeat {
             let response = try await WebService
@@ -119,7 +116,6 @@ extension DiscoverForYou: ExploreContentDataProvider {
                              genres: genresFilter,
                              page: results.nextPage)
 
-            let movieIdsSet = Set(watchlistMovies.map(\.id))
             let filteredItems = response.results.filter { !movieIdsSet.contains($0.id) }
             let resultItems = results.results.appending(items: .movies(filteredItems))
             let resultNextPage = response.nextPage
@@ -130,7 +126,7 @@ extension DiscoverForYou: ExploreContentDataProvider {
         return results
     }
 
-    private func fetchItems<Item>(for watchlistMovie: WatchlistMovie, itemsProvider: () async throws -> [Item]) async -> [Item] {
+    private func fetchItems<Item>(for watchlistMovie: ReferenceMovie, itemsProvider: () async throws -> [Item]) async -> [Item] {
         if case .unwanted = watchlistMovie.weight {
             return []
         }

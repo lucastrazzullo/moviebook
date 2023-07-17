@@ -19,7 +19,7 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
     @Binding var presentedItem: NavigationItem?
 
     let layout: Layout
-    let geometry: GeometryProxy
+    let containerWidth: CGFloat
 
     @ViewBuilder let viewAllDestination: () -> Destination
 
@@ -34,7 +34,7 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
                         destination: viewModel.error == nil ? viewAllDestination() : nil
                     )
                     .padding(.horizontal)
-                    
+
                     Divider()
                 }
                 .padding(.vertical)
@@ -65,27 +65,27 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
                                         case .movies(let movies):
                                             if movies.isEmpty, viewModel.isLoading {
                                                 ForEach(0..<rows.count*2, id: \.self) { index in
-                                                    LoadingItem().frame(width: geometry.frame(in: .global).size.width * 0.85)
+                                                    LoadingItem().frame(width: containerWidth * 0.85)
                                                 }
                                             } else {
                                                 ForEach(movies) {  movieDetails in
                                                     MoviePreviewView(details: movieDetails, presentedItem: $presentedItem, style: .backdrop) {
                                                         presentedItem = .movieWithIdentifier(movieDetails.id)
                                                     }
-                                                    .frame(width: geometry.frame(in: .global).size.width * 0.85)
+                                                    .frame(width: containerWidth * 0.85)
                                                 }
                                             }
                                         case .artists(let artists):
                                             if artists.isEmpty, viewModel.isLoading {
                                                 ForEach(0..<rows.count*4, id: \.self) { index in
-                                                    LoadingItem().frame(width: geometry.frame(in: .global).size.width / 4)
+                                                    LoadingItem().frame(width: containerWidth / 4)
                                                 }
                                             } else {
                                                 ForEach(artists) { artistDetails in
                                                     ArtistPreviewView(details: artistDetails, shouldShowCharacter: false) {
                                                         presentedItem = .artistWithIdentifier(artistDetails.id)
                                                     }
-                                                    .frame(width: geometry.frame(in: .global).size.width / 4)
+                                                    .frame(width: containerWidth / 4)
                                                 }
                                             }
                                         }
@@ -95,7 +95,7 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
                                         switch viewModel.items {
                                         case .movies(let movies):
                                             if movies.isEmpty, viewModel.isLoading {
-                                                ForEach(0..<Int(ceil(geometry.frame(in: .global).size.width / 160)), id: \.self) { index in
+                                                ForEach(0..<Int(ceil(containerWidth / 160)), id: \.self) { index in
                                                     LoadingItem().frame(width: 160, height: 240)
                                                 }
                                             } else {
@@ -109,7 +109,7 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
                                             }
                                         case .artists(let artists):
                                             if artists.isEmpty, viewModel.isLoading {
-                                                ForEach(0..<Int(ceil(geometry.frame(in: .global).size.width / 160)), id: \.self) { index in
+                                                ForEach(0..<Int(ceil(containerWidth / 160)), id: \.self) { index in
                                                     LoadingItem().frame(width: 160, height: 240)
                                                 }
                                             } else {
@@ -210,8 +210,6 @@ struct ExploreHorizontalSectionView_Previews: PreviewProvider {
 private struct ExploreHorizontalSectionViewPreview: View {
 
     struct MovieDataProvider: ExploreContentDataProvider {
-        let title: String = "Movies"
-        let subtitle: String? = "Subtitle"
         func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
             let response = try await WebService.movieWebService(requestManager: requestManager)
                 .fetchMovies(discoverSection: .popular, genres: [], page: page)
@@ -220,8 +218,6 @@ private struct ExploreHorizontalSectionViewPreview: View {
     }
 
     struct ArtistDataProvider: ExploreContentDataProvider {
-        var title: String = "Artists"
-        let subtitle: String? = "Subtitle"
         func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
             let response = try await WebService.artistWebService(requestManager: requestManager)
                 .fetchPopular(page: page)
@@ -241,28 +237,28 @@ private struct ExploreHorizontalSectionViewPreview: View {
                         viewModel: moviesViewModel,
                         presentedItem: .constant(nil),
                         layout: .shelf,
-                        geometry: geometry,
+                        containerWidth: geometry.size.width,
                         viewAllDestination: { EmptyView() })
 
                     ExploreHorizontalSectionView(
                         viewModel: moviesViewModel,
                         presentedItem: .constant(nil),
                         layout: .multirows,
-                        geometry: geometry,
+                        containerWidth: geometry.size.width,
                         viewAllDestination: { EmptyView() })
 
                     ExploreHorizontalSectionView(
                         viewModel: artistsViewModel,
                         presentedItem: .constant(nil),
                         layout: .multirows,
-                        geometry: geometry,
+                        containerWidth: geometry.size.width,
                         viewAllDestination: { EmptyView() })
 
                     ExploreHorizontalSectionView(
                         viewModel: artistsViewModel,
                         presentedItem: .constant(nil),
                         layout: .shelf,
-                        geometry: geometry,
+                        containerWidth: geometry.size.width,
                         viewAllDestination: { EmptyView() })
                 }
             }
@@ -274,8 +270,8 @@ private struct ExploreHorizontalSectionViewPreview: View {
     }
 
     init() {
-        _moviesViewModel = StateObject(wrappedValue: ExploreContentViewModel(dataProvider: MovieDataProvider(), items: .movies([])))
-        _artistsViewModel = StateObject(wrappedValue: ExploreContentViewModel(dataProvider: ArtistDataProvider(), items: .artists([])))
+        _moviesViewModel = StateObject(wrappedValue: ExploreContentViewModel(dataProvider: MovieDataProvider(), title: "Movies", subtitle: "Mock", items: .movies([])))
+        _artistsViewModel = StateObject(wrappedValue: ExploreContentViewModel(dataProvider: ArtistDataProvider(), title: "Artists", subtitle: "Mock", items: .artists([])))
     }
 }
 #endif

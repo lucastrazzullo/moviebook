@@ -35,6 +35,7 @@ struct MovieWatchlistStateView: View {
         .frame(maxWidth: .infinity, alignment: .center)
         .background(.thinMaterial)
         .cornerRadius(24)
+        .padding(.horizontal)
         .sheet(item: $presentedItem) { item in
             Navigation(path: $presentedItemNavigationPath, presentingItem: item)
         }
@@ -262,7 +263,6 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
                 )
             )
         )
-        .padding(24)
         .fixedSize(horizontal: false, vertical: true)
         .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .empty))
 
@@ -276,7 +276,6 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
                 )
             )
         )
-        .padding(24)
         .fixedSize(horizontal: false, vertical: true)
         .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .empty))
 
@@ -290,7 +289,6 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
                 )
             )
         )
-        .padding(24)
         .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .toWatchItems(withSuggestion: false)))
 
         MovieWatchlistStateView(
@@ -303,7 +301,6 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
                 )
             )
         )
-        .padding(24)
         .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .toWatchItems(withSuggestion: false)))
 
         MovieWatchlistStateView(
@@ -316,7 +313,6 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
                 )
             )
         )
-        .padding(24)
         .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .toWatchItems(withSuggestion: true)))
 
         MovieWatchlistStateView(
@@ -329,7 +325,6 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
                 )
             )
         )
-        .padding(24)
         .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .toWatchItems(withSuggestion: true)))
 
         MovieWatchlistStateView(
@@ -342,7 +337,6 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
                 )
             )
         )
-        .padding(24)
         .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .watchedItems(withSuggestion: false, withRating: false)))
 
         MovieWatchlistStateView(
@@ -355,7 +349,6 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
                 )
             )
         )
-        .padding(24)
         .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .watchedItems(withSuggestion: true, withRating: false)))
 
         MovieWatchlistStateView(
@@ -368,7 +361,6 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
                 )
             )
         )
-        .padding(24)
         .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .watchedItems(withSuggestion: true, withRating: true)))
     }
 }

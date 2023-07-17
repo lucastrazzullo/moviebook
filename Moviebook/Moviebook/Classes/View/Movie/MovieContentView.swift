@@ -46,6 +46,12 @@ struct MovieContentView: View {
                 WatchProvidersView(watch: movie.watch)
             }
 
+            MovieRelatedView(
+                movieId: movie.id,
+                movieGenres: movie.genres.map(\.id),
+                presentedItem: $presentedItem
+            )
+
             if let collection = movie.collection, let list = collection.list, !list.isEmpty {
                 MovieCollectionView(
                     presentedItem: $presentedItem,
@@ -67,7 +73,6 @@ struct MovieContentView: View {
                 )
             }
         }
-        .padding(4)
         .animation(.default, value: isOverviewExpanded)
     }
 
@@ -177,6 +182,7 @@ private struct WatchProvidersView: View {
         }
         .background(.thinMaterial)
         .cornerRadius(8)
+        .padding(.horizontal, 4)
     }
 
     @ViewBuilder private func providerList(header: String, providers: [WatchProvider]) -> some View {
@@ -266,6 +272,66 @@ private struct MovieCollectionView: View {
         .padding(4)
         .padding(.vertical)
         .background(.black, in: RoundedRectangle(cornerRadius: 8))
+        .padding(.horizontal, 4)
+    }
+}
+
+private struct MovieRelatedView: View {
+
+    @Environment(\.requestManager) private var requestManager
+
+    @StateObject private var viewModel: ExploreContentViewModel
+    @Binding private var presentedItem: NavigationItem?
+    @State private var containerWidth: CGFloat = 0
+
+    private let movieId: Movie.ID
+    private let movieGenres: [MovieGenre.ID]
+
+    var body: some View {
+        VStack {
+            if containerWidth > 0 {
+                ExploreHorizontalSectionView(
+                    viewModel: viewModel,
+                    presentedItem: $presentedItem,
+                    layout: .multirows,
+                    containerWidth: containerWidth,
+                    viewAllDestination: {
+                        EmptyView()
+                    }
+                )
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .overlay(GeometryReader { geometry in
+            Color.clear.onAppear {
+                containerWidth = geometry.size.width
+            }
+        })
+        .task {
+            await viewModel.fetch(requestManager: requestManager) { dataProvider in
+                if let related = dataProvider as? DiscoverRelated {
+                    await related.update(
+                        genresFilter: movieGenres,
+                        referenceMovies: [.init(id: movieId, weight: .neutral)],
+                        requestManager: requestManager
+                    )
+                }
+            }
+        }
+    }
+
+    init(movieId: Movie.ID, movieGenres: [MovieGenre.ID], presentedItem: Binding<NavigationItem?>) {
+        self._viewModel = StateObject(
+            wrappedValue: ExploreContentViewModel(
+                dataProvider: DiscoverRelated(),
+                title: "Related",
+                subtitle: nil,
+                items: .movies([])
+            )
+        )
+        self._presentedItem = presentedItem
+        self.movieId = movieId
+        self.movieGenres = movieGenres
     }
 }
 
@@ -288,6 +354,7 @@ private struct CastView: View {
                 }
             }
         }
+        .padding(.horizontal, 4)
     }
 }
 

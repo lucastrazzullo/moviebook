@@ -8,7 +8,7 @@
 import Foundation
 import MoviebookCommon
 
-final class DiscoverPopularArtists: Identifiable {
+final class DiscoverPopularArtists {
 
     private var allArtists: [ArtistDetails] = []
     private let numberOfItemsPerPage: Int = 24
@@ -41,14 +41,6 @@ final class DiscoverPopularArtists: Identifiable {
 }
 
 extension DiscoverPopularArtists: ExploreContentDataProvider {
-
-    var title: String {
-        return "Popular artists"
-    }
-
-    var subtitle: String? {
-        return allArtists.isEmpty ? nil : "Based on your watchlist"
-    }
 
     func fetch(requestManager: RequestManager, page: Int?) async throws -> ExploreContentDataProvider.Response {
         let currentPage = page ?? 0
