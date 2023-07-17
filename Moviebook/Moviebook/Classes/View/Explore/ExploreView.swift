@@ -45,13 +45,12 @@ struct ExploreView: View {
                                         layout: content.dataProvider is DiscoverRelated ? .shelf : .multirows,
                                         containerWidth: geometry.size.width,
                                         viewAllDestination: {
-                                            ScrollView {
+                                            ScrollView(showsIndicators: false) {
                                                 ExploreVerticalSectionView(
                                                     viewModel: content,
                                                     presentedItem: $presentedItem
                                                 )
                                             }
-                                            .scrollIndicators(.hidden)
                                             .navigationTitle(content.title)
                                         }
                                     )
