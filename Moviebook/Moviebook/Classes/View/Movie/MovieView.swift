@@ -86,11 +86,6 @@ struct MovieView: View {
         self._viewModel = StateObject(wrappedValue: MovieViewModel(movieId: movieId))
         self._navigationPath = navigationPath
     }
-
-    init(movie: Movie, navigationPath: Binding<NavigationPath>) {
-        self._viewModel = StateObject(wrappedValue: MovieViewModel(movie: movie))
-        self._navigationPath = navigationPath
-    }
 }
 
 private struct MovieTrailingHeaderView: View {

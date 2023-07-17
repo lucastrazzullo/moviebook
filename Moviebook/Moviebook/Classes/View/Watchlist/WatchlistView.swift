@@ -20,8 +20,7 @@ struct WatchlistView: View {
     @State private var shouldShowTopBar: Bool = false
     @State private var shouldShowBottomBar: Bool = false
 
-    @State private var presentedItemNavigationPath = NavigationPath()
-    @State private var presentedItem: NavigationItem? = nil
+    @Binding var presentedItem: NavigationItem?
 
     var body: some View {
         ZStack {
@@ -50,9 +49,6 @@ struct WatchlistView: View {
             .padding()
             .background(.thickMaterial.opacity(shouldShowBottomBar ? 1 : 0))
             .animation(.easeOut(duration: 0.12), value: shouldShowBottomBar)
-        }
-        .sheet(item: $presentedItem) { item in
-            Navigation(path: $presentedItemNavigationPath, presentingItem: item)
         }
         .task {
             await sectionViewModel.start(watchlist: watchlist, requestManager: requestManager)
@@ -229,19 +225,19 @@ import MoviebookTestSupport
 struct WatchlistView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            WatchlistView()
+            WatchlistView(presentedItem: .constant(nil))
                 .environment(\.requestManager, MockRequestManager.shared)
                 .environmentObject(MockWatchlistProvider.shared.watchlist())
         }
 
         NavigationView {
-            WatchlistView()
+            WatchlistView(presentedItem: .constant(nil))
                 .environment(\.requestManager, MockRequestManager.shared)
                 .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .toWatchItems(withSuggestion: true)))
         }
 
         NavigationView {
-            WatchlistView()
+            WatchlistView(presentedItem: .constant(nil))
                 .environment(\.requestManager, MockRequestManager.shared)
                 .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .empty))
         }
