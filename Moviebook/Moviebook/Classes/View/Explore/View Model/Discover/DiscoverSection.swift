@@ -8,7 +8,7 @@
 import Foundation
 import MoviebookCommon
 
-final class DiscoverSection: Identifiable {
+final class DiscoverSection {
 
     private let discoverSection: DiscoverMovieSection
     private var genresFilter: [MovieGenre.ID] = []
@@ -32,27 +32,6 @@ final class DiscoverSection: Identifiable {
 }
 
 extension DiscoverSection: ExploreContentDataProvider {
-
-    var id: String {
-        return title
-    }
-
-    var title: String {
-        switch discoverSection {
-        case .nowPlaying:
-            return NSLocalizedString("MOVIE.NOW_PLAYING", comment: "")
-        case .upcoming:
-            return NSLocalizedString("MOVIE.UPCOMING", comment: "")
-        case .popular:
-            return NSLocalizedString("MOVIE.POPULAR", comment: "")
-        case .topRated:
-            return NSLocalizedString("MOVIE.TOP_RATED", comment: "")
-        }
-    }
-
-    var subtitle: String? {
-        genresFilter.isEmpty ? nil : "Based on selected genres"
-    }
 
     func fetch(requestManager: RequestManager, page: Int?) async throws -> ExploreContentDataProvider.Response {
         var results: ExploreContentDataProvider.Response = (results: .movies([]), nextPage: page)

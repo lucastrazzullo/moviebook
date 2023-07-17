@@ -43,8 +43,8 @@ struct ExploreView: View {
                                     ExploreHorizontalSectionView(
                                         viewModel: content,
                                         presentedItem: $presentedItem,
-                                        layout: content.dataProvider is DiscoverForYou ? .shelf : .multirows,
-                                        geometry: geometry,
+                                        layout: content.dataProvider is DiscoverRelated ? .shelf : .multirows,
+                                        containerWidth: geometry.size.width,
                                         viewAllDestination: {
                                             ScrollView {
                                                 ExploreVerticalSectionView(

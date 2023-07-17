@@ -25,12 +25,6 @@ struct MovieContentView: View {
                 onPlayTrailer: onVideoSelected
             )
 
-            MovieWatchlistStateView(
-                movieId: movie.id,
-                movieReleaseDate: movie.details.release,
-                movieBackdropPreviewUrl: movie.details.media.backdropPreviewUrl
-            )
-
             if let overview = movie.details.overview, !overview.isEmpty {
                 ExpandibleOverviewView(
                     isExpanded: $isOverviewExpanded,
@@ -38,13 +32,25 @@ struct MovieContentView: View {
                 )
             }
 
-            if !movie.watch.isEmpty {
-                WatchProvidersView(watch: movie.watch)
-            }
+            MovieWatchlistStateView(
+                movieId: movie.id,
+                movieReleaseDate: movie.details.release,
+                movieBackdropPreviewUrl: movie.details.media.backdropPreviewUrl
+            )
 
             if !specs.isEmpty {
                 SpecsView(title: "Info", items: specs)
             }
+
+            if !movie.watch.isEmpty {
+                WatchProvidersView(watch: movie.watch)
+            }
+
+            MovieRelatedView(
+                movieId: movie.id,
+                movieGenres: movie.genres.map(\.id),
+                presentedItem: $presentedItem
+            )
 
             if let collection = movie.collection, let list = collection.list, !list.isEmpty {
                 MovieCollectionView(
@@ -67,7 +73,6 @@ struct MovieContentView: View {
                 )
             }
         }
-        .padding(4)
         .animation(.default, value: isOverviewExpanded)
     }
 
@@ -177,6 +182,7 @@ private struct WatchProvidersView: View {
         }
         .background(.thinMaterial)
         .cornerRadius(8)
+        .padding(.horizontal, 4)
     }
 
     @ViewBuilder private func providerList(header: String, providers: [WatchProvider]) -> some View {
@@ -236,31 +242,28 @@ private struct MovieCollectionView: View {
                 .font(.title2)
                 .padding(.horizontal)
 
-            LazyVStack(spacing: 0) {
-                ForEach(movies) { movieDetails in
-                    HStack(spacing: 12) {
-                        Text("\((movies.firstIndex(of: movieDetails) ?? 0) + 1)")
-                            .font(.title3.bold())
-                            .padding(8)
-                            .background {
-                                if highlightedMovieId == movieDetails.id {
-                                    Circle()
-                                        .foregroundColor(.green)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 0) {
+                    ForEach(movies) { movieDetails in
+                        HStack(spacing: 0) {
+                            Text("\((movies.firstIndex(of: movieDetails) ?? 0) + 1)")
+                                .font(.title3.bold())
+                                .padding(8)
+                                .padding(.leading, 8)
+                                .background {
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .foregroundColor(highlightedMovieId == movieDetails.id ? .green : .gray)
+                                        .offset(x: 8)
                                 }
-                            }
 
-                        MoviePreviewView(details: movieDetails, presentedItem: $presentedItem) {
-                            if highlightedMovieId != movieDetails.id {
-                                onMovieSelected(movieDetails.id)
-                            }
+                            MovieShelfPreviewView(
+                                presentedItem: $presentedItem,
+                                movieDetails: movieDetails
+                            )
+                            .disabled(highlightedMovieId == movieDetails.id)
                         }
-                    }
-                    .padding(8)
-                    .background {
-                        if let index = movies.firstIndex(of: movieDetails), index % 2 == 0 {
-                            RoundedRectangle(cornerRadius: 8)
-                                .foregroundStyle(.ultraThinMaterial.opacity(0.4))
-                        }
+                        .frame(height: 200)
+                        .padding(8)
                     }
                 }
             }
@@ -268,7 +271,67 @@ private struct MovieCollectionView: View {
         .foregroundColor(.white)
         .padding(4)
         .padding(.vertical)
-        .background(RoundedRectangle(cornerRadius: 8).fill(.black.opacity(0.8)))
+        .background(.black, in: RoundedRectangle(cornerRadius: 8))
+        .padding(.horizontal, 4)
+    }
+}
+
+private struct MovieRelatedView: View {
+
+    @Environment(\.requestManager) private var requestManager
+
+    @StateObject private var viewModel: ExploreContentViewModel
+    @Binding private var presentedItem: NavigationItem?
+    @State private var containerWidth: CGFloat = 0
+
+    private let movieId: Movie.ID
+    private let movieGenres: [MovieGenre.ID]
+
+    var body: some View {
+        VStack {
+            if containerWidth > 0 {
+                ExploreHorizontalSectionView(
+                    viewModel: viewModel,
+                    presentedItem: $presentedItem,
+                    layout: .multirows,
+                    containerWidth: containerWidth,
+                    viewAllDestination: {
+                        EmptyView()
+                    }
+                )
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .overlay(GeometryReader { geometry in
+            Color.clear.onAppear {
+                containerWidth = geometry.size.width
+            }
+        })
+        .task {
+            await viewModel.fetch(requestManager: requestManager) { dataProvider in
+                if let related = dataProvider as? DiscoverRelated {
+                    await related.update(
+                        genresFilter: movieGenres,
+                        referenceMovies: [.init(id: movieId, weight: .neutral)],
+                        requestManager: requestManager
+                    )
+                }
+            }
+        }
+    }
+
+    init(movieId: Movie.ID, movieGenres: [MovieGenre.ID], presentedItem: Binding<NavigationItem?>) {
+        self._viewModel = StateObject(
+            wrappedValue: ExploreContentViewModel(
+                dataProvider: DiscoverRelated(),
+                title: "Related",
+                subtitle: nil,
+                items: .movies([])
+            )
+        )
+        self._presentedItem = presentedItem
+        self.movieId = movieId
+        self.movieGenres = movieGenres
     }
 }
 
@@ -291,6 +354,7 @@ private struct CastView: View {
                 }
             }
         }
+        .padding(.horizontal, 4)
     }
 }
 

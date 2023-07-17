@@ -32,7 +32,12 @@ import MoviebookCommon
             }
         }()
         let dataProvider = SearchDataProvider(searchScope: scope, searchKeyword: query)
-        self.content = ExploreContentViewModel(dataProvider: dataProvider, items: defaultItems)
+        self.content = ExploreContentViewModel(
+            dataProvider: dataProvider,
+            title: NSLocalizedString("EXPLORE.SEARCH.RESULTS", comment: ""),
+            subtitle: nil,
+            items: defaultItems
+        )
     }
 
     func start(requestManager: RequestManager) {

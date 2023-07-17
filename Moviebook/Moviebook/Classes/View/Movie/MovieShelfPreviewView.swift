@@ -15,7 +15,6 @@ struct MovieShelfPreviewView: View {
     @Binding var presentedItem: NavigationItem?
 
     let movieDetails: MovieDetails
-    let watchlistIdentifier: WatchlistItemIdentifier
 
     var body: some View {
         Group {
@@ -55,6 +54,10 @@ struct MovieShelfPreviewView: View {
         }
         .id(watchlistIdentifier)
     }
+
+    private var watchlistIdentifier: WatchlistItemIdentifier {
+        return .movie(id: movieDetails.id)
+    }
 }
 
 #if DEBUG
@@ -81,8 +84,7 @@ private struct MovieShelfPreviewViewPreview: View {
             if let movie {
                 MovieShelfPreviewView(
                     presentedItem: .constant(nil),
-                    movieDetails: movie.details,
-                    watchlistIdentifier: .movie(id: movie.id)
+                    movieDetails: movie.details
                 )
             } else {
                 LoaderView()
