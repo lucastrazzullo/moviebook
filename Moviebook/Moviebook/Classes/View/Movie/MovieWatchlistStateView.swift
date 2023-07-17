@@ -10,10 +10,9 @@ import MoviebookCommon
 
 struct MovieWatchlistStateView: View {
 
-    @State private var presentedItem: NavigationItem?
-    @State private var presentedItemNavigationPath: NavigationPath = NavigationPath()
-
     @EnvironmentObject var watchlist: Watchlist
+
+    @State private var presentedItem: NavigationItem?
 
     let movieId: Movie.ID
     let movieReleaseDate: Date
@@ -37,7 +36,7 @@ struct MovieWatchlistStateView: View {
         .cornerRadius(24)
         .padding(.horizontal)
         .sheet(item: $presentedItem) { item in
-            Navigation(path: $presentedItemNavigationPath, presentingItem: item)
+            Navigation(presentingItem: item)
         }
     }
 }

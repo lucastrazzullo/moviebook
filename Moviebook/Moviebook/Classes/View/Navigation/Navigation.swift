@@ -10,7 +10,7 @@ import MoviebookCommon
 
 struct Navigation: View {
 
-    @Binding var path: NavigationPath
+    @State private var path: NavigationPath = NavigationPath()
 
     let presentingItem: NavigationItem
 

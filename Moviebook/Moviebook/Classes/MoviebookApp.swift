@@ -35,8 +35,6 @@ struct MoviebookApp: App {
     @Environment(\.requestManager) private var requestManager
 
     @StateObject private var application = Moviebook()
-
-    @State private var presentedItemNavigationPath: NavigationPath = NavigationPath()
     @State private var presentedItem: NavigationItem? = nil
 
     var body: some Scene {
@@ -97,7 +95,7 @@ struct MoviebookApp: App {
     @ViewBuilder private func makeWatchlistView(watchlist: Watchlist) -> some View {
         WatchlistView(presentedItem: $presentedItem)
             .sheet(item: $presentedItem) { item in
-                Navigation(path: $presentedItemNavigationPath, presentingItem: item)
+                Navigation(presentingItem: item)
             }
             .environmentObject(watchlist)
     }
