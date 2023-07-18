@@ -16,10 +16,10 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
     }
 
     @ObservedObject var viewModel: ExploreContentViewModel
-    @Binding var presentedItem: NavigationItem?
 
     let layout: Layout
     let containerWidth: CGFloat
+    let onItemSelected: (NavigationItem) -> Void
 
     @ViewBuilder let viewAllDestination: () -> Destination
 
@@ -69,9 +69,11 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
                                                 }
                                             } else {
                                                 ForEach(movies) {  movieDetails in
-                                                    MoviePreviewView(details: movieDetails, presentedItem: $presentedItem, style: .backdrop) {
-                                                        presentedItem = .movieWithIdentifier(movieDetails.id)
-                                                    }
+                                                    MoviePreviewView(
+                                                        details: movieDetails,
+                                                        style: .backdrop,
+                                                        onItemSelected: onItemSelected
+                                                    )
                                                     .frame(width: containerWidth * 0.85)
                                                 }
                                             }
@@ -82,9 +84,11 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
                                                 }
                                             } else {
                                                 ForEach(artists) { artistDetails in
-                                                    ArtistPreviewView(details: artistDetails, shouldShowCharacter: false) {
-                                                        presentedItem = .artistWithIdentifier(artistDetails.id)
-                                                    }
+                                                    ArtistPreviewView(
+                                                        details: artistDetails,
+                                                        shouldShowCharacter: false,
+                                                        onItemSelected: onItemSelected
+                                                    )
                                                     .frame(width: containerWidth / 4)
                                                 }
                                             }
@@ -101,8 +105,8 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
                                             } else {
                                                 ForEach(movies) { movieDetails in
                                                     MovieShelfPreviewView(
-                                                        presentedItem: $presentedItem,
-                                                        movieDetails: movieDetails
+                                                        movieDetails: movieDetails,
+                                                        onItemSelected: onItemSelected
                                                     )
                                                     .frame(height: 240)
                                                 }
@@ -115,9 +119,11 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
                                             } else {
                                                 LazyHStack {
                                                     ForEach(artists) { artistDetails in
-                                                        ArtistPreviewView(details: artistDetails, shouldShowCharacter: false) {
-                                                            presentedItem = .artistWithIdentifier(artistDetails.id)
-                                                        }
+                                                        ArtistPreviewView(
+                                                            details: artistDetails,
+                                                            shouldShowCharacter: false,
+                                                            onItemSelected: onItemSelected
+                                                        )
                                                         .frame(height: 240)
                                                     }
                                                 }
@@ -235,30 +241,30 @@ private struct ExploreHorizontalSectionViewPreview: View {
                 VStack {
                     ExploreHorizontalSectionView(
                         viewModel: moviesViewModel,
-                        presentedItem: .constant(nil),
                         layout: .shelf,
                         containerWidth: geometry.size.width,
+                        onItemSelected: { _ in },
                         viewAllDestination: { EmptyView() })
 
                     ExploreHorizontalSectionView(
                         viewModel: moviesViewModel,
-                        presentedItem: .constant(nil),
                         layout: .multirows,
                         containerWidth: geometry.size.width,
+                        onItemSelected: { _ in },
                         viewAllDestination: { EmptyView() })
 
                     ExploreHorizontalSectionView(
                         viewModel: artistsViewModel,
-                        presentedItem: .constant(nil),
                         layout: .multirows,
                         containerWidth: geometry.size.width,
+                        onItemSelected: { _ in },
                         viewAllDestination: { EmptyView() })
 
                     ExploreHorizontalSectionView(
                         viewModel: artistsViewModel,
-                        presentedItem: .constant(nil),
                         layout: .shelf,
                         containerWidth: geometry.size.width,
+                        onItemSelected: { _ in },
                         viewAllDestination: { EmptyView() })
                 }
             }

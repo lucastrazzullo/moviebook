@@ -31,7 +31,9 @@ struct ExploreView: View {
                         if !searchViewModel.searchKeyword.isEmpty {
                             ExploreVerticalSectionView(
                                 viewModel: searchViewModel.content,
-                                presentedItem: $presentedItem
+                                onItemSelected: { item in
+                                    presentedItem = item
+                                }
                             )
                         } else {
                             ExploreHorizontalMovieGenreSectionView(viewModel: movieGenresViewModel)
@@ -41,14 +43,18 @@ struct ExploreView: View {
                                 ForEach(discoverViewModel.sectionsContent) { content in
                                     ExploreHorizontalSectionView(
                                         viewModel: content,
-                                        presentedItem: $presentedItem,
                                         layout: content.dataProvider is DiscoverRelated ? .shelf : .multirows,
                                         containerWidth: geometry.size.width,
+                                        onItemSelected: { item in
+                                            presentedItem = item
+                                        },
                                         viewAllDestination: {
                                             ScrollView(showsIndicators: false) {
                                                 ExploreVerticalSectionView(
                                                     viewModel: content,
-                                                    presentedItem: $presentedItem
+                                                    onItemSelected: { item in
+                                                        presentedItem = item
+                                                    }
                                                 )
                                             }
                                             .navigationTitle(content.title)
@@ -80,7 +86,7 @@ struct ExploreView: View {
                     }
                 }
                 .sheet(item: $presentedItem) { presentedItem in
-                    Navigation(presentingItem: presentedItem)
+                    Navigation(rootItem: presentedItem)
                 }
                 .onAppear {
                     if !started {

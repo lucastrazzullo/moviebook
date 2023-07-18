@@ -26,9 +26,11 @@ struct WatchlistView: View {
         ZStack {
             ContentView(
                 viewModel: sectionViewModel,
-                presentedItem: $presentedItem,
                 shouldShowTopBar: $shouldShowTopBar,
-                shouldShowBottomBar: $shouldShowBottomBar
+                shouldShowBottomBar: $shouldShowBottomBar,
+                onItemSelected: { item in
+                    presentedItem = item
+                }
             )
         }
         .safeAreaInset(edge: .top) {
@@ -44,7 +46,9 @@ struct WatchlistView: View {
         .safeAreaInset(edge: .bottom) {
             ToolbarView(
                 currentSection: $sectionViewModel.section,
-                presentedItem: $presentedItem
+                onItemSelected: { item in
+                    presentedItem = item
+                }
             )
             .padding()
             .background(.thickMaterial.opacity(shouldShowBottomBar ? 1 : 0))
@@ -98,7 +102,8 @@ private struct TopbarView: View {
 private struct ToolbarView: View {
 
     @Binding var currentSection: WatchlistViewModel.Section
-    @Binding var presentedItem: NavigationItem?
+
+    let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         HStack {
@@ -112,7 +117,7 @@ private struct ToolbarView: View {
 
             Spacer()
 
-            Button(action: { presentedItem = .explore }) {
+            Button(action: { onItemSelected(.explore) }) {
                 HStack {
                     Image(systemName: "magnifyingglass")
                     Text("Browse")
@@ -130,10 +135,11 @@ private struct ContentView: View {
     @EnvironmentObject var watchlist: Watchlist
 
     @ObservedObject var viewModel: WatchlistViewModel
-    @Binding var presentedItem: NavigationItem?
 
     @Binding var shouldShowTopBar: Bool
     @Binding var shouldShowBottomBar: Bool
+
+    let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         Group {
@@ -152,9 +158,9 @@ private struct ContentView: View {
             } else {
                 WatchlistListView(
                     viewModel: viewModel,
-                    presentedItem: $presentedItem,
                     shouldShowTopBar: $shouldShowTopBar,
-                    shouldShowBottomBar: $shouldShowBottomBar
+                    shouldShowBottomBar: $shouldShowBottomBar,
+                    onItemSelected: onItemSelected
                 )
             }
         }
@@ -183,10 +189,11 @@ private struct WatchlistListView: View {
     @State private var scrollContent: ObservableScrollContent = .zero
 
     @ObservedObject var viewModel: WatchlistViewModel
-    @Binding var presentedItem: NavigationItem?
 
     @Binding var shouldShowTopBar: Bool
     @Binding var shouldShowBottomBar: Bool
+
+    let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         GeometryReader { geometry in
@@ -196,8 +203,8 @@ private struct WatchlistListView: View {
                         switch item {
                         case .movie(let movie, _):
                             MovieShelfPreviewView(
-                                presentedItem: $presentedItem,
-                                movieDetails: movie.details
+                                movieDetails: movie.details,
+                                onItemSelected: onItemSelected
                             )
                         }
                     }

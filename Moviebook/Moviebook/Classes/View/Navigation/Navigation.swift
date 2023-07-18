@@ -12,11 +12,11 @@ struct Navigation: View {
 
     @State private var path: NavigationPath = NavigationPath()
 
-    let presentingItem: NavigationItem
+    let rootItem: NavigationItem
 
     var body: some View {
         NavigationStack(path: $path) {
-            NavigationDestination(navigationPath: $path, item: presentingItem)
+            NavigationDestination(navigationPath: $path, item: rootItem)
                 .navigationDestination(for: NavigationItem.self) { item in
                     NavigationDestination(navigationPath: $path, item: item)
                 }

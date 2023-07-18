@@ -12,7 +12,7 @@ struct ArtistPreviewView: View {
 
     let details: ArtistDetails
     let shouldShowCharacter: Bool
-    let onSelected: (() -> Void)?
+    let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         ZStack(alignment: .bottomLeading) {
@@ -44,7 +44,7 @@ struct ArtistPreviewView: View {
             )
             .padding(4)
         }
-        .onTapGesture(perform: { onSelected?() })
+        .onTapGesture(perform: { onItemSelected(.artistWithIdentifier(details.id)) })
     }
 }
 
@@ -69,7 +69,7 @@ private struct ArtistPreviewViewPreview: View {
     var body: some View {
         Group {
             if let artist {
-                ArtistPreviewView(details: artist.details, shouldShowCharacter: true, onSelected: nil)
+                ArtistPreviewView(details: artist.details, shouldShowCharacter: true, onItemSelected: { _ in })
             } else {
                 LoaderView()
             }

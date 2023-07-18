@@ -12,11 +12,11 @@ struct ArtistView: View {
 
     @Environment(\.requestManager) var requestManager
 
-    @Binding private var navigationPath: NavigationPath
-
     @StateObject private var viewModel: ArtistViewModel
 
+    @Binding private var navigationPath: NavigationPath
     @State private var presentedItem: NavigationItem?
+
     @State private var isErrorPresented: Bool = false
 
     var body: some View {
@@ -30,9 +30,8 @@ struct ArtistView: View {
                         ShareButton(artistDetails: artist.details)
                     }, content: {
                         ArtistContentView(
-                            navigationPath: $navigationPath,
-                            presentedItem: $presentedItem,
-                            artist: artist
+                            artist: artist,
+                            onItemSelected: presentItem
                         )
                     }
                 )
@@ -48,7 +47,7 @@ struct ArtistView: View {
             }
         }
         .sheet(item: $presentedItem) { item in
-            Navigation(presentingItem: item)
+            Navigation(rootItem: item)
         }
         .onChange(of: viewModel.error) { error in
             isErrorPresented = error != nil
@@ -63,6 +62,17 @@ struct ArtistView: View {
     init(artistId: Artist.ID, navigationPath: Binding<NavigationPath>) {
         self._viewModel = StateObject(wrappedValue: ArtistViewModel(artistId: artistId))
         self._navigationPath = navigationPath
+    }
+
+    // MARK: Private methods
+
+    private func presentItem(_ item: NavigationItem) {
+        switch item {
+        case .explore, .movieWithIdentifier, .artistWithIdentifier:
+            navigationPath.append(item)
+        case .watchlistAddToWatchReason, .watchlistAddRating:
+            presentedItem = item
+        }
     }
 }
 

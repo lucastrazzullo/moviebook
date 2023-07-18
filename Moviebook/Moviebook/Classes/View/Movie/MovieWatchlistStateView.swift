@@ -12,32 +12,43 @@ struct MovieWatchlistStateView: View {
 
     @EnvironmentObject var watchlist: Watchlist
 
-    @State private var presentedItem: NavigationItem?
-
     let movieId: Movie.ID
     let movieReleaseDate: Date
     let movieBackdropPreviewUrl: URL?
+
+    let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         Group {
             if let state = watchlist.itemState(id: .movie(id: movieId)) {
                 switch state {
                 case .toWatch(let info):
-                    InWatchlistView(presentedItem: $presentedItem, movieId: movieId, movieReleaseDate: movieReleaseDate, info: info)
+                    InWatchlistView(
+                        movieId: movieId,
+                        movieReleaseDate: movieReleaseDate,
+                        info: info,
+                        onItemSelected: onItemSelected
+                    )
                 case .watched(let info):
-                    WatchedView(presentedItem: $presentedItem, movieId: movieId, movieReleaseDate: movieReleaseDate, movieBackdropPreviewUrl: movieBackdropPreviewUrl, info: info)
+                    WatchedView(
+                        movieId: movieId,
+                        movieReleaseDate: movieReleaseDate,
+                        movieBackdropPreviewUrl: movieBackdropPreviewUrl,
+                        info: info,
+                        onItemSelected: onItemSelected
+                    )
                 }
             } else {
-                AddToWatchlistView(movieId: movieId, movieReleaseDate: movieReleaseDate)
+                AddToWatchlistView(
+                    movieId: movieId,
+                    movieReleaseDate: movieReleaseDate
+                )
             }
         }
         .frame(maxWidth: .infinity, alignment: .center)
         .background(.thinMaterial)
         .cornerRadius(24)
         .padding(.horizontal)
-        .sheet(item: $presentedItem) { item in
-            Navigation(presentingItem: item)
-        }
     }
 }
 
@@ -45,12 +56,11 @@ private struct WatchedView: View {
 
     @EnvironmentObject var watchlist: Watchlist
 
-    @Binding var presentedItem: NavigationItem?
-
     let movieId: Movie.ID
     let movieReleaseDate: Date
     let movieBackdropPreviewUrl: URL?
     let info: WatchlistItemWatchedInfo
+    let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: -12) {
@@ -60,7 +70,7 @@ private struct WatchedView: View {
                         .frame(height: 150)
                         .padding(.leading, 8)
                 } else {
-                    Button(action: { presentedItem = .watchlistAddRating(itemIdentifier: .movie(id: movieId)) }) {
+                    Button(action: { onItemSelected(.watchlistAddRating(itemIdentifier: .movie(id: movieId))) }) {
                         HStack {
                             Image(systemName: "plus")
                             Text("Add rating").underline()
@@ -79,7 +89,7 @@ private struct WatchedView: View {
                     WatchlistButton(
                         watchlistItemIdentifier: .movie(id: movieId),
                         watchlistItemReleaseDate: movieReleaseDate,
-                        presentedItem: $presentedItem) { state, shouldShowBadge in
+                        onItemSelected: onItemSelected) { state, shouldShowBadge in
                         Text(WatchlistViewState(itemState: state).label)
                             .ovalStyle(.normal)
                     }
@@ -107,10 +117,10 @@ private struct WatchedView: View {
 
             if let suggestion = info.toWatchInfo.suggestion {
                 SuggestionView(
-                    presentedItem: $presentedItem,
                     movieId: movieId,
                     from: suggestion.owner,
-                    comment: suggestion.comment
+                    comment: suggestion.comment,
+                    onItemSelected: onItemSelected
                 )
             }
         }
@@ -121,11 +131,10 @@ private struct InWatchlistView: View {
 
     @EnvironmentObject var watchlist: Watchlist
 
-    @Binding var presentedItem: NavigationItem?
-
     let movieId: Movie.ID
     let movieReleaseDate: Date
     let info: WatchlistItemToWatchInfo
+    let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         VStack(alignment: .center, spacing: 24) {
@@ -154,13 +163,13 @@ private struct InWatchlistView: View {
 
                 if let suggestion = info.suggestion {
                     SuggestionView(
-                        presentedItem: $presentedItem,
                         movieId: movieId,
                         from: suggestion.owner,
-                        comment: suggestion.comment
+                        comment: suggestion.comment,
+                        onItemSelected: onItemSelected
                     )
                 } else {
-                    Button(action: { presentedItem = .watchlistAddToWatchReason(itemIdentifier: .movie(id: movieId)) }) {
+                    Button(action: { onItemSelected(.watchlistAddToWatchReason(itemIdentifier: .movie(id: movieId))) }) {
                         HStack {
                             Image(systemName: "plus")
                             Text("Add info").underline()
@@ -213,11 +222,10 @@ private struct AddToWatchlistView: View {
 
 private struct SuggestionView: View {
 
-    @Binding var presentedItem: NavigationItem?
-
     let movieId: Movie.ID
     let from: String
     let comment: String?
+    let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
@@ -236,7 +244,7 @@ private struct SuggestionView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            Button(action: { presentedItem = .watchlistAddToWatchReason(itemIdentifier: .movie(id: movieId)) }) {
+            Button(action: { onItemSelected(.watchlistAddToWatchReason(itemIdentifier: .movie(id: movieId))) }) {
                 Text("Update").font(.footnote)
             }
             .buttonStyle(OvalButtonStyle(.small))
@@ -260,7 +268,8 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
                     path: "/eDtsTxALld2gPw9lO1hQIJXqMHu.jpg",
                     size: .preview
                 )
-            )
+            ),
+            onItemSelected: { _ in }
         )
         .fixedSize(horizontal: false, vertical: true)
         .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .empty))
@@ -273,7 +282,8 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
                     path: "/eDtsTxALld2gPw9lO1hQIJXqMHu.jpg",
                     size: .preview
                 )
-            )
+            ),
+            onItemSelected: { _ in }
         )
         .fixedSize(horizontal: false, vertical: true)
         .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .empty))
@@ -286,7 +296,8 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
                     path: "/eDtsTxALld2gPw9lO1hQIJXqMHu.jpg",
                     size: .preview
                 )
-            )
+            ),
+            onItemSelected: { _ in }
         )
         .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .toWatchItems(withSuggestion: false)))
 
@@ -298,7 +309,8 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
                     path: "/eDtsTxALld2gPw9lO1hQIJXqMHu.jpg",
                     size: .preview
                 )
-            )
+            ),
+            onItemSelected: { _ in }
         )
         .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .toWatchItems(withSuggestion: false)))
 
@@ -310,7 +322,8 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
                     path: "/eDtsTxALld2gPw9lO1hQIJXqMHu.jpg",
                     size: .preview
                 )
-            )
+            ),
+            onItemSelected: { _ in }
         )
         .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .toWatchItems(withSuggestion: true)))
 
@@ -322,7 +335,8 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
                     path: "/eDtsTxALld2gPw9lO1hQIJXqMHu.jpg",
                     size: .preview
                 )
-            )
+            ),
+            onItemSelected: { _ in }
         )
         .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .toWatchItems(withSuggestion: true)))
 
@@ -334,7 +348,8 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
                     path: "/eDtsTxALld2gPw9lO1hQIJXqMHu.jpg",
                     size: .preview
                 )
-            )
+            ),
+            onItemSelected: { _ in }
         )
         .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .watchedItems(withSuggestion: false, withRating: false)))
 
@@ -346,7 +361,8 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
                     path: "/eDtsTxALld2gPw9lO1hQIJXqMHu.jpg",
                     size: .preview
                 )
-            )
+            ),
+            onItemSelected: { _ in }
         )
         .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .watchedItems(withSuggestion: true, withRating: false)))
 
@@ -358,7 +374,8 @@ struct MovieWatchlistStateView_Previews: PreviewProvider {
                     path: "/eDtsTxALld2gPw9lO1hQIJXqMHu.jpg",
                     size: .preview
                 )
-            )
+            ),
+            onItemSelected: { _ in }
         )
         .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .watchedItems(withSuggestion: true, withRating: true)))
     }
