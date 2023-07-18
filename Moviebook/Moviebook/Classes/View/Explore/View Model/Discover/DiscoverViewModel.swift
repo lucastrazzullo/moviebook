@@ -50,13 +50,23 @@ import MoviebookCommon
                 group.addTask {
                     await content.fetch(requestManager: requestManager) { dataProvider in
                         if let forYou = dataProvider as? DiscoverRelated {
-                            await forYou.update(genresFilter: selectedGenres, referenceMovies: watchlistItems.compactMap(DiscoverRelated.ReferenceMovie.init(watchlistItem:)), requestManager: requestManager)
+                            await forYou.update(
+                                referenceMovies: watchlistItems.compactMap(DiscoverRelated.ReferenceMovie.init(watchlistItem:)),
+                                overrideGenres: selectedGenres,
+                                requestManager: requestManager
+                            )
                         }
                         if let discover = dataProvider as? DiscoverSection {
-                            await discover.update(genresFilter: selectedGenres, watchlistItems: watchlistItems)
+                            await discover.update(
+                                genresFilter: selectedGenres,
+                                watchlistItems: watchlistItems
+                            )
                         }
                         if let artists = dataProvider as? DiscoverPopularArtists {
-                            await artists.update(watchlistItems: watchlistItems, requestManager: requestManager)
+                            await artists.update(
+                                watchlistItems: watchlistItems,
+                                requestManager: requestManager
+                            )
                         }
                     }
                 }

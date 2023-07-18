@@ -49,65 +49,56 @@ final class DiscoverRelated {
     }
 
     private var referenceMovies: [ReferenceMovie] = []
-    private var keywordsFilter: [MovieKeyword.ID] = []
-    private var genresFilter: [MovieGenre.ID] = []
+    private var overriddenGenres: [MovieGenre.ID] = []
 
     // MARK: Private methods
 
-    func update(genresFilter: [MovieGenre.ID], referenceMovies: [ReferenceMovie], requestManager: RequestManager) async {
+    func update(referenceMovies: [ReferenceMovie], overrideGenres: [MovieGenre.ID], requestManager: RequestManager) async {
         self.referenceMovies = referenceMovies
-        self.keywordsFilter = await withTaskGroup(of: [MovieKeyword.ID].self) { group in
-            for watchlistMovie in referenceMovies {
-                group.addTask {
-                    await self.fetchItems(for: watchlistMovie, itemsProvider: {
-                        try await WebService.movieWebService(requestManager: requestManager)
-                            .fetchMovieKeywords(with: watchlistMovie.id)
-                            .map(\.id)
-                    })
-                }
-            }
-
-            var keywords: [MovieKeyword.ID] = []
-            for await response in group {
-                keywords.append(contentsOf: response)
-            }
-
-            return keywords.getMostPopular(topCap: 3)
-        }
-
-        if genresFilter.isEmpty {
-            self.genresFilter = await withTaskGroup(of: [MovieGenre.ID].self) { group in
-                for watchlistMovie in referenceMovies {
-                    group.addTask {
-                        await self.fetchItems(for: watchlistMovie, itemsProvider: {
-                            try await WebService.movieWebService(requestManager: requestManager)
-                                .fetchMovie(with: watchlistMovie.id)
-                                .genres.map(\.id)
-                        })
-                    }
-                }
-
-                var genres: [MovieGenre.ID] = []
-                for await response in group {
-                    genres.append(contentsOf: response)
-                }
-
-                return genres.getMostPopular(topCap: 3)
-            }
-        } else {
-            self.genresFilter = genresFilter
-        }
+        self.overriddenGenres = overrideGenres
     }
 }
 
 extension DiscoverRelated: ExploreContentDataProvider {
 
     func fetch(requestManager: RequestManager, page: Int?) async throws -> ExploreContentDataProvider.Response {
-        if genresFilter.isEmpty && keywordsFilter.isEmpty {
+        let filters = await withTaskGroup(of: (movie: Movie, weight: ReferenceMovie.Weight)?.self) { group in
+            for movieReference in referenceMovies {
+                group.addTask {
+                    if let movie = try? await WebService.movieWebService(requestManager: requestManager)
+                        .fetchMovie(with: movieReference.id) {
+                        return (movie: movie, weight: movieReference.weight)
+                    } else {
+                        return nil
+                    }
+                }
+            }
+
+            var keywords: [MovieKeyword.ID] = []
+            var genres: [MovieGenre.ID] = []
+            for await response in group {
+                if let response {
+                    let parsedKeywords = parseItems(response.movie.keywords.map(\.id), for: response.weight)
+                    let parseGenres = parseItems(response.movie.genres.map(\.id), for: response.weight)
+                    keywords.append(contentsOf: parsedKeywords)
+                    genres.append(contentsOf: parseGenres)
+                }
+            }
+
+            return (
+                keywords: keywords.getMostPopular(topCap: 3),
+                genres: genres.getMostPopular(topCap: 3)
+            )
+        }
+
+        if filters.keywords.isEmpty && filters.genres.isEmpty {
             return (results: .movies([]), nextPage: nil)
         }
 
-        let movieIdsSet = Set(referenceMovies.map(\.id))
+        let keywordsFilter = filters.keywords
+        let genresFilter = overriddenGenres.isEmpty ? filters.genres : overriddenGenres
+
+        let moviesAlreadyInReference = Set(referenceMovies.map(\.id))
         var results: ExploreContentDataProvider.Response = (results: .movies([]), nextPage: page)
         repeat {
             let response = try await WebService
@@ -116,7 +107,7 @@ extension DiscoverRelated: ExploreContentDataProvider {
                              genres: genresFilter,
                              page: results.nextPage)
 
-            let filteredItems = response.results.filter { !movieIdsSet.contains($0.id) }
+            let filteredItems = response.results.filter { !moviesAlreadyInReference.contains($0.id) }
             let resultItems = results.results.appending(items: .movies(filteredItems))
             let resultNextPage = response.nextPage
             results = (results: resultItems, nextPage: resultNextPage)
@@ -126,16 +117,8 @@ extension DiscoverRelated: ExploreContentDataProvider {
         return results
     }
 
-    private func fetchItems<Item>(for watchlistMovie: ReferenceMovie, itemsProvider: () async throws -> [Item]) async -> [Item] {
-        if case .unwanted = watchlistMovie.weight {
-            return []
-        }
-
-        guard let items = try? await itemsProvider() else {
-            return []
-        }
-
-        switch watchlistMovie.weight {
+    private func parseItems<Item>(_ items: [Item], for weight: ReferenceMovie.Weight) -> [Item] {
+        switch weight {
         case .exceptional:
             return (items+items+items+items)
         case .important:

@@ -48,7 +48,6 @@ struct MovieContentView: View {
 
             MovieRelatedView(
                 movieId: movie.id,
-                movieGenres: movie.genres.map(\.id),
                 presentedItem: $presentedItem
             )
 
@@ -285,7 +284,6 @@ private struct MovieRelatedView: View {
     @State private var containerWidth: CGFloat = 0
 
     private let movieId: Movie.ID
-    private let movieGenres: [MovieGenre.ID]
 
     var body: some View {
         VStack {
@@ -317,8 +315,8 @@ private struct MovieRelatedView: View {
             await viewModel.fetch(requestManager: requestManager) { dataProvider in
                 if let related = dataProvider as? DiscoverRelated {
                     await related.update(
-                        genresFilter: movieGenres,
                         referenceMovies: [.init(id: movieId, weight: .neutral)],
+                        overrideGenres: [],
                         requestManager: requestManager
                     )
                 }
@@ -326,7 +324,7 @@ private struct MovieRelatedView: View {
         }
     }
 
-    init(movieId: Movie.ID, movieGenres: [MovieGenre.ID], presentedItem: Binding<NavigationItem?>) {
+    init(movieId: Movie.ID, presentedItem: Binding<NavigationItem?>) {
         self._viewModel = StateObject(
             wrappedValue: ExploreContentViewModel(
                 dataProvider: DiscoverRelated(),
@@ -337,7 +335,6 @@ private struct MovieRelatedView: View {
         )
         self._presentedItem = presentedItem
         self.movieId = movieId
-        self.movieGenres = movieGenres
     }
 }
 
