@@ -263,6 +263,7 @@ final class NotificationsTests: XCTestCase {
                 )
             ),
             genres: [],
+            keywords: [],
             cast: [],
             production: MovieProduction(companies: []),
             watch: WatchProviders(collections: [:])

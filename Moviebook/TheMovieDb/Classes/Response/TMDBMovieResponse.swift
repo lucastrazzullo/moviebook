@@ -13,6 +13,7 @@ public struct TMDBMovieResponse: Codable {
     enum CodingKeys: String, CodingKey {
         case id = "id"
         case genres = "genres"
+        case keywords = "keywords"
         case collection = "belongs_to_collection"
         case credits = "credits"
     }
@@ -31,6 +32,7 @@ public struct TMDBMovieResponse: Codable {
         let id = try container.decode(Movie.ID.self, forKey: .id)
         let details = try TMDBMovieDetailsResponse(from: decoder).result
         let genres = try container.decode([TMDBMovieGenreResponse].self, forKey: .genres).map(\.result)
+        let keywords = try container.decode(TMDBMovieKeywordsResponse.self, forKey: .keywords).keywords.map(\.result)
         let production = try TMDBMovieProductionResponse(from: decoder).result
         let watch = WatchProviders(collections: [:])
         let collection = try container.decodeIfPresent(TMDBMovieCollectionResponse.self, forKey: .collection)?.result
@@ -39,6 +41,7 @@ public struct TMDBMovieResponse: Codable {
         self.result = Movie(id: id,
                             details: details,
                             genres: genres,
+                            keywords: keywords,
                             cast: cast,
                             production: production,
                             watch: watch,
@@ -51,6 +54,7 @@ public struct TMDBMovieResponse: Codable {
         try container.encode(result.id, forKey: .id)
         try TMDBMovieDetailsResponse(result: result.details).encode(to: encoder)
         try container.encode(result.genres.map(TMDBMovieGenreResponse.init(result:)), forKey: .genres)
+        try container.encode(TMDBMovieKeywordsResponse(keywords: result.keywords.map(TMDBMovieKeywordResponse.init(result:))), forKey: .keywords)
         try TMDBMovieProductionResponse(result: result.production).encode(to: encoder)
         try container.encode(TMDBMovieCastResponse(result: result.cast), forKey: .credits)
 
