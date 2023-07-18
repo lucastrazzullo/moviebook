@@ -95,7 +95,7 @@ struct MoviebookApp: App {
     @ViewBuilder private func makeWatchlistView(watchlist: Watchlist) -> some View {
         WatchlistView(presentedItem: $presentedItem)
             .sheet(item: $presentedItem) { item in
-                Navigation(presentingItem: item)
+                Navigation(rootItem: item)
             }
             .environmentObject(watchlist)
     }

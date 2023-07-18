@@ -16,16 +16,16 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
 
     let watchlistItemIdentifier: WatchlistItemIdentifier
     let watchlistItemReleaseDate: Date
+    let onItemSelected: (NavigationItem) -> Void
 
-    @Binding var presentedItem: NavigationItem?
     @ViewBuilder let label: LabelBuilder
 
     var body: some View {
         Menu {
             WatchlistOptions(
-                presentedItem: $presentedItem,
                 watchlistItemIdentifier: watchlistItemIdentifier,
-                watchlistItemReleaseDate: watchlistItemReleaseDate
+                watchlistItemReleaseDate: watchlistItemReleaseDate,
+                onItemSelected: onItemSelected
             )
         } label: {
             let state = watchlist.itemState(id: watchlistItemIdentifier)
@@ -49,17 +49,17 @@ struct WatchlistButton<LabelType>: View where LabelType: View  {
 struct WatchlistOptions: View {
 
     @EnvironmentObject var watchlist: Watchlist
-    @Binding var presentedItem: NavigationItem?
 
     let watchlistItemIdentifier: WatchlistItemIdentifier
     let watchlistItemReleaseDate: Date
+    let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         Group {
             if let state = watchlist.itemState(id: watchlistItemIdentifier) {
                 switch state {
                 case .toWatch(let info):
-                    Button(role: info.suggestion == nil ? .destructive : nil) { presentedItem = .watchlistAddToWatchReason(itemIdentifier: watchlistItemIdentifier) } label: {
+                    Button(role: info.suggestion == nil ? .destructive : nil) { onItemSelected(.watchlistAddToWatchReason(itemIdentifier: watchlistItemIdentifier)) } label: {
                         if info.suggestion == nil {
                             Label("Add reason to watch", systemImage: "quote.opening")
                         } else {
@@ -76,7 +76,7 @@ struct WatchlistOptions: View {
                         }
                     }
                 case .watched(let info):
-                    Button(role: info.rating == nil ? .destructive : nil) { presentedItem = .watchlistAddRating(itemIdentifier: watchlistItemIdentifier) } label: {
+                    Button(role: info.rating == nil ? .destructive : nil) { onItemSelected(.watchlistAddRating(itemIdentifier: watchlistItemIdentifier)) } label: {
                         if info.rating == nil {
                             Label("Add rating", systemImage: "plus")
                         } else {
@@ -188,13 +188,13 @@ struct IconWatchlistButton: View {
     let watchlistItemIdentifier: WatchlistItemIdentifier
     let watchlistItemReleaseDate: Date
 
-    @Binding var presentedItem: NavigationItem?
+    let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         WatchlistButton(
             watchlistItemIdentifier: watchlistItemIdentifier,
             watchlistItemReleaseDate: watchlistItemReleaseDate,
-            presentedItem: $presentedItem,
+            onItemSelected: onItemSelected,
             label: { state, badgeImageName in
             WatchlistIcon(itemState: state)
                 .frame(width: 18, height: 18, alignment: .center)
@@ -224,21 +224,21 @@ struct WatchlistButton_Previews: PreviewProvider {
             IconWatchlistButton(
                 watchlistItemIdentifier: .movie(id: 954),
                 watchlistItemReleaseDate: .now,
-                presentedItem: .constant(nil)
+                onItemSelected: { _ in }
             )
             .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .empty))
 
             IconWatchlistButton(
                 watchlistItemIdentifier: .movie(id: 954),
                 watchlistItemReleaseDate: .now,
-                presentedItem: .constant(nil)
+                onItemSelected: { _ in }
             )
             .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .toWatchItems(withSuggestion: true)))
 
             IconWatchlistButton(
                 watchlistItemIdentifier: .movie(id: 954),
                 watchlistItemReleaseDate: .now,
-                presentedItem: .constant(nil)
+                onItemSelected: { _ in }
             )
             .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .watchedItems(withSuggestion: true, withRating: true)))
         }

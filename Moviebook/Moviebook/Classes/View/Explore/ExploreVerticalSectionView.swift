@@ -11,7 +11,8 @@ import MoviebookCommon
 struct ExploreVerticalSectionView: View {
 
     @ObservedObject var viewModel: ExploreContentViewModel
-    @Binding var presentedItem: NavigationItem?
+
+    let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         VStack {
@@ -23,17 +24,20 @@ struct ExploreVerticalSectionView: View {
             case .movies(let movies):
                 LazyVStack {
                     ForEach(movies) { movieDetails in
-                        MoviePreviewView(details: movieDetails, presentedItem: $presentedItem) {
-                            presentedItem = .movieWithIdentifier(movieDetails.id)
-                        }
+                        MoviePreviewView(
+                            details: movieDetails,
+                            onItemSelected: onItemSelected
+                        )
                     }
                 }
             case .artists(let artists):
                 LazyVGrid(columns: [GridItem(), GridItem(), GridItem()]) {
                     ForEach(artists, id: \.self) { artistDetails in
-                        ArtistPreviewView(details: artistDetails, shouldShowCharacter: false) {
-                            presentedItem = .artistWithIdentifier(artistDetails.id)
-                        }
+                        ArtistPreviewView(
+                            details: artistDetails,
+                            shouldShowCharacter: false,
+                            onItemSelected: onItemSelected
+                        )
                     }
                 }
             }
@@ -96,7 +100,7 @@ private struct ExploreSectionViewPreview: View {
 
     var body: some View {
         ScrollView {
-            ExploreVerticalSectionView(viewModel: viewModel, presentedItem: .constant(nil))
+            ExploreVerticalSectionView(viewModel: viewModel, onItemSelected: { _ in })
         }
         .task {
             await viewModel.fetch(requestManager: requestManager) { _ in }

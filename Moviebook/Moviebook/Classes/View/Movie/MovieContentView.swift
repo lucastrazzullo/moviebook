@@ -12,10 +12,8 @@ struct MovieContentView: View {
 
     @State private var isOverviewExpanded: Bool = false
 
-    @Binding var navigationPath: NavigationPath
-    @Binding var presentedItem: NavigationItem?
-
     let movie: Movie
+    let onItemSelected: (NavigationItem) -> Void
     let onVideoSelected: (MovieVideo) -> Void
 
     var body: some View {
@@ -35,7 +33,8 @@ struct MovieContentView: View {
             MovieWatchlistStateView(
                 movieId: movie.id,
                 movieReleaseDate: movie.details.release,
-                movieBackdropPreviewUrl: movie.details.media.backdropPreviewUrl
+                movieBackdropPreviewUrl: movie.details.media.backdropPreviewUrl,
+                onItemSelected: onItemSelected
             )
 
             if !specs.isEmpty {
@@ -48,27 +47,22 @@ struct MovieContentView: View {
 
             MovieRelatedView(
                 movieId: movie.id,
-                presentedItem: $presentedItem
+                onItemSelected: onItemSelected
             )
 
             if let collection = movie.collection, let list = collection.list, !list.isEmpty {
                 MovieCollectionView(
-                    presentedItem: $presentedItem,
                     title: "Collection",
                     movies: list,
                     highlightedMovieId: movie.id,
-                    onMovieSelected: { identifier in
-                        navigationPath.append(NavigationItem.movieWithIdentifier(identifier))
-                    }
+                    onItemSelected: onItemSelected
                 )
             }
 
             if !movie.cast.isEmpty {
                 CastView(
                     cast: movie.cast,
-                    onArtistSelected: { identifier in
-                        navigationPath.append(NavigationItem.artistWithIdentifier(identifier))
-                    }
+                    onItemSelected: onItemSelected
                 )
             }
         }
@@ -228,12 +222,10 @@ private struct WatchProvidersView: View {
 
 private struct MovieCollectionView: View {
 
-    @Binding var presentedItem: NavigationItem?
-
     let title: String
     let movies: [MovieDetails]
     let highlightedMovieId: Movie.ID?
-    let onMovieSelected: (Movie.ID) -> Void
+    let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -256,8 +248,8 @@ private struct MovieCollectionView: View {
                                 }
 
                             MovieShelfPreviewView(
-                                presentedItem: $presentedItem,
-                                movieDetails: movieDetails
+                                movieDetails: movieDetails,
+                                onItemSelected: onItemSelected
                             )
                             .disabled(highlightedMovieId == movieDetails.id)
                         }
@@ -280,24 +272,24 @@ private struct MovieRelatedView: View {
     @Environment(\.requestManager) private var requestManager
 
     @StateObject private var viewModel: ExploreContentViewModel
-    @Binding private var presentedItem: NavigationItem?
     @State private var containerWidth: CGFloat = 0
 
     private let movieId: Movie.ID
+    private let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         VStack {
             if containerWidth > 0 {
                 ExploreHorizontalSectionView(
                     viewModel: viewModel,
-                    presentedItem: $presentedItem,
                     layout: .multirows,
                     containerWidth: containerWidth,
+                    onItemSelected: onItemSelected,
                     viewAllDestination: {
                         ScrollView(showsIndicators: false) {
                             ExploreVerticalSectionView(
                                 viewModel: viewModel,
-                                presentedItem: $presentedItem
+                                onItemSelected: onItemSelected
                             )
                         }
                         .navigationTitle(viewModel.title)
@@ -324,7 +316,7 @@ private struct MovieRelatedView: View {
         }
     }
 
-    init(movieId: Movie.ID, presentedItem: Binding<NavigationItem?>) {
+    init(movieId: Movie.ID, onItemSelected: @escaping (NavigationItem) -> Void) {
         self._viewModel = StateObject(
             wrappedValue: ExploreContentViewModel(
                 dataProvider: DiscoverRelated(),
@@ -333,15 +325,15 @@ private struct MovieRelatedView: View {
                 items: .movies([])
             )
         )
-        self._presentedItem = presentedItem
         self.movieId = movieId
+        self.onItemSelected = onItemSelected
     }
 }
 
 private struct CastView: View {
 
     let cast: [ArtistDetails]
-    let onArtistSelected: (Artist.ID) -> Void
+    let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -351,9 +343,11 @@ private struct CastView: View {
 
             LazyVGrid(columns: [GridItem(), GridItem(), GridItem()]) {
                 ForEach(cast) { artistDetails in
-                    ArtistPreviewView(details: artistDetails, shouldShowCharacter: true, onSelected: {
-                        onArtistSelected(artistDetails.id)
-                    })
+                    ArtistPreviewView(
+                        details: artistDetails,
+                        shouldShowCharacter: true,
+                        onItemSelected: onItemSelected
+                    )
                 }
             }
         }
@@ -383,9 +377,8 @@ private struct MovieContentViewPreview: View {
         Group {
             if let movie {
                 MovieContentView(
-                    navigationPath: .constant(NavigationPath()),
-                    presentedItem: .constant(nil),
                     movie: movie,
+                    onItemSelected: { _ in },
                     onVideoSelected: { _ in }
                 )
             } else {

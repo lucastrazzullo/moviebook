@@ -17,11 +17,9 @@ struct MoviePreviewView: View {
 
     @EnvironmentObject var watchlist: Watchlist
 
-    @Binding var presentedItem: NavigationItem?
-
     let style: Style
-    let details: MovieDetails?
-    let onSelected: (() -> Void)?
+    let details: MovieDetails
+    let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         HStack(alignment: .center) {
@@ -45,61 +43,55 @@ struct MoviePreviewView: View {
 
                 VStack(alignment: .leading, spacing: 8) {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(details?.title ?? "Loading")
+                        Text(details.title)
                             .lineLimit(3)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .font(.headline)
 
-                        if let releaseDate = details?.release {
-                            Group {
-                                if releaseDate > .now {
-                                    HStack(spacing: 4) {
-                                        Text("Coming on")
-                                        Text(releaseDate, format: .dateTime.year()).bold()
-                                    }
-                                    .padding(4)
-                                    .background(.yellow, in: RoundedRectangle(cornerRadius: 6))
-                                    .foregroundColor(.black)
-                                } else {
-                                    Text(releaseDate, format: .dateTime.year())
+                        Group {
+                            if details.release > .now {
+                                HStack(spacing: 4) {
+                                    Text("Coming on")
+                                    Text(details.release, format: .dateTime.year()).bold()
                                 }
+                                .padding(4)
+                                .background(.yellow, in: RoundedRectangle(cornerRadius: 6))
+                                .foregroundColor(.black)
+                            } else {
+                                Text(details.release, format: .dateTime.year())
                             }
-                            .font(.caption)
                         }
+                        .font(.caption)
                     }
 
-                    if let rating = details?.rating {
-                        RatingView(rating: rating)
-                    }
+                    RatingView(rating: details.rating)
                 }
                 .padding(.vertical, 4)
             }
-            .onTapGesture(perform: { onSelected?() })
+            .onTapGesture(perform: { onItemSelected(.movieWithIdentifier(details.id)) })
 
-            if let details {
-                Spacer()
-                IconWatchlistButton(
-                    watchlistItemIdentifier: .movie(id: details.id),
-                    watchlistItemReleaseDate: details.release,
-                    presentedItem: $presentedItem
-                )
-            }
+            Spacer()
+
+            IconWatchlistButton(
+                watchlistItemIdentifier: .movie(id: details.id),
+                watchlistItemReleaseDate: details.release,
+                onItemSelected: onItemSelected
+            )
         }
     }
 
-    init(details: MovieDetails?, presentedItem: Binding<NavigationItem?>, style: Style = .poster, onSelected: (() -> Void)? = nil) {
-        self._presentedItem = presentedItem
+    init(details: MovieDetails, style: Style = .poster, onItemSelected: @escaping (NavigationItem) -> Void) {
         self.details = details
         self.style = style
-        self.onSelected = onSelected
+        self.onItemSelected = onItemSelected
     }
 
     private var imageUrl: URL? {
         switch style {
         case .backdrop:
-            return details?.media.backdropPreviewUrl
+            return details.media.backdropPreviewUrl
         case .poster:
-            return details?.media.posterPreviewUrl
+            return details.media.posterPreviewUrl
         }
     }
 
@@ -141,7 +133,7 @@ private struct MoviePreviewViewPreview: View {
     var body: some View {
         Group {
             if let movie {
-                MoviePreviewView(details: movie.details, presentedItem: .constant(nil), style: style).padding()
+                MoviePreviewView(details: movie.details, style: style, onItemSelected: { _ in }).padding()
             } else {
                 LoaderView()
             }

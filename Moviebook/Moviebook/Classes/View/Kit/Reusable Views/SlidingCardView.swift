@@ -199,9 +199,8 @@ private struct SlidingCardViewPreview: View {
                     },
                     content: {
                         MovieContentView(
-                            navigationPath: .constant(.init()),
-                            presentedItem: .constant(nil),
                             movie: movie,
+                            onItemSelected: { _ in },
                             onVideoSelected: { _ in }
                         )
                     }

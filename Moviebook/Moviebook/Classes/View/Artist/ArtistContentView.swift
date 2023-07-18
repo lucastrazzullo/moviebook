@@ -12,10 +12,8 @@ struct ArtistContentView: View {
 
     @State private var isOverviewExpanded: Bool = false
 
-    @Binding var navigationPath: NavigationPath
-    @Binding var presentedItem: NavigationItem?
-
     let artist: Artist
+    let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 30) {
@@ -29,11 +27,8 @@ struct ArtistContentView: View {
 
             if !artist.filmography.isEmpty {
                 FilmographyView(
-                    presentedItem: $presentedItem,
                     movies: artist.filmography,
-                    onMovieSelected: { identifier in
-                        navigationPath.append(NavigationItem.movieWithIdentifier(identifier))
-                    }
+                    onItemSelected: onItemSelected
                 )
             }
         }
@@ -82,10 +77,8 @@ private struct HeaderView: View {
 
 private struct FilmographyView: View {
 
-    @Binding var presentedItem: NavigationItem?
-
     let movies: [MovieDetails]
-    let onMovieSelected: (Movie.ID) -> Void
+    let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -95,9 +88,10 @@ private struct FilmographyView: View {
             LazyVStack {
                 ForEach(movies) { movieDetails in
                     Group {
-                        MoviePreviewView(details: movieDetails, presentedItem: $presentedItem) {
-                            onMovieSelected(movieDetails.id)
-                        }
+                        MoviePreviewView(
+                            details: movieDetails,
+                            onItemSelected: onItemSelected
+                        )
                     }
                     .padding(8)
                     .background {
@@ -137,7 +131,7 @@ private struct ArtistCardPreview: View {
     var body: some View {
         Group {
             if let artist {
-                ArtistContentView(navigationPath: .constant(.init()), presentedItem: .constant(nil), artist: artist)
+                ArtistContentView(artist: artist, onItemSelected: { _ in })
             } else {
                 LoaderView()
             }

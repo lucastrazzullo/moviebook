@@ -12,9 +12,8 @@ struct MovieShelfPreviewView: View {
 
     @EnvironmentObject var watchlist: Watchlist
 
-    @Binding var presentedItem: NavigationItem?
-
     let movieDetails: MovieDetails
+    let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         Group {
@@ -26,7 +25,7 @@ struct MovieShelfPreviewView: View {
             .aspectRatio(contentMode: .fill)
             .clipShape(RoundedRectangle(cornerRadius: 12))
             .onTapGesture {
-                presentedItem = .movieWithIdentifier(movieDetails.id)
+                onItemSelected(.movieWithIdentifier(movieDetails.id))
             }
         }
         .overlay(alignment: .bottom) {
@@ -47,7 +46,7 @@ struct MovieShelfPreviewView: View {
                 IconWatchlistButton(
                     watchlistItemIdentifier: watchlistIdentifier,
                     watchlistItemReleaseDate: movieDetails.release,
-                    presentedItem: $presentedItem
+                    onItemSelected: onItemSelected
                 )
             }
             .padding(10)
@@ -83,8 +82,8 @@ private struct MovieShelfPreviewViewPreview: View {
         Group {
             if let movie {
                 MovieShelfPreviewView(
-                    presentedItem: .constant(nil),
-                    movieDetails: movie.details
+                    movieDetails: movie.details,
+                    onItemSelected: { _ in }
                 )
             } else {
                 LoaderView()
