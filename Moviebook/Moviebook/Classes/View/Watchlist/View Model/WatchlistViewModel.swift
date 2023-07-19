@@ -264,7 +264,7 @@ import MoviebookCommon
             case .name:
                 return self.name(for: lhs) < self.name(for: rhs)
             case .release:
-                return self.releaseDate(for: lhs) < self.releaseDate(for: rhs)
+                return self.releaseDate(for: lhs) > self.releaseDate(for: rhs)
             }
         }
     }
