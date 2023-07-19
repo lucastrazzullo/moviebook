@@ -153,4 +153,10 @@ final class ArrayExtensionsTests: XCTestCase {
         let mostPopular = array.getMostPopular(bottomCap: 5, topCap: 3)
         XCTAssertEqual(mostPopular, [])
     }
+
+    func testGetMostPopular_withEmptyArray() {
+        let array = [Int]()
+        let mostPopular = array.getMostPopular(bottomCap: 1, topCap: 3)
+        XCTAssertEqual(mostPopular, [])
+    }
 }
