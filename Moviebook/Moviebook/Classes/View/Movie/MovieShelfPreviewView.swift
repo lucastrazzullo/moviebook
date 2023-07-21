@@ -30,10 +30,10 @@ struct MovieShelfPreviewView: View {
         }
         .overlay(alignment: .bottom) {
             HStack(alignment: .center) {
-                if movieDetails.release > Date.now {
+                if movieDetails.localisedReleaseDate() > Date.now {
                     HStack(spacing: 4) {
                         Text("Release")
-                        Text(movieDetails.release, format: .dateTime.year())
+                        Text(movieDetails.localisedReleaseDate(), format: .dateTime.year())
                     }
                     .font(.caption2).bold()
                     .padding(6)
@@ -45,7 +45,7 @@ struct MovieShelfPreviewView: View {
 
                 IconWatchlistButton(
                     watchlistItemIdentifier: watchlistIdentifier,
-                    watchlistItemReleaseDate: movieDetails.release,
+                    watchlistItemReleaseDate: movieDetails.localisedReleaseDate(),
                     onItemSelected: onItemSelected
                 )
             }

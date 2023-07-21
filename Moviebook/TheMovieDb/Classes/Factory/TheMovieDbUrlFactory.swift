@@ -40,7 +40,7 @@ public enum TheMovieDbUrlFactory {
         switch self {
         case .movie(let identifier):
             return try TheMovieDbDataRequestFactory.makeURL(path: "movie/\(identifier)", queryItems: [
-                URLQueryItem(name: "append_to_response", value: "credits,videos,keywords")
+                URLQueryItem(name: "append_to_response", value: "credits,videos,keywords,release_dates")
             ])
         case .movieCollection(let identifier):
             return try TheMovieDbDataRequestFactory.makeURL(path: "collection/\(identifier)")

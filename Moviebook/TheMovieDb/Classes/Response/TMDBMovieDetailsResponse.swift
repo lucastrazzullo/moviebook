@@ -21,6 +21,7 @@ struct TMDBMovieDetailsResponse: Codable {
         case budget = "budget"
         case revenue = "revenue"
         case releaseDate = "release_date"
+        case releaseDates = "release_dates"
         case runtime = "runtime"
         case rating = "vote_average"
         case posterPath = "poster_path"
@@ -43,6 +44,13 @@ struct TMDBMovieDetailsResponse: Codable {
         let overview = try values.decodeIfPresent(String.self, forKey: .overview)
         let rating = Rating(value: try values.decode(Float.self, forKey: .rating), quota: 10.0)
         let media = try TMDBMovieMediaResponse(from: decoder).result
+
+        var localisedReleases: [String: Date] = [:]
+        if let releaseList = try values.decodeIfPresent(TMDBResponseWithListResults<TMDBMovieLocalisedRelease>.self, forKey: .releaseDates)?.results {
+            localisedReleases = Dictionary(uniqueKeysWithValues: releaseList.compactMap { localisedRelease in
+                return (localisedRelease.region, localisedRelease.theatricalReleaseDate)
+            })
+        }
 
         let releaseDateString = try values.decode(String.self, forKey: .releaseDate)
         guard let releaseDate = TheMovieDbFactory.dateFormatter.date(from: releaseDateString) else {
@@ -69,6 +77,7 @@ struct TMDBMovieDetailsResponse: Codable {
         self.result = MovieDetails(id: id,
                                    title: title,
                                    release: releaseDate,
+                                   localisedReleases: localisedReleases,
                                    runtime: runtime,
                                    overview: overview,
                                    budget: budget,
@@ -84,6 +93,15 @@ struct TMDBMovieDetailsResponse: Codable {
         try container.encode(result.title, forKey: .title)
         try container.encode(result.rating.value, forKey: .rating)
         try container.encode(TheMovieDbFactory.dateFormatter.string(from: result.release), forKey: .releaseDate)
+
+        var releaseDates: [TMDBMovieLocalisedRelease] = []
+        for releaseRegion in result.localisedReleases.keys {
+            if let releaseDate = result.localisedReleases[releaseRegion] {
+                releaseDates.append(TMDBMovieLocalisedRelease(region: releaseRegion, theatricalReleaseDate: releaseDate))
+            }
+        }
+        try container.encode(releaseDates, forKey: .releaseDates)
+
         try TMDBMovieMediaResponse(result: result.media).encode(to: encoder)
 
         try container.encodeIfPresent(result.overview, forKey: .overview)

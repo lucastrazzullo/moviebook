@@ -16,4 +16,18 @@ enum TheMovieDbFactory {
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter
     }()
+
+    static let localisedDateFormatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+
+        formatter.formatOptions.insert(.withFractionalSeconds)
+        let date = formatter.date(from: "2022-01-05T03:30:00.000Z")
+
+        formatter.formatOptions = [
+            .withInternetDateTime,
+            .withFractionalSeconds
+        ]
+
+        return formatter
+    }()
 }

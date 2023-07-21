@@ -47,6 +47,10 @@ extension Array where Element: Equatable {
 extension Array where Element: Hashable {
 
     public func getMostPopular(bottomCap: Int? = nil, topCap: Int? = nil) -> [Element] {
+        guard !self.isEmpty else {
+            return self
+        }
+
         var itemsOccurrences: [Element: Int] = [:]
         for item in self {
             itemsOccurrences[item] = (itemsOccurrences[item] ?? 0) + 1

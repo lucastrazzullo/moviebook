@@ -32,7 +32,7 @@ struct MovieContentView: View {
 
             MovieWatchlistStateView(
                 movieId: movie.id,
-                movieReleaseDate: movie.details.release,
+                movieReleaseDate: movie.details.localisedReleaseDate(),
                 movieBackdropPreviewUrl: movie.details.media.backdropPreviewUrl,
                 onItemSelected: onItemSelected
             )
@@ -76,7 +76,7 @@ struct MovieContentView: View {
             specs.append(.duration(runtime, label: "Runtime"))
         }
 
-        specs.append(.date(movie.details.release, label: "Release date"))
+        specs.append(.date(movie.details.localisedReleaseDate(), label: "Release date"))
 
         if !movie.genres.isEmpty {
             specs.append(.list(movie.genres.map(\.name), label: "Genres"))
@@ -109,7 +109,7 @@ private struct HeaderView: View {
                 Text(details.title).font(.title)
                 Spacer()
                 RatingView(rating: details.rating)
-                Text(details.release, format: .dateTime.year()).font(.caption)
+                Text(details.localisedReleaseDate(), format: .dateTime.year()).font(.caption)
             }
 
             Spacer()

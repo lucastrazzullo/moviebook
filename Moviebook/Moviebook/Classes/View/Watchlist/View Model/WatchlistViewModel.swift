@@ -264,7 +264,7 @@ import MoviebookCommon
             case .name:
                 return self.name(for: lhs) < self.name(for: rhs)
             case .release:
-                return self.releaseDate(for: lhs) < self.releaseDate(for: rhs)
+                return self.releaseDate(for: lhs) > self.releaseDate(for: rhs)
             }
         }
     }
@@ -291,7 +291,7 @@ import MoviebookCommon
     private func releaseDate(for item: WatchlistViewModel.Item) -> Date {
         switch item {
         case .movie(let movie, _):
-            return movie.details.release
+            return movie.details.localisedReleaseDate()
         }
     }
 

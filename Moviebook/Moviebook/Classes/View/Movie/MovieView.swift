@@ -107,7 +107,7 @@ private struct MovieTrailingHeaderView: View {
             Menu {
                 WatchlistButton(
                     watchlistItemIdentifier: .movie(id: movieDetails.id),
-                    watchlistItemReleaseDate: movieDetails.release,
+                    watchlistItemReleaseDate: movieDetails.localisedReleaseDate(),
                     onItemSelected: onItemSelected) { state, _ in
                     WatchlistLabel(itemState: state)
                     WatchlistIcon(itemState: state)
@@ -122,7 +122,7 @@ private struct MovieTrailingHeaderView: View {
             HStack(spacing: 18) {
                 WatchlistButton(
                     watchlistItemIdentifier: .movie(id: movieDetails.id),
-                    watchlistItemReleaseDate: movieDetails.release,
+                    watchlistItemReleaseDate: movieDetails.localisedReleaseDate(),
                     onItemSelected: onItemSelected) { state, _ in
                     WatchlistIcon(itemState: state)
                         .frame(width: 16, height: 16, alignment: .center)
