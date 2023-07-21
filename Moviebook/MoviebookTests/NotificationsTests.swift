@@ -248,6 +248,7 @@ final class NotificationsTests: XCTestCase {
                 id: id,
                 title: "Title 1",
                 release: releaseDate,
+                localisedReleases: [:],
                 runtime: nil,
                 overview: nil,
                 budget: nil,
