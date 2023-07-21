@@ -100,7 +100,7 @@ struct TMDBMovieDetailsResponse: Codable {
                 releaseDates.append(TMDBMovieLocalisedRelease(region: releaseRegion, theatricalReleaseDate: releaseDate))
             }
         }
-        try container.encode(releaseDates, forKey: .releaseDates)
+        try container.encode(TMDBResponseWithListResults(items: releaseDates), forKey: .releaseDates)
 
         try TMDBMovieMediaResponse(result: result.media).encode(to: encoder)
 

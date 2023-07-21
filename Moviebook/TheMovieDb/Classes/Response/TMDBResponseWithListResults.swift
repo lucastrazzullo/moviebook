@@ -8,7 +8,7 @@
 import Foundation
 import MoviebookCommon
 
-struct TMDBResponseWithListResults<ItemType: Decodable>: Decodable {
+struct TMDBResponseWithListResults<ItemType: Codable>: Codable {
 
     let results: [ItemType]
     let nextPage: Int?
@@ -19,8 +19,13 @@ struct TMDBResponseWithListResults<ItemType: Decodable>: Decodable {
         case total_pages
     }
 
+    init(items: [ItemType]) {
+        self.results = items
+        self.nextPage = nil
+    }
+
     init(from decoder: Decoder) throws {
-        let container: KeyedDecodingContainer<CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)
+        let container = try decoder.container(keyedBy: CodingKeys.self)
         self.results = try container.decode([TMDBSafeItemResponse<ItemType>].self, forKey: CodingKeys.results).compactMap(\.value)
 
         if let page = try container.decodeIfPresent(Int.self, forKey: .page),
@@ -30,5 +35,10 @@ struct TMDBResponseWithListResults<ItemType: Decodable>: Decodable {
         } else {
             self.nextPage = nil
         }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(results, forKey: .results)
     }
 }
