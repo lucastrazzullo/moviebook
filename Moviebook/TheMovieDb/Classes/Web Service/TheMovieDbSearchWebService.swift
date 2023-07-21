@@ -20,13 +20,13 @@ public struct TheMovieDbSearchWebService: SearchWebService {
         let url = try TheMovieDbUrlFactory.searchMovie(keyword: keyword, page: page).makeUrl()
         let data = try await requestManager.request(from: url)
         let response = try JSONDecoder().decode(TMDBResponseWithListResults<TMDBMovieDetailsResponse>.self, from: data)
-        return (results: response.results.map(\.result), nextPage: response.nextPage)
+        return (results: response.results.map(\.movieDetails), nextPage: response.nextPage)
     }
 
     public func fetchArtists(with keyword: String, page: Int? = nil) async throws -> (results: [ArtistDetails], nextPage: Int?) {
         let url = try TheMovieDbUrlFactory.searchPerson(keyword: keyword, page: page).makeUrl()
         let data = try await requestManager.request(from: url)
         let response = try JSONDecoder().decode(TMDBResponseWithListResults<TMDBArtistDetailsResponse>.self, from: data)
-        return (results: response.results.map(\.result), nextPage: response.nextPage)
+        return (results: response.results.map(\.artistDetails), nextPage: response.nextPage)
     }
 }

@@ -20,12 +20,12 @@ struct TMDBMovieGenreResponse: Codable {
         case name = "name"
     }
 
-    let result: MovieGenre
+    let genre: MovieGenre
 
     // MARK: Object life cycle
 
-    init(result: MovieGenre) {
-        self.result = result
+    init(genre: MovieGenre) {
+        self.genre = genre
     }
 
     init(from decoder: Decoder) throws {
@@ -34,13 +34,13 @@ struct TMDBMovieGenreResponse: Codable {
         let id = try container.decode(MovieGenre.ID.self, forKey: .id)
         let name = try container.decode(String.self, forKey: .name)
 
-        self.result = MovieGenre(id: id, name: name)
+        self.genre = MovieGenre(id: id, name: name)
     }
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
-        try container.encode(result.id, forKey: .id)
-        try container.encode(result.name, forKey: .name)
+        try container.encode(genre.id, forKey: .id)
+        try container.encode(genre.name, forKey: .name)
     }
 }

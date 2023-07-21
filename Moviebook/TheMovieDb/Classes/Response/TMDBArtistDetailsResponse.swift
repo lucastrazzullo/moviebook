@@ -21,12 +21,12 @@ struct TMDBArtistDetailsResponse: Codable {
         case imagePath = "profile_path"
     }
 
-    let result: ArtistDetails
+    let artistDetails: ArtistDetails
 
     // MARK: Object life cycle
 
-    init(result: ArtistDetails) {
-        self.result = result
+    init(artistDetails: ArtistDetails) {
+        self.artistDetails = artistDetails
     }
 
     init(from decoder: Decoder) throws {
@@ -52,27 +52,27 @@ struct TMDBArtistDetailsResponse: Codable {
         let imagePreviewUrl = try TheMovieDbImageRequestFactory.makeURL(format: .avatar(path: imagePath, size: .preview))
         let imageOriginalUrl = try TheMovieDbImageRequestFactory.makeURL(format: .avatar(path: imagePath, size: .original))
 
-        self.result = ArtistDetails(id: id,
-                                    name: name,
-                                    birthday: birthday,
-                                    deathday: deathday,
-                                    imagePreviewUrl: imagePreviewUrl,
-                                    imageOriginalUrl: imageOriginalUrl,
-                                    biography: biography,
-                                    character: character,
-                                    popularity: popularity)
+        self.artistDetails = ArtistDetails(id: id,
+                                           name: name,
+                                           birthday: birthday,
+                                           deathday: deathday,
+                                           imagePreviewUrl: imagePreviewUrl,
+                                           imageOriginalUrl: imageOriginalUrl,
+                                           biography: biography,
+                                           character: character,
+                                           popularity: popularity)
     }
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
-        try container.encode(result.id, forKey: .id)
-        try container.encode(result.name, forKey: .name)
-        try container.encodeIfPresent(result.birthday, forKey: .birthday)
-        try container.encodeIfPresent(result.deathday, forKey: .deathday)
-        try container.encode(result.imagePreviewUrl.lastPathComponent, forKey: .imagePath)
-        try container.encodeIfPresent(result.biography, forKey: .biography)
-        try container.encodeIfPresent(result.character, forKey: .character)
-        try container.encodeIfPresent(result.popularity, forKey: .popularity)
+        try container.encode(artistDetails.id, forKey: .id)
+        try container.encode(artistDetails.name, forKey: .name)
+        try container.encodeIfPresent(artistDetails.birthday, forKey: .birthday)
+        try container.encodeIfPresent(artistDetails.deathday, forKey: .deathday)
+        try container.encode(artistDetails.imagePreviewUrl.lastPathComponent, forKey: .imagePath)
+        try container.encodeIfPresent(artistDetails.biography, forKey: .biography)
+        try container.encodeIfPresent(artistDetails.character, forKey: .character)
+        try container.encodeIfPresent(artistDetails.popularity, forKey: .popularity)
     }
 }

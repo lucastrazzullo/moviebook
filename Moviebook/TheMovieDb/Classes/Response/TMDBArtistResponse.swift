@@ -19,19 +19,19 @@ struct TMDBArtistResponse: Decodable {
         case cast
     }
 
-    let result: Artist
+    let artist: Artist
 
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
 
         let id = try values.decode(Movie.ID.self, forKey: .id)
-        let details = try TMDBArtistDetailsResponse(from: decoder).result
+        let details = try TMDBArtistDetailsResponse(from: decoder).artistDetails
 
         let creditsContainer = try values.nestedContainer(keyedBy: CreditsCodingKeys.self, forKey: .credits)
         let filmography = try creditsContainer.decodeIfPresent([TMDBSafeItemResponse<TMDBMovieDetailsResponse>].self, forKey: .cast)?
             .compactMap(\.value)
-            .map(\.result) ?? []
+            .map(\.movieDetails) ?? []
 
-        self.result = Artist(id: id, details: details, filmography: filmography)
+        self.artist = Artist(id: id, details: details, filmography: filmography)
     }
 }

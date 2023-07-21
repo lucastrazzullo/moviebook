@@ -16,12 +16,12 @@ struct TMDBMovieCollectionResponse: Codable {
         case list = "parts"
     }
 
-    let result: MovieCollection
+    let collection: MovieCollection
 
     // MARK: Object life cycle
 
-    init(result: MovieCollection) {
-        self.result = result
+    init(collection: MovieCollection) {
+        self.collection = collection
     }
 
     init(from decoder: Decoder) throws {
@@ -31,19 +31,19 @@ struct TMDBMovieCollectionResponse: Codable {
         let name = try container.decode(String.self, forKey: .name)
         let list = try container.decodeIfPresent([TMDBSafeItemResponse<TMDBMovieDetailsResponse>].self, forKey: .list)?
             .compactMap(\.value)
-            .map(\.result) ?? []
+            .map(\.movieDetails) ?? []
 
-        self.result = MovieCollection(id: id, name: name, list: list)
+        self.collection = MovieCollection(id: id, name: name, list: list)
     }
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
-        try container.encode(result.id, forKey: .id)
-        try container.encode(result.name, forKey: .name)
+        try container.encode(collection.id, forKey: .id)
+        try container.encode(collection.name, forKey: .name)
 
-        if let list = result.list {
-            try container.encode(list.map(TMDBMovieDetailsResponse.init(result:)), forKey: .list)
+        if let list = collection.list {
+            try container.encode(list.map(TMDBMovieDetailsResponse.init(movieDetails:)), forKey: .list)
         }
     }
 }

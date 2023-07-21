@@ -220,7 +220,7 @@ final class NotificationsTests: XCTestCase {
     private func addStubs(movies: [Movie]) throws {
         try movies.forEach { movie in
             let url = try TheMovieDbUrlFactory.movie(identifier: movie.id).makeUrl()
-            let movie = TMDBMovieResponse(result: movie)
+            let movie = TMDBMovieResponse(movie: movie)
             let stub = try MockStub(url: url, value: movie)
             mockServer.addStub(stub)
         }

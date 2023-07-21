@@ -28,12 +28,12 @@ struct TMDBMovieDetailsResponse: Codable {
         case backdropPath = "backdrop_path"
     }
 
-    let result: MovieDetails
+    let movieDetails: MovieDetails
 
     // MARK: Object life cycle
 
-    init(result: MovieDetails) {
-        self.result = result
+    init(movieDetails: MovieDetails) {
+        self.movieDetails = movieDetails
     }
 
     init(from decoder: Decoder) throws {
@@ -43,7 +43,7 @@ struct TMDBMovieDetailsResponse: Codable {
         let title = try values.decode(String.self, forKey: .title)
         let overview = try values.decodeIfPresent(String.self, forKey: .overview)
         let rating = Rating(value: try values.decode(Float.self, forKey: .rating), quota: 10.0)
-        let media = try TMDBMovieMediaResponse(from: decoder).result
+        let media = try TMDBMovieMediaResponse(from: decoder).media
 
         var localisedReleases: [String: Date] = [:]
         if let releaseList = try values.decodeIfPresent(TMDBResponseWithListResults<TMDBMovieLocalisedRelease>.self, forKey: .releaseDates)?.results {
@@ -74,7 +74,7 @@ struct TMDBMovieDetailsResponse: Codable {
             revenue = MoneyValue(value: revenueValue, currencyCode: currency)
         }
 
-        self.result = MovieDetails(id: id,
+        self.movieDetails = MovieDetails(id: id,
                                    title: title,
                                    release: releaseDate,
                                    localisedReleases: localisedReleases,
@@ -89,26 +89,26 @@ struct TMDBMovieDetailsResponse: Codable {
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
-        try container.encode(result.id, forKey: .id)
-        try container.encode(result.title, forKey: .title)
-        try container.encode(result.rating.value, forKey: .rating)
-        try container.encode(TheMovieDbFactory.dateFormatter.string(from: result.release), forKey: .releaseDate)
+        try container.encode(movieDetails.id, forKey: .id)
+        try container.encode(movieDetails.title, forKey: .title)
+        try container.encode(movieDetails.rating.value, forKey: .rating)
+        try container.encode(TheMovieDbFactory.dateFormatter.string(from: movieDetails.release), forKey: .releaseDate)
 
         var releaseDates: [TMDBMovieLocalisedRelease] = []
-        for releaseRegion in result.localisedReleases.keys {
-            if let releaseDate = result.localisedReleases[releaseRegion] {
+        for releaseRegion in movieDetails.localisedReleases.keys {
+            if let releaseDate = movieDetails.localisedReleases[releaseRegion] {
                 releaseDates.append(TMDBMovieLocalisedRelease(region: releaseRegion, theatricalReleaseDate: releaseDate))
             }
         }
-        try container.encode(TMDBResponseWithListResults(items: releaseDates), forKey: .releaseDates)
+        try container.encode(TMDBResponseWithListResults(results: releaseDates), forKey: .releaseDates)
 
-        try TMDBMovieMediaResponse(result: result.media).encode(to: encoder)
+        try TMDBMovieMediaResponse(media: movieDetails.media).encode(to: encoder)
 
-        try container.encodeIfPresent(result.overview, forKey: .overview)
-        try container.encodeIfPresent(result.budget?.value, forKey: .budget)
-        try container.encodeIfPresent(result.revenue?.value, forKey: .revenue)
+        try container.encodeIfPresent(movieDetails.overview, forKey: .overview)
+        try container.encodeIfPresent(movieDetails.budget?.value, forKey: .budget)
+        try container.encodeIfPresent(movieDetails.revenue?.value, forKey: .revenue)
 
-        if let runtime = result.runtime {
+        if let runtime = movieDetails.runtime {
             try container.encode(runtime/60, forKey: .runtime)
         }
     }

@@ -20,12 +20,12 @@ struct TMDBMovieKeywordResponse: Codable {
         case name = "name"
     }
 
-    let result: MovieKeyword
+    let keyword: MovieKeyword
 
     // MARK: Object life cycle
 
-    init(result: MovieKeyword) {
-        self.result = result
+    init(keyword: MovieKeyword) {
+        self.keyword = keyword
     }
 
     init(from decoder: Decoder) throws {
@@ -34,13 +34,13 @@ struct TMDBMovieKeywordResponse: Codable {
         let id = try container.decode(MovieKeyword.ID.self, forKey: .id)
         let name = try container.decode(String.self, forKey: .name)
 
-        self.result = MovieKeyword(id: id, name: name)
+        self.keyword = MovieKeyword(id: id, name: name)
     }
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
-        try container.encode(result.id, forKey: .id)
-        try container.encode(result.name, forKey: .name)
+        try container.encode(keyword.id, forKey: .id)
+        try container.encode(keyword.name, forKey: .name)
     }
 }

@@ -16,15 +16,15 @@ struct TMDBWatchProviderCollectionResponse: Decodable {
         case flatrate
     }
 
-    let result: WatchProviderCollection
+    let providers: WatchProviderCollection
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
-        let free = try container.decodeIfPresent([TMDBWatchProviderResponse].self, forKey: .flatrate)?.map(\.result) ?? []
-        let rent = try container.decodeIfPresent([TMDBWatchProviderResponse].self, forKey: .rent)?.map(\.result) ?? []
-        let buy = try container.decodeIfPresent([TMDBWatchProviderResponse].self, forKey: .buy)?.map(\.result) ?? []
+        let free = try container.decodeIfPresent([TMDBWatchProviderResponse].self, forKey: .flatrate)?.map(\.provider) ?? []
+        let rent = try container.decodeIfPresent([TMDBWatchProviderResponse].self, forKey: .rent)?.map(\.provider) ?? []
+        let buy = try container.decodeIfPresent([TMDBWatchProviderResponse].self, forKey: .buy)?.map(\.provider) ?? []
 
-        self.result = WatchProviderCollection(free: free, rent: rent, buy: buy)
+        self.providers = WatchProviderCollection(free: free, rent: rent, buy: buy)
     }
 }

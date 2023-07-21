@@ -10,11 +10,11 @@ import MoviebookCommon
 
 struct TMDBResponseWithDictionaryResults<ItemType: Decodable>: Decodable {
 
-    let results: [String: ItemType]
-
     enum CodingKeys: CodingKey {
         case results
     }
+
+    let results: [String: ItemType]
 
     init(from decoder: Decoder) throws {
         let container: KeyedDecodingContainer<CodingKeys> = try decoder.container(keyedBy: CodingKeys.self)

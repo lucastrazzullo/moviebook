@@ -10,17 +10,17 @@ import MoviebookCommon
 
 struct TMDBResponseWithListResults<ItemType: Codable>: Codable {
 
-    let results: [ItemType]
-    let nextPage: Int?
-
     enum CodingKeys: CodingKey {
         case results
         case page
         case total_pages
     }
 
-    init(items: [ItemType]) {
-        self.results = items
+    let results: [ItemType]
+    let nextPage: Int?
+
+    init(results: [ItemType]) {
+        self.results = results
         self.nextPage = nil
     }
 

@@ -19,13 +19,13 @@ public struct TheMovieDbArtistWebService: ArtistWebService {
     public func fetchArtist(with identifier: Artist.ID) async throws -> Artist {
         let url = try TheMovieDbUrlFactory.artist(identifier: identifier).makeUrl()
         let data = try await requestManager.request(from: url)
-        return try JSONDecoder().decode(TMDBArtistResponse.self, from: data).result
+        return try JSONDecoder().decode(TMDBArtistResponse.self, from: data).artist
     }
 
     public func fetchPopular(page: Int?) async throws -> (results: [ArtistDetails], nextPage: Int?) {
         let url = try TheMovieDbUrlFactory.popularArtists(page: page).makeUrl()
         let data = try await requestManager.request(from: url)
         let response = try JSONDecoder().decode(TMDBResponseWithListResults<TMDBArtistDetailsResponse>.self, from: data)
-        return (results: response.results.map(\.result), nextPage: response.nextPage)
+        return (results: response.results.map(\.artistDetails), nextPage: response.nextPage)
     }
 }
