@@ -49,16 +49,16 @@ struct MoviePreviewView: View {
                             .font(.headline)
 
                         Group {
-                            if details.release > .now {
+                            if details.localisedReleaseDate() > .now {
                                 HStack(spacing: 4) {
                                     Text("Coming on")
-                                    Text(details.release, format: .dateTime.year()).bold()
+                                    Text(details.localisedReleaseDate(), format: .dateTime.year()).bold()
                                 }
                                 .padding(4)
                                 .background(.yellow, in: RoundedRectangle(cornerRadius: 6))
                                 .foregroundColor(.black)
                             } else {
-                                Text(details.release, format: .dateTime.year())
+                                Text(details.localisedReleaseDate(), format: .dateTime.year())
                             }
                         }
                         .font(.caption)
@@ -74,7 +74,7 @@ struct MoviePreviewView: View {
 
             IconWatchlistButton(
                 watchlistItemIdentifier: .movie(id: details.id),
-                watchlistItemReleaseDate: details.release,
+                watchlistItemReleaseDate: details.localisedReleaseDate(),
                 onItemSelected: onItemSelected
             )
         }

@@ -106,12 +106,12 @@ final class Notifications {
 
         if let scheduledNotification = pendingNotifications.first(where: { $0.identifier == identifier }) {
             if let trigger = scheduledNotification.trigger as? UNCalendarNotificationTrigger,
-               let triggerDate = trigger.nextTriggerDate(), triggerDate != movie.details.release {
+               let triggerDate = trigger.nextTriggerDate(), triggerDate != movie.details.localisedReleaseDate() {
                 await remove(notificationWith: identifier)
             }
         }
 
-        if movie.details.release > Date.now {
+        if movie.details.localisedReleaseDate() > Date.now {
             try await schedule(notificationWith: identifier, for: movie)
         }
     }
@@ -124,7 +124,7 @@ final class Notifications {
         content.subtitle = "Is released!"
         content.categoryIdentifier = Deeplink.movie(identifier: movie.id).rawValue.absoluteString
 
-        let dateComponents = Calendar.current.dateComponents(Set(arrayLiteral: Calendar.Component.year, Calendar.Component.month, Calendar.Component.day), from: movie.details.release)
+        let dateComponents = Calendar.current.dateComponents(Set(arrayLiteral: Calendar.Component.year, Calendar.Component.month, Calendar.Component.day), from: movie.details.localisedReleaseDate())
         let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
         let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
 

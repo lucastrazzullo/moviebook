@@ -291,7 +291,7 @@ import MoviebookCommon
     private func releaseDate(for item: WatchlistViewModel.Item) -> Date {
         switch item {
         case .movie(let movie, _):
-            return movie.details.release
+            return movie.details.localisedReleaseDate()
         }
     }
 
