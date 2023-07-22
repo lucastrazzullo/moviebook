@@ -1,5 +1,5 @@
 //
-//  MockRequestManager.swift
+//  MockRequestLoader.swift
 //  Moviebook
 //
 //  Created by Luca Strazzullo on 02/09/2022.
@@ -8,7 +8,7 @@
 import Foundation
 import MoviebookCommon
 
-public final class MockRequestManager: RequestManager {
+public final class MockRequestLoader: RequestLoader {
 
     private let server: MockServer
 

@@ -66,7 +66,7 @@ struct ExploreGenresPicker_Previews: PreviewProvider {
     static var previews: some View {
         MoviesGenresPicker(viewModel: viewModel)
             .onAppear {
-                viewModel.start(requestManager: MockRequestManager.shared)
+                viewModel.start(requestLoader: MockRequestLoader.shared)
             }
     }
 }

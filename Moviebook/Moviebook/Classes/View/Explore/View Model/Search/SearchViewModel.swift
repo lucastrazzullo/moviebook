@@ -40,14 +40,14 @@ import MoviebookCommon
         )
     }
 
-    func start(requestManager: RequestManager) {
+    func start(requestLoader: RequestLoader) {
         Publishers.CombineLatest($searchKeyword, $searchScope)
             .debounce(for: .seconds(1), scheduler: DispatchQueue.main)
-            .sink(receiveValue: { [weak self, weak requestManager] keyword, scope in
-                guard let self, let requestManager else { return }
+            .sink(receiveValue: { [weak self, weak requestLoader] keyword, scope in
+                guard let self, let requestLoader else { return }
 
                 Task {
-                    await self.content.fetch(requestManager: requestManager) { dataProvider in
+                    await self.content.fetch(requestLoader: requestLoader) { dataProvider in
                         if let search = dataProvider as? SearchDataProvider {
                             search.searchKeyword = keyword
                             search.searchScope = scope

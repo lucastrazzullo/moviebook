@@ -10,7 +10,7 @@ import MoviebookCommon
 
 struct MovieView: View {
 
-    @Environment(\.requestManager) var requestManager
+    @Environment(\.requestLoader) var requestLoader
 
     @StateObject private var viewModel: MovieViewModel
 
@@ -73,7 +73,7 @@ struct MovieView: View {
             isErrorPresented = error != nil
         }
         .onAppear {
-            viewModel.start(requestManager: requestManager)
+            viewModel.start(requestLoader: requestLoader)
         }
     }
 
@@ -156,7 +156,7 @@ struct MovieView_Previews: PreviewProvider {
         NavigationView {
             MovieView(movieId: 353081, navigationPath: .constant(NavigationPath()))
                 .environmentObject(MockWatchlistProvider.shared.watchlist())
-                .environment(\.requestManager, MockRequestManager.shared)
+                .environment(\.requestLoader, MockRequestLoader.shared)
         }
     }
 }

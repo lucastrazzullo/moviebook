@@ -10,7 +10,7 @@ import MoviebookCommon
 
 struct WatchlistUndoView: View {
 
-    @Environment(\.requestManager) var requestManager
+    @Environment(\.requestLoader) var requestLoader
     @EnvironmentObject var watchlist: Watchlist
 
     @ObservedObject var undoViewModel: WatchlistUndoViewModel
@@ -47,7 +47,7 @@ struct WatchlistUndoView: View {
         }
         .frame(height: 52)
         .onAppear {
-            undoViewModel.start(watchlist: watchlist, requestManager: requestManager)
+            undoViewModel.start(watchlist: watchlist, requestLoader: requestLoader)
         }
     }
 }
@@ -65,7 +65,7 @@ struct WatchlistUndoView_Previews: PreviewProvider {
                     watchlist.remove(itemWith: watchlist.items.first!.id)
                 }
         }
-        .environment(\.requestManager, MockRequestManager.shared)
+        .environment(\.requestLoader, MockRequestLoader.shared)
         .environmentObject(watchlist)
     }
 }

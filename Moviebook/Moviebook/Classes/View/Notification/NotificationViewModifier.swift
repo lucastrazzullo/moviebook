@@ -10,7 +10,7 @@ import MoviebookCommon
 
 private struct NotificationViewModifier: ViewModifier {
 
-    @Environment(\.requestManager) var requestManager
+    @Environment(\.requestLoader) var requestLoader
 
     @StateObject private var notificationHandler: NotificationHandler
 

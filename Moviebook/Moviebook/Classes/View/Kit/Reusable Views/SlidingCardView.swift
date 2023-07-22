@@ -156,14 +156,14 @@ struct SlidingCardView_Previews: PreviewProvider {
         NavigationView {
             SlidingCardViewPreview()
                 .environmentObject(MockWatchlistProvider.shared.watchlist())
-                .environment(\.requestManager, MockRequestManager.shared)
+                .environment(\.requestLoader, MockRequestLoader.shared)
         }
     }
 }
 
 private struct SlidingCardViewPreview: View {
 
-    @Environment(\.requestManager) var requestManager
+    @Environment(\.requestLoader) var requestLoader
     @State var movie: Movie?
 
     var body: some View {
@@ -210,7 +210,7 @@ private struct SlidingCardViewPreview: View {
             }
         }
         .task {
-            let webService = WebService.movieWebService(requestManager: requestManager)
+            let webService = WebService.movieWebService(requestLoader: requestLoader)
             movie = try! await webService.fetchMovie(with: 954)
         }
     }

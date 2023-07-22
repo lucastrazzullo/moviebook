@@ -18,11 +18,11 @@ import MoviebookCommon
 
     private let storage: Storage = Storage()
 
-    func start(requestManager: RequestManager) async {
+    func start(requestLoader: RequestLoader) async {
         do {
-            let watchlist = try await storage.loadWatchlist(requestManager: requestManager)
+            let watchlist = try await storage.loadWatchlist(requestLoader: requestLoader)
             self.watchlist = watchlist
-            await self.notifications.schedule(for: watchlist, requestManager: requestManager)
+            await self.notifications.schedule(for: watchlist, requestLoader: requestLoader)
         } catch {
             self.error = error
         }
@@ -32,7 +32,7 @@ import MoviebookCommon
 @main
 struct MoviebookApp: App {
 
-    @Environment(\.requestManager) private var requestManager
+    @Environment(\.requestLoader) private var requestLoader
 
     @StateObject private var application = Moviebook()
     @State private var presentedItem: NavigationItem? = nil
@@ -51,7 +51,7 @@ struct MoviebookApp: App {
             .onReceiveNotification(from: application.notifications, perform: openDeeplink(with:))
             .onOpenURL(perform: openDeeplink(with:))
             .onContinueUserActivity(CSSearchableItemActionType, perform: openDeeplink(with:))
-            .task { await application.start(requestManager: requestManager) }
+            .task { await application.start(requestLoader: requestLoader) }
         }
     }
 
@@ -102,7 +102,7 @@ struct MoviebookApp: App {
 
     @ViewBuilder private func makeErrorView(error: Error) -> some View {
         RetriableErrorView {
-            Task { await application.start(requestManager: requestManager) }
+            Task { await application.start(requestLoader: requestLoader) }
         }
     }
 
@@ -113,8 +113,8 @@ struct MoviebookApp: App {
 
 // MARK: Environment
 
-private struct RequestManagerKey: EnvironmentKey {
-    static let defaultValue: RequestManager = DefaultRequestManager(logging: .disabled)
+private struct RequestLoaderKey: EnvironmentKey {
+    static let defaultValue: RequestLoader = DefaultRequestLoader()
 }
 
 private struct ImageLoaderKey: EnvironmentKey {
@@ -123,9 +123,9 @@ private struct ImageLoaderKey: EnvironmentKey {
 
 extension EnvironmentValues {
 
-    var requestManager: RequestManager {
-        get { self[RequestManagerKey.self] }
-        set { self[RequestManagerKey.self] = newValue }
+    var requestLoader: RequestLoader {
+        get { self[RequestLoaderKey.self] }
+        set { self[RequestLoaderKey.self] = newValue }
     }
 
     var imageLoader: ImageLoader {

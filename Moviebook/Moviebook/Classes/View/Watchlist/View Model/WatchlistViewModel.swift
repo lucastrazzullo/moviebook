@@ -110,8 +110,8 @@ import MoviebookCommon
 
     // MARK: Internal methods
 
-    func start(watchlist: Watchlist, requestManager: RequestManager) async {
-        await loadItems(watchlist.items, requestManager: requestManager)
+    func start(watchlist: Watchlist, requestLoader: RequestLoader) async {
+        await loadItems(watchlist.items, requestLoader: requestLoader)
 
         watchlist.itemWasRemoved
             .sink { [weak self] item in
@@ -124,11 +124,11 @@ import MoviebookCommon
 
         watchlist.itemsDidChange
             .removeDuplicates()
-            .sink { [weak self, weak requestManager] items in
-                guard let self, let requestManager else { return }
+            .sink { [weak self, weak requestLoader] items in
+                guard let self, let requestLoader else { return }
                 Task {
                     let arrangedItems = await self.arrangedItems(items)
-                    let items = try await self.loadedItems(arrangedItems, requestManager: requestManager)
+                    let items = try await self.loadedItems(arrangedItems, requestLoader: requestLoader)
                     self.updateAndPublishItems(items: items)
                 }
             }
@@ -148,13 +148,13 @@ import MoviebookCommon
 
     // MARK: Private methods - Data flow
 
-    private func loadItems(_ items: [WatchlistItem], requestManager: RequestManager) async {
+    private func loadItems(_ items: [WatchlistItem], requestLoader: RequestLoader) async {
         do {
             isLoading = true
             error = nil
 
             let arrangedItems = await arrangedItems(items)
-            let items = try await loadedItems(arrangedItems, requestManager: requestManager)
+            let items = try await loadedItems(arrangedItems, requestLoader: requestLoader)
             updateAndPublishItems(items: items)
 
             isLoading = false
@@ -163,7 +163,7 @@ import MoviebookCommon
             self.isLoading = false
             self.error = WebServiceError.failedToLoad(id: .init(), retry: { [weak self] in
                 Task {
-                    await self?.loadItems(items, requestManager: requestManager)
+                    await self?.loadItems(items, requestLoader: requestLoader)
                 }
             })
         }
@@ -208,7 +208,7 @@ import MoviebookCommon
         return result
     }
 
-    private func loadedItems(_ items: [Section: [WatchlistItem]], requestManager: RequestManager) async throws -> [Section: [Item]] {
+    private func loadedItems(_ items: [Section: [WatchlistItem]], requestLoader: RequestLoader) async throws -> [Section: [Item]] {
         return try await withThrowingTaskGroup(of: Item.self) { group in
             var result = [Section: [Item]]()
 
@@ -226,7 +226,7 @@ import MoviebookCommon
                         } else {
                             switch item.id {
                             case .movie(let id):
-                                let webService = WebService.movieWebService(requestManager: requestManager)
+                                let webService = WebService.movieWebService(requestLoader: requestLoader)
                                 let movie = try await webService.fetchMovie(with: id)
                                 return Item.movie(movie: movie, watchlistItem: item)
                             }

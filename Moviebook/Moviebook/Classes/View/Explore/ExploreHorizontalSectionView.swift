@@ -208,7 +208,7 @@ struct ExploreHorizontalSectionView_Previews: PreviewProvider {
         NavigationView {
             ExploreHorizontalSectionViewPreview()
         }
-        .environment(\.requestManager, MockRequestManager.shared)
+        .environment(\.requestLoader, MockRequestLoader.shared)
         .environmentObject(MockWatchlistProvider.shared.watchlist())
     }
 }
@@ -216,22 +216,22 @@ struct ExploreHorizontalSectionView_Previews: PreviewProvider {
 private struct ExploreHorizontalSectionViewPreview: View {
 
     struct MovieDataProvider: ExploreContentDataProvider {
-        func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
-            let response = try await WebService.movieWebService(requestManager: requestManager)
+        func fetch(requestLoader: RequestLoader, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
+            let response = try await WebService.movieWebService(requestLoader: requestLoader)
                 .fetchMovies(discoverSection: .popular, genres: [], page: page)
             return (results: .movies(response.results), nextPage: response.nextPage)
         }
     }
 
     struct ArtistDataProvider: ExploreContentDataProvider {
-        func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
-            let response = try await WebService.artistWebService(requestManager: requestManager)
+        func fetch(requestLoader: RequestLoader, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
+            let response = try await WebService.artistWebService(requestLoader: requestLoader)
                 .fetchPopular(page: page)
             return (results: .artists(response.results), nextPage: response.nextPage)
         }
     }
 
-    @Environment(\.requestManager) var requestManager
+    @Environment(\.requestLoader) var requestLoader
     @StateObject var moviesViewModel: ExploreContentViewModel
     @StateObject var artistsViewModel: ExploreContentViewModel
 
@@ -270,8 +270,8 @@ private struct ExploreHorizontalSectionViewPreview: View {
             }
         }
         .task {
-            await moviesViewModel.fetch(requestManager: requestManager) { _ in }
-            await artistsViewModel.fetch(requestManager: requestManager) { _ in }
+            await moviesViewModel.fetch(requestLoader: requestLoader) { _ in }
+            await artistsViewModel.fetch(requestLoader: requestLoader) { _ in }
         }
     }
 

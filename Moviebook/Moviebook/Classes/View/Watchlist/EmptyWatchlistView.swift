@@ -14,8 +14,8 @@ struct EmptyWatchlistView: View {
 
         @Published var results: [WatchlistViewModel.Section: [MovieDetails]] = [:]
 
-        func start(requestManager: RequestManager) async throws {
-            let webService = WebService.movieWebService(requestManager: requestManager)
+        func start(requestLoader: RequestLoader) async throws {
+            let webService = WebService.movieWebService(requestLoader: requestLoader)
             self.results = try await withThrowingTaskGroup(of: (section: WatchlistViewModel.Section, results: [MovieDetails]).self) { group in
                 var results: [WatchlistViewModel.Section: [MovieDetails]] = [:]
 
@@ -39,7 +39,7 @@ struct EmptyWatchlistView: View {
         }
     }
 
-    @Environment(\.requestManager) var requestManager
+    @Environment(\.requestLoader) var requestLoader
 
     @StateObject private var viewModel: ViewModel = ViewModel()
 
@@ -87,7 +87,7 @@ struct EmptyWatchlistView: View {
         .padding()
         .padding(.vertical)
         .task {
-            try? await viewModel.start(requestManager: requestManager)
+            try? await viewModel.start(requestLoader: requestLoader)
         }
     }
 }
@@ -132,13 +132,13 @@ import MoviebookTestSupport
 struct EmptyWatchlistView_Previews: PreviewProvider {
     static var previews: some View {
         EmptyWatchlistView(section: .toWatch)
-            .environment(\.requestManager, MockRequestManager.shared)
+            .environment(\.requestLoader, MockRequestLoader.shared)
             .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .empty))
             .listRowSeparator(.hidden)
             .listSectionSeparator(.hidden)
 
         EmptyWatchlistView(section: .watched)
-            .environment(\.requestManager, MockRequestManager.shared)
+            .environment(\.requestLoader, MockRequestLoader.shared)
             .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .empty))
             .listRowSeparator(.hidden)
             .listSectionSeparator(.hidden)

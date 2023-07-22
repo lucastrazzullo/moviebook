@@ -33,11 +33,11 @@ final class DiscoverSection {
 
 extension DiscoverSection: ExploreContentDataProvider {
 
-    func fetch(requestManager: RequestManager, page: Int?) async throws -> ExploreContentDataProvider.Response {
+    func fetch(requestLoader: RequestLoader, page: Int?) async throws -> ExploreContentDataProvider.Response {
         var results: ExploreContentDataProvider.Response = (results: .movies([]), nextPage: page)
         repeat {
             let response = try await WebService
-                .movieWebService(requestManager: requestManager)
+                .movieWebService(requestLoader: requestLoader)
                 .fetchMovies(discoverSection: discoverSection, genres: genresFilter, page: results.nextPage)
 
             let movieIdsSet = Set(watchedMoviesFilter)

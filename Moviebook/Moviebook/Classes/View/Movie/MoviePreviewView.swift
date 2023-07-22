@@ -117,14 +117,14 @@ struct MoviePreviewView_Previews: PreviewProvider {
                 MoviePreviewViewPreview(movieId: 616037, style: .backdrop)
             }
             .environmentObject(MockWatchlistProvider.shared.watchlist())
-            .environment(\.requestManager, MockRequestManager.shared)
+            .environment(\.requestLoader, MockRequestLoader.shared)
         }
     }
 }
 
 private struct MoviePreviewViewPreview: View {
 
-    @Environment(\.requestManager) var requestManager
+    @Environment(\.requestLoader) var requestLoader
     @State var movie: Movie?
 
     let movieId: Movie.ID
@@ -139,7 +139,7 @@ private struct MoviePreviewViewPreview: View {
             }
         }
         .task {
-            let webService = WebService.movieWebService(requestManager: requestManager)
+            let webService = WebService.movieWebService(requestLoader: requestLoader)
             movie = try! await webService.fetchMovie(with: movieId)
         }
     }

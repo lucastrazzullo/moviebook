@@ -68,14 +68,14 @@ struct MovieShelfPreviewView_Previews: PreviewProvider {
         ScrollView {
             MovieShelfPreviewViewPreview()
         }
-        .environment(\.requestManager, MockRequestManager.shared)
+        .environment(\.requestLoader, MockRequestLoader.shared)
         .environmentObject(MockWatchlistProvider.shared.watchlist())
     }
 }
 
 private struct MovieShelfPreviewViewPreview: View {
 
-    @Environment(\.requestManager) var requestManager
+    @Environment(\.requestLoader) var requestLoader
     @State var movie: Movie?
 
     var body: some View {
@@ -90,7 +90,7 @@ private struct MovieShelfPreviewViewPreview: View {
             }
         }
         .task {
-            let webService = WebService.movieWebService(requestManager: requestManager)
+            let webService = WebService.movieWebService(requestLoader: requestLoader)
             movie = try! await webService.fetchMovie(with: 954)
         }
     }

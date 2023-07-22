@@ -62,7 +62,7 @@ struct ExploreHorizontalGenreSection_Previews: PreviewProvider {
             ExploreHorizontalMovieGenreSectionView(viewModel: viewModel)
         }
         .onAppear {
-            viewModel.start(requestManager: MockRequestManager.shared)
+            viewModel.start(requestLoader: MockRequestLoader.shared)
         }
     }
 }

@@ -11,7 +11,7 @@ import MoviebookCommon
 struct ExploreView: View {
 
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.requestManager) var requestManager
+    @Environment(\.requestLoader) var requestLoader
     @EnvironmentObject var watchlist: Watchlist
 
     @StateObject private var searchViewModel: SearchViewModel
@@ -91,9 +91,9 @@ struct ExploreView: View {
                 .onAppear {
                     if !started {
                         started = true
-                        movieGenresViewModel.start(requestManager: requestManager)
-                        searchViewModel.start(requestManager: requestManager)
-                        discoverViewModel.start(selectedGenres: movieGenresViewModel.$selectedGenres, watchlist: watchlist, requestManager: requestManager)
+                        movieGenresViewModel.start(requestLoader: requestLoader)
+                        searchViewModel.start(requestLoader: requestLoader)
+                        discoverViewModel.start(selectedGenres: movieGenresViewModel.$selectedGenres, watchlist: watchlist, requestLoader: requestLoader)
                     }
                 }
             }
@@ -113,7 +113,7 @@ import MoviebookTestSupport
 struct ExploreView_Previews: PreviewProvider {
     static var previews: some View {
         ExploreView()
-            .environment(\.requestManager, MockRequestManager.shared)
+            .environment(\.requestLoader, MockRequestLoader.shared)
             .environmentObject(MockWatchlistProvider.shared.watchlist())
     }
 }

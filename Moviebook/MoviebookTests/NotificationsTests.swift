@@ -16,7 +16,7 @@ import TheMovieDb
 final class NotificationsTests: XCTestCase {
 
     private var mockServer: StubMockServer!
-    private var requestManager: RequestManager!
+    private var requestLoader: RequestLoader!
     private var notificationCenter: MockUserNotificationCenter!
     private var notifications: Notifications!
     private var subscriptions: Set<AnyCancellable>!
@@ -24,7 +24,7 @@ final class NotificationsTests: XCTestCase {
     override func setUpWithError() throws {
         try super.setUpWithError()
         mockServer = StubMockServer()
-        requestManager = MockRequestManager(server: mockServer)
+        requestLoader = MockRequestLoader(server: mockServer)
         notificationCenter = MockUserNotificationCenter()
         notificationCenter.delegate = self
         notifications = Notifications(notificationCenter: notificationCenter)
@@ -36,7 +36,7 @@ final class NotificationsTests: XCTestCase {
         subscriptions = nil
         notifications = nil
         notificationCenter = nil
-        requestManager = nil
+        requestLoader = nil
         try super.tearDownWithError()
     }
 
@@ -64,7 +64,7 @@ final class NotificationsTests: XCTestCase {
 
         // Act
 
-        await notifications.schedule(for: watchlist, requestManager: requestManager)
+        await notifications.schedule(for: watchlist, requestLoader: requestLoader)
 
 
         // Assert
@@ -97,7 +97,7 @@ final class NotificationsTests: XCTestCase {
 
         // Act
 
-        await notifications.schedule(for: watchlist, requestManager: requestManager)
+        await notifications.schedule(for: watchlist, requestLoader: requestLoader)
 
 
         // Assert
@@ -119,7 +119,7 @@ final class NotificationsTests: XCTestCase {
 
         // Act
 
-        await notifications.schedule(for: watchlist, requestManager: requestManager)
+        await notifications.schedule(for: watchlist, requestLoader: requestLoader)
 
         // Assert
 
@@ -137,7 +137,7 @@ final class NotificationsTests: XCTestCase {
 
         // Act again
 
-        await notifications.schedule(for: watchlist, requestManager: requestManager)
+        await notifications.schedule(for: watchlist, requestLoader: requestLoader)
 
         // Assert again
 
@@ -159,7 +159,7 @@ final class NotificationsTests: XCTestCase {
             .sink { _ in expectation.fulfill() }
             .store(in: &subscriptions)
 
-        await notifications.schedule(for: watchlist, requestManager: requestManager)
+        await notifications.schedule(for: watchlist, requestLoader: requestLoader)
 
         let movie1 = makeMovie(id: 0, releaseDate: .now.addingTimeInterval(100000))
         let movie2 = makeMovie(id: 1, releaseDate: .now.addingTimeInterval(100000))
@@ -200,7 +200,7 @@ final class NotificationsTests: XCTestCase {
             .sink { _ in expectation.fulfill() }
             .store(in: &subscriptions)
 
-        await notifications.schedule(for: watchlist, requestManager: requestManager)
+        await notifications.schedule(for: watchlist, requestLoader: requestLoader)
 
         // Act
 

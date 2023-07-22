@@ -11,7 +11,7 @@ import MoviebookCommon
 
 struct WatchlistView: View {
 
-    @Environment(\.requestManager) var requestManager
+    @Environment(\.requestLoader) var requestLoader
     @EnvironmentObject var watchlist: Watchlist
 
     @StateObject private var sectionViewModel = WatchlistViewModel()
@@ -55,7 +55,7 @@ struct WatchlistView: View {
             .animation(.easeOut(duration: 0.12), value: shouldShowBottomBar)
         }
         .task {
-            await sectionViewModel.start(watchlist: watchlist, requestManager: requestManager)
+            await sectionViewModel.start(watchlist: watchlist, requestLoader: requestLoader)
         }
         .animation(.default, value: sectionViewModel.items)
     }
@@ -131,7 +131,7 @@ private struct ToolbarView: View {
 
 private struct ContentView: View {
 
-    @Environment(\.requestManager) var requestManager
+    @Environment(\.requestLoader) var requestLoader
     @EnvironmentObject var watchlist: Watchlist
 
     @ObservedObject var viewModel: WatchlistViewModel
@@ -233,19 +233,19 @@ struct WatchlistView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
             WatchlistView(presentedItem: .constant(nil))
-                .environment(\.requestManager, MockRequestManager.shared)
+                .environment(\.requestLoader, MockRequestLoader.shared)
                 .environmentObject(MockWatchlistProvider.shared.watchlist())
         }
 
         NavigationView {
             WatchlistView(presentedItem: .constant(nil))
-                .environment(\.requestManager, MockRequestManager.shared)
+                .environment(\.requestLoader, MockRequestLoader.shared)
                 .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .toWatchItems(withSuggestion: true)))
         }
 
         NavigationView {
             WatchlistView(presentedItem: .constant(nil))
-                .environment(\.requestManager, MockRequestManager.shared)
+                .environment(\.requestLoader, MockRequestLoader.shared)
                 .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .empty))
         }
     }
