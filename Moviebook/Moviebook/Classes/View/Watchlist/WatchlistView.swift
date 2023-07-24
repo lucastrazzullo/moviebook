@@ -201,18 +201,20 @@ private struct WatchlistListView: View {
     var body: some View {
         GeometryReader { geometry in
             ObservableScrollView(scrollContent: $scrollContent, showsIndicators: false) { _ in
-                LazyVGrid(columns: [GridItem(spacing: 4), GridItem()], spacing: 4) {
-                    ForEach(viewModel.items) { item in
-                        switch item {
-                        case .movie(let movie, _):
-                            MovieShelfPreviewView(
-                                movieDetails: movie.details,
-                                onItemSelected: onItemSelected
-                            )
-                        }
+                Group {
+                    switch viewModel.section {
+                    case .toWatch:
+                        WishlistListView(
+                            items: viewModel.items,
+                            onItemSelected: onItemSelected
+                        )
+                    case .watched:
+                        WatchedListView(
+                            items: viewModel.items,
+                            onItemSelected: onItemSelected
+                        )
                     }
                 }
-                .padding(.horizontal, 4)
                 .onChange(of: scrollContent) { info in
                     updateShouldShowBars(geometry: geometry)
                 }
