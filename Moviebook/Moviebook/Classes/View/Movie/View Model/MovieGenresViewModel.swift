@@ -19,10 +19,10 @@ import MoviebookCommon
         Task {
             do {
                 let webService = WebService.movieWebService(requestLoader: requestLoader)
-                self.genres = try await webService.fetchMovieGenres()
-                self.error = nil
-            } catch {
-                self.error = .failedToLoad(id: UUID.init(), retry: { [weak self, weak requestLoader] in
+                genres = try await webService.fetchMovieGenres()
+                error = nil
+            } catch let requestError {
+                error = .failedToLoad(error: requestError, retry: { [weak self, weak requestLoader] in
                     guard let self, let requestLoader else { return }
                     self.start(requestLoader: requestLoader)
                 })

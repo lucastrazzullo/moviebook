@@ -41,7 +41,7 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
 
                 Group {
                     if let error = viewModel.error {
-                        RetriableErrorView(retry: error.retry).padding()
+                        RetriableErrorView(error: error).padding()
                     } else {
                         ScrollView(.horizontal, showsIndicators: false) {
                             Group {

@@ -8,12 +8,16 @@
 import Foundation
 
 public enum WebServiceError: Error, Equatable, Identifiable {
-    case failedToLoad(id: UUID, retry: () -> Void)
+    case failedToLoad(error: Error, retry: () -> Void)
 
-    public var id: UUID {
+    public var id: String {
+        return underlyingError.localizedDescription
+    }
+
+    public var underlyingError: Error {
         switch self {
-        case .failedToLoad(let id, _):
-            return id
+        case .failedToLoad(let error, _):
+            return error
         }
     }
 
@@ -26,8 +30,8 @@ public enum WebServiceError: Error, Equatable, Identifiable {
 
     public static func == (lhs: Self, rhs: Self) -> Bool {
         switch (lhs, rhs) {
-        case (.failedToLoad(let lhsId, _), .failedToLoad(let rhsId, _)):
-            return lhsId == rhsId
+        case (.failedToLoad(let lhsError, _), .failedToLoad(let rhsError, _)):
+            return lhsError.localizedDescription == rhsError.localizedDescription
         }
     }
 }

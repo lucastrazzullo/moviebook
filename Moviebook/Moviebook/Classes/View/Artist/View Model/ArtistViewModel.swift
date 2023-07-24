@@ -39,8 +39,8 @@ import MoviebookCommon
         Task {
             do {
                 setArtist(try await WebService.artistWebService(requestLoader: requestLoader).fetchArtist(with: artistId))
-            } catch {
-                self.error = .failedToLoad(id: .init(), retry: { [weak self, weak requestLoader] in
+            } catch let requestError {
+                error = .failedToLoad(error: requestError, retry: { [weak self, weak requestLoader] in
                     if let requestLoader {
                         self?.loadArtist(requestLoader: requestLoader)
                     }

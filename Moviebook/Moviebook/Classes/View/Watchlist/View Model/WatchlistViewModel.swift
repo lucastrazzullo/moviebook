@@ -46,9 +46,9 @@ import MoviebookCommon
             isLoading = false
             setupBindings(watchlist: watchlist, requestLoader: requestLoader)
 
-        } catch _ {
+        } catch let requestError {
             isLoading = false
-            error = WebServiceError.failedToLoad(id: .init(), retry: { [weak self] in
+            error = WebServiceError.failedToLoad(error: requestError, retry: { [weak self] in
                 Task {
                     await self?.start(watchlist: watchlist, requestLoader: requestLoader)
                 }

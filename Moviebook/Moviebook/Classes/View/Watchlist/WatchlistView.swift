@@ -149,7 +149,7 @@ private struct ContentView: View {
             if viewModel.isLoading, viewModel.items.isEmpty {
                 LoaderView()
             } else if let error = viewModel.error {
-                RetriableErrorView(retry: error.retry)
+                RetriableErrorView(error: error)
                     .frame(maxHeight: .infinity)
                     .padding()
             } else if viewModel.items.isEmpty {

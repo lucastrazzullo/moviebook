@@ -95,9 +95,9 @@ protocol ExploreContentDataProvider {
 
             isLoading = false
 
-        } catch {
-            self.isLoading = false
-            self.error = .failedToLoad(id: .init()) { [weak self, weak requestLoader] in
+        } catch let requestError {
+            isLoading = false
+            error = .failedToLoad(error: requestError) { [weak self, weak requestLoader] in
                 if let requestLoader {
                     Task {
                         await self?.fetch(requestLoader: requestLoader, page: page)

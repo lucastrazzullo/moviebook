@@ -17,7 +17,7 @@ struct ExploreVerticalSectionView: View {
     var body: some View {
         VStack {
             if let error = viewModel.error {
-                RetriableErrorView(retry: error.retry)
+                RetriableErrorView(error: error)
             }
 
             switch viewModel.items {

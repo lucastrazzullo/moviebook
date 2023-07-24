@@ -36,8 +36,8 @@ import MoviebookCommon
                 let movie = try await WebService.movieWebService(requestLoader: requestLoader).fetchMovie(with: movieId)
                 guard let task, !task.isCancelled else { return }
                 setMovie(movie)
-            } catch {
-                self.error = .failedToLoad(id: .init(), retry: { [weak self, weak requestLoader] in
+            } catch let requestError {
+                error = .failedToLoad(error: requestError, retry: { [weak self, weak requestLoader] in
                     if let requestLoader {
                         self?.start(requestLoader: requestLoader)
                     }

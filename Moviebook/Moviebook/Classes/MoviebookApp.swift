@@ -101,9 +101,9 @@ struct MoviebookApp: App {
     }
 
     @ViewBuilder private func makeErrorView(error: Error) -> some View {
-        RetriableErrorView {
+        RetriableErrorView(error: .failedToLoad(error: error) {
             Task { await application.start(requestLoader: requestLoader) }
-        }
+        })
     }
 
     @ViewBuilder private func makeLoaderView() -> some View {
