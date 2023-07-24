@@ -54,6 +54,10 @@
 		812E83C2294CC0F900D40E21 /* NewToWatchSuggestionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 812E83C1294CC0F900D40E21 /* NewToWatchSuggestionView.swift */; };
 		812E83C4294DCEC600D40E21 /* NewWatchedRatingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 812E83C3294DCEC600D40E21 /* NewWatchedRatingView.swift */; };
 		813027742A6C490D00E4BCB9 /* DefaultRequestLoaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 813027732A6C490D00E4BCB9 /* DefaultRequestLoaderTests.swift */; };
+		813027782A6EACFF00E4BCB9 /* WatchlistViewSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 813027772A6EACFF00E4BCB9 /* WatchlistViewSection.swift */; };
+		8130277A2A6EAD3700E4BCB9 /* WatchlistViewSorting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 813027792A6EAD3700E4BCB9 /* WatchlistViewSorting.swift */; };
+		8130277C2A6EAD5B00E4BCB9 /* WatchlistViewSectionContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8130277B2A6EAD5B00E4BCB9 /* WatchlistViewSectionContent.swift */; };
+		8130277E2A6EAD8400E4BCB9 /* WatchlistViewItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8130277D2A6EAD8400E4BCB9 /* WatchlistViewItem.swift */; };
 		813C09A72A5816B90044E16E /* WatchlistUndoViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 813C09A62A5816B90044E16E /* WatchlistUndoViewModel.swift */; };
 		814A13E728F0488100477126 /* WatchlistButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 814A13E628F0488100477126 /* WatchlistButton.swift */; };
 		814BC2D62A5DEC6300F60606 /* MovieKeyword.swift in Sources */ = {isa = PBXBuildFile; fileRef = 814BC2D52A5DEC6300F60606 /* MovieKeyword.swift */; };
@@ -284,6 +288,10 @@
 		812E83C1294CC0F900D40E21 /* NewToWatchSuggestionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewToWatchSuggestionView.swift; sourceTree = "<group>"; };
 		812E83C3294DCEC600D40E21 /* NewWatchedRatingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewWatchedRatingView.swift; sourceTree = "<group>"; };
 		813027732A6C490D00E4BCB9 /* DefaultRequestLoaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultRequestLoaderTests.swift; sourceTree = "<group>"; };
+		813027772A6EACFF00E4BCB9 /* WatchlistViewSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistViewSection.swift; sourceTree = "<group>"; };
+		813027792A6EAD3700E4BCB9 /* WatchlistViewSorting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistViewSorting.swift; sourceTree = "<group>"; };
+		8130277B2A6EAD5B00E4BCB9 /* WatchlistViewSectionContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistViewSectionContent.swift; sourceTree = "<group>"; };
+		8130277D2A6EAD8400E4BCB9 /* WatchlistViewItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistViewItem.swift; sourceTree = "<group>"; };
 		813C09A62A5816B90044E16E /* WatchlistUndoViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistUndoViewModel.swift; sourceTree = "<group>"; };
 		814A13E628F0488100477126 /* WatchlistButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistButton.swift; sourceTree = "<group>"; };
 		814BC2D52A5DEC6300F60606 /* MovieKeyword.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieKeyword.swift; sourceTree = "<group>"; };
@@ -838,6 +846,10 @@
 			isa = PBXGroup;
 			children = (
 				817C42A629FC190C00FB3FD6 /* WatchlistViewModel.swift */,
+				8130277D2A6EAD8400E4BCB9 /* WatchlistViewItem.swift */,
+				8130277B2A6EAD5B00E4BCB9 /* WatchlistViewSectionContent.swift */,
+				813027772A6EACFF00E4BCB9 /* WatchlistViewSection.swift */,
+				813027792A6EAD3700E4BCB9 /* WatchlistViewSorting.swift */,
 				813C09A62A5816B90044E16E /* WatchlistUndoViewModel.swift */,
 			);
 			path = "View Model";
@@ -1373,6 +1385,8 @@
 				81D5122A2A516F1C009F80E7 /* OvalView.swift in Sources */,
 				81A395D529F40CD200800F7E /* LoaderView.swift in Sources */,
 				812489C229F15307004A6BE6 /* SearchViewModel.swift in Sources */,
+				8130277E2A6EAD8400E4BCB9 /* WatchlistViewItem.swift in Sources */,
+				8130277A2A6EAD3700E4BCB9 /* WatchlistViewSorting.swift in Sources */,
 				81A395D929F4104B00800F7E /* SlidingCardView.swift in Sources */,
 				81167A592A3F01C200B83369 /* OvalTextField.swift in Sources */,
 				8194DF6329FE754800A3FC2D /* ArtistViewModel.swift in Sources */,
@@ -1384,6 +1398,7 @@
 				81A395DF29F528FA00800F7E /* SpecsView.swift in Sources */,
 				8192130A2A58652F0075AC17 /* ExploreHorizontalMovieGenreSectionView.swift in Sources */,
 				81D60DF62A3350B40045AA0B /* Storage.swift in Sources */,
+				813027782A6EACFF00E4BCB9 /* WatchlistViewSection.swift in Sources */,
 				814BC2DA2A5E0B5600F60606 /* MovieShelfPreviewView.swift in Sources */,
 				81D254742A066836006EBC1F /* RetriableErrorView.swift in Sources */,
 				81D60DF52A3350B40045AA0B /* WatchlistStorage.swift in Sources */,
@@ -1406,6 +1421,7 @@
 				81A395D329F40B8700800F7E /* ArtistView.swift in Sources */,
 				81167A5D2A3F02D500B83369 /* OvalButton.swift in Sources */,
 				813C09A72A5816B90044E16E /* WatchlistUndoViewModel.swift in Sources */,
+				8130277C2A6EAD5B00E4BCB9 /* WatchlistViewSectionContent.swift in Sources */,
 				81A889AF2A5AA57A00E4F69A /* StickyHeader.swift in Sources */,
 				8112AF0B2916DF5D0041475D /* MovieWatchlistStateView.swift in Sources */,
 				81D60DF42A3350B40045AA0B /* LegacyWatchlistStorage.swift in Sources */,

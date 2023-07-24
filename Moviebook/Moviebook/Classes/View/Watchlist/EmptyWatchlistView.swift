@@ -12,14 +12,14 @@ struct EmptyWatchlistView: View {
 
     @MainActor private final class ViewModel: ObservableObject {
 
-        @Published var results: [WatchlistViewModel.Section: [MovieDetails]] = [:]
+        @Published var results: [WatchlistViewSection: [MovieDetails]] = [:]
 
         func start(requestLoader: RequestLoader) async throws {
             let webService = WebService.movieWebService(requestLoader: requestLoader)
-            self.results = try await withThrowingTaskGroup(of: (section: WatchlistViewModel.Section, results: [MovieDetails]).self) { group in
-                var results: [WatchlistViewModel.Section: [MovieDetails]] = [:]
+            self.results = try await withThrowingTaskGroup(of: (section: WatchlistViewSection, results: [MovieDetails]).self) { group in
+                var results: [WatchlistViewSection: [MovieDetails]] = [:]
 
-                for section in  WatchlistViewModel.Section.allCases {
+                for section in  WatchlistViewSection.allCases {
                     group.addTask {
                         switch section {
                         case .toWatch:
@@ -43,7 +43,7 @@ struct EmptyWatchlistView: View {
 
     @StateObject private var viewModel: ViewModel = ViewModel()
 
-    let section: WatchlistViewModel.Section
+    let section: WatchlistViewSection
 
     var body: some View {
         VStack(spacing: 24) {

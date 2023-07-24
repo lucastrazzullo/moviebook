@@ -14,7 +14,7 @@ struct WatchlistView: View {
     @Environment(\.requestLoader) var requestLoader
     @EnvironmentObject var watchlist: Watchlist
 
-    @StateObject private var sectionViewModel = WatchlistViewModel()
+    @StateObject private var contentViewModel: WatchlistViewModel = WatchlistViewModel()
     @StateObject private var undoViewModel: WatchlistUndoViewModel = WatchlistUndoViewModel()
 
     @State private var shouldShowTopBar: Bool = false
@@ -25,7 +25,7 @@ struct WatchlistView: View {
     var body: some View {
         ZStack {
             ContentView(
-                viewModel: sectionViewModel,
+                viewModel: contentViewModel,
                 shouldShowTopBar: $shouldShowTopBar,
                 shouldShowBottomBar: $shouldShowBottomBar,
                 onItemSelected: { item in
@@ -36,7 +36,10 @@ struct WatchlistView: View {
         .safeAreaInset(edge: .top) {
             TopbarView(
                 undoViewModel: undoViewModel,
-                sorting: $sectionViewModel.sorting
+                sorting: Binding(
+                    get: { contentViewModel.sorting },
+                    set: { sorting in contentViewModel.update(sorting: sorting) }
+                )
             )
             .padding()
             .background(.thickMaterial.opacity(shouldShowTopBar ? 1 : 0))
@@ -45,7 +48,7 @@ struct WatchlistView: View {
         }
         .safeAreaInset(edge: .bottom) {
             ToolbarView(
-                currentSection: $sectionViewModel.section,
+                currentSection: $contentViewModel.section,
                 onItemSelected: { item in
                     presentedItem = item
                 }
@@ -55,16 +58,16 @@ struct WatchlistView: View {
             .animation(.easeOut(duration: 0.12), value: shouldShowBottomBar)
         }
         .task {
-            await sectionViewModel.start(watchlist: watchlist, requestLoader: requestLoader)
+            await contentViewModel.start(watchlist: watchlist, requestLoader: requestLoader)
         }
-        .animation(.default, value: sectionViewModel.items)
+        .animation(.default, value: contentViewModel.items)
     }
 }
 
 private struct TopbarView: View {
 
     @ObservedObject var undoViewModel: WatchlistUndoViewModel
-    @Binding var sorting: WatchlistViewModel.Sorting
+    @Binding var sorting: WatchlistViewSorting
 
     var body: some View {
         ZStack {
@@ -73,7 +76,7 @@ private struct TopbarView: View {
 
             Menu {
                 Picker("Sorting", selection: $sorting) {
-                    ForEach(WatchlistViewModel.Sorting.allCases, id: \.self) { sorting in
+                    ForEach(WatchlistViewSorting.allCases, id: \.self) { sorting in
                         HStack {
                             Text(sorting.label)
                             Spacer()
@@ -101,14 +104,14 @@ private struct TopbarView: View {
 
 private struct ToolbarView: View {
 
-    @Binding var currentSection: WatchlistViewModel.Section
+    @Binding var currentSection: WatchlistViewSection
 
     let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         HStack {
             Picker("Section", selection: $currentSection) {
-                ForEach(WatchlistViewModel.Section.allCases, id: \.self) { section in
+                ForEach(WatchlistViewSection.allCases, id: \.self) { section in
                     Text(section.name)
                 }
             }
@@ -172,7 +175,7 @@ private struct WatchlistEmptyListView: View {
     @Binding var shouldShowTopBar: Bool
     @Binding var shouldShowBottomBar: Bool
 
-    let section: WatchlistViewModel.Section
+    let section: WatchlistViewSection
 
     var body: some View {
         EmptyWatchlistView(section: section)
