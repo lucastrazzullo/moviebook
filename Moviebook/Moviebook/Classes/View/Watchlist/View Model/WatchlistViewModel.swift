@@ -67,6 +67,7 @@ import MoviebookCommon
         watchlist.itemWasRemoved
             .sink { [weak self] item in
                 self?.content.forEach { $0.removeItem(item.id) }
+                self?.objectWillChange.send()
             }
             .store(in: &subscriptions)
 
@@ -76,6 +77,7 @@ import MoviebookCommon
                 guard let self, let requestLoader else { return }
                 Task {
                     try await self.updateItems(items, requestLoader: requestLoader)
+                    self.objectWillChange.send()
                 }
             }
             .store(in: &subscriptions)
