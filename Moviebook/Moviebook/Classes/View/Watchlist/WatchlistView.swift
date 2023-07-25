@@ -211,6 +211,7 @@ private struct WatchlistListView: View {
                     case .watched:
                         WatchedListView(
                             items: viewModel.items,
+                            sorting: viewModel.sorting,
                             onItemSelected: onItemSelected
                         )
                     }

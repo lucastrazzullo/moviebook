@@ -39,7 +39,7 @@ import MoviebookCommon
     }
 
     func removeItem(_ identifier: WatchlistItemIdentifier) {
-        self.items.removeAll(where: { $0.id == identifier })
+        self.items.removeAll(where: { $0.watchlistItem.id == identifier })
     }
 
     // MARK: Private methods - Loading
@@ -50,7 +50,7 @@ import MoviebookCommon
 
             for item in items {
                 group.addTask {
-                    if let existingItem = await self.items.first(where: { $0.id == item.id }) {
+                    if let existingItem = await self.items.first(where: { $0.watchlistItem == item }) {
                         return existingItem
                     } else {
                         return try await self.loadItem(item, requestLoader: requestLoader)
@@ -81,47 +81,14 @@ import MoviebookCommon
         return { lhs, rhs in
             switch sorting {
             case .lastAdded:
-                return self.addedDate(for: lhs) > self.addedDate(for: rhs)
+                return lhs.addedDate > rhs.addedDate
             case .rating:
-                return self.rating(for: lhs) > self.rating(for: rhs)
+                return lhs.rating > rhs.rating
             case .name:
-                return self.name(for: lhs) < self.name(for: rhs)
+                return lhs.name < rhs.name
             case .release:
-                return self.releaseDate(for: lhs) > self.releaseDate(for: rhs)
+                return lhs.releaseDate > rhs.releaseDate
             }
-        }
-    }
-
-    private func rating(for item: WatchlistViewItem) -> Float {
-        switch item {
-        case .movie(let movie, let watchlistItem):
-            switch watchlistItem.state {
-            case .toWatch:
-                return movie.details.rating.value
-            case .watched(let info):
-                return Float(info.rating ?? 0)
-            }
-        }
-    }
-
-    private func name(for item: WatchlistViewItem) -> String {
-        switch item {
-        case .movie(let movie, _):
-            return movie.details.title
-        }
-    }
-
-    private func releaseDate(for item: WatchlistViewItem) -> Date {
-        switch item {
-        case .movie(let movie, _):
-            return movie.details.localisedReleaseDate()
-        }
-    }
-
-    private func addedDate(for item: WatchlistViewItem) -> Date {
-        switch item {
-        case .movie(_, let watchlistItem):
-            return watchlistItem.date
         }
     }
 

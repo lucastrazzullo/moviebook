@@ -8,13 +8,47 @@
 import Foundation
 import MoviebookCommon
 
-enum WatchlistViewItem: Identifiable, Equatable {
+enum WatchlistViewItem: Identifiable, Equatable, Hashable {
     case movie(movie: Movie, watchlistItem: WatchlistItem)
 
-    var id: WatchlistItemIdentifier {
+    var id: String {
+        "\(watchlistItem.id).\(addedDate).\(name).\(releaseDate).\(rating)"
+    }
+
+    var addedDate: Date {
+        watchlistItem.date
+    }
+
+    var name: String {
+        switch self {
+        case .movie(let movie, _):
+            return movie.details.title
+        }
+    }
+
+    var releaseDate: Date {
+        switch self {
+        case .movie(let movie, _):
+            return movie.details.localisedReleaseDate()
+        }
+    }
+
+    var rating: Float {
+        switch self {
+        case .movie(let movie, let watchlistItem):
+            switch watchlistItem.state {
+            case .toWatch:
+                return movie.details.rating.value
+            case .watched(let info):
+                return Float(info.rating ?? 0)
+            }
+        }
+    }
+
+    var watchlistItem: WatchlistItem {
         switch self {
         case .movie(_, let watchlistItem):
-            return watchlistItem.id
+            return watchlistItem
         }
     }
 }

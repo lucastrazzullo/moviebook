@@ -851,11 +851,11 @@
 		8194DF5C29FE664F00A3FC2D /* View Model */ = {
 			isa = PBXGroup;
 			children = (
-				817C42A629FC190C00FB3FD6 /* WatchlistViewModel.swift */,
 				8130277D2A6EAD8400E4BCB9 /* WatchlistViewItem.swift */,
-				8130277B2A6EAD5B00E4BCB9 /* WatchlistViewSectionContent.swift */,
+				817C42A629FC190C00FB3FD6 /* WatchlistViewModel.swift */,
 				813027772A6EACFF00E4BCB9 /* WatchlistViewSection.swift */,
 				813027792A6EAD3700E4BCB9 /* WatchlistViewSorting.swift */,
+				8130277B2A6EAD5B00E4BCB9 /* WatchlistViewSectionContent.swift */,
 				813C09A62A5816B90044E16E /* WatchlistUndoViewModel.swift */,
 			);
 			path = "View Model";
