@@ -32,8 +32,8 @@ private struct NavigationDestination: View {
 
     var body: some View {
         switch item {
-        case .explore:
-            ExploreView()
+        case .explore(let selectedGenres):
+            ExploreView(selectedGenres: selectedGenres)
         case .movieWithIdentifier(let id):
             MovieView(movieId: id, navigationPath: $navigationPath).id(id)
         case .artistWithIdentifier(let id):

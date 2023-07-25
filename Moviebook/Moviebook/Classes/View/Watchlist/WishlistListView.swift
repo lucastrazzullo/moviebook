@@ -29,28 +29,50 @@ struct WishlistListView: View {
 }
 
 #if DEBUG
+import MoviebookCommon
 import MoviebookTestSupport
 
 struct WishlistListView_Previews: PreviewProvider {
     static let requestLoader = MockRequestLoader.shared
-    static let watchlist = MockWatchlistProvider.shared.watchlist()
-    static let viewModel = WatchlistViewModel()
+    static let watchlist = MockWatchlistProvider.shared.watchlist(configuration: .toWatchItems(withSuggestion: true))
     static var previews: some View {
         ScrollView {
-            WishlistListView(
-                items: viewModel.items,
-                onItemSelected: { _ in }
-            )
+            WishlistListViewPreviewView()
         }
+        .environment(\.requestLoader, requestLoader)
+        .environmentObject(watchlist)
+    }
+}
+
+@MainActor private final class ViewModel: ObservableObject {
+
+    @Published var items: [WatchlistViewItem] = []
+
+    func start(watchlist: Watchlist, requestLoader: RequestLoader) async {
+        let content = WatchlistViewSectionContent(section: .toWatch)
+        try? await content.updateItems(watchlist.items, requestLoader: requestLoader)
+        items = content.items
+    }
+}
+
+private struct WishlistListViewPreviewView: View {
+
+    @Environment(\.requestLoader) var requestLoader
+    @EnvironmentObject var watchlist: Watchlist
+
+    @StateObject var viewModel = ViewModel()
+
+    var body: some View {
+        WishlistListView(
+            items: viewModel.items,
+            onItemSelected: { _ in }
+        )
         .task {
-            viewModel.section = .watched
             await viewModel.start(
                 watchlist: watchlist,
                 requestLoader: requestLoader
             )
         }
-        .environment(\.requestLoader, requestLoader)
-        .environmentObject(watchlist)
     }
 }
 #endif

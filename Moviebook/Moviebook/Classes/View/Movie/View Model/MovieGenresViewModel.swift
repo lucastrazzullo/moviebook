@@ -15,6 +15,10 @@ import MoviebookCommon
     @Published private(set) var genres: [MovieGenre] = []
     @Published private(set) var error: WebServiceError?
 
+    init(selectedGenres: Set<MovieGenre>) {
+        self.selectedGenres = selectedGenres
+    }
+
     func start(requestLoader: RequestLoader) {
         Task {
             do {

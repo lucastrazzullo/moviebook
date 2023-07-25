@@ -61,7 +61,7 @@ import MoviebookTestSupport
 
 struct ExploreGenresPicker_Previews: PreviewProvider {
 
-    static var viewModel = MovieGenresViewModel()
+    static var viewModel = MovieGenresViewModel(selectedGenres: [])
 
     static var previews: some View {
         MoviesGenresPicker(viewModel: viewModel)

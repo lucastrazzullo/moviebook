@@ -50,13 +50,11 @@ struct MoviePreviewView: View {
 
                         Group {
                             if details.localisedReleaseDate() > .now {
-                                HStack(spacing: 4) {
-                                    Text("Coming on")
-                                    Text(details.localisedReleaseDate(), format: .dateTime.year()).bold()
-                                }
-                                .padding(4)
-                                .background(.yellow, in: RoundedRectangle(cornerRadius: 6))
-                                .foregroundColor(.black)
+                                Text("Coming on \(details.localisedReleaseDate().formatted(.dateTime.year()))")
+                                    .bold()
+                                    .padding(4)
+                                    .background(.yellow, in: RoundedRectangle(cornerRadius: 6))
+                                    .foregroundColor(.black)
                             } else {
                                 Text(details.localisedReleaseDate(), format: .dateTime.year())
                             }

@@ -120,7 +120,7 @@ private struct ToolbarView: View {
 
             Spacer()
 
-            Button(action: { onItemSelected(.explore) }) {
+            Button(action: { onItemSelected(.explore(selectedGenres: [])) }) {
                 HStack {
                     Image(systemName: "magnifyingglass")
                     Text("Browse")

@@ -100,10 +100,10 @@ struct ExploreView: View {
         }
     }
 
-    init() {
+    init(selectedGenres: Set<MovieGenre>) {
         self._searchViewModel = StateObject(wrappedValue: SearchViewModel(scope: .movie, query: ""))
         self._discoverViewModel = StateObject(wrappedValue: DiscoverViewModel())
-        self._movieGenresViewModel = StateObject(wrappedValue: MovieGenresViewModel())
+        self._movieGenresViewModel = StateObject(wrappedValue: MovieGenresViewModel(selectedGenres: selectedGenres))
     }
 }
 
@@ -112,7 +112,7 @@ import MoviebookTestSupport
 
 struct ExploreView_Previews: PreviewProvider {
     static var previews: some View {
-        ExploreView()
+        ExploreView(selectedGenres: [])
             .environment(\.requestLoader, MockRequestLoader.shared)
             .environmentObject(MockWatchlistProvider.shared.watchlist())
     }

@@ -31,14 +31,12 @@ struct MovieShelfPreviewView: View {
         .overlay(alignment: .bottom) {
             HStack(alignment: .center) {
                 if movieDetails.localisedReleaseDate() > Date.now {
-                    HStack(spacing: 4) {
-                        Text("Release")
-                        Text(movieDetails.localisedReleaseDate(), format: .dateTime.year())
-                    }
-                    .font(.caption2).bold()
-                    .padding(6)
-                    .background(.yellow, in: RoundedRectangle(cornerRadius: 6))
-                    .foregroundColor(.black)
+                    Text("Release \(movieDetails.localisedReleaseDate().formatted(.dateTime.year()))")
+                        .bold()
+                        .font(.caption2)
+                        .padding(6)
+                        .background(.yellow, in: RoundedRectangle(cornerRadius: 6))
+                        .foregroundColor(.black)
                 }
 
                 Spacer()
