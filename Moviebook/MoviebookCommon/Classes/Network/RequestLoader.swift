@@ -55,9 +55,9 @@ public actor DefaultRequestLoader: RequestLoader {
     // MARK: Internal methods
 
     public func request(from url: URL) async throws -> Data {
-        do {
-            let urlRequest = URLRequest(url: url)
+        let urlRequest = URLRequest(url: url)
 
+        do {
             if let status = requests[urlRequest] {
                 switch status {
                 case .fetched(let response) where !response.isExpired:
@@ -82,18 +82,16 @@ public actor DefaultRequestLoader: RequestLoader {
             let task: Task<Data, Error> = Task {
                 let (data, _) = try await session.data(from: url)
                 let response = Response(data: data)
-                self.cacheResponse(response, for: urlRequest)
+                cacheResponse(response, for: urlRequest)
+                requests[urlRequest] = .fetched(response)
                 return data
             }
 
             requests[urlRequest] = .inProgress(task)
+            return try await task.value
 
-            let data = try await task.value
-            let response = Response(data: data)
-            requests[urlRequest] = .fetched(response)
-
-            return data
         } catch {
+            requests[urlRequest] = nil
             throw error
         }
     }
