@@ -104,6 +104,7 @@ private struct ListView: View {
 
     struct SortingSection: Hashable {
         let title: String
+        let icon: String
         let items: [WatchlistViewItem]
     }
 
@@ -111,22 +112,32 @@ private struct ListView: View {
     let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
-        LazyVGrid(columns: [GridItem(spacing: 4), GridItem(spacing: 4), GridItem()], spacing: 4) {
-            ForEach(sections, id: \.self) { section in
+        ForEach(sections, id: \.self) { section in
+            let columns: [GridItem] = (0..<min(3, section.items.count)).map { _ in GridItem(spacing: 0) }
+            LazyVGrid(columns: columns, spacing: 8) {
                 Section(header: sectionHeader(section: section)) {
                     ForEach(section.items) { item in
                         switch item {
                         case .movie(let movie, _):
-                            MovieShelfPreviewView(
-                                movieDetails: movie.details,
-                                onItemSelected: onItemSelected
-                            )
+                            if columns.count == 1 {
+                                MoviePreviewView(
+                                    details: movie.details,
+                                    style: .backdrop,
+                                    onItemSelected: onItemSelected
+                                )
+                                .padding(.horizontal)
+                            } else {
+                                MovieShelfPreviewView(
+                                    movieDetails: movie.details,
+                                    onItemSelected: onItemSelected
+                                )
+                                .padding(.horizontal, 4)
+                            }
                         }
                     }
                 }
             }
         }
-        .padding(.horizontal, 4)
     }
 
     init(items: [WatchlistViewItem], sorting: WatchlistViewSorting, onItemSelected: @escaping (NavigationItem) -> Void) {
@@ -137,10 +148,13 @@ private struct ListView: View {
     // MARK: Private view builders
 
     @ViewBuilder private func sectionHeader(section: SortingSection) -> some View {
-        Text(section.title)
-            .font(.headline)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding()
+        HStack {
+            Image(systemName: section.icon)
+            Text(section.title)
+                .font(.headline)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding()
     }
 
     // MARK: Private factory methods
@@ -179,16 +193,16 @@ private struct ListView: View {
         var sections: [SortingSection] = []
 
         if !lastWeekItems.isEmpty {
-            sections.append(SortingSection(title: "Added last week", items: lastWeekItems))
+            sections.append(SortingSection(title: "Added last week", icon: "calendar.badge.plus", items: lastWeekItems))
         }
         if !lastMonthItems.isEmpty {
-            sections.append(SortingSection(title: "Added last month", items: lastMonthItems))
+            sections.append(SortingSection(title: "Added last month", icon: "calendar.badge.plus", items: lastMonthItems))
         }
         if !lastYearItems.isEmpty {
-            sections.append(SortingSection(title: "Added last year", items: lastYearItems))
+            sections.append(SortingSection(title: "Added last year", icon: "calendar.badge.plus", items: lastYearItems))
         }
         if !allOtherItems.isEmpty {
-            sections.append(SortingSection(title: "Added earlier", items: allOtherItems))
+            sections.append(SortingSection(title: "Added earlier", icon: "calendar.badge.plus", items: allOtherItems))
         }
 
         return sections
@@ -215,16 +229,16 @@ private struct ListView: View {
         var sections: [SortingSection] = []
 
         if !highRatingItems.isEmpty {
-            sections.append(SortingSection(title: "Highly rated", items: highRatingItems))
+            sections.append(SortingSection(title: "Highly rated", icon: "star.square.on.square.fill", items: highRatingItems))
         }
         if !averageRatingItems.isEmpty {
-            sections.append(SortingSection(title: "Average", items: averageRatingItems))
+            sections.append(SortingSection(title: "Average", icon: "star.leadinghalf.filled", items: averageRatingItems))
         }
         if !lowRatingItems.isEmpty {
-            sections.append(SortingSection(title: "Low rated", items: lowRatingItems))
+            sections.append(SortingSection(title: "Low rated", icon: "star.slash.fill", items: lowRatingItems))
         }
         if !unratedItems.isEmpty {
-            sections.append(SortingSection(title: "Not rated", items: unratedItems))
+            sections.append(SortingSection(title: "Not rated", icon: "star.square.on.square", items: unratedItems))
         }
 
         return sections
@@ -232,7 +246,7 @@ private struct ListView: View {
 
     private static func makeNameSections(items: [WatchlistViewItem]) -> [SortingSection] {
         return [
-            SortingSection(title: "Alphabetical order", items: items)
+            SortingSection(title: "Alphabetical order", icon: "a.square.fill", items: items)
         ]
     }
 
@@ -252,7 +266,7 @@ private struct ListView: View {
         }
 
         return yearsMapping.keys.sorted(by: >).map { year in
-            SortingSection(title: "Released in \(year)", items: yearsMapping[year]!)
+            SortingSection(title: "Released in \(year)", icon: "calendar", items: yearsMapping[year]!)
         }
     }
 }
