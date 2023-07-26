@@ -17,10 +17,6 @@ import MoviebookCommon
         return content.first(where: { $0.section == section })?.items ?? []
     }
 
-    var sorting: WatchlistViewSorting {
-        return content.first(where: { $0.section == section })?.sorting ?? .lastAdded
-    }
-
     @Published var section: WatchlistViewSection
     @Published private(set) var isLoading: Bool = true
     @Published private(set) var error: WebServiceError? = nil
@@ -54,11 +50,6 @@ import MoviebookCommon
                 }
             })
         }
-    }
-
-    func update(sorting: WatchlistViewSorting) {
-        content.first(where: { $0.section == section })?.updateSorting(sorting)
-        objectWillChange.send()
     }
 
     // MARK: Private methods

@@ -17,6 +17,7 @@ struct WatchlistView: View {
     @StateObject private var contentViewModel: WatchlistViewModel = WatchlistViewModel()
     @StateObject private var undoViewModel: WatchlistUndoViewModel = WatchlistUndoViewModel()
 
+    @State private var sorting: WatchlistViewSorting = .lastAdded
     @State private var shouldShowTopBar: Bool = false
     @State private var shouldShowBottomBar: Bool = false
 
@@ -26,6 +27,7 @@ struct WatchlistView: View {
         ZStack {
             ContentView(
                 viewModel: contentViewModel,
+                sorting: $sorting,
                 shouldShowTopBar: $shouldShowTopBar,
                 shouldShowBottomBar: $shouldShowBottomBar,
                 onItemSelected: { item in
@@ -36,10 +38,7 @@ struct WatchlistView: View {
         .safeAreaInset(edge: .top) {
             TopbarView(
                 undoViewModel: undoViewModel,
-                sorting: Binding(
-                    get: { contentViewModel.sorting },
-                    set: { sorting in contentViewModel.update(sorting: sorting) }
-                )
+                sorting: $sorting
             )
             .padding()
             .background(.thickMaterial.opacity(shouldShowTopBar ? 1 : 0))
@@ -61,6 +60,7 @@ struct WatchlistView: View {
             await contentViewModel.start(watchlist: watchlist, requestLoader: requestLoader)
         }
         .animation(.default, value: contentViewModel.items)
+        .animation(.default, value: sorting)
     }
 }
 
@@ -139,6 +139,7 @@ private struct ContentView: View {
 
     @ObservedObject var viewModel: WatchlistViewModel
 
+    @Binding var sorting: WatchlistViewSorting
     @Binding var shouldShowTopBar: Bool
     @Binding var shouldShowBottomBar: Bool
 
@@ -161,6 +162,7 @@ private struct ContentView: View {
             } else {
                 WatchlistListView(
                     viewModel: viewModel,
+                    sorting: $sorting,
                     shouldShowTopBar: $shouldShowTopBar,
                     shouldShowBottomBar: $shouldShowBottomBar,
                     onItemSelected: onItemSelected
@@ -193,6 +195,7 @@ private struct WatchlistListView: View {
 
     @ObservedObject var viewModel: WatchlistViewModel
 
+    @Binding var sorting: WatchlistViewSorting
     @Binding var shouldShowTopBar: Bool
     @Binding var shouldShowBottomBar: Bool
 
@@ -205,13 +208,14 @@ private struct WatchlistListView: View {
                     switch viewModel.section {
                     case .toWatch:
                         WishlistListView(
+                            sorting: $sorting,
                             items: viewModel.items,
                             onItemSelected: onItemSelected
                         )
                     case .watched:
                         WatchedListView(
+                            sorting: $sorting,
                             items: viewModel.items,
-                            sorting: viewModel.sorting,
                             onItemSelected: onItemSelected
                         )
                     }

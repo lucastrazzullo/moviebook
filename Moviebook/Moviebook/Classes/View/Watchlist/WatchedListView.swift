@@ -10,8 +10,12 @@ import MoviebookCommon
 
 struct WatchedListView: View {
 
+    @AppStorage("watchedlistSorting") private var internalSorting: WatchlistViewSorting = .lastAdded
+    @State private var isPresented: Bool = false
+
+    @Binding var sorting: WatchlistViewSorting
+
     let items: [WatchlistViewItem]
-    let sorting: WatchlistViewSorting
     let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
@@ -26,6 +30,18 @@ struct WatchedListView: View {
                 sorting: sorting,
                 onItemSelected: onItemSelected
             )
+        }
+        .onAppear {
+            isPresented = true
+            sorting = internalSorting
+        }
+        .onDisappear {
+            isPresented = false
+        }
+        .onChange(of: sorting) { sorting in
+            if isPresented {
+                internalSorting = sorting
+            }
         }
     }
 }
@@ -307,8 +323,8 @@ private struct WatchedListViewPreviewView: View {
 
     var body: some View {
         WatchedListView(
+            sorting: .constant(.lastAdded),
             items: viewModel.items,
-            sorting: .lastAdded,
             onItemSelected: { _ in }
         )
         .task {

@@ -9,12 +9,17 @@ import SwiftUI
 
 struct WishlistListView: View {
 
+    @AppStorage("wishlistSorting") private var internalSorting: WatchlistViewSorting = .lastAdded
+    @State private var isPresented: Bool = false
+
+    @Binding var sorting: WatchlistViewSorting
+
     let items: [WatchlistViewItem]
     let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         LazyVGrid(columns: [GridItem(spacing: 4), GridItem()], spacing: 4) {
-            ForEach(items) { item in
+            ForEach(items.sorted(by: sort(sorting: sorting))) { item in
                 switch item {
                 case .movie(let movie, _):
                     MovieShelfPreviewView(
@@ -25,6 +30,33 @@ struct WishlistListView: View {
             }
         }
         .padding(.horizontal, 4)
+        .onAppear {
+            isPresented = true
+            sorting = internalSorting
+        }
+        .onDisappear {
+            isPresented = false
+        }
+        .onChange(of: sorting) { sorting in
+            if isPresented {
+                internalSorting = sorting
+            }
+        }
+    }
+
+    private func sort(sorting: WatchlistViewSorting) -> (WatchlistViewItem, WatchlistViewItem) -> Bool {
+        return { lhs, rhs in
+            switch sorting {
+            case .lastAdded:
+                return lhs.addedDate > rhs.addedDate
+            case .rating:
+                return lhs.rating > rhs.rating
+            case .name:
+                return lhs.name < rhs.name
+            case .release:
+                return lhs.releaseDate > rhs.releaseDate
+            }
+        }
     }
 }
 
@@ -64,6 +96,7 @@ private struct WishlistListViewPreviewView: View {
 
     var body: some View {
         WishlistListView(
+            sorting: .constant(.lastAdded),
             items: viewModel.items,
             onItemSelected: { _ in }
         )
