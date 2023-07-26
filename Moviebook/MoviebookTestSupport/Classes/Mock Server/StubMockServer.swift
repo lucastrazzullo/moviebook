@@ -54,12 +54,3 @@ public struct MockStub {
 protocol StubUrlBuilder {
     func build() -> URL
 }
-
-struct MovieStubUrl: StubUrlBuilder {
-
-    let movieId: Movie.ID
-
-    func build() -> URL {
-        return URL(string: "stub://movie/\(movieId)")!
-    }
-}

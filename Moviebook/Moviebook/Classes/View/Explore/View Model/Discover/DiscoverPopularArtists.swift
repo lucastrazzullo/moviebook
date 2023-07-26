@@ -13,7 +13,7 @@ final class DiscoverPopularArtists {
     private var allArtists: [ArtistDetails] = []
     private let numberOfItemsPerPage: Int = 24
 
-    func update(watchlistItems: [WatchlistItem], requestManager: RequestManager) async {
+    func update(watchlistItems: [WatchlistItem], requestLoader: RequestLoader) async {
         let moviesInWatchlist = watchlistItems.compactMap { watchlistItem in
             switch watchlistItem.id {
             case .movie(id: let id):
@@ -25,7 +25,7 @@ final class DiscoverPopularArtists {
             for movieIdentifier in moviesInWatchlist {
                 group.addTask {
                     return (try? await WebService
-                        .movieWebService(requestManager: requestManager)
+                        .movieWebService(requestLoader: requestLoader)
                         .fetchMovieCast(with: movieIdentifier)) ?? []
                 }
             }
@@ -42,7 +42,7 @@ final class DiscoverPopularArtists {
 
 extension DiscoverPopularArtists: ExploreContentDataProvider {
 
-    func fetch(requestManager: RequestManager, page: Int?) async throws -> ExploreContentDataProvider.Response {
+    func fetch(requestLoader: RequestLoader, page: Int?) async throws -> ExploreContentDataProvider.Response {
         let currentPage = page ?? 0
 
         let bottomCap = currentPage * numberOfItemsPerPage

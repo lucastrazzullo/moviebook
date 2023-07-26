@@ -15,16 +15,20 @@ import MoviebookCommon
     @Published private(set) var genres: [MovieGenre] = []
     @Published private(set) var error: WebServiceError?
 
-    func start(requestManager: RequestManager) {
+    init(selectedGenres: Set<MovieGenre>) {
+        self.selectedGenres = selectedGenres
+    }
+
+    func start(requestLoader: RequestLoader) {
         Task {
             do {
-                let webService = WebService.movieWebService(requestManager: requestManager)
-                self.genres = try await webService.fetchMovieGenres()
-                self.error = nil
-            } catch {
-                self.error = .failedToLoad(id: UUID.init(), retry: { [weak self, weak requestManager] in
-                    guard let self, let requestManager else { return }
-                    self.start(requestManager: requestManager)
+                let webService = WebService.movieWebService(requestLoader: requestLoader)
+                genres = try await webService.fetchMovieGenres()
+                error = nil
+            } catch let requestError {
+                error = .failedToLoad(error: requestError, retry: { [weak self, weak requestLoader] in
+                    guard let self, let requestLoader else { return }
+                    self.start(requestLoader: requestLoader)
                 })
             }
         }

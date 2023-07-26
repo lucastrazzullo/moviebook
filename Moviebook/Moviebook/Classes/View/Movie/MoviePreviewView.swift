@@ -50,13 +50,11 @@ struct MoviePreviewView: View {
 
                         Group {
                             if details.localisedReleaseDate() > .now {
-                                HStack(spacing: 4) {
-                                    Text("Coming on")
-                                    Text(details.localisedReleaseDate(), format: .dateTime.year()).bold()
-                                }
-                                .padding(4)
-                                .background(.yellow, in: RoundedRectangle(cornerRadius: 6))
-                                .foregroundColor(.black)
+                                Text("Coming on \(details.localisedReleaseDate().formatted(.dateTime.year()))")
+                                    .bold()
+                                    .padding(4)
+                                    .background(.yellow, in: RoundedRectangle(cornerRadius: 6))
+                                    .foregroundColor(.black)
                             } else {
                                 Text(details.localisedReleaseDate(), format: .dateTime.year())
                             }
@@ -117,14 +115,14 @@ struct MoviePreviewView_Previews: PreviewProvider {
                 MoviePreviewViewPreview(movieId: 616037, style: .backdrop)
             }
             .environmentObject(MockWatchlistProvider.shared.watchlist())
-            .environment(\.requestManager, MockRequestManager.shared)
+            .environment(\.requestLoader, MockRequestLoader.shared)
         }
     }
 }
 
 private struct MoviePreviewViewPreview: View {
 
-    @Environment(\.requestManager) var requestManager
+    @Environment(\.requestLoader) var requestLoader
     @State var movie: Movie?
 
     let movieId: Movie.ID
@@ -139,7 +137,7 @@ private struct MoviePreviewViewPreview: View {
             }
         }
         .task {
-            let webService = WebService.movieWebService(requestManager: requestManager)
+            let webService = WebService.movieWebService(requestLoader: requestLoader)
             movie = try! await webService.fetchMovie(with: movieId)
         }
     }

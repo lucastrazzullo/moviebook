@@ -23,8 +23,8 @@ final class SearchDataProvider: ExploreContentDataProvider {
         self.searchKeyword = searchKeyword
     }
 
-    func fetch(requestManager: RequestManager, page: Int?) async throws -> ExploreContentDataProvider.Response {
-        let webService = WebService.searchWebService(requestManager: requestManager)
+    func fetch(requestLoader: RequestLoader, page: Int?) async throws -> ExploreContentDataProvider.Response {
+        let webService = WebService.searchWebService(requestLoader: requestLoader)
         switch searchScope {
         case .movie:
             let response = try await webService.fetchMovies(with: searchKeyword, page: page)

@@ -9,7 +9,7 @@ import Foundation
 import MoviebookCommon
 
 enum NavigationItem: Identifiable, Hashable {
-    case explore
+    case explore(selectedGenres: Set<MovieGenre>)
     case movieWithIdentifier(_ id: Movie.ID)
     case artistWithIdentifier(_ id: Artist.ID)
     case watchlistAddToWatchReason(itemIdentifier: WatchlistItemIdentifier)

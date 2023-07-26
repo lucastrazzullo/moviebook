@@ -49,7 +49,7 @@ struct NewToWatchSuggestionView: View {
     }
 
     @Environment(\.presentationMode) var presentationMode
-    @Environment(\.requestManager) var requestManager
+    @Environment(\.requestLoader) var requestLoader
 
     @EnvironmentObject var watchlist: Watchlist
 
@@ -152,7 +152,7 @@ struct NewToWatchSuggestionView: View {
         .task {
             switch itemIdentifier {
             case .movie(let id):
-                let webService = WebService.movieWebService(requestManager: requestManager)
+                let webService = WebService.movieWebService(requestLoader: requestLoader)
                 let movie = try? await webService.fetchMovie(with: id)
                 title = movie?.details.title
             }

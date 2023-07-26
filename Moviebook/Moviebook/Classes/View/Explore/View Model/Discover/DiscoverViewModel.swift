@@ -33,27 +33,27 @@ import MoviebookCommon
 
     // MARK: Instance methods
 
-    func start(selectedGenres: Published<Set<MovieGenre>>.Publisher, watchlist: Watchlist, requestManager: RequestManager) {
+    func start(selectedGenres: Published<Set<MovieGenre>>.Publisher, watchlist: Watchlist, requestLoader: RequestLoader) {
         Publishers.CombineLatest(selectedGenres, Publishers.Merge(Just(watchlist.items), watchlist.itemsDidChange))
-            .sink { [weak self, weak requestManager] genres, watchlistItems in
-                guard let self, let requestManager else { return }
+            .sink { [weak self, weak requestLoader] genres, watchlistItems in
+                guard let self, let requestLoader else { return }
                 Task {
-                    await self.update(selectedGenres: genres.map(\.id), watchlistItems: watchlistItems, requestManager: requestManager)
+                    await self.update(selectedGenres: genres.map(\.id), watchlistItems: watchlistItems, requestLoader: requestLoader)
                 }
             }
             .store(in: &subscriptions)
     }
 
-    private func update(selectedGenres: [MovieGenre.ID], watchlistItems: [WatchlistItem], requestManager: RequestManager) async {
+    private func update(selectedGenres: [MovieGenre.ID], watchlistItems: [WatchlistItem], requestLoader: RequestLoader) async {
         await withTaskGroup(of: Void.self) { group in
             for content in sectionsContent {
                 group.addTask {
-                    await content.fetch(requestManager: requestManager) { dataProvider in
+                    await content.fetch(requestLoader: requestLoader) { dataProvider in
                         if let forYou = dataProvider as? DiscoverRelated {
                             await forYou.update(
                                 referenceMovies: watchlistItems.compactMap(DiscoverRelated.ReferenceMovie.init(watchlistItem:)),
                                 overrideGenres: selectedGenres,
-                                requestManager: requestManager
+                                requestLoader: requestLoader
                             )
                         }
                         if let discover = dataProvider as? DiscoverSection {
@@ -65,7 +65,7 @@ import MoviebookCommon
                         if let artists = dataProvider as? DiscoverPopularArtists {
                             await artists.update(
                                 watchlistItems: watchlistItems,
-                                requestManager: requestManager
+                                requestLoader: requestLoader
                             )
                         }
                     }

@@ -31,11 +31,11 @@ import MoviebookCommon
 
     // MARK: Public methods
 
-    func start(watchlist: Watchlist, requestManager: RequestManager) {
+    func start(watchlist: Watchlist, requestLoader: RequestLoader) {
         watchlist.itemWasRemoved
-            .sink { [weak self, weak requestManager] removedItem in
-                if let requestManager {
-                    self?.handle(removedItem: removedItem, requestManager: requestManager)
+            .sink { [weak self, weak requestLoader] removedItem in
+                if let requestLoader {
+                    self?.handle(removedItem: removedItem, requestLoader: requestLoader)
                 }
             }
             .store(in: &subscriptions)
@@ -48,12 +48,12 @@ import MoviebookCommon
 
     // MARK: Private methods
 
-    private func handle(removedItem: WatchlistItem, requestManager: RequestManager) {
+    private func handle(removedItem: WatchlistItem, requestLoader: RequestLoader) {
         loadingTask?.cancel()
         loadingTask = Task {
             switch removedItem.id {
             case .movie(let id):
-                let webService = WebService.movieWebService(requestManager: requestManager)
+                let webService = WebService.movieWebService(requestLoader: requestLoader)
                 let movie = try? await webService.fetchMovie(with: id)
                 if let posterUrl = movie?.details.media.posterPreviewUrl,
                    let loadingTask = self.loadingTask, !loadingTask.isCancelled {

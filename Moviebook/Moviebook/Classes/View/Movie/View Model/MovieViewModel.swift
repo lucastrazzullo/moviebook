@@ -30,16 +30,16 @@ import MoviebookCommon
 
     // MARK: Instance methods
 
-    func start(requestManager: RequestManager) {
+    func start(requestLoader: RequestLoader) {
         task = Task {
             do {
-                let movie = try await WebService.movieWebService(requestManager: requestManager).fetchMovie(with: movieId)
+                let movie = try await WebService.movieWebService(requestLoader: requestLoader).fetchMovie(with: movieId)
                 guard let task, !task.isCancelled else { return }
                 setMovie(movie)
-            } catch {
-                self.error = .failedToLoad(id: .init(), retry: { [weak self, weak requestManager] in
-                    if let requestManager {
-                        self?.start(requestManager: requestManager)
+            } catch let requestError {
+                error = .failedToLoad(error: requestError, retry: { [weak self, weak requestLoader] in
+                    if let requestLoader {
+                        self?.start(requestLoader: requestLoader)
                     }
                 })
             }

@@ -44,7 +44,7 @@ enum ExploreContentItems {
 
 protocol ExploreContentDataProvider {
     typealias Response = (results: ExploreContentItems, nextPage: Int?)
-    func fetch(requestManager: RequestManager, page: Int?) async throws -> Response
+    func fetch(requestLoader: RequestLoader, page: Int?) async throws -> Response
 }
 
 @MainActor final class ExploreContentViewModel: ObservableObject, Identifiable {
@@ -66,23 +66,23 @@ protocol ExploreContentDataProvider {
         self.items = items
     }
 
-    func fetch(requestManager: RequestManager, page: Int? = nil, updateDataProvider: @escaping (ExploreContentDataProvider) async -> Void) async {
+    func fetch(requestLoader: RequestLoader, page: Int? = nil, updateDataProvider: @escaping (ExploreContentDataProvider) async -> Void) async {
         isLoading = true
         await updateDataProvider(dataProvider)
-        await fetch(requestManager: requestManager, page: page)
+        await fetch(requestLoader: requestLoader, page: page)
     }
 
-    private func fetch(requestManager: RequestManager, page: Int? = nil) async {
+    private func fetch(requestLoader: RequestLoader, page: Int? = nil) async {
         do {
             isLoading = true
             error = nil
             fetchNextPage = nil
 
-            let response = try await self.dataProvider.fetch(requestManager: requestManager, page: page)
+            let response = try await self.dataProvider.fetch(requestLoader: requestLoader, page: page)
             if let nextPage = response.nextPage {
                 fetchNextPage = { [weak self] in
                     Task {
-                        await self?.fetch(requestManager: requestManager, page: nextPage)
+                        await self?.fetch(requestLoader: requestLoader, page: nextPage)
                     }
                 }
             }
@@ -95,12 +95,12 @@ protocol ExploreContentDataProvider {
 
             isLoading = false
 
-        } catch {
-            self.isLoading = false
-            self.error = .failedToLoad(id: .init()) { [weak self, weak requestManager] in
-                if let requestManager {
+        } catch let requestError {
+            isLoading = false
+            error = .failedToLoad(error: requestError) { [weak self, weak requestLoader] in
+                if let requestLoader {
                     Task {
-                        await self?.fetch(requestManager: requestManager, page: page)
+                        await self?.fetch(requestLoader: requestLoader, page: page)
                     }
                 }
             }

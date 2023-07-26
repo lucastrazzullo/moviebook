@@ -269,7 +269,7 @@ private struct MovieCollectionView: View {
 
 private struct MovieRelatedView: View {
 
-    @Environment(\.requestManager) private var requestManager
+    @Environment(\.requestLoader) private var requestLoader
 
     @StateObject private var viewModel: ExploreContentViewModel
     @State private var containerWidth: CGFloat = 0
@@ -304,12 +304,12 @@ private struct MovieRelatedView: View {
             }
         })
         .task {
-            await viewModel.fetch(requestManager: requestManager) { dataProvider in
+            await viewModel.fetch(requestLoader: requestLoader) { dataProvider in
                 if let related = dataProvider as? DiscoverRelated {
                     await related.update(
                         referenceMovies: [.init(id: movieId, weight: .neutral)],
                         overrideGenres: [],
-                        requestManager: requestManager
+                        requestLoader: requestLoader
                     )
                 }
             }
@@ -363,14 +363,14 @@ struct MovieContentView_Previews: PreviewProvider {
         ScrollView(showsIndicators: false) {
             MovieContentViewPreview()
                 .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .empty))
-                .environment(\.requestManager, MockRequestManager.shared)
+                .environment(\.requestLoader, MockRequestLoader.shared)
         }
     }
 }
 
 private struct MovieContentViewPreview: View {
 
-    @Environment(\.requestManager) var requestManager
+    @Environment(\.requestLoader) var requestLoader
     @State var movie: Movie?
 
     var body: some View {
@@ -386,7 +386,7 @@ private struct MovieContentViewPreview: View {
             }
         }
         .task {
-            let webService = WebService.movieWebService(requestManager: requestManager)
+            let webService = WebService.movieWebService(requestLoader: requestLoader)
             movie = try! await webService.fetchMovie(with: 353081)
         }
     }

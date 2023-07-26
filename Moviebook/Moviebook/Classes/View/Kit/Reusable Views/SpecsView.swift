@@ -41,13 +41,11 @@ struct SpecsView: View {
                             SpecsRow(label: label) {
                                 Group {
                                     if date > Date.now {
-                                        HStack(spacing: 4) {
-                                            Text("Coming on")
-                                            Text(date, style: .date).bold()
-                                        }
-                                        .padding(4)
-                                        .background(.yellow, in: RoundedRectangle(cornerRadius: 6))
-                                        .foregroundColor(.black)
+                                        Text("Coming on \(date.formatted(.dateTime.day().month().year()))")
+                                            .bold()
+                                            .padding(4)
+                                            .background(.yellow, in: RoundedRectangle(cornerRadius: 6))
+                                            .foregroundColor(.black)
                                     } else {
                                         Text(date, style: .date)
                                     }

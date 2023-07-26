@@ -18,24 +18,24 @@ struct TMDBMovieProductionResponse: Codable {
         case production = "production_companies"
     }
 
-    let result: MovieProduction
+    let production: MovieProduction
 
     // MARK: Object life cycle
 
-    init(result: MovieProduction) {
-        self.result = result
+    init(production: MovieProduction) {
+        self.production = production
     }
 
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         let companies = try values.decode([Company].self, forKey: .production).map(\.name)
 
-        self.result = MovieProduction(companies: companies)
+        self.production = MovieProduction(companies: companies)
     }
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
-        try container.encode(result.companies, forKey: .production)
+        try container.encode(production.companies, forKey: .production)
     }
 }

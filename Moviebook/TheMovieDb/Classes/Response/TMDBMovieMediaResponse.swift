@@ -16,12 +16,12 @@ struct TMDBMovieMediaResponse: Codable {
         case videos = "videos"
     }
 
-    let result: MovieMedia
+    let media: MovieMedia
 
     // MARK: Object life cycle
 
-    init(result: MovieMedia) {
-        self.result = result
+    init(media: MovieMedia) {
+        self.media = media
     }
 
     init(from decoder: Decoder) throws {
@@ -38,12 +38,12 @@ struct TMDBMovieMediaResponse: Codable {
 
         var videos: [MovieVideo] = []
         if let videoResults = try? container.decodeIfPresent(TMDBResponseWithListResults<TMDBMovieVideoResponse>.self, forKey: .videos)?.results {
-            videos = videoResults.map(\.result)
+            videos = videoResults.map(\.video)
         } else {
             videos = []
         }
 
-        self.result = MovieMedia(posterUrl: posterUrl,
+        self.media = MovieMedia(posterUrl: posterUrl,
                                  posterPreviewUrl: posterPreviewUrl,
                                  posterThumbnailUrl: posterThumbnailUrl,
                                  backdropUrl: backdropUrl,
@@ -54,8 +54,8 @@ struct TMDBMovieMediaResponse: Codable {
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
-        try container.encode(result.posterUrl.lastPathComponent, forKey: .posterPath)
-        try container.encode(result.backdropUrl.lastPathComponent, forKey: .backdropPath)
-        try container.encode(result.videos.map(TMDBMovieVideoResponse.init(result:)), forKey: .videos)
+        try container.encode(media.posterUrl.lastPathComponent, forKey: .posterPath)
+        try container.encode(media.backdropUrl.lastPathComponent, forKey: .backdropPath)
+        try container.encode(media.videos.map(TMDBMovieVideoResponse.init(video:)), forKey: .videos)
     }
 }

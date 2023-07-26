@@ -11,12 +11,13 @@ import MoviebookCommon
 
 struct WatchlistView: View {
 
-    @Environment(\.requestManager) var requestManager
+    @Environment(\.requestLoader) var requestLoader
     @EnvironmentObject var watchlist: Watchlist
 
-    @StateObject private var sectionViewModel = WatchlistViewModel()
+    @StateObject private var contentViewModel: WatchlistViewModel = WatchlistViewModel()
     @StateObject private var undoViewModel: WatchlistUndoViewModel = WatchlistUndoViewModel()
 
+    @State private var sorting: WatchlistViewSorting = .lastAdded
     @State private var shouldShowTopBar: Bool = false
     @State private var shouldShowBottomBar: Bool = false
 
@@ -25,7 +26,8 @@ struct WatchlistView: View {
     var body: some View {
         ZStack {
             ContentView(
-                viewModel: sectionViewModel,
+                viewModel: contentViewModel,
+                sorting: $sorting,
                 shouldShowTopBar: $shouldShowTopBar,
                 shouldShowBottomBar: $shouldShowBottomBar,
                 onItemSelected: { item in
@@ -36,7 +38,7 @@ struct WatchlistView: View {
         .safeAreaInset(edge: .top) {
             TopbarView(
                 undoViewModel: undoViewModel,
-                sorting: $sectionViewModel.sorting
+                sorting: $sorting
             )
             .padding()
             .background(.thickMaterial.opacity(shouldShowTopBar ? 1 : 0))
@@ -45,7 +47,7 @@ struct WatchlistView: View {
         }
         .safeAreaInset(edge: .bottom) {
             ToolbarView(
-                currentSection: $sectionViewModel.section,
+                currentSection: $contentViewModel.section,
                 onItemSelected: { item in
                     presentedItem = item
                 }
@@ -55,16 +57,17 @@ struct WatchlistView: View {
             .animation(.easeOut(duration: 0.12), value: shouldShowBottomBar)
         }
         .task {
-            await sectionViewModel.start(watchlist: watchlist, requestManager: requestManager)
+            await contentViewModel.start(watchlist: watchlist, requestLoader: requestLoader)
         }
-        .animation(.default, value: sectionViewModel.items)
+        .animation(.default, value: contentViewModel.items)
+        .animation(.default, value: sorting)
     }
 }
 
 private struct TopbarView: View {
 
     @ObservedObject var undoViewModel: WatchlistUndoViewModel
-    @Binding var sorting: WatchlistViewModel.Sorting
+    @Binding var sorting: WatchlistViewSorting
 
     var body: some View {
         ZStack {
@@ -73,7 +76,7 @@ private struct TopbarView: View {
 
             Menu {
                 Picker("Sorting", selection: $sorting) {
-                    ForEach(WatchlistViewModel.Sorting.allCases, id: \.self) { sorting in
+                    ForEach(WatchlistViewSorting.allCases, id: \.self) { sorting in
                         HStack {
                             Text(sorting.label)
                             Spacer()
@@ -101,14 +104,14 @@ private struct TopbarView: View {
 
 private struct ToolbarView: View {
 
-    @Binding var currentSection: WatchlistViewModel.Section
+    @Binding var currentSection: WatchlistViewSection
 
     let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         HStack {
             Picker("Section", selection: $currentSection) {
-                ForEach(WatchlistViewModel.Section.allCases, id: \.self) { section in
+                ForEach(WatchlistViewSection.allCases, id: \.self) { section in
                     Text(section.name)
                 }
             }
@@ -117,7 +120,7 @@ private struct ToolbarView: View {
 
             Spacer()
 
-            Button(action: { onItemSelected(.explore) }) {
+            Button(action: { onItemSelected(.explore(selectedGenres: [])) }) {
                 HStack {
                     Image(systemName: "magnifyingglass")
                     Text("Browse")
@@ -131,11 +134,12 @@ private struct ToolbarView: View {
 
 private struct ContentView: View {
 
-    @Environment(\.requestManager) var requestManager
+    @Environment(\.requestLoader) var requestLoader
     @EnvironmentObject var watchlist: Watchlist
 
     @ObservedObject var viewModel: WatchlistViewModel
 
+    @Binding var sorting: WatchlistViewSorting
     @Binding var shouldShowTopBar: Bool
     @Binding var shouldShowBottomBar: Bool
 
@@ -146,7 +150,7 @@ private struct ContentView: View {
             if viewModel.isLoading, viewModel.items.isEmpty {
                 LoaderView()
             } else if let error = viewModel.error {
-                RetriableErrorView(retry: error.retry)
+                RetriableErrorView(error: error)
                     .frame(maxHeight: .infinity)
                     .padding()
             } else if viewModel.items.isEmpty {
@@ -158,6 +162,7 @@ private struct ContentView: View {
             } else {
                 WatchlistListView(
                     viewModel: viewModel,
+                    sorting: $sorting,
                     shouldShowTopBar: $shouldShowTopBar,
                     shouldShowBottomBar: $shouldShowBottomBar,
                     onItemSelected: onItemSelected
@@ -172,7 +177,7 @@ private struct WatchlistEmptyListView: View {
     @Binding var shouldShowTopBar: Bool
     @Binding var shouldShowBottomBar: Bool
 
-    let section: WatchlistViewModel.Section
+    let section: WatchlistViewSection
 
     var body: some View {
         EmptyWatchlistView(section: section)
@@ -190,6 +195,7 @@ private struct WatchlistListView: View {
 
     @ObservedObject var viewModel: WatchlistViewModel
 
+    @Binding var sorting: WatchlistViewSorting
     @Binding var shouldShowTopBar: Bool
     @Binding var shouldShowBottomBar: Bool
 
@@ -198,18 +204,22 @@ private struct WatchlistListView: View {
     var body: some View {
         GeometryReader { geometry in
             ObservableScrollView(scrollContent: $scrollContent, showsIndicators: false) { _ in
-                LazyVGrid(columns: [GridItem(spacing: 4), GridItem()], spacing: 4) {
-                    ForEach(viewModel.items) { item in
-                        switch item {
-                        case .movie(let movie, _):
-                            MovieShelfPreviewView(
-                                movieDetails: movie.details,
-                                onItemSelected: onItemSelected
-                            )
-                        }
+                Group {
+                    switch viewModel.section {
+                    case .toWatch:
+                        WishlistListView(
+                            sorting: $sorting,
+                            items: viewModel.items,
+                            onItemSelected: onItemSelected
+                        )
+                    case .watched:
+                        WatchedListView(
+                            sorting: $sorting,
+                            items: viewModel.items,
+                            onItemSelected: onItemSelected
+                        )
                     }
                 }
-                .padding(.horizontal, 4)
                 .onChange(of: scrollContent) { info in
                     updateShouldShowBars(geometry: geometry)
                 }
@@ -233,19 +243,19 @@ struct WatchlistView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
             WatchlistView(presentedItem: .constant(nil))
-                .environment(\.requestManager, MockRequestManager.shared)
+                .environment(\.requestLoader, MockRequestLoader.shared)
                 .environmentObject(MockWatchlistProvider.shared.watchlist())
         }
 
         NavigationView {
             WatchlistView(presentedItem: .constant(nil))
-                .environment(\.requestManager, MockRequestManager.shared)
+                .environment(\.requestLoader, MockRequestLoader.shared)
                 .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .toWatchItems(withSuggestion: true)))
         }
 
         NavigationView {
             WatchlistView(presentedItem: .constant(nil))
-                .environment(\.requestManager, MockRequestManager.shared)
+                .environment(\.requestLoader, MockRequestLoader.shared)
                 .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .empty))
         }
     }

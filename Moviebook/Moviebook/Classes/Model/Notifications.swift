@@ -60,14 +60,14 @@ final class Notifications {
 
     // MARK: Internal methods
 
-    func schedule(for watchlist: Watchlist, requestManager: RequestManager) async {
+    func schedule(for watchlist: Watchlist, requestLoader: RequestLoader) async {
         let items = await watchlist.items
         for item in items {
-            try? await self.schedule(for: item, requestManager: requestManager)
+            try? await self.schedule(for: item, requestLoader: requestLoader)
         }
 
         await watchlist.itemDidUpdateState
-            .sink { item in Task { try await self.schedule(for: item, requestManager: requestManager) }}
+            .sink { item in Task { try await self.schedule(for: item, requestLoader: requestLoader) }}
             .store(in: &subscriptions)
 
         await watchlist.itemWasRemoved
@@ -77,12 +77,12 @@ final class Notifications {
 
     // MARK: Private scheduling methods
 
-    private func schedule(for item: WatchlistItem, requestManager: RequestManager) async throws {
+    private func schedule(for item: WatchlistItem, requestLoader: RequestLoader) async throws {
         switch item.id {
         case .movie(let movieId):
             let notificationIdentifier = String(movieId)
             if case .toWatch = item.state {
-                let webService = WebService.movieWebService(requestManager: requestManager)
+                let webService = WebService.movieWebService(requestLoader: requestLoader)
                 let movie = try await webService.fetchMovie(with: movieId)
                 try await scheduleIfNeeded(notificationWith: notificationIdentifier, for: movie)
             } else {

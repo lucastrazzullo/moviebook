@@ -15,7 +15,7 @@ struct TMDBWatchProviderResponse: Decodable {
         case logoPath = "logo_path"
     }
 
-    let result: WatchProvider
+    let provider: WatchProvider
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -24,6 +24,6 @@ struct TMDBWatchProviderResponse: Decodable {
         let logoPath = try container.decode(String.self, forKey: .logoPath)
         let iconUrl = try TheMovieDbImageRequestFactory.makeURL(format: .logo(path: logoPath, size: .preview))
 
-        self.result = WatchProvider(name: name, iconUrl: iconUrl)
+        self.provider = WatchProvider(name: name, iconUrl: iconUrl)
     }
 }

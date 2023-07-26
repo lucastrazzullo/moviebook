@@ -55,7 +55,7 @@ struct ArtistPreviewView_Previews: PreviewProvider {
     static var previews: some View {
         ScrollView(showsIndicators: false) {
             ArtistPreviewViewPreview()
-                .environment(\.requestManager, MockRequestManager.shared)
+                .environment(\.requestLoader, MockRequestLoader.shared)
                 .environmentObject(MockWatchlistProvider.shared.watchlist())
         }
     }
@@ -63,7 +63,7 @@ struct ArtistPreviewView_Previews: PreviewProvider {
 
 private struct ArtistPreviewViewPreview: View {
 
-    @Environment(\.requestManager) var requestManager
+    @Environment(\.requestLoader) var requestLoader
     @State var artist: Artist?
 
     var body: some View {
@@ -75,7 +75,7 @@ private struct ArtistPreviewViewPreview: View {
             }
         }
         .task {
-            let webService = WebService.artistWebService(requestManager: requestManager)
+            let webService = WebService.artistWebService(requestLoader: requestLoader)
             artist = try! await webService.fetchArtist(with: 287)
         }
     }

@@ -11,7 +11,7 @@ import MoviebookCommon
 struct ExploreView: View {
 
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.requestManager) var requestManager
+    @Environment(\.requestLoader) var requestLoader
     @EnvironmentObject var watchlist: Watchlist
 
     @StateObject private var searchViewModel: SearchViewModel
@@ -91,19 +91,19 @@ struct ExploreView: View {
                 .onAppear {
                     if !started {
                         started = true
-                        movieGenresViewModel.start(requestManager: requestManager)
-                        searchViewModel.start(requestManager: requestManager)
-                        discoverViewModel.start(selectedGenres: movieGenresViewModel.$selectedGenres, watchlist: watchlist, requestManager: requestManager)
+                        movieGenresViewModel.start(requestLoader: requestLoader)
+                        searchViewModel.start(requestLoader: requestLoader)
+                        discoverViewModel.start(selectedGenres: movieGenresViewModel.$selectedGenres, watchlist: watchlist, requestLoader: requestLoader)
                     }
                 }
             }
         }
     }
 
-    init() {
+    init(selectedGenres: Set<MovieGenre>) {
         self._searchViewModel = StateObject(wrappedValue: SearchViewModel(scope: .movie, query: ""))
         self._discoverViewModel = StateObject(wrappedValue: DiscoverViewModel())
-        self._movieGenresViewModel = StateObject(wrappedValue: MovieGenresViewModel())
+        self._movieGenresViewModel = StateObject(wrappedValue: MovieGenresViewModel(selectedGenres: selectedGenres))
     }
 }
 
@@ -112,8 +112,8 @@ import MoviebookTestSupport
 
 struct ExploreView_Previews: PreviewProvider {
     static var previews: some View {
-        ExploreView()
-            .environment(\.requestManager, MockRequestManager.shared)
+        ExploreView(selectedGenres: [])
+            .environment(\.requestLoader, MockRequestLoader.shared)
             .environmentObject(MockWatchlistProvider.shared.watchlist())
     }
 }

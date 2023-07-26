@@ -38,6 +38,15 @@ public struct WatchlistItem: Equatable, Hashable {
         }
     }
 
+    public var rating: Double? {
+        switch state {
+        case .toWatch:
+            return nil
+        case .watched(let info):
+            return info.rating
+        }
+    }
+
     public init(id: WatchlistItemIdentifier, state: WatchlistItemState) {
         self.id = id
         self.state = state

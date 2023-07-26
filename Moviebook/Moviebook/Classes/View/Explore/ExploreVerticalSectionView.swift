@@ -17,7 +17,7 @@ struct ExploreVerticalSectionView: View {
     var body: some View {
         VStack {
             if let error = viewModel.error {
-                RetriableErrorView(retry: error.retry)
+                RetriableErrorView(error: error)
             }
 
             switch viewModel.items {
@@ -80,7 +80,7 @@ struct ExploreSectionView_Previews: PreviewProvider {
     
     static var previews: some View {
         ExploreSectionViewPreview()
-            .environment(\.requestManager, MockRequestManager.shared)
+            .environment(\.requestLoader, MockRequestLoader.shared)
             .environmentObject(MockWatchlistProvider.shared.watchlist())
     }
 }
@@ -88,14 +88,14 @@ struct ExploreSectionView_Previews: PreviewProvider {
 private struct ExploreSectionViewPreview: View {
 
     struct DataProvider: ExploreContentDataProvider {
-        func fetch(requestManager: RequestManager, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
-            let response = try await WebService.movieWebService(requestManager: requestManager)
+        func fetch(requestLoader: RequestLoader, page: Int?) async throws -> (results: ExploreContentItems, nextPage: Int?) {
+            let response = try await WebService.movieWebService(requestLoader: requestLoader)
                 .fetchMovies(discoverSection: .popular, genres: [], page: page)
             return (results: .movies(response.results), nextPage: response.nextPage)
         }
     }
 
-    @Environment(\.requestManager) var requestManager
+    @Environment(\.requestLoader) var requestLoader
     @ObservedObject var viewModel: ExploreContentViewModel
 
     var body: some View {
@@ -103,7 +103,7 @@ private struct ExploreSectionViewPreview: View {
             ExploreVerticalSectionView(viewModel: viewModel, onItemSelected: { _ in })
         }
         .task {
-            await viewModel.fetch(requestManager: requestManager) { _ in }
+            await viewModel.fetch(requestLoader: requestLoader) { _ in }
         }
     }
 

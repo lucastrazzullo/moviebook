@@ -25,12 +25,12 @@ struct TMDBMovieVideoResponse: Codable {
         case official
     }
 
-    let result: MovieVideo
+    let video: MovieVideo
 
     // MARK: Object life cycle
 
-    init(result: MovieVideo) {
-        self.result = result
+    init(video: MovieVideo) {
+        self.video = video
     }
 
     init(from decoder: Decoder) throws {
@@ -67,17 +67,17 @@ struct TMDBMovieVideoResponse: Codable {
             throw DecodingError.siteNotSupported(site)
         }
 
-        self.result = MovieVideo(id: id, name: name, type: type, source: source)
+        self.video = MovieVideo(id: id, name: name, type: type, source: source)
     }
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
-        try container.encode(result.id, forKey: .id)
-        try container.encode(result.name, forKey: .name)
+        try container.encode(video.id, forKey: .id)
+        try container.encode(video.name, forKey: .name)
 
         let type: String
-        switch result.type {
+        switch video.type {
         case .trailer:
             type = "Trailer"
         case .teaser:
@@ -88,7 +88,7 @@ struct TMDBMovieVideoResponse: Codable {
 
         let key: String
         let site: String
-        switch result.source {
+        switch video.source {
         case .youtube(let id):
             key = id
             site = "YouTube"

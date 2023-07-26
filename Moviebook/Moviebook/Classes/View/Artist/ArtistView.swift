@@ -10,7 +10,7 @@ import MoviebookCommon
 
 struct ArtistView: View {
 
-    @Environment(\.requestManager) var requestManager
+    @Environment(\.requestLoader) var requestLoader
 
     @StateObject private var viewModel: ArtistViewModel
 
@@ -53,7 +53,7 @@ struct ArtistView: View {
             isErrorPresented = error != nil
         }
         .onAppear {
-            viewModel.start(requestManager: requestManager)
+            viewModel.start(requestLoader: requestLoader)
         }
     }
 
@@ -96,7 +96,7 @@ struct ArtistView_Previews: PreviewProvider {
         NavigationView {
             ArtistView(artistId: 287, navigationPath: .constant(NavigationPath()))
                 .environmentObject(MockWatchlistProvider.shared.watchlist())
-                .environment(\.requestManager, MockRequestManager.shared)
+                .environment(\.requestLoader, MockRequestLoader.shared)
         }
     }
 }

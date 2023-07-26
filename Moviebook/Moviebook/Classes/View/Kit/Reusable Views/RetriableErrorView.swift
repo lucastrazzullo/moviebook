@@ -6,10 +6,11 @@
 //
 
 import SwiftUI
+import MoviebookCommon
 
 struct RetriableErrorView: View {
 
-    let retry: () -> Void
+    let error: WebServiceError
 
     var body: some View {
         VStack(spacing: 12) {
@@ -17,7 +18,7 @@ struct RetriableErrorView: View {
                 .foregroundColor(.primary)
                 .font(.title2)
 
-            Button(action: retry) {
+            Button(action: error.retry) {
                 Text("Retry")
             }
             .buttonStyle(OvalButtonStyle(.prominentSmall))
@@ -32,7 +33,12 @@ struct RetriableErrorView: View {
 }
 
 struct RetriableErrorView_Previews: PreviewProvider {
+
+    enum MockError: Error {
+        case someError
+    }
+
     static var previews: some View {
-        RetriableErrorView(retry: {})
+        RetriableErrorView(error: .failedToLoad(error: MockError.someError, retry: {}))
     }
 }

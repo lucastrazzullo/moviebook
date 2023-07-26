@@ -35,10 +35,12 @@ import MoviebookCommon
             ])
         case .watchedItems(let withSuggestion, let withRating):
             let suggestion: WatchlistItemToWatchInfo.Suggestion? = withSuggestion ? makeSuggestion() : nil
-            let rating: Double? = withRating ? 6.4 : nil
             return Watchlist(items: [
-                WatchlistItem(id: .movie(id: 954), state: .watched(info: .init(toWatchInfo: .init(date: .now, suggestion: suggestion), rating: rating, date: .now))),
-                WatchlistItem(id: .movie(id: 616037), state: .watched(info: .init(toWatchInfo: .init(date: .now, suggestion: suggestion), rating: rating, date: .now)))
+                WatchlistItem(id: .movie(id: 954), state: .watched(info: .init(toWatchInfo: .init(date: .now, suggestion: suggestion), rating: withRating ? .random(in: 1...10) : nil, date: .now))),
+                WatchlistItem(id: .movie(id: 353081), state: .watched(info: .init(toWatchInfo: .init(date: .now, suggestion: suggestion), rating: withRating ? .random(in: 1...10) : nil, date: .now))),
+                WatchlistItem(id: .movie(id: 502356), state: .watched(info: .init(toWatchInfo: .init(date: .now, suggestion: suggestion), rating: withRating ? .random(in: 1...10) : nil, date: .now))),
+                WatchlistItem(id: .movie(id: 616037), state: .watched(info: .init(toWatchInfo: .init(date: .now, suggestion: suggestion), rating: withRating ? .random(in: 1...10) : nil, date: .now))),
+                WatchlistItem(id: .movie(id: 713704), state: .watched(info: .init(toWatchInfo: .init(date: .now, suggestion: suggestion), rating: withRating ? .random(in: 1...10) : nil, date: .now)))
             ])
         case .empty:
             return Watchlist(items: [])

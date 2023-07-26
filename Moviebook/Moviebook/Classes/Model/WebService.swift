@@ -11,15 +11,15 @@ import MoviebookCommon
 
 enum WebService {
 
-    static func movieWebService(requestManager: RequestManager) -> MovieWebService {
-        return TheMovieDbMovieWebService(requestManager: requestManager)
+    static func movieWebService(requestLoader: RequestLoader) -> MovieWebService {
+        return TheMovieDbMovieWebService(requestLoader: requestLoader)
     }
 
-    static func artistWebService(requestManager: RequestManager) -> ArtistWebService {
-        return TheMovieDbArtistWebService(requestManager: requestManager)
+    static func artistWebService(requestLoader: RequestLoader) -> ArtistWebService {
+        return TheMovieDbArtistWebService(requestLoader: requestLoader)
     }
 
-    static func searchWebService(requestManager: RequestManager) -> SearchWebService {
-        return TheMovieDbSearchWebService(requestManager: requestManager)
+    static func searchWebService(requestLoader: RequestLoader) -> SearchWebService {
+        return TheMovieDbSearchWebService(requestLoader: requestLoader)
     }
 }

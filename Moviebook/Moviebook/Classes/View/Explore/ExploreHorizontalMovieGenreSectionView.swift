@@ -55,14 +55,14 @@ import MoviebookTestSupport
 
 struct ExploreHorizontalGenreSection_Previews: PreviewProvider {
 
-    static var viewModel = MovieGenresViewModel()
+    static var viewModel = MovieGenresViewModel(selectedGenres: [])
 
     static var previews: some View {
         ScrollView {
             ExploreHorizontalMovieGenreSectionView(viewModel: viewModel)
         }
         .onAppear {
-            viewModel.start(requestManager: MockRequestManager.shared)
+            viewModel.start(requestLoader: MockRequestLoader.shared)
         }
     }
 }

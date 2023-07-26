@@ -53,7 +53,7 @@ final class DiscoverRelated {
 
     // MARK: Private methods
 
-    func update(referenceMovies: [ReferenceMovie], overrideGenres: [MovieGenre.ID], requestManager: RequestManager) async {
+    func update(referenceMovies: [ReferenceMovie], overrideGenres: [MovieGenre.ID], requestLoader: RequestLoader) async {
         self.referenceMovies = referenceMovies
         self.overriddenGenres = overrideGenres
     }
@@ -61,11 +61,11 @@ final class DiscoverRelated {
 
 extension DiscoverRelated: ExploreContentDataProvider {
 
-    func fetch(requestManager: RequestManager, page: Int?) async throws -> ExploreContentDataProvider.Response {
+    func fetch(requestLoader: RequestLoader, page: Int?) async throws -> ExploreContentDataProvider.Response {
         let filters = await withTaskGroup(of: (movie: Movie, weight: ReferenceMovie.Weight)?.self) { group in
             for movieReference in referenceMovies {
                 group.addTask {
-                    if let movie = try? await WebService.movieWebService(requestManager: requestManager)
+                    if let movie = try? await WebService.movieWebService(requestLoader: requestLoader)
                         .fetchMovie(with: movieReference.id) {
                         return (movie: movie, weight: movieReference.weight)
                     } else {
@@ -102,7 +102,7 @@ extension DiscoverRelated: ExploreContentDataProvider {
         var results: ExploreContentDataProvider.Response = (results: .movies([]), nextPage: page)
         repeat {
             let response = try await WebService
-                .movieWebService(requestManager: requestManager)
+                .movieWebService(requestLoader: requestLoader)
                 .fetchMovies(keywords: keywordsFilter,
                              genres: genresFilter,
                              page: results.nextPage)
