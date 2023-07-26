@@ -13,43 +13,19 @@ public protocol RequestLoader: AnyObject {
 
 public actor DefaultRequestLoader: RequestLoader {
 
-    final class Response {
-
-        private let lifeTime: TimeInterval = 24 * 60 * 60
-
-        let data: Data
-        let createdDate: Date
-
-        var isExpired: Bool {
-            createdDate + lifeTime < Date.now
-        }
-
-        init(data: Data) {
-            self.data = data
-            self.createdDate = Date.now
-        }
-
-        init(data: Data, createdDate: Date) {
-            self.data = data
-            self.createdDate = createdDate
-        }
-    }
-
     private enum LoaderStatus {
         case inProgress(Task<Data, Error>)
-        case fetched(Response)
+        case fetched(CacheEntry)
     }
 
     // MARK: Private properties
 
     private var requests: [URLRequest: LoaderStatus]
-    private let cache: NSCache<AnyObject, AnyObject>
 
     // MARK: Object life cycle
 
     public init() {
         self.requests = [:]
-        self.cache = NSCache<AnyObject, AnyObject>()
     }
 
     // MARK: Internal methods
@@ -69,7 +45,7 @@ public actor DefaultRequestLoader: RequestLoader {
                 }
             }
 
-            if let cachedResponse = self.getCachedResponse(for: urlRequest), !cachedResponse.isExpired {
+            if let cachedResponse = try? LoaderCache.getCached(for: urlRequest), !cachedResponse.isExpired {
                 requests[urlRequest] = .fetched(cachedResponse)
                 return cachedResponse.data
             }
@@ -81,9 +57,9 @@ public actor DefaultRequestLoader: RequestLoader {
 
             let task: Task<Data, Error> = Task {
                 let (data, _) = try await session.data(from: url)
-                let response = Response(data: data)
-                cacheResponse(response, for: urlRequest)
-                requests[urlRequest] = .fetched(response)
+                let entry = CacheEntry(data: data)
+                try? LoaderCache.cache(entry, for: urlRequest)
+                requests[urlRequest] = .fetched(entry)
                 return data
             }
 
@@ -94,15 +70,5 @@ public actor DefaultRequestLoader: RequestLoader {
             requests[urlRequest] = nil
             throw error
         }
-    }
-
-    private func cacheResponse(_ response: Response, for urlRequest: URLRequest) {
-        guard let key = urlRequest.url?.absoluteString else { return }
-        cache.setObject(response, forKey: NSString(string: key))
-    }
-
-    private func getCachedResponse(for urlRequest: URLRequest) -> Response? {
-        guard let key = urlRequest.url?.absoluteString else { return nil }
-        return cache.object(forKey: NSString(string: key)) as? Response
     }
 }
