@@ -11,6 +11,7 @@ struct WishlistListView: View {
 
     @AppStorage("wishlistSorting") private var internalSorting: WatchlistViewSorting = .lastAdded
     @State private var isPresented: Bool = false
+    @State private var selectedGenre: MovieGenre? = nil
 
     @Binding var sorting: WatchlistViewSorting
 
@@ -18,18 +19,25 @@ struct WishlistListView: View {
     let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
-        LazyVGrid(columns: [GridItem(spacing: 4), GridItem()], spacing: 4) {
-            ForEach(items.sorted(by: sort(sorting: sorting))) { item in
-                switch item {
-                case .movie(let movie, _):
-                    MovieShelfPreviewView(
-                        movieDetails: movie.details,
-                        onItemSelected: onItemSelected
-                    )
+        VStack(spacing: 24) {
+            MovieGenresPicker(
+                selectedGenre: $selectedGenre,
+                genres: allGenres
+            )
+
+            LazyVGrid(columns: [GridItem(spacing: 4), GridItem()], spacing: 4) {
+                ForEach(items.filter(filter(selectedGenre: selectedGenre)).sorted(by: sort(sorting: sorting))) { item in
+                    switch item {
+                    case .movie(let movie, _):
+                        MovieShelfPreviewView(
+                            movieDetails: movie.details,
+                            onItemSelected: onItemSelected
+                        )
+                    }
                 }
             }
+            .padding(.horizontal, 4)
         }
-        .padding(.horizontal, 4)
         .onAppear {
             isPresented = true
             sorting = internalSorting
@@ -40,6 +48,30 @@ struct WishlistListView: View {
         .onChange(of: sorting) { sorting in
             if isPresented {
                 internalSorting = sorting
+            }
+        }
+        .animation(.default, value: selectedGenre)
+    }
+
+    private var allGenres: [MovieGenre] {
+        let uniqueGenres = items.reduce(Set<MovieGenre>()) { list, item in
+            switch item {
+            case .movie(let movie, _):
+                return list.union(Set(movie.genres))
+            }
+        }
+
+        return Array(uniqueGenres).sorted(by: { $0.name < $1.name })
+    }
+
+    private func filter(selectedGenre: MovieGenre?) -> (WatchlistViewItem) -> Bool {
+        return { item in
+            guard let selectedGenre else {
+                return true
+            }
+            switch item {
+            case .movie(let movie, _):
+                return Set(movie.genres).contains(selectedGenre)
             }
         }
     }

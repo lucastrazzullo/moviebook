@@ -254,7 +254,7 @@ private struct ListView: View {
             sections.append(SortingSection(title: "Low rated", icon: "star.slash.fill", items: lowRatingItems))
         }
         if !unratedItems.isEmpty {
-            sections.append(SortingSection(title: "Not rated", icon: "star.square.on.square", items: unratedItems))
+            sections.append(SortingSection(title: "Not rated", icon: "pencil.tip.crop.circle.badge.plus", items: unratedItems))
         }
 
         return sections

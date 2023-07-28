@@ -8,9 +8,11 @@
 import SwiftUI
 import MoviebookCommon
 
-struct ExploreHorizontalMovieGenreSectionView: View {
+struct MovieGenreSelectionView: View {
 
-    @ObservedObject var viewModel: MovieGenresViewModel
+    @Binding var selectedGenres: Set<MovieGenre>
+
+    let genres: [MovieGenre]
 
     var body: some View {
         VStack {
@@ -23,22 +25,22 @@ struct ExploreHorizontalMovieGenreSectionView: View {
 
             ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack {
-                    ForEach(viewModel.genres) { genre in
+                    ForEach(genres) { genre in
                         Text(genre.name)
                             .font(.caption.bold())
                             .padding(8)
                             .background(
-                                viewModel.selectedGenres.contains(genre) ? .ultraThinMaterial : .ultraThickMaterial,
+                                selectedGenres.contains(genre) ? .ultraThinMaterial : .ultraThickMaterial,
                                 in: RoundedRectangle(cornerRadius: 14)
                             )
                             .padding(2)
                             .background(.yellow, in: RoundedRectangle(cornerRadius: 16))
                             .id(genre.id)
                             .onTapGesture {
-                                if viewModel.selectedGenres.contains(genre) {
-                                    self.viewModel.selectedGenres.remove(genre)
+                                if selectedGenres.contains(genre) {
+                                    selectedGenres.remove(genre)
                                 } else {
-                                    self.viewModel.selectedGenres.insert(genre)
+                                    selectedGenres.insert(genre)
                                 }
                             }
                     }
@@ -55,14 +57,18 @@ import MoviebookTestSupport
 
 struct ExploreHorizontalGenreSection_Previews: PreviewProvider {
 
-    static var viewModel = MovieGenresViewModel(selectedGenres: [])
-
     static var previews: some View {
         ScrollView {
-            ExploreHorizontalMovieGenreSectionView(viewModel: viewModel)
-        }
-        .onAppear {
-            viewModel.start(requestLoader: MockRequestLoader.shared)
+            MovieGenreSelectionView(
+                selectedGenres: .constant([]),
+                genres: [
+                    MovieGenre(id: 0, name: "Action"),
+                    MovieGenre(id: 1, name: "Adventure"),
+                    MovieGenre(id: 2, name: "Anime"),
+                    MovieGenre(id: 3, name: "Horror"),
+                    MovieGenre(id: 4, name: "Thriller")
+                ]
+            )
         }
     }
 }
