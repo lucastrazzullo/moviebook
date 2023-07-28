@@ -62,12 +62,12 @@ struct WishlistListView: View {
 
 private struct ListView: View {
 
-    struct SortingSection: Hashable {
+    struct ListSection: Hashable {
         let collection: MovieCollection?
         var items: [WatchlistViewItem]
     }
 
-    let sections: [SortingSection]
+    let sections: [ListSection]
     let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
@@ -98,10 +98,10 @@ private struct ListView: View {
 
     // MARK: Private view builders
 
-    @ViewBuilder private func sectionHeader(section: SortingSection) -> some View {
+    @ViewBuilder private func sectionHeader(section: ListSection) -> some View {
         if let collection = section.collection {
             HStack {
-                Image(systemName: "square.filled.on.square")
+                Image(systemName: "square.grid.2x2")
                 Text(collection.name)
                     .font(.headline)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -110,9 +110,20 @@ private struct ListView: View {
         }
     }
 
-    @ViewBuilder private func sectionFooter(section: SortingSection) -> some View {
-        if section.collection != nil {
-            Divider().padding()
+    @ViewBuilder private func sectionFooter(section: ListSection) -> some View {
+        if let collection = section.collection {
+            MovieCollectionFooterView(
+                collection: collection,
+                moviesFilter: Set(section.items.compactMap { item in
+                    if case .movie(let movie, _) = item {
+                        return movie.id
+                    } else {
+                        return nil
+                    }
+                }),
+                onItemSelected: onItemSelected
+            )
+            .padding(.bottom)
         } else {
             Spacer()
         }
@@ -120,10 +131,10 @@ private struct ListView: View {
 
     // MARK: Private factory methods
 
-    private static func makeSections(items: [WatchlistViewItem], sorting: WatchlistViewSorting, genreFilter: MovieGenre?) -> [SortingSection] {
+    private static func makeSections(items: [WatchlistViewItem], sorting: WatchlistViewSorting, genreFilter: MovieGenre?) -> [ListSection] {
 
-        var sections: [SortingSection] = []
-        var currentSection: SortingSection?
+        var sections: [ListSection] = []
+        var currentSection: ListSection?
 
         for item in items
             .filter(filter(genre: genreFilter))
@@ -140,7 +151,7 @@ private struct ListView: View {
                             sections.append(currentSection)
                         }
 
-                        currentSection = SortingSection(
+                        currentSection = ListSection(
                             collection: collection,
                             items: [item]
                         )
@@ -154,7 +165,7 @@ private struct ListView: View {
                     if currentSection != nil {
                         currentSection?.items.append(item)
                     } else {
-                        currentSection = SortingSection(
+                        currentSection = ListSection(
                             collection: nil,
                             items: [item]
                         )
@@ -194,6 +205,52 @@ private struct ListView: View {
             case .release:
                 return lhs.releaseDate > rhs.releaseDate
             }
+        }
+    }
+}
+
+private struct MovieCollectionFooterView: View {
+
+    @Environment(\.requestLoader) var requestManager
+
+    @State private var movies: [MovieDetails] = []
+
+    let collection: MovieCollection
+    let moviesFilter: Set<Movie.ID>
+    let onItemSelected: (NavigationItem) -> Void
+
+    var body: some View {
+        ZStack {
+            if !movies.isEmpty {
+                VStack(alignment: .leading) {
+                    HStack {
+                        Image(systemName: "plus.square")
+                        Text("More from collection")
+                    }
+                    .font(.footnote.bold())
+
+                    LazyVGrid(columns: [GridItem(spacing: 4),
+                                        GridItem(spacing: 4),
+                                        GridItem(spacing: 4),
+                                        GridItem(spacing: 4)], spacing: 4) {
+
+                        ForEach(movies) { movie in
+                            MovieShelfPreviewView(
+                                movieDetails: movie,
+                                onItemSelected: onItemSelected
+                            )
+                        }
+                    }
+                }
+                .padding(12)
+                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding()
+            }
+        }
+        .task {
+            let webService = WebService.movieWebService(requestLoader: requestManager)
+            movies = (try? await webService.fetchMovieCollection(with: collection.id))?.list?.filter({ !moviesFilter.contains($0.id) }) ?? []
         }
     }
 }
