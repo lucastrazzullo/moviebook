@@ -288,7 +288,6 @@ private struct ListView: View {
 }
 
 #if DEBUG
-import MoviebookCommon
 import MoviebookTestSupport
 
 struct WatchedListView_Previews: PreviewProvider {

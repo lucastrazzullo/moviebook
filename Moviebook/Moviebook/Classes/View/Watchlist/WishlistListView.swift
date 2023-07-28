@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import MoviebookCommon
 
 struct WishlistListView: View {
 
@@ -93,7 +94,6 @@ struct WishlistListView: View {
 }
 
 #if DEBUG
-import MoviebookCommon
 import MoviebookTestSupport
 
 struct WishlistListView_Previews: PreviewProvider {
