@@ -100,7 +100,7 @@ private struct ListView: View {
 
     @ViewBuilder private func sectionHeader(section: ListSection) -> some View {
         if let collection = section.collection {
-            HStack {
+            HStack(alignment: .firstTextBaseline) {
                 Image(systemName: "square.grid.2x2")
                 Text(collection.name)
                     .font(.headline)
