@@ -16,7 +16,7 @@ struct ExploreView: View {
 
     @StateObject private var searchViewModel: SearchViewModel
     @StateObject private var discoverViewModel: DiscoverViewModel
-    @StateObject private var movieGenresViewModel: MovieGenresViewModel
+    @StateObject private var genresViewModel: MovieGenresViewModel
 
     @State private var started: Bool = false
     @State private var presentedItem: NavigationItem?
@@ -36,8 +36,11 @@ struct ExploreView: View {
                                 }
                             )
                         } else {
-                            ExploreHorizontalMovieGenreSectionView(viewModel: movieGenresViewModel)
-                                .stickingToTop(coordinateSpaceName: stickyScrollingSpace)
+                            MovieGenreSelectionView(
+                                selectedGenres: $genresViewModel.selectedGenres,
+                                genres: genresViewModel.genres
+                            )
+                            .stickingToTop(coordinateSpaceName: stickyScrollingSpace)
 
                             VStack(spacing: 12) {
                                 ForEach(discoverViewModel.sectionsContent) { content in
@@ -91,9 +94,9 @@ struct ExploreView: View {
                 .onAppear {
                     if !started {
                         started = true
-                        movieGenresViewModel.start(requestLoader: requestLoader)
+                        genresViewModel.start(requestLoader: requestLoader)
                         searchViewModel.start(requestLoader: requestLoader)
-                        discoverViewModel.start(selectedGenres: movieGenresViewModel.$selectedGenres, watchlist: watchlist, requestLoader: requestLoader)
+                        discoverViewModel.start(selectedGenres: genresViewModel.$selectedGenres, watchlist: watchlist, requestLoader: requestLoader)
                     }
                 }
             }
@@ -103,7 +106,7 @@ struct ExploreView: View {
     init(selectedGenres: Set<MovieGenre>) {
         self._searchViewModel = StateObject(wrappedValue: SearchViewModel(scope: .movie, query: ""))
         self._discoverViewModel = StateObject(wrappedValue: DiscoverViewModel())
-        self._movieGenresViewModel = StateObject(wrappedValue: MovieGenresViewModel(selectedGenres: selectedGenres))
+        self._genresViewModel = StateObject(wrappedValue: MovieGenresViewModel(selectedGenres: selectedGenres))
     }
 }
 

@@ -154,7 +154,9 @@ struct WatchlistIcon: View {
         VStack(alignment: .leading) {
             Image(systemName: WatchlistViewState(itemState: itemState).icon)
             if let itemState, case .watched(let info) = itemState, let rating = info.rating {
-                Text(rating, format: .number.precision(.fractionLength(1))).font(.caption2)
+                Text(rating, format: .number.precision(.fractionLength(1)))
+                    .font(.caption2)
+                    .fixedSize(horizontal: true, vertical: false)
             }
         }
     }

@@ -13,14 +13,24 @@ public actor ImageLoader {
 
     private enum LoaderStatus {
         case inProgress(Task<UIImage, Error>)
-        case fetched(CacheEntry)
+        case fetched(CacheEntry<UIImageContainer>)
     }
 
+    // MARK: Private properties
+
+    private let imageLifetime: TimeInterval = 24*60*60
+
+    private let persistentCache: PersistentCache
     private var images: [URLRequest: LoaderStatus]
 
+    // MARK: Object life cycle
+
     public init() {
+        self.persistentCache = PersistentCache()
         self.images = [:]
     }
+
+    // MARK: Public methods
 
     public func fetch(_ url: URL) async throws -> UIImage {
         let urlRequest = URLRequest(url: url)
@@ -28,8 +38,8 @@ public actor ImageLoader {
         do {
             if let status = images[urlRequest] {
                 switch status {
-                case .fetched(let image) where !image.isExpired:
-                    return UIImage(data: image.data)!
+                case .fetched(let cacheEntry) where !cacheEntry.isExpired:
+                    return cacheEntry.content.image
                 case .inProgress(let task):
                     return try await task.value
                 default:
@@ -37,17 +47,19 @@ public actor ImageLoader {
                 }
             }
 
-            if let cachedImage = try? LoaderCache.getCached(for: urlRequest), !cachedImage.isExpired {
-                images[urlRequest] = .fetched(cachedImage)
-                return UIImage(data: cachedImage.data)!
+            if let cachedEntry: CacheEntry<UIImageContainer> = try? persistentCache.getCached(for: urlRequest) {
+                images[urlRequest] = .fetched(cachedEntry)
+                return cachedEntry.content.image
             }
 
             let task: Task<UIImage, Error> = Task {
                 let (imageData, _) = try await URLSession.shared.data(for: urlRequest)
-                let entry = CacheEntry(data: imageData)
-                try? LoaderCache.cache(entry, for: urlRequest)
+                let image = UIImage(data: imageData)!
+                let imageContainer = UIImageContainer(image: image)
+                let entry = CacheEntry(content: imageContainer, lifeTime: imageLifetime)
+                try? persistentCache.cache(entry, for: urlRequest)
                 images[urlRequest] = .fetched(entry)
-                return UIImage(data: imageData)!
+                return image
             }
 
             images[urlRequest] = .inProgress(task)
@@ -57,5 +69,30 @@ public actor ImageLoader {
             images[urlRequest] = nil
             throw error
         }
+    }
+}
+
+private struct UIImageContainer: Codable {
+
+    enum CodingKeys: CodingKey {
+        case data
+    }
+
+    let image: UIImage
+
+    init(image: UIImage) {
+        self.image = image
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let data = try container.decode(Data.self, forKey: .data)
+        self.image = UIImage(data: data)!
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        let data = image.pngData()
+        try container.encode(data, forKey: .data)
     }
 }

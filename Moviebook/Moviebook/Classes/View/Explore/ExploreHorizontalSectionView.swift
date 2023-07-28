@@ -52,7 +52,7 @@ struct ExploreHorizontalSectionView<Destination: View>: View {
                                         switch viewModel.items {
                                         case .movies:
                                             return (0..<numberOfRows).map { _ in
-                                                GridItem(.fixed(100), spacing: 16)
+                                                GridItem(.fixed(110), spacing: 12)
                                             }
                                         case .artists:
                                             return (0..<numberOfRows).map { _ in
