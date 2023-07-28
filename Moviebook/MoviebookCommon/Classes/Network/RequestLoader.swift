@@ -15,20 +15,24 @@ public actor DefaultRequestLoader: RequestLoader {
 
     private enum LoaderStatus {
         case inProgress(Task<Data, Error>)
-        case fetched(CacheEntry)
+        case fetched(CacheEntry<Data>)
     }
 
     // MARK: Private properties
 
+    private let responseLifetime: TimeInterval = 12*60*60
+
+    private let persistentCache: PersistentCache
     private var requests: [URLRequest: LoaderStatus]
 
     // MARK: Object life cycle
 
     public init() {
+        self.persistentCache = PersistentCache()
         self.requests = [:]
     }
 
-    // MARK: Internal methods
+    // MARK: Public methods
 
     public func request(from url: URL) async throws -> Data {
         let urlRequest = URLRequest(url: url)
@@ -36,8 +40,8 @@ public actor DefaultRequestLoader: RequestLoader {
         do {
             if let status = requests[urlRequest] {
                 switch status {
-                case .fetched(let response) where !response.isExpired:
-                    return response.data
+                case .fetched(let cacheEntry) where !cacheEntry.isExpired:
+                    return cacheEntry.content
                 case .inProgress(let task):
                     return try await task.value
                 default:
@@ -45,9 +49,9 @@ public actor DefaultRequestLoader: RequestLoader {
                 }
             }
 
-            if let cachedResponse = try? LoaderCache.getCached(for: urlRequest), !cachedResponse.isExpired {
-                requests[urlRequest] = .fetched(cachedResponse)
-                return cachedResponse.data
+            if let cachedEntry: CacheEntry<Data> = try? persistentCache.getCached(for: urlRequest) {
+                requests[urlRequest] = .fetched(cachedEntry)
+                return cachedEntry.content
             }
 
             let sessionConfiguguration = URLSessionConfiguration.default
@@ -57,9 +61,9 @@ public actor DefaultRequestLoader: RequestLoader {
 
             let task: Task<Data, Error> = Task {
                 let (data, _) = try await session.data(from: url)
-                let entry = CacheEntry(data: data)
-                try? LoaderCache.cache(entry, for: urlRequest)
-                requests[urlRequest] = .fetched(entry)
+                let cacheEntry = CacheEntry(content: data, lifeTime: responseLifetime)
+                try? persistentCache.cache(cacheEntry, for: urlRequest)
+                requests[urlRequest] = .fetched(cacheEntry)
                 return data
             }
 
