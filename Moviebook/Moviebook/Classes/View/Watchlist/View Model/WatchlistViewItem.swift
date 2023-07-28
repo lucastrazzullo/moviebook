@@ -11,8 +11,8 @@ import MoviebookCommon
 enum WatchlistViewItem: Identifiable, Equatable, Hashable {
     case movie(movie: Movie, watchlistItem: WatchlistItem)
 
-    var id: String {
-        "\(watchlistItem.id).\(addedDate).\(name).\(releaseDate).\(rating)"
+    var id: AnyHashable {
+        watchlistItem.id
     }
 
     var addedDate: Date {

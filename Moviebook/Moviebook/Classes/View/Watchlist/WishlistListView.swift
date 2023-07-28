@@ -107,6 +107,7 @@ private struct ListView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding()
+            .id("header:\(collection.id)")
         }
     }
 
@@ -114,16 +115,10 @@ private struct ListView: View {
         if let collection = section.collection {
             MovieCollectionFooterView(
                 collection: collection,
-                moviesFilter: Set(section.items.compactMap { item in
-                    if case .movie(let movie, _) = item {
-                        return movie.id
-                    } else {
-                        return nil
-                    }
-                }),
                 onItemSelected: onItemSelected
             )
             .padding(.bottom)
+            .id("footer:\(collection.id)")
         } else {
             Spacer()
         }
@@ -212,11 +207,11 @@ private struct ListView: View {
 private struct MovieCollectionFooterView: View {
 
     @Environment(\.requestLoader) var requestManager
+    @EnvironmentObject var watchlist: Watchlist
 
     @State private var movies: [MovieDetails] = []
 
     let collection: MovieCollection
-    let moviesFilter: Set<Movie.ID>
     let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
@@ -250,7 +245,7 @@ private struct MovieCollectionFooterView: View {
         }
         .task {
             let webService = WebService.movieWebService(requestLoader: requestManager)
-            movies = (try? await webService.fetchMovieCollection(with: collection.id))?.list?.filter({ !moviesFilter.contains($0.id) }) ?? []
+            movies = (try? await webService.fetchMovieCollection(with: collection.id))?.list ?? []
         }
     }
 }
