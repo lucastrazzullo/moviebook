@@ -40,8 +40,9 @@ struct WatchlistView: View {
                 undoViewModel: undoViewModel,
                 sorting: $sorting
             )
-            .padding()
+            .padding(.horizontal)
             .background(.thickMaterial.opacity(shouldShowTopBar ? 1 : 0))
+            .shadow(color: .black.opacity(0.2), radius: 1)
             .animation(.easeOut(duration: 0.12), value: shouldShowTopBar)
             .animation(.default, value: undoViewModel.removedItem)
         }
@@ -54,6 +55,7 @@ struct WatchlistView: View {
             )
             .padding()
             .background(.thickMaterial.opacity(shouldShowBottomBar ? 1 : 0))
+            .shadow(color: .black.opacity(0.2), radius: 1)
             .animation(.easeOut(duration: 0.12), value: shouldShowBottomBar)
         }
         .task {
@@ -231,7 +233,7 @@ private struct WatchlistListView: View {
     }
 
     private func updateShouldShowBars(geometry: GeometryProxy) {
-        shouldShowTopBar = scrollContent.offset > 0
+        shouldShowTopBar = scrollContent.offset > 0 + 10
         shouldShowBottomBar = -(scrollContent.offset - scrollContent.height) > geometry.size.height + 20
     }
 }
