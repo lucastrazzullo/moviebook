@@ -156,6 +156,8 @@ private struct ListView: View {
         }
     }
 
+    // MARK: Object life cycle
+
     init(items: [WatchlistViewItem], sorting: WatchlistViewSorting, onItemSelected: @escaping (NavigationItem) -> Void) {
         self.sections = Self.makeSections(items: items, sorting: sorting)
         self.onItemSelected = onItemSelected

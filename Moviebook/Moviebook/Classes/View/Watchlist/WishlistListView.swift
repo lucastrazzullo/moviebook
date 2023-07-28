@@ -26,18 +26,12 @@ struct WishlistListView: View {
                 genres: allGenres
             )
 
-            LazyVGrid(columns: [GridItem(spacing: 4), GridItem()], spacing: 4) {
-                ForEach(items.filter(filter(selectedGenre: selectedGenre)).sorted(by: sort(sorting: sorting))) { item in
-                    switch item {
-                    case .movie(let movie, _):
-                        MovieShelfPreviewView(
-                            movieDetails: movie.details,
-                            onItemSelected: onItemSelected
-                        )
-                    }
-                }
-            }
-            .padding(.horizontal, 4)
+            ListView(
+                items: items,
+                sorting: sorting,
+                genreFilter: selectedGenre,
+                onItemSelected: onItemSelected
+            )
         }
         .onAppear {
             isPresented = true
@@ -64,20 +58,131 @@ struct WishlistListView: View {
 
         return Array(uniqueGenres).sorted(by: { $0.name < $1.name })
     }
+}
 
-    private func filter(selectedGenre: MovieGenre?) -> (WatchlistViewItem) -> Bool {
+private struct ListView: View {
+
+    struct SortingSection: Hashable {
+        let collection: MovieCollection?
+        var items: [WatchlistViewItem]
+    }
+
+    let sections: [SortingSection]
+    let onItemSelected: (NavigationItem) -> Void
+
+    var body: some View {
+        LazyVGrid(columns: [GridItem(spacing: 4), GridItem()], spacing: 4) {
+            ForEach(sections, id: \.self) { section in
+                Section(header: sectionHeader(section: section), footer: sectionFooter(section: section)) {
+                    ForEach(section.items) { item in
+                        switch item {
+                        case .movie(let movie, _):
+                            MovieShelfPreviewView(
+                                movieDetails: movie.details,
+                                onItemSelected: onItemSelected
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, 4)
+    }
+
+    // MARK: Object life cycle
+
+    init(items: [WatchlistViewItem], sorting: WatchlistViewSorting, genreFilter: MovieGenre?, onItemSelected: @escaping (NavigationItem) -> Void) {
+        self.sections = Self.makeSections(items: items, sorting: sorting, genreFilter: genreFilter)
+        self.onItemSelected = onItemSelected
+    }
+
+    // MARK: Private view builders
+
+    @ViewBuilder private func sectionHeader(section: SortingSection) -> some View {
+        if let collection = section.collection {
+            HStack {
+                Image(systemName: "square.filled.on.square")
+                Text(collection.name)
+                    .font(.headline)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding()
+        }
+    }
+
+    @ViewBuilder private func sectionFooter(section: SortingSection) -> some View {
+        if section.collection != nil {
+            Divider().padding()
+        } else {
+            Spacer()
+        }
+    }
+
+    // MARK: Private factory methods
+
+    private static func makeSections(items: [WatchlistViewItem], sorting: WatchlistViewSorting, genreFilter: MovieGenre?) -> [SortingSection] {
+
+        var sections: [SortingSection] = []
+        var currentSection: SortingSection?
+
+        for item in items
+            .filter(filter(genre: genreFilter))
+            .sorted(by: sort(sorting: sorting)) {
+            switch item {
+            case .movie(let movie, _):
+                if let collection = movie.collection {
+                    if let index = sections.firstIndex(where: { $0.collection?.id == collection.id }) {
+                        sections[index].items.append(item)
+                    } else if let collectionId = currentSection?.collection?.id, collectionId == movie.collection?.id {
+                        currentSection?.items.append(item)
+                    } else {
+                        if let currentSection {
+                            sections.append(currentSection)
+                        }
+
+                        currentSection = SortingSection(
+                            collection: collection,
+                            items: [item]
+                        )
+                    }
+                } else {
+                    if currentSection?.collection?.id != nil {
+                        sections.append(currentSection!)
+                        currentSection = nil
+                    }
+
+                    if currentSection != nil {
+                        currentSection?.items.append(item)
+                    } else {
+                        currentSection = SortingSection(
+                            collection: nil,
+                            items: [item]
+                        )
+                    }
+                }
+            }
+        }
+
+        if let currentSection {
+            sections.append(currentSection)
+        }
+
+        return sections
+    }
+
+    private static func filter(genre: MovieGenre?) -> (WatchlistViewItem) -> Bool {
         return { item in
-            guard let selectedGenre else {
+            guard let genre else {
                 return true
             }
             switch item {
             case .movie(let movie, _):
-                return Set(movie.genres).contains(selectedGenre)
+                return Set(movie.genres).contains(genre)
             }
         }
     }
 
-    private func sort(sorting: WatchlistViewSorting) -> (WatchlistViewItem, WatchlistViewItem) -> Bool {
+    private static func sort(sorting: WatchlistViewSorting) -> (WatchlistViewItem, WatchlistViewItem) -> Bool {
         return { lhs, rhs in
             switch sorting {
             case .lastAdded:
@@ -98,7 +203,7 @@ import MoviebookTestSupport
 
 struct WishlistListView_Previews: PreviewProvider {
     static let requestLoader = MockRequestLoader.shared
-    static let watchlist = MockWatchlistProvider.shared.watchlist(configuration: .toWatchItems(withSuggestion: true))
+    static let watchlist = MockWatchlistProvider.shared.watchlist(configuration: .toWatchItems(withSuggestion: false))
     static var previews: some View {
         ScrollView {
             WishlistListViewPreviewView()
