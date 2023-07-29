@@ -166,6 +166,7 @@ private struct ContentView: View {
                 ScrollingListView(
                     shouldShowTopBar: $shouldShowTopBar,
                     shouldShowBottomBar: $shouldShowBottomBar,
+                    section: section,
                     items: viewModel.items(in: section),
                     onItemSelected: onItemSelected
                 )
@@ -198,16 +199,26 @@ private struct ScrollingListView: View {
     @Binding var shouldShowTopBar: Bool
     @Binding var shouldShowBottomBar: Bool
 
+    let section: WatchlistViewSection
     let items: [WatchlistViewItem]
     let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         GeometryReader { geometry in
             ObservableScrollView(scrollContent: $scrollContent, showsIndicators: false) { _ in
-                ListView(
-                    items: items,
-                    onItemSelected: onItemSelected
-                )
+                VStack {
+                    if case .watched = section {
+                        StatsView(
+                            items: items,
+                            onItemSelected: onItemSelected
+                        )
+                    }
+
+                    ListView(
+                        items: items,
+                        onItemSelected: onItemSelected
+                    )
+                }
                 .onChange(of: scrollContent) { info in
                     updateShouldShowBars(geometry: geometry)
                 }
@@ -297,6 +308,76 @@ private struct WatchlistItemView: View {
                 onItemSelected(.movieWithIdentifier(movie.id))
             }
         }
+    }
+}
+
+private struct StatsView: View {
+
+    let items: [WatchlistViewItem]
+    let onItemSelected: (NavigationItem) -> Void
+
+    var body: some View {
+        if totalNumberOfWatchedHours > 0 || popularGenres.count > 0 {
+            VStack(spacing: 16) {
+                HStack(alignment: .firstTextBaseline) {
+                    Image(systemName: "chart.bar.xaxis")
+                        .font(.largeTitle)
+                    Text("Stats")
+                        .font(.title2)
+                }
+
+                if totalNumberOfWatchedHours > 0 {
+                    VStack(spacing: 4) {
+                        Text("Total time watched")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+
+                        Text(Duration.seconds(totalNumberOfWatchedHours).formatted(.units(allowed: [.weeks, .days, .hours, .minutes, .seconds, .milliseconds], width: .wide)))
+                            .font(.subheadline.bold())
+                    }
+                }
+
+                if popularGenres.count > 0 {
+                    VStack(spacing: 4) {
+                        Text("Popular genres")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+
+                        Button { onItemSelected(.explore(selectedGenres: Set(popularGenres))) } label: {
+                            HStack {
+                                Text(popularGenres.map(\.name).joined(separator: ", "))
+                                    .font(.caption)
+                                Image(systemName: "magnifyingglass")
+                            }
+                        }
+                        .buttonStyle(OvalButtonStyle(.prominentTiny))
+                    }
+                }
+
+                Divider()
+            }
+            .padding(.bottom)
+        }
+    }
+
+    private var totalNumberOfWatchedHours: TimeInterval {
+        return items.reduce(0, { total, item in
+            switch item {
+            case .movie(let movie, _):
+                return total + (movie.details.runtime ?? 0)
+            }
+        })
+    }
+
+    private var popularGenres: [MovieGenre] {
+        return items
+            .reduce([MovieGenre]()) { list, item in
+                switch item {
+                case .movie(let movie, _):
+                    return list + movie.genres
+                }
+            }
+            .getMostPopular(topCap: 3)
     }
 }
 
