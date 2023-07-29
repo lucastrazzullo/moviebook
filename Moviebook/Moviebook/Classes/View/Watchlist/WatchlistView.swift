@@ -243,13 +243,12 @@ private struct ListView: View {
             }
 
             ForEach(groups, id: \.self) { group in
-                Section(header: sectionHeader(group: group)) {
-                    ForEach(group.items) { item in
+                Section(header: groupHeader(group: group)) {
+                    ForEach(group.items, id: \.self) { item in
                         WatchlistItemView(
                             item: item,
                             onItemSelected: onItemSelected
                         )
-                        .id(item.watchlistItem.id)
                     }
                 }
             }
@@ -257,7 +256,7 @@ private struct ListView: View {
         .padding(.horizontal, 4)
     }
 
-    @ViewBuilder private func sectionHeader(group: WatchlistViewItemGroup) -> some View {
+    @ViewBuilder private func groupHeader(group: WatchlistViewItemGroup) -> some View {
         HStack {
             Image(systemName: group.icon)
             Text(group.title)
@@ -274,54 +273,67 @@ private struct WatchlistItemView: View {
     let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
-        switch item {
-        case .movie(let movie, _):
-            ZStack(alignment: .bottom) {
-                RemoteImage(url: movie.details.media.backdropUrl, content: { image in
-                    image.resizable().aspectRatio(contentMode: .fit)
-                }, placeholder: {
-                    Rectangle().fill(.gray)
-                })
-                .padding(.bottom, 100)
+        Group {
+            switch item {
+            case .movie(let item):
+                WatchlistMovieItemView(item: item, onItemSelected: onItemSelected)
+            }
+        }
+        .id(item.id)
+    }
+}
 
-                HStack(alignment: .lastTextBaseline) {
-                    VStack(alignment: .leading) {
-                        Text(movie.details.title)
-                            .font(.headline)
-                            .lineLimit(3)
+private struct WatchlistMovieItemView: View {
 
-                        if movie.details.localisedReleaseDate() > .now {
-                            Text("Coming on \(movie.details.localisedReleaseDate().formatted(.dateTime.year()))")
-                                .bold()
-                                .padding(4)
-                                .background(.yellow, in: RoundedRectangle(cornerRadius: 6))
-                                .foregroundColor(.black)
-                                .font(.caption)
-                        } else {
-                            Text(movie.details.localisedReleaseDate(), format: .dateTime.year())
-                                .font(.caption)
-                        }
+    let item: WatchlistViewMovieItem
+    let onItemSelected: (NavigationItem) -> Void
 
-                        RatingView(rating: movie.details.rating)
-                            .padding(.top, 4)
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            RemoteImage(url: item.backdropUrl, content: { image in
+                image.resizable().aspectRatio(contentMode: .fit)
+            }, placeholder: {
+                Rectangle().fill(.gray)
+            })
+            .padding(.bottom, 100)
+
+            HStack(alignment: .lastTextBaseline) {
+                VStack(alignment: .leading) {
+                    Text(item.title)
+                        .font(.headline)
+                        .lineLimit(3)
+
+                    if item.releaseDate > .now {
+                        Text("Coming on \(item.releaseDate.formatted(.dateTime.year()))")
+                            .bold()
+                            .padding(4)
+                            .background(.yellow, in: RoundedRectangle(cornerRadius: 6))
+                            .foregroundColor(.black)
+                            .font(.caption)
+                    } else {
+                        Text(item.releaseDate, format: .dateTime.year())
+                            .font(.caption)
                     }
 
-                    Spacer()
-
-                    IconWatchlistButton(
-                        watchlistItemIdentifier: .movie(id: movie.id),
-                        watchlistItemReleaseDate: movie.details.localisedReleaseDate(),
-                        onItemSelected: onItemSelected
-                    )
+                    RatingView(rating: item.rating)
+                        .padding(.top, 4)
                 }
-                .padding()
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(.thickMaterial)
+
+                Spacer()
+
+                IconWatchlistButton(
+                    watchlistItemIdentifier: item.watchlistReference,
+                    watchlistItemReleaseDate: item.releaseDate,
+                    onItemSelected: onItemSelected
+                )
             }
-            .cornerRadius(12)
-            .onTapGesture {
-                onItemSelected(.movieWithIdentifier(movie.id))
-            }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.thickMaterial)
+        }
+        .cornerRadius(12)
+        .onTapGesture {
+            onItemSelected(.movieWithIdentifier(item.id))
         }
     }
 }
@@ -378,8 +390,8 @@ private struct StatsView: View {
     private var totalNumberOfWatchedHours: TimeInterval {
         return items.reduce(0, { total, item in
             switch item {
-            case .movie(let movie, _):
-                return total + (movie.details.runtime ?? 0)
+            case .movie(let item):
+                return total + (item.runtime ?? 0)
             }
         })
     }
@@ -388,8 +400,8 @@ private struct StatsView: View {
         return items
             .reduce([MovieGenre]()) { list, item in
                 switch item {
-                case .movie(let movie, _):
-                    return list + movie.genres
+                case .movie(let item):
+                    return list + item.genres
                 }
             }
             .getMostPopular(topCap: 3)

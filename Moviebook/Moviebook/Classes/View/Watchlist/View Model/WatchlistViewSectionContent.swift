@@ -28,12 +28,6 @@ import MoviebookCommon
 
     // MARK: Internal methods
 
-    func removeItem(_ identifier: WatchlistItemIdentifier) {
-        for groupIndex in 0..<groups.count {
-            groups[groupIndex].items.removeAll(where: { $0.watchlistItem.id == identifier })
-        }
-    }
-
     func updateItems(_ items: [WatchlistItem], requestLoader: RequestLoader) async throws {
         let filteredItems = items.filter(section.belongsToSection)
         let loadedItems = try await loadItems(filteredItems, requestLoader: requestLoader)
@@ -47,6 +41,17 @@ import MoviebookCommon
         self.groups = await sort(items: allItems, sorting: sorting)
     }
 
+    func removeItem(_ identifier: WatchlistItemIdentifier) {
+        for groupIndex in 0..<groups.count {
+            groups[groupIndex].items.removeAll(where: { item in
+                switch item {
+                case .movie(let item):
+                    return item.watchlistReference == identifier
+                }
+            })
+        }
+    }
+
     // MARK: Private methods - Loading
 
     private func loadItems(_ items: [WatchlistItem], requestLoader: RequestLoader) async throws -> [WatchlistViewItem] {
@@ -55,11 +60,7 @@ import MoviebookCommon
 
             for item in items {
                 group.addTask {
-                    if let existingItem = await self.allItems.first(where: { $0.watchlistItem == item }) {
-                        return existingItem
-                    } else {
-                        return try await self.loadItem(item, requestLoader: requestLoader)
-                    }
+                    return try await self.loadItem(item, requestLoader: requestLoader)
                 }
             }
 
@@ -76,7 +77,8 @@ import MoviebookCommon
         case .movie(let id):
             let webService = WebService.movieWebService(requestLoader: requestLoader)
             let movie = try await webService.fetchMovie(with: id)
-            return WatchlistViewItem.movie(movie: movie, watchlistItem: item)
+            let movieItem = WatchlistViewMovieItem(movie: movie, watchlistItem: item)
+            return WatchlistViewItem.movie(movieItem)
         }
     }
 
@@ -138,11 +140,11 @@ import MoviebookCommon
         var unratedItems: [WatchlistViewItem] = []
 
         for item in items {
-            if item.rating > 7 {
+            if item.rating.percentage > 0.7 {
                 highRatingItems.append(item)
-            } else if item.rating > 5 {
+            } else if item.rating.percentage > 0.5 {
                 averageRatingItems.append(item)
-            } else if item.rating > 0 {
+            } else if item.rating.percentage > 0 {
                 lowRatingItems.append(item)
             } else {
                 unratedItems.append(item)
