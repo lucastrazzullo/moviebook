@@ -11,12 +11,14 @@ import MoviebookCommon
 @MainActor final class WatchlistViewSectionContent {
 
     private(set) var items: [WatchlistViewItem] = []
+    private(set) var sorting: WatchlistViewSorting
 
     let section: WatchlistViewSection
 
     // MARK: Object life cycle
 
     init(section: WatchlistViewSection) {
+        self.sorting = UserDefaults.standard.object(forKey: "\(section.id)-sorting") as? WatchlistViewSorting ?? .lastAdded
         self.section = section
     }
 
@@ -30,6 +32,11 @@ import MoviebookCommon
 
     func removeItem(_ identifier: WatchlistItemIdentifier) {
         self.items.removeAll(where: { $0.watchlistItem.id == identifier })
+    }
+
+    func updateSorting(_ sorting: WatchlistViewSorting) {
+        self.sorting = sorting
+        self.items = items.sorted(by: currentSorting(lhs:rhs:))
     }
 
     // MARK: Private methods - Loading
@@ -62,6 +69,21 @@ import MoviebookCommon
             let webService = WebService.movieWebService(requestLoader: requestLoader)
             let movie = try await webService.fetchMovie(with: id)
             return WatchlistViewItem.movie(movie: movie, watchlistItem: item)
+        }
+    }
+
+    // MARK: Private methods - Sorting
+
+    private func currentSorting(lhs: WatchlistViewItem, rhs: WatchlistViewItem) -> Bool {
+        switch sorting {
+        case .lastAdded:
+            return lhs.addedDate > rhs.addedDate
+        case .rating:
+            return lhs.rating > rhs.rating
+        case .name:
+            return lhs.name < rhs.name
+        case .release:
+            return lhs.releaseDate > rhs.releaseDate
         }
     }
 }
