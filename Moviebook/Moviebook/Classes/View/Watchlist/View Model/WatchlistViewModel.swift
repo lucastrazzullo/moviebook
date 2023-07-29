@@ -49,8 +49,8 @@ import MoviebookCommon
         }
     }
 
-    func items(in section: WatchlistViewSection) -> [WatchlistViewItem] {
-        return content(for: section)?.items ?? []
+    func items(in section: WatchlistViewSection) -> [WatchlistViewItemGroup] {
+        return content(for: section)?.groups ?? []
     }
 
     func sorting(in section: WatchlistViewSection) -> WatchlistViewSorting {
@@ -58,8 +58,10 @@ import MoviebookCommon
     }
 
     func update(sorting: WatchlistViewSorting, in section: WatchlistViewSection) {
-        content(for: section)?.updateSorting(sorting)
-        objectWillChange.send()
+        Task {
+            await content(for: section)?.updateSorting(sorting)
+            objectWillChange.send()
+        }
     }
 
     // MARK: Private methods

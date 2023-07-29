@@ -8,7 +8,7 @@
 import Foundation
 import MoviebookCommon
 
-enum WatchlistViewItem: Identifiable, Equatable, Hashable {
+enum WatchlistViewItem: Identifiable, Hashable {
     case movie(movie: Movie, watchlistItem: WatchlistItem)
 
     var id: AnyHashable {

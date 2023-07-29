@@ -167,7 +167,7 @@ private struct ContentView: View {
                     shouldShowTopBar: $shouldShowTopBar,
                     shouldShowBottomBar: $shouldShowBottomBar,
                     section: section,
-                    items: viewModel.items(in: section),
+                    groups: viewModel.items(in: section),
                     onItemSelected: onItemSelected
                 )
             }
@@ -200,25 +200,17 @@ private struct ScrollingListView: View {
     @Binding var shouldShowBottomBar: Bool
 
     let section: WatchlistViewSection
-    let items: [WatchlistViewItem]
+    let groups: [WatchlistViewItemGroup]
     let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         GeometryReader { geometry in
             ObservableScrollView(scrollContent: $scrollContent, showsIndicators: false) { _ in
-                VStack {
-                    if case .watched = section {
-                        StatsView(
-                            items: items,
-                            onItemSelected: onItemSelected
-                        )
-                    }
-
-                    ListView(
-                        items: items,
-                        onItemSelected: onItemSelected
-                    )
-                }
+                ListView(
+                    section: section,
+                    groups: groups,
+                    onItemSelected: onItemSelected
+                )
                 .onChange(of: scrollContent) { info in
                     updateShouldShowBars(geometry: geometry)
                 }
@@ -237,19 +229,42 @@ private struct ScrollingListView: View {
 
 private struct ListView: View {
 
-    let items: [WatchlistViewItem]
+    let section: WatchlistViewSection
+    let groups: [WatchlistViewItemGroup]
     let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         VStack {
-            ForEach(items) { item in
-                WatchlistItemView(
-                    item: item,
+            if case .watched = section {
+                StatsView(
+                    items: groups.flatMap(\.items),
                     onItemSelected: onItemSelected
                 )
             }
+
+            ForEach(groups, id: \.self) { group in
+                Section(header: sectionHeader(group: group)) {
+                    ForEach(group.items) { item in
+                        WatchlistItemView(
+                            item: item,
+                            onItemSelected: onItemSelected
+                        )
+                        .id(item.watchlistItem.id)
+                    }
+                }
+            }
         }
         .padding(.horizontal, 4)
+    }
+
+    @ViewBuilder private func sectionHeader(group: WatchlistViewItemGroup) -> some View {
+        HStack {
+            Image(systemName: group.icon)
+            Text(group.title)
+                .font(.headline)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding()
     }
 }
 
