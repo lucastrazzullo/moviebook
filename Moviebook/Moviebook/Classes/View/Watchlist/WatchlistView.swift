@@ -42,7 +42,6 @@ struct WatchlistView: View {
             )
             .padding(.horizontal)
             .background(.thickMaterial.opacity(shouldShowTopBar ? 1 : 0))
-            .shadow(color: .black.opacity(0.2), radius: 1)
             .animation(.easeOut(duration: 0.12), value: shouldShowTopBar)
             .animation(.default, value: undoViewModel.removedItem)
         }
@@ -55,7 +54,6 @@ struct WatchlistView: View {
             )
             .padding()
             .background(.thickMaterial.opacity(shouldShowBottomBar ? 1 : 0))
-            .shadow(color: .black.opacity(0.2), radius: 1)
             .animation(.easeOut(duration: 0.12), value: shouldShowBottomBar)
         }
         .task {
