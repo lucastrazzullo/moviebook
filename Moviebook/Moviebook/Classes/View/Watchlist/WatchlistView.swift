@@ -291,11 +291,26 @@ private struct WatchlistMovieCollectionItemView: View {
     let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
-        Section(header: Text(item.name)) {
-            ForEach(item.items, id: \.self) { item in
-                WatchlistMovieItemView(item: item, onItemSelected: onItemSelected)
+        VStack(alignment: .leading) {
+            Text(item.name)
+                .font(.title3)
+
+            Text("Parts you want to watch")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+
+            VStack {
+                ForEach(item.items, id: \.self) { item in
+                    MoviePreviewView(
+                        details: item.movieDetails,
+                        onItemSelected: onItemSelected
+                    )
+                }
             }
         }
+        .padding()
+        .background(.thinMaterial)
+        .cornerRadius(12)
     }
 }
 

@@ -62,13 +62,8 @@ enum WatchlistViewItem: Hashable {
 
 struct WatchlistViewMovieCollectionItem: Hashable {
 
-    var id: MovieCollection.ID {
-        collection.id
-    }
-    var name: String {
-        collection.name
-    }
-
+    let id: MovieCollection.ID
+    let name: String
     let releaseDate: Date
     let addedDate: Date
     let rating: Rating
@@ -80,6 +75,8 @@ struct WatchlistViewMovieCollectionItem: Hashable {
         guard !items.isEmpty else { return nil }
 
         self.collection = collection
+        self.id = collection.id
+        self.name = collection.name
         self.releaseDate = items.sorted(by: { $0.releaseDate > $1.releaseDate }).first!.releaseDate
         self.addedDate = items.sorted(by: { $0.addedDate > $1.addedDate }).first!.addedDate
         self.rating = Rating(value: items.reduce(0, { $0 + $1.rating.value }) / Float(items.count), quota: items[0].rating.quota)
@@ -90,6 +87,7 @@ struct WatchlistViewMovieCollectionItem: Hashable {
 struct WatchlistViewMovieItem: Hashable {
 
     let watchlistReference: WatchlistItemIdentifier
+    let movieDetails: MovieDetails
 
     let id: Movie.ID
     let title: String
@@ -102,6 +100,7 @@ struct WatchlistViewMovieItem: Hashable {
 
     init(movie: Movie, watchlistItem: WatchlistItem) {
         self.watchlistReference = watchlistItem.id
+        self.movieDetails = movie.details
 
         self.id = movie.id
         self.title = movie.details.title

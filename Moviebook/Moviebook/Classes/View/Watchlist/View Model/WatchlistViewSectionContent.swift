@@ -124,7 +124,7 @@ import MoviebookCommon
         }
 
         for movieCollection in collectionItems.keys {
-            if let movieCollectionItems = collectionItems[movieCollection], let collectionItem = WatchlistViewMovieCollectionItem(collection: movieCollection, items: movieCollectionItems) {
+            if let movieCollectionItems = collectionItems[movieCollection]?.sorted(by: { $0.releaseDate < $1.releaseDate }), let collectionItem = WatchlistViewMovieCollectionItem(collection: movieCollection, items: movieCollectionItems) {
                 items.append(.movieCollection(collectionItem))
             }
         }
