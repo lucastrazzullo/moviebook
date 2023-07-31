@@ -17,7 +17,7 @@ struct WatchlistView: View {
     @StateObject private var contentViewModel: WatchlistViewModel = WatchlistViewModel()
     @StateObject private var undoViewModel: WatchlistUndoViewModel = WatchlistUndoViewModel()
 
-    @State private var sorting: WatchlistViewSorting = .lastAdded
+    @State private var section: WatchlistViewSection = .toWatch
     @State private var shouldShowTopBar: Bool = false
     @State private var shouldShowBottomBar: Bool = false
 
@@ -27,9 +27,9 @@ struct WatchlistView: View {
         ZStack {
             ContentView(
                 viewModel: contentViewModel,
-                sorting: $sorting,
                 shouldShowTopBar: $shouldShowTopBar,
                 shouldShowBottomBar: $shouldShowBottomBar,
+                section: section,
                 onItemSelected: { item in
                     presentedItem = item
                 }
@@ -38,16 +38,19 @@ struct WatchlistView: View {
         .safeAreaInset(edge: .top) {
             TopbarView(
                 undoViewModel: undoViewModel,
-                sorting: $sorting
+                sorting: Binding(
+                    get: { contentViewModel.sorting(in: section) },
+                    set: { contentViewModel.update(sorting: $0, in: section) }
+                )
             )
-            .padding()
+            .padding(.horizontal)
             .background(.thickMaterial.opacity(shouldShowTopBar ? 1 : 0))
             .animation(.easeOut(duration: 0.12), value: shouldShowTopBar)
             .animation(.default, value: undoViewModel.removedItem)
         }
         .safeAreaInset(edge: .bottom) {
             ToolbarView(
-                currentSection: $contentViewModel.section,
+                currentSection: $section,
                 onItemSelected: { item in
                     presentedItem = item
                 }
@@ -59,8 +62,8 @@ struct WatchlistView: View {
         .task {
             await contentViewModel.start(watchlist: watchlist, requestLoader: requestLoader)
         }
-        .animation(.default, value: contentViewModel.items)
-        .animation(.default, value: sorting)
+        .animation(.default, value: contentViewModel.items(in: section))
+        .animation(.default, value: contentViewModel.sorting(in: section))
     }
 }
 
@@ -139,32 +142,32 @@ private struct ContentView: View {
 
     @ObservedObject var viewModel: WatchlistViewModel
 
-    @Binding var sorting: WatchlistViewSorting
     @Binding var shouldShowTopBar: Bool
     @Binding var shouldShowBottomBar: Bool
 
+    let section: WatchlistViewSection
     let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         Group {
-            if viewModel.isLoading, viewModel.items.isEmpty {
+            if viewModel.isLoading, viewModel.items(in: section).isEmpty {
                 LoaderView()
             } else if let error = viewModel.error {
                 RetriableErrorView(error: error)
                     .frame(maxHeight: .infinity)
                     .padding()
-            } else if viewModel.items.isEmpty {
-                WatchlistEmptyListView(
+            } else if viewModel.items(in: section).isEmpty {
+                EmptyListView(
                     shouldShowTopBar: $shouldShowTopBar,
                     shouldShowBottomBar: $shouldShowBottomBar,
-                    section: viewModel.section
+                    section: section
                 )
             } else {
-                WatchlistListView(
-                    viewModel: viewModel,
-                    sorting: $sorting,
+                ScrollingListView(
                     shouldShowTopBar: $shouldShowTopBar,
                     shouldShowBottomBar: $shouldShowBottomBar,
+                    section: section,
+                    groups: viewModel.items(in: section),
                     onItemSelected: onItemSelected
                 )
             }
@@ -172,7 +175,7 @@ private struct ContentView: View {
     }
 }
 
-private struct WatchlistEmptyListView: View {
+private struct EmptyListView: View {
 
     @Binding var shouldShowTopBar: Bool
     @Binding var shouldShowBottomBar: Bool
@@ -189,37 +192,25 @@ private struct WatchlistEmptyListView: View {
     }
 }
 
-private struct WatchlistListView: View {
+private struct ScrollingListView: View {
 
     @State private var scrollContent: ObservableScrollContent = .zero
 
-    @ObservedObject var viewModel: WatchlistViewModel
-
-    @Binding var sorting: WatchlistViewSorting
     @Binding var shouldShowTopBar: Bool
     @Binding var shouldShowBottomBar: Bool
 
+    let section: WatchlistViewSection
+    let groups: [WatchlistViewItemGroup]
     let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         GeometryReader { geometry in
             ObservableScrollView(scrollContent: $scrollContent, showsIndicators: false) { _ in
-                Group {
-                    switch viewModel.section {
-                    case .toWatch:
-                        WishlistListView(
-                            sorting: $sorting,
-                            items: viewModel.items,
-                            onItemSelected: onItemSelected
-                        )
-                    case .watched:
-                        WatchedListView(
-                            sorting: $sorting,
-                            items: viewModel.items,
-                            onItemSelected: onItemSelected
-                        )
-                    }
-                }
+                ListView(
+                    section: section,
+                    groups: groups,
+                    onItemSelected: onItemSelected
+                )
                 .onChange(of: scrollContent) { info in
                     updateShouldShowBars(geometry: geometry)
                 }
@@ -231,8 +222,268 @@ private struct WatchlistListView: View {
     }
 
     private func updateShouldShowBars(geometry: GeometryProxy) {
-        shouldShowTopBar = scrollContent.offset > 0
+        shouldShowTopBar = scrollContent.offset > 0 + 10
         shouldShowBottomBar = -(scrollContent.offset - scrollContent.height) > geometry.size.height + 20
+    }
+}
+
+private struct ListView: View {
+
+    let section: WatchlistViewSection
+    let groups: [WatchlistViewItemGroup]
+    let onItemSelected: (NavigationItem) -> Void
+
+    var body: some View {
+        VStack {
+            if case .watched = section {
+                StatsView(
+                    items: groups.flatMap(\.items),
+                    onItemSelected: onItemSelected
+                )
+            }
+
+            ForEach(groups, id: \.self) { group in
+                Section(header: groupHeader(group: group)) {
+                    ForEach(group.items, id: \.self) { item in
+                        WatchlistItemView(
+                            item: item,
+                            onItemSelected: onItemSelected
+                        )
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, 4)
+    }
+
+    @ViewBuilder private func groupHeader(group: WatchlistViewItemGroup) -> some View {
+        HStack {
+            Image(systemName: group.icon)
+            Text(group.title)
+                .font(.headline)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding()
+    }
+}
+
+private struct WatchlistItemView: View {
+
+    let item: WatchlistViewItem
+    let onItemSelected: (NavigationItem) -> Void
+
+    var body: some View {
+        Group {
+            switch item {
+            case .movie(let item):
+                WatchlistMovieItemView(item: item, onItemSelected: onItemSelected)
+            case .movieCollection(let item):
+                WatchlistMovieCollectionItemView(item: item, onItemSelected: onItemSelected)
+            }
+        }
+        .id(item.id)
+    }
+}
+
+private struct WatchlistMovieCollectionItemView: View {
+
+    @Environment(\.requestLoader) var requestLoader
+
+    @State private var collectionMovies: [MovieDetails] = []
+
+    let item: WatchlistViewMovieCollectionItem
+    let onItemSelected: (NavigationItem) -> Void
+
+    var body: some View {
+        VStack(alignment: .leading) {
+            Text(item.name)
+                .font(.title3)
+
+            VStack(alignment: .leading) {
+                Text("Parts you want to watch")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                VStack {
+                    ForEach(item.items, id: \.self) { item in
+                        MoviePreviewView(
+                            details: item.movieDetails,
+                            onItemSelected: onItemSelected
+                        )
+                    }
+                }
+            }
+
+            VStack {
+                if collectionMovies.isEmpty {
+                    Button(action: loadCollectionMovies) {
+                        HStack {
+                            Image(systemName: "plus.square")
+                            Text("Show the entire collection")
+                        }
+                    }
+                    .buttonStyle(OvalButtonStyle(.small))
+                } else {
+                    VStack(alignment: .leading) {
+                        Text("Not in your watchlist")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+
+                        VStack {
+                            ForEach(collectionMovies) { movie in
+                                MoviePreviewView(
+                                    details: movie,
+                                    onItemSelected: onItemSelected
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.top)
+        }
+        .padding()
+        .background(.thinMaterial)
+        .cornerRadius(12)
+    }
+
+    private func loadCollectionMovies() {
+        let webService = WebService.movieWebService(requestLoader: requestLoader)
+        Task {
+            collectionMovies = try await webService.fetchMovieCollection(with: item.collection.id).list?.filter({ item in
+                !self.item.items.contains(where: { $0.id == item.id })
+            }) ?? []
+        }
+    }
+}
+
+private struct WatchlistMovieItemView: View {
+
+    let item: WatchlistViewMovieItem
+    let onItemSelected: (NavigationItem) -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            RemoteImage(url: item.backdropUrl, content: { image in
+                image.resizable().aspectRatio(contentMode: .fit)
+            }, placeholder: {
+                Rectangle().fill(.gray)
+            })
+            .cornerRadius(6)
+
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading) {
+                    Text(item.title)
+                        .font(.headline)
+                        .lineLimit(3)
+
+                    if item.releaseDate > .now {
+                        Text("Coming on \(item.releaseDate.formatted(.dateTime.year()))")
+                            .bold()
+                            .padding(4)
+                            .background(.yellow, in: RoundedRectangle(cornerRadius: 6))
+                            .foregroundColor(.black)
+                            .font(.caption)
+                    } else {
+                        Text(item.releaseDate, format: .dateTime.year())
+                            .font(.caption)
+                    }
+
+                    RatingView(rating: item.rating)
+                        .padding(.top, 4)
+                }
+
+                Spacer()
+
+                IconWatchlistButton(
+                    watchlistItemIdentifier: item.watchlistReference,
+                    watchlistItemReleaseDate: item.releaseDate,
+                    onItemSelected: onItemSelected
+                )
+            }
+            .padding(.horizontal)
+            .padding(.top, 8)
+            .padding(.bottom, 24)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .onTapGesture {
+            onItemSelected(.movieWithIdentifier(item.id))
+        }
+    }
+}
+
+private struct StatsView: View {
+
+    let items: [WatchlistViewItem]
+    let onItemSelected: (NavigationItem) -> Void
+
+    var body: some View {
+        if totalNumberOfWatchedHours > 0 || popularGenres.count > 0 {
+            VStack(spacing: 16) {
+                HStack(alignment: .firstTextBaseline) {
+                    Image(systemName: "chart.bar.xaxis")
+                        .font(.largeTitle)
+                    Text("Stats")
+                        .font(.title2)
+                }
+
+                if totalNumberOfWatchedHours > 0 {
+                    VStack(spacing: 4) {
+                        Text("Total time watched")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+
+                        Text(Duration.seconds(totalNumberOfWatchedHours).formatted(.units(allowed: [.weeks, .days, .hours, .minutes, .seconds, .milliseconds], width: .wide)))
+                            .font(.subheadline.bold())
+                    }
+                }
+
+                if popularGenres.count > 0 {
+                    VStack(spacing: 4) {
+                        Text("Popular genres")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+
+                        Button { onItemSelected(.explore(selectedGenres: Set(popularGenres))) } label: {
+                            HStack {
+                                Text(popularGenres.map(\.name).joined(separator: ", "))
+                                    .font(.caption)
+                                Image(systemName: "magnifyingglass")
+                            }
+                        }
+                        .buttonStyle(OvalButtonStyle(.prominentTiny))
+                    }
+                }
+
+                Divider()
+            }
+            .padding(.bottom)
+        }
+    }
+
+    private var totalNumberOfWatchedHours: TimeInterval {
+        return items.reduce(0, { total, item in
+            switch item {
+            case .movie(let item):
+                return total + (item.runtime ?? 0)
+            case .movieCollection(let item):
+                return total + item.items.reduce(0, { $0 + ($1.runtime ?? 0) })
+            }
+        })
+    }
+
+    private var popularGenres: [MovieGenre] {
+        return items
+            .reduce([MovieGenre]()) { list, item in
+                switch item {
+                case .movie(let item):
+                    return list + item.genres
+                case .movieCollection(let item):
+                    return list + item.items.reduce([MovieGenre](), { $0 + $1.genres })
+                }
+            }
+            .getMostPopular(topCap: 3)
     }
 }
 

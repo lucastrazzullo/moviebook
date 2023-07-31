@@ -31,7 +31,10 @@ import MoviebookCommon
             let suggestion: WatchlistItemToWatchInfo.Suggestion? = withSuggestion ? makeSuggestion() : nil
             return Watchlist(items: [
                 WatchlistItem(id: .movie(id: 954), state: .toWatch(info: .init(date: .now, suggestion: suggestion))),
-                WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: suggestion)))
+                WatchlistItem(id: .movie(id: 353081), state: .toWatch(info: .init(date: .now, suggestion: suggestion))),
+                WatchlistItem(id: .movie(id: 502356), state: .toWatch(info: .init(date: .now, suggestion: suggestion))),
+                WatchlistItem(id: .movie(id: 616037), state: .toWatch(info: .init(date: .now, suggestion: suggestion))),
+                WatchlistItem(id: .movie(id: 713704), state: .toWatch(info: .init(date: .now, suggestion: suggestion)))
             ])
         case .watchedItems(let withSuggestion, let withRating):
             let suggestion: WatchlistItemToWatchInfo.Suggestion? = withSuggestion ? makeSuggestion() : nil

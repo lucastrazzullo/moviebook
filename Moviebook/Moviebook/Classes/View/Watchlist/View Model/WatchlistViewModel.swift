@@ -11,15 +11,12 @@ import MoviebookCommon
 
 @MainActor final class WatchlistViewModel: ObservableObject {
 
-    // MARK: Instance Properties
+    // MARK: Published Properties
 
-    var items: [WatchlistViewItem] {
-        return content.first(where: { $0.section == section })?.items ?? []
-    }
-
-    @Published var section: WatchlistViewSection
     @Published private(set) var isLoading: Bool = true
     @Published private(set) var error: WebServiceError? = nil
+
+    // MARK: Private properties
 
     private var content: [WatchlistViewSectionContent] = []
     private var subscriptions: Set<AnyCancellable> = []
@@ -27,8 +24,8 @@ import MoviebookCommon
     // MARK: Object life cycle
 
     init() {
-        section = .toWatch
-        content = WatchlistViewSection.allCases.map(WatchlistViewSectionContent.init(section:))
+        content = WatchlistViewSection.allCases
+            .map(WatchlistViewSectionContent.init(section:))
     }
 
     // MARK: Internal methods
@@ -52,7 +49,26 @@ import MoviebookCommon
         }
     }
 
+    func items(in section: WatchlistViewSection) -> [WatchlistViewItemGroup] {
+        return content(for: section)?.groups ?? []
+    }
+
+    func sorting(in section: WatchlistViewSection) -> WatchlistViewSorting {
+        return content(for: section)?.sorting ?? .lastAdded
+    }
+
+    func update(sorting: WatchlistViewSorting, in section: WatchlistViewSection) {
+        Task {
+            await content(for: section)?.updateSorting(sorting)
+            objectWillChange.send()
+        }
+    }
+
     // MARK: Private methods
+
+    private func content(for section: WatchlistViewSection) -> WatchlistViewSectionContent? {
+        return content.first(where: { $0.section == section })
+    }
 
     private func setupBindings(watchlist: Watchlist, requestLoader: RequestLoader) {
         watchlist.itemWasRemoved
