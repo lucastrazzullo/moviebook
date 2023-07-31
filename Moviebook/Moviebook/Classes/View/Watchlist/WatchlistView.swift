@@ -287,6 +287,10 @@ private struct WatchlistItemView: View {
 
 private struct WatchlistMovieCollectionItemView: View {
 
+    @Environment(\.requestLoader) var requestLoader
+
+    @State private var collectionMovies: [MovieDetails] = []
+
     let item: WatchlistViewMovieCollectionItem
     let onItemSelected: (NavigationItem) -> Void
 
@@ -295,22 +299,62 @@ private struct WatchlistMovieCollectionItemView: View {
             Text(item.name)
                 .font(.title3)
 
-            Text("Parts you want to watch")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+            VStack(alignment: .leading) {
+                Text("Parts you want to watch")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
 
-            VStack {
-                ForEach(item.items, id: \.self) { item in
-                    MoviePreviewView(
-                        details: item.movieDetails,
-                        onItemSelected: onItemSelected
-                    )
+                VStack {
+                    ForEach(item.items, id: \.self) { item in
+                        MoviePreviewView(
+                            details: item.movieDetails,
+                            onItemSelected: onItemSelected
+                        )
+                    }
                 }
             }
+
+            VStack {
+                if collectionMovies.isEmpty {
+                    Button(action: loadCollectionMovies) {
+                        HStack {
+                            Image(systemName: "plus.square")
+                            Text("Show the entire collection")
+                        }
+                    }
+                    .buttonStyle(OvalButtonStyle(.small))
+                } else {
+                    VStack(alignment: .leading) {
+                        Text("Not in your watchlist")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+
+                        VStack {
+                            ForEach(collectionMovies) { movie in
+                                MoviePreviewView(
+                                    details: movie,
+                                    onItemSelected: onItemSelected
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.top)
         }
         .padding()
         .background(.thinMaterial)
         .cornerRadius(12)
+    }
+
+    private func loadCollectionMovies() {
+        let webService = WebService.movieWebService(requestLoader: requestLoader)
+        Task {
+            collectionMovies = try await webService.fetchMovieCollection(with: item.collection.id).list?.filter({ item in
+                !self.item.items.contains(where: { $0.id == item.id })
+            }) ?? []
+        }
     }
 }
 
