@@ -320,15 +320,15 @@ private struct WatchlistMovieItemView: View {
     let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
-        ZStack(alignment: .bottom) {
+        VStack(spacing: 0) {
             RemoteImage(url: item.backdropUrl, content: { image in
                 image.resizable().aspectRatio(contentMode: .fit)
             }, placeholder: {
                 Rectangle().fill(.gray)
             })
-            .padding(.bottom, 100)
+            .cornerRadius(6)
 
-            HStack(alignment: .lastTextBaseline) {
+            HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading) {
                     Text(item.title)
                         .font(.headline)
@@ -358,11 +358,11 @@ private struct WatchlistMovieItemView: View {
                     onItemSelected: onItemSelected
                 )
             }
-            .padding()
+            .padding(.horizontal)
+            .padding(.top, 8)
+            .padding(.bottom, 24)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.thickMaterial)
         }
-        .cornerRadius(12)
         .onTapGesture {
             onItemSelected(.movieWithIdentifier(item.id))
         }
