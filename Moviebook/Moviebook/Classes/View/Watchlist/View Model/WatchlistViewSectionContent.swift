@@ -31,24 +31,37 @@ import MoviebookCommon
     func updateItems(_ items: [WatchlistItem], requestLoader: RequestLoader) async throws {
         let filteredItems = items.filter(section.belongsToSection)
         let loadedItems = try await loadItems(filteredItems, requestLoader: requestLoader)
-        let sortedItems = await sort(items: loadedItems, sorting: sorting)
-        self.groups = sortedItems
+        let groupedItems = await group(items: loadedItems, sorting: sorting)
+        self.groups = groupedItems
     }
 
     func updateSorting(_ sorting: WatchlistViewSorting) async {
         Self.persist(sorting: sorting, section: section)
         self.sorting = sorting
-        self.groups = await sort(items: allItems, sorting: sorting)
+        self.groups = await group(items: allItems, sorting: sorting)
     }
 
     func removeItem(_ identifier: WatchlistItemIdentifier) {
         for groupIndex in 0..<groups.count {
-            groups[groupIndex].items.removeAll(where: { item in
-                switch item {
+            for itemIndex in 0..<groups[groupIndex].items.count {
+                switch groups[groupIndex].items[itemIndex] {
                 case .movie(let item):
-                    return item.watchlistReference == identifier
+                    if item.watchlistReference == identifier {
+                        groups[groupIndex].items.remove(at: itemIndex)
+                    }
+                case .movieCollection(let item) where item.items.count == 1:
+                    if item.items[0].watchlistReference == identifier {
+                        groups[groupIndex].items.remove(at: itemIndex)
+                    }
+                case .movieCollection(var item):
+                    if let collectionItemIndex = item.items.firstIndex(where: { $0.watchlistReference == identifier }) {
+                        item.items.remove(at: collectionItemIndex)
+
+                        groups[groupIndex].items.remove(at: itemIndex)
+                        groups[groupIndex].items.insert(.movieCollection(item), at: itemIndex)
+                    }
                 }
-            })
+            }
         }
     }
 
@@ -78,13 +91,44 @@ import MoviebookCommon
             let webService = WebService.movieWebService(requestLoader: requestLoader)
             let movie = try await webService.fetchMovie(with: id)
             let movieItem = WatchlistViewMovieItem(movie: movie, watchlistItem: item)
-            return WatchlistViewItem.movie(movieItem)
+
+            if let collection = movie.collection,
+               let collectionItem = WatchlistViewMovieCollectionItem(collection: collection, items: [movieItem]) {
+                return WatchlistViewItem.movieCollection(collectionItem)
+            } else {
+                return WatchlistViewItem.movie(movieItem)
+            }
         }
     }
 
-    // MARK: Private methods - Sorting
+    // MARK: Private methods - Grouping
 
-    private func sort(items: [WatchlistViewItem], sorting: WatchlistViewSorting) async -> [WatchlistViewItemGroup] {
+    private func group(items: [WatchlistViewItem], sorting: WatchlistViewSorting) async -> [WatchlistViewItemGroup] {
+        var collectionItems: [MovieCollection: [WatchlistViewMovieItem]] = [:]
+        for item in items {
+            if case .movieCollection(let collectionItem) = item {
+                if collectionItems[collectionItem.collection] == nil {
+                    collectionItems[collectionItem.collection] = collectionItem.items
+                } else {
+                    collectionItems[collectionItem.collection]?.append(contentsOf: collectionItem.items)
+                }
+            }
+        }
+
+        var items: [WatchlistViewItem] = items.filter { item in
+            if case .movieCollection = item {
+                return false
+            } else {
+                return true
+            }
+        }
+
+        for movieCollection in collectionItems.keys {
+            if let movieCollectionItems = collectionItems[movieCollection], let collectionItem = WatchlistViewMovieCollectionItem(collection: movieCollection, items: movieCollectionItems) {
+                items.append(.movieCollection(collectionItem))
+            }
+        }
+
         switch sorting {
         case .lastAdded:
             return await makeLastAddedSections(items: items)

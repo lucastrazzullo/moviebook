@@ -277,9 +277,25 @@ private struct WatchlistItemView: View {
             switch item {
             case .movie(let item):
                 WatchlistMovieItemView(item: item, onItemSelected: onItemSelected)
+            case .movieCollection(let item):
+                WatchlistMovieCollectionItemView(item: item, onItemSelected: onItemSelected)
             }
         }
         .id(item.id)
+    }
+}
+
+private struct WatchlistMovieCollectionItemView: View {
+
+    let item: WatchlistViewMovieCollectionItem
+    let onItemSelected: (NavigationItem) -> Void
+
+    var body: some View {
+        Section(header: Text(item.name)) {
+            ForEach(item.items, id: \.self) { item in
+                WatchlistMovieItemView(item: item, onItemSelected: onItemSelected)
+            }
+        }
     }
 }
 
@@ -392,6 +408,8 @@ private struct StatsView: View {
             switch item {
             case .movie(let item):
                 return total + (item.runtime ?? 0)
+            case .movieCollection(let item):
+                return total + item.items.reduce(0, { $0 + ($1.runtime ?? 0) })
             }
         })
     }
@@ -402,6 +420,8 @@ private struct StatsView: View {
                 switch item {
                 case .movie(let item):
                     return list + item.genres
+                case .movieCollection(let item):
+                    return list + item.items.reduce([MovieGenre](), { $0 + $1.genres })
                 }
             }
             .getMostPopular(topCap: 3)
