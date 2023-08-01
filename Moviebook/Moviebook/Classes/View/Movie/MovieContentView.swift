@@ -50,10 +50,10 @@ struct MovieContentView: View {
                 onItemSelected: onItemSelected
             )
 
-            if let collection = movie.collection, let list = collection.list, !list.isEmpty {
+            if let collection = movie.collection, !collection.list.isEmpty {
                 MovieCollectionView(
                     title: "Collection",
-                    movies: list,
+                    movies: collection.list,
                     highlightedMovieId: movie.id,
                     onItemSelected: onItemSelected
                 )

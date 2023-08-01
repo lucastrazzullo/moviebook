@@ -48,10 +48,12 @@ import MoviebookCommon
                 case .movie(let item):
                     if item.watchlistReference == identifier {
                         groups[groupIndex].items.remove(at: itemIndex)
+                        return
                     }
                 case .movieCollection(let item) where item.items.count == 1:
                     if item.items[0].watchlistReference == identifier {
                         groups[groupIndex].items.remove(at: itemIndex)
+                        return
                     }
                 case .movieCollection(var item):
                     if let collectionItemIndex = item.items.firstIndex(where: { $0.watchlistReference == identifier }) {
@@ -59,6 +61,7 @@ import MoviebookCommon
 
                         groups[groupIndex].items.remove(at: itemIndex)
                         groups[groupIndex].items.insert(.movieCollection(item), at: itemIndex)
+                        return
                     }
                 }
             }
