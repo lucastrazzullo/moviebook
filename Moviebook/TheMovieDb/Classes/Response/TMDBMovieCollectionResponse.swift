@@ -41,9 +41,6 @@ struct TMDBMovieCollectionResponse: Codable {
 
         try container.encode(collection.id, forKey: .id)
         try container.encode(collection.name, forKey: .name)
-
-        if let list = collection.list {
-            try container.encode(list.map(TMDBMovieDetailsResponse.init(movieDetails:)), forKey: .list)
-        }
+        try container.encode(collection.list.map(TMDBMovieDetailsResponse.init(movieDetails:)), forKey: .list)
     }
 }
