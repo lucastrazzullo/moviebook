@@ -298,7 +298,7 @@ private struct WatchlistMovieCollectionItemView: View {
                 .font(.title3)
 
             VStack(alignment: .leading) {
-                Text("Parts you want to watch")
+                Text("Parts")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
 
@@ -402,7 +402,7 @@ private struct WatchlistMovieItemView: View {
                 )
             }
             .padding(.horizontal)
-            .padding(.top, 8)
+            .padding(.top, 12)
             .padding(.bottom, 24)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
