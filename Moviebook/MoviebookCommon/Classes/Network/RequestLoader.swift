@@ -60,7 +60,7 @@ public actor DefaultRequestLoader: RequestLoader {
             let session = URLSession(configuration: sessionConfiguguration)
 
             let task: Task<Data, Error> = Task {
-                let (data, _) = try await session.data(from: url)
+                let (data, _) = try await session.data(for: urlRequest)
                 let cacheEntry = CacheEntry(content: data, lifeTime: responseLifetime)
                 try? persistentCache.cache(cacheEntry, for: urlRequest)
                 requests[urlRequest] = .fetched(cacheEntry)

@@ -287,73 +287,127 @@ private struct WatchlistItemView: View {
 
 private struct WatchlistMovieCollectionItemView: View {
 
+    enum Section: Int {
+        case toWatch
+        case watched
+        case notInWatchlist
+
+        var title: String {
+            switch self {
+            case .toWatch:
+                return "Movies to watch"
+            case .watched:
+                return "Watched movies"
+            case .notInWatchlist:
+                return "Not in your watchlist"
+            }
+        }
+    }
+
+    @EnvironmentObject var watchlist: Watchlist
+
     @State private var showEntireCollection: Bool = false
 
     let item: WatchlistViewMovieCollectionItem
     let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
-        VStack(alignment: .leading) {
-            Text(item.name)
-                .font(.title3)
+        VStack {
 
-            VStack(alignment: .leading) {
-                Text("Parts you want to watch")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+            VStack {
+                VStack(alignment: .leading) {
+                    HStack(alignment: .firstTextBaseline) {
+                        Image(systemName: "square.stack")
+                        Text(item.name)
+                    }
+                    .font(.title3)
+
+                    Divider()
+                }
 
                 VStack {
                     ForEach(item.items, id: \.self) { item in
                         MoviePreviewView(
                             details: item.movieDetails,
+                            style: .poster,
                             onItemSelected: onItemSelected
                         )
                     }
                 }
-            }
 
-            if !itemsNotInWatchlist.isEmpty {
-                Group {
-                    if !showEntireCollection {
-                        Button { showEntireCollection = true } label: {
-                            HStack {
-                                Image(systemName: "plus.square")
-                                Text("Show the entire collection")
-                            }
-                        }
-                        .buttonStyle(OvalButtonStyle(.small))
-                    } else {
-                        VStack(alignment: .leading) {
-                            Text("Not in your watchlist")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
+                if showEntireCollection, !moreItemsToShow.isEmpty {
+                    VStack(alignment: .leading) {
+                        let sections: [Section] = Array(moreItemsToShow.keys).sorted(by: { $0.rawValue < $1.rawValue })
+                        ForEach(sections, id: \.self) { section in
+                            VStack(alignment: .leading) {
+                                if let movies: [MovieDetails] = moreItemsToShow[section] {
+                                    Text(section.title)
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                        .padding(.top)
 
-                            VStack {
-                                ForEach(itemsNotInWatchlist) { movie in
-                                    MoviePreviewView(
-                                        details: movie,
-                                        onItemSelected: onItemSelected
-                                    )
+                                    ForEach(movies, id: \.self) { movie in
+                                        MoviePreviewView(
+                                            details: movie,
+                                            style: .poster,
+                                            onItemSelected: onItemSelected
+                                        )
+                                    }
                                 }
                             }
+                            .id(section)
                         }
                     }
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.top)
+
+                if !showEntireCollection, !moreItemsToShow.isEmpty {
+                    VStack(alignment: .leading) {
+                        Divider()
+
+                        Text("More movies in this collection")
+
+                        Button { showEntireCollection = true } label: {
+                            Text("Show all")
+                            Image(systemName: "chevron.down")
+                        }
+                    }
+                }
             }
+            .padding(.horizontal)
         }
-        .padding()
-        .background(.thickMaterial)
-        .cornerRadius(8)
+        .padding(.vertical)
     }
 
-    private var itemsNotInWatchlist: [MovieDetails] {
-        let itemsIdInWatchlist = Set(item.items.map(\.id))
+    private var moreItemsToShow: [Section: [MovieDetails]] {
+        var result = [Section: [MovieDetails]]()
+        let itemsIdsInItem = Set(item.items.map(\.id))
 
-        return item.collection.list.filter { item in
-            !itemsIdInWatchlist.contains(item.id)
+        for item in item.collection.list {
+            if !itemsIdsInItem.contains(item.id) {
+                switch watchlist.itemState(id: .movie(id: item.id)) {
+                case .toWatch:
+                    let section = Section.toWatch
+                    if result[section] == nil {
+                        result[section] = []
+                    }
+                    result[section]?.append(item)
+                case .watched:
+                    let section = Section.watched
+                    if result[section] == nil {
+                        result[section] = []
+                    }
+                    result[section]?.append(item)
+                case .none:
+                    let section = Section.notInWatchlist
+                    if result[section] == nil {
+                        result[section] = []
+                    }
+                    result[section]?.append(item)
+                }
+            }
         }
+
+        return result
     }
 }
 
@@ -367,7 +421,7 @@ private struct WatchlistMovieItemView: View {
             RemoteImage(url: item.backdropUrl, content: { image in
                 image.resizable().aspectRatio(contentMode: .fit)
             }, placeholder: {
-                Rectangle().fill(.gray)
+                Rectangle().fill(.clear)
             })
             .cornerRadius(6)
 
@@ -402,7 +456,7 @@ private struct WatchlistMovieItemView: View {
                 )
             }
             .padding(.horizontal)
-            .padding(.top, 8)
+            .padding(.top, 12)
             .padding(.bottom, 24)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
