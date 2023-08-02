@@ -287,6 +287,23 @@ private struct WatchlistItemView: View {
 
 private struct WatchlistMovieCollectionItemView: View {
 
+    enum Section: Int {
+        case toWatch
+        case watched
+        case notInWatchlist
+
+        var title: String {
+            switch self {
+            case .toWatch:
+                return "Movies to watch"
+            case .watched:
+                return "Watched movies"
+            case .notInWatchlist:
+                return "Not in your watchlist"
+            }
+        }
+    }
+
     @EnvironmentObject var watchlist: Watchlist
 
     @State private var showEntireCollection: Bool = false
@@ -320,22 +337,25 @@ private struct WatchlistMovieCollectionItemView: View {
 
                 if showEntireCollection, !moreItemsToShow.isEmpty {
                     VStack(alignment: .leading) {
-                        let sections: [String] = Array(moreItemsToShow.keys)
+                        let sections: [Section] = Array(moreItemsToShow.keys).sorted(by: { $0.rawValue < $1.rawValue })
                         ForEach(sections, id: \.self) { section in
-                            if let movies: [MovieDetails] = moreItemsToShow[section] {
-                                Text(section)
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
-                                    .padding(.top)
+                            VStack(alignment: .leading) {
+                                if let movies: [MovieDetails] = moreItemsToShow[section] {
+                                    Text(section.title)
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                        .padding(.top)
 
-                                ForEach(movies, id: \.self) { movie in
-                                    MoviePreviewView(
-                                        details: movie,
-                                        style: .poster,
-                                        onItemSelected: onItemSelected
-                                    )
+                                    ForEach(movies, id: \.self) { movie in
+                                        MoviePreviewView(
+                                            details: movie,
+                                            style: .poster,
+                                            onItemSelected: onItemSelected
+                                        )
+                                    }
                                 }
                             }
+                            .id(section)
                         }
                     }
                 }
@@ -358,27 +378,27 @@ private struct WatchlistMovieCollectionItemView: View {
         .padding(.vertical)
     }
 
-    private var moreItemsToShow: [String: [MovieDetails]] {
-        var result = [String: [MovieDetails]]()
+    private var moreItemsToShow: [Section: [MovieDetails]] {
+        var result = [Section: [MovieDetails]]()
         let itemsIdsInItem = Set(item.items.map(\.id))
 
         for item in item.collection.list {
             if !itemsIdsInItem.contains(item.id) {
                 switch watchlist.itemState(id: .movie(id: item.id)) {
                 case .toWatch:
-                    let section = "Movies to watch"
+                    let section = Section.toWatch
                     if result[section] == nil {
                         result[section] = []
                     }
                     result[section]?.append(item)
                 case .watched:
-                    let section = "Watched movies"
+                    let section = Section.watched
                     if result[section] == nil {
                         result[section] = []
                     }
                     result[section]?.append(item)
                 case .none:
-                    let section = "Not in your watchlist"
+                    let section = Section.notInWatchlist
                     if result[section] == nil {
                         result[section] = []
                     }
