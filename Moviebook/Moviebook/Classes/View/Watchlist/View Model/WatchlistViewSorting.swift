@@ -9,6 +9,7 @@ import Foundation
 import MoviebookCommon
 
 enum WatchlistViewSorting: String, CaseIterable, Hashable, Equatable {
+    case collection
     case lastAdded
     case rating
     case name
@@ -16,6 +17,8 @@ enum WatchlistViewSorting: String, CaseIterable, Hashable, Equatable {
 
     var label: String {
         switch self {
+        case .collection:
+            return "By collection"
         case .lastAdded:
             return "Last added"
         case .rating:
@@ -29,6 +32,8 @@ enum WatchlistViewSorting: String, CaseIterable, Hashable, Equatable {
 
     var image: String {
         switch self {
+        case .collection:
+            return "square.stack"
         case .lastAdded:
             return "text.line.first.and.arrowtriangle.forward"
         case .rating:

@@ -6,9 +6,26 @@
 //
 
 import Foundation
+import MoviebookCommon
 
-struct WatchlistViewItemGroup: Hashable {
+enum WatchlistViewItemGroupIdentifier: Hashable {
+    case movieCollection(MovieCollection)
+    case `default`
+}
+
+struct WatchlistViewItemGroup: Identifiable, Hashable {
+    let id: WatchlistViewItemGroupIdentifier
     let title: String
     let icon: String
-    var items: [WatchlistViewItem]
+    let items: [WatchlistViewItem]
+
+    init(id: WatchlistViewItemGroupIdentifier = .default,
+         title: String,
+         icon: String,
+         items: [WatchlistViewItem]) {
+        self.id = id
+        self.title = title
+        self.icon = icon
+        self.items = items
+    }
 }
