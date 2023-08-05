@@ -137,6 +137,8 @@ private struct ToolbarView: View {
 
 private struct ContentView: View {
 
+    @State private var scrollContent: [WatchlistViewSection: ObservableScrollContent] = [:]
+
     @Environment(\.requestLoader) var requestLoader
     @EnvironmentObject var watchlist: Watchlist
 
@@ -156,74 +158,70 @@ private struct ContentView: View {
                 RetriableErrorView(error: error)
                     .frame(maxHeight: .infinity)
                     .padding()
-            } else if viewModel.items(in: section).isEmpty {
-                EmptyListView(
-                    shouldShowTopBar: $shouldShowTopBar,
-                    shouldShowBottomBar: $shouldShowBottomBar,
-                    section: section
-                )
             } else {
-                ScrollingListView(
-                    shouldShowTopBar: $shouldShowTopBar,
-                    shouldShowBottomBar: $shouldShowBottomBar,
-                    section: section,
-                    groups: viewModel.items(in: section),
-                    onItemSelected: onItemSelected
-                )
-            }
-        }
-    }
-}
-
-private struct EmptyListView: View {
-
-    @Binding var shouldShowTopBar: Bool
-    @Binding var shouldShowBottomBar: Bool
-
-    let section: WatchlistViewSection
-
-    var body: some View {
-        EmptyWatchlistView(section: section)
-            .background(.thinMaterial)
-            .onAppear {
-                shouldShowTopBar = false
-                shouldShowBottomBar = false
-            }
-    }
-}
-
-private struct ScrollingListView: View {
-
-    @State private var scrollContent: ObservableScrollContent = .zero
-
-    @Binding var shouldShowTopBar: Bool
-    @Binding var shouldShowBottomBar: Bool
-
-    let section: WatchlistViewSection
-    let groups: [WatchlistViewItemGroup]
-    let onItemSelected: (NavigationItem) -> Void
-
-    var body: some View {
-        GeometryReader { geometry in
-            ObservableScrollView(scrollContent: $scrollContent, showsIndicators: false) { _ in
-                ListView(
-                    section: section,
-                    groups: groups,
-                    onItemSelected: onItemSelected
-                )
-                .onChange(of: scrollContent) { info in
-                    updateShouldShowBars(geometry: geometry)
-                }
-                .onChange(of: geometry.safeAreaInsets) { _ in
-                    updateShouldShowBars(geometry: geometry)
+                GeometryReader { geometry in
+                    SectionListView(
+                        scrollContent: Binding(
+                            get: { scrollContent[section] ?? .zero },
+                            set: { scrollContent in self.scrollContent[section] = scrollContent }
+                        ),
+                        section: section,
+                        groups: viewModel.items(in: section),
+                        onItemSelected: onItemSelected
+                    )
+                    .onChange(of: scrollContent) { info in
+                        updateShouldShowBars(geometry: geometry)
+                    }
+                    .onChange(of: geometry.safeAreaInsets) { _ in
+                        updateShouldShowBars(geometry: geometry)
+                    }
+                    .onChange(of: section) { _ in
+                        updateShouldShowBars(geometry: geometry)
+                    }
                 }
             }
         }
     }
 
     private func updateShouldShowBars(geometry: GeometryProxy) {
-        shouldShowTopBar = scrollContent.offset > 0 + 10
-        shouldShowBottomBar = -(scrollContent.offset - scrollContent.height) > geometry.size.height + 20
+        if viewModel.items(in: section).isEmpty {
+            shouldShowTopBar = true
+            shouldShowBottomBar = true
+        } else if let scrollContent = scrollContent[section] {
+            shouldShowTopBar = scrollContent.offset > 0 + 10
+            shouldShowBottomBar = -(scrollContent.offset - scrollContent.height) > geometry.size.height + 20
+        }
+    }
+}
+
+private struct SectionListView: View {
+
+    @Binding var scrollContent: ObservableScrollContent
+
+    let section: WatchlistViewSection
+    let groups: [WatchlistViewItemGroup]
+    let onItemSelected: (NavigationItem) -> Void
+
+    var body: some View {
+        ZStack {
+            ForEach(WatchlistViewSection.allCases) { section in
+                Group {
+                    if groups.isEmpty {
+                        EmptyWatchlistView(section: section)
+                    } else {
+                        ObservableScrollView(scrollContent: $scrollContent, showsIndicators: false) { _ in
+                            ListView(
+                                section: section,
+                                groups: groups,
+                                onItemSelected: onItemSelected
+                            )
+                        }
+                    }
+                }
+                .id(section.id)
+                .opacity(self.section == section ? 1 : 0)
+            }
+        }
     }
 }
 
@@ -235,12 +233,11 @@ private struct ListView: View {
 
     var body: some View {
         VStack {
-            if case .watched = section {
-                StatsView(
-                    items: groups.flatMap(\.items),
-                    onItemSelected: onItemSelected
-                )
-            }
+            StatsView(
+                section: section,
+                items: groups.flatMap(\.items),
+                onItemSelected: onItemSelected
+            )
 
             ForEach(Array(zip(groups.indices, groups)), id: \.0) { index, group in
                 VStack {
@@ -506,6 +503,7 @@ private struct WatchlistItemView: View {
 
 private struct StatsView: View {
 
+    let section: WatchlistViewSection
     let items: [WatchlistViewItem]
     let onItemSelected: (NavigationItem) -> Void
 
@@ -515,7 +513,7 @@ private struct StatsView: View {
                 HStack(alignment: .firstTextBaseline) {
                     Image(systemName: "chart.bar.xaxis")
                         .font(.largeTitle)
-                    Text("Stats")
+                    Text("\(section.name) stats")
                         .font(.title2)
                 }
 

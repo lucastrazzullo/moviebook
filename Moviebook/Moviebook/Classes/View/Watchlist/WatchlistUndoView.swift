@@ -27,7 +27,10 @@ struct WatchlistUndoView: View {
                                 .aspectRatio(contentMode: .fit)
                                 .cornerRadius(4)
                         },
-                        placeholder: { Color.clear }
+                        placeholder: {
+                            Color.clear
+                                .frame(width: 0)
+                        }
                     )
 
                     VStack(alignment: .leading) {
