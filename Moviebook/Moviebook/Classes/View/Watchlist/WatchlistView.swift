@@ -137,6 +137,8 @@ private struct ToolbarView: View {
 
 private struct ContentView: View {
 
+    @State private var scrollContent: [WatchlistViewSection: ObservableScrollContent] = [:]
+
     @Environment(\.requestLoader) var requestLoader
     @EnvironmentObject var watchlist: Watchlist
 
@@ -156,74 +158,70 @@ private struct ContentView: View {
                 RetriableErrorView(error: error)
                     .frame(maxHeight: .infinity)
                     .padding()
-            } else if viewModel.items(in: section).isEmpty {
-                EmptyListView(
-                    shouldShowTopBar: $shouldShowTopBar,
-                    shouldShowBottomBar: $shouldShowBottomBar,
-                    section: section
-                )
             } else {
-                ScrollingListView(
-                    shouldShowTopBar: $shouldShowTopBar,
-                    shouldShowBottomBar: $shouldShowBottomBar,
-                    section: section,
-                    groups: viewModel.items(in: section),
-                    onItemSelected: onItemSelected
-                )
-            }
-        }
-    }
-}
-
-private struct EmptyListView: View {
-
-    @Binding var shouldShowTopBar: Bool
-    @Binding var shouldShowBottomBar: Bool
-
-    let section: WatchlistViewSection
-
-    var body: some View {
-        EmptyWatchlistView(section: section)
-            .background(.thinMaterial)
-            .onAppear {
-                shouldShowTopBar = false
-                shouldShowBottomBar = false
-            }
-    }
-}
-
-private struct ScrollingListView: View {
-
-    @State private var scrollContent: ObservableScrollContent = .zero
-
-    @Binding var shouldShowTopBar: Bool
-    @Binding var shouldShowBottomBar: Bool
-
-    let section: WatchlistViewSection
-    let groups: [WatchlistViewItemGroup]
-    let onItemSelected: (NavigationItem) -> Void
-
-    var body: some View {
-        GeometryReader { geometry in
-            ObservableScrollView(scrollContent: $scrollContent, showsIndicators: false) { _ in
-                ListView(
-                    section: section,
-                    groups: groups,
-                    onItemSelected: onItemSelected
-                )
-                .onChange(of: scrollContent) { info in
-                    updateShouldShowBars(geometry: geometry)
-                }
-                .onChange(of: geometry.safeAreaInsets) { _ in
-                    updateShouldShowBars(geometry: geometry)
+                GeometryReader { geometry in
+                    SectionListView(
+                        scrollContent: Binding(
+                            get: { scrollContent[section] ?? .zero },
+                            set: { scrollContent in self.scrollContent[section] = scrollContent }
+                        ),
+                        section: section,
+                        groups: viewModel.items(in: section),
+                        onItemSelected: onItemSelected
+                    )
+                    .onChange(of: scrollContent) { info in
+                        updateShouldShowBars(geometry: geometry)
+                    }
+                    .onChange(of: geometry.safeAreaInsets) { _ in
+                        updateShouldShowBars(geometry: geometry)
+                    }
+                    .onChange(of: section) { _ in
+                        updateShouldShowBars(geometry: geometry)
+                    }
                 }
             }
         }
     }
 
     private func updateShouldShowBars(geometry: GeometryProxy) {
-        shouldShowTopBar = scrollContent.offset > 0 + 10
-        shouldShowBottomBar = -(scrollContent.offset - scrollContent.height) > geometry.size.height + 20
+        if viewModel.items(in: section).isEmpty {
+            shouldShowTopBar = true
+            shouldShowBottomBar = true
+        } else if let scrollContent = scrollContent[section] {
+            shouldShowTopBar = scrollContent.offset > 0 + 10
+            shouldShowBottomBar = -(scrollContent.offset - scrollContent.height) > geometry.size.height + 20
+        }
+    }
+}
+
+private struct SectionListView: View {
+
+    @Binding var scrollContent: ObservableScrollContent
+
+    let section: WatchlistViewSection
+    let groups: [WatchlistViewItemGroup]
+    let onItemSelected: (NavigationItem) -> Void
+
+    var body: some View {
+        ZStack {
+            ForEach(WatchlistViewSection.allCases) { section in
+                Group {
+                    if groups.isEmpty {
+                        EmptyWatchlistView(section: section)
+                    } else {
+                        ObservableScrollView(scrollContent: $scrollContent, showsIndicators: false) { _ in
+                            ListView(
+                                section: section,
+                                groups: groups,
+                                onItemSelected: onItemSelected
+                            )
+                        }
+                    }
+                }
+                .id(section.id)
+                .opacity(self.section == section ? 1 : 0)
+            }
+        }
     }
 }
 
@@ -235,57 +233,83 @@ private struct ListView: View {
 
     var body: some View {
         VStack {
-            if case .watched = section {
-                StatsView(
-                    items: groups.flatMap(\.items),
-                    onItemSelected: onItemSelected
-                )
-            }
+            StatsView(
+                section: section,
+                items: groups.flatMap(\.items),
+                onItemSelected: onItemSelected
+            )
 
-            ForEach(groups, id: \.self) { group in
-                Section(header: groupHeader(group: group)) {
+            ForEach(Array(zip(groups.indices, groups)), id: \.0) { index, group in
+                VStack {
+                    WatchlistGroupHeader(group: group)
                     ForEach(group.items, id: \.self) { item in
                         WatchlistItemView(
                             item: item,
                             onItemSelected: onItemSelected
                         )
                     }
+                    WatchlistGroupFooter(
+                        group: group,
+                        section: section,
+                        onItemSelected: onItemSelected
+                    )
                 }
+                .padding(.horizontal, 4)
+                .background((index % 2) != 0 ? WatchlistGroupBackground(group: group) : nil)
             }
         }
         .padding(.horizontal, 4)
     }
+}
 
-    @ViewBuilder private func groupHeader(group: WatchlistViewItemGroup) -> some View {
-        HStack {
-            Image(systemName: group.icon)
-            Text(group.title)
-                .font(.headline)
-                .frame(maxWidth: .infinity, alignment: .leading)
+private struct WatchlistGroupBackground: View {
+
+    let group: WatchlistViewItemGroup
+
+    var body: some View {
+        GeometryReader { geometry in
+            if let backgroungImage = group.imageUrl {
+                RemoteImage(
+                    url: backgroungImage,
+                    content: { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: geometry.size.width, height: geometry.size.height, alignment: .bottom)
+                    },
+                    placeholder: { Color.clear }
+                )
+                .overlay(Rectangle()
+                    .fill(.background.opacity(0.65))
+                    .background(.thinMaterial)
+                )
+                .cornerRadius(8)
+            }
         }
+    }
+}
+
+private struct WatchlistGroupHeader: View {
+
+    let group: WatchlistViewItemGroup
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline) {
+            if let icon = group.icon {
+                Image(systemName: icon)
+            }
+
+            if let title = group.title {
+                Text(title)
+            }
+        }
+        .font(.title3.bold())
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
     }
 }
 
-private struct WatchlistItemView: View {
-
-    let item: WatchlistViewItem
-    let onItemSelected: (NavigationItem) -> Void
-
-    var body: some View {
-        Group {
-            switch item {
-            case .movie(let item):
-                WatchlistMovieItemView(item: item, onItemSelected: onItemSelected)
-            case .movieCollection(let item):
-                WatchlistMovieCollectionItemView(item: item, onItemSelected: onItemSelected)
-            }
-        }
-        .id(item.id)
-    }
-}
-
-private struct WatchlistMovieCollectionItemView: View {
+private struct WatchlistGroupFooter: View {
 
     enum Section: Int {
         case toWatch
@@ -295,11 +319,22 @@ private struct WatchlistMovieCollectionItemView: View {
         var title: String {
             switch self {
             case .toWatch:
-                return "Movies to watch"
+                return "To watch"
             case .watched:
-                return "Watched movies"
+                return "Watched"
             case .notInWatchlist:
                 return "Not in your watchlist"
+            }
+        }
+
+        var icon: String {
+            switch self {
+            case .toWatch:
+                return WatchlistViewState.toWatch.icon
+            case .watched:
+                return WatchlistViewState.watched.icon
+            case .notInWatchlist:
+                return WatchlistViewState.none.icon
             }
         }
     }
@@ -308,102 +343,98 @@ private struct WatchlistMovieCollectionItemView: View {
 
     @State private var showEntireCollection: Bool = false
 
-    let item: WatchlistViewMovieCollectionItem
+    let group: WatchlistViewItemGroup
+    let section: WatchlistViewSection
     let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
-        VStack {
-
-            VStack {
-                VStack(alignment: .leading) {
-                    HStack(alignment: .firstTextBaseline) {
-                        Image(systemName: "square.stack")
-                        Text(item.name)
-                    }
-                    .font(.title3)
-
-                    Divider()
-                }
-
-                VStack {
-                    ForEach(item.items, id: \.self) { item in
-                        MoviePreviewView(
-                            details: item.movieDetails,
-                            style: .poster,
-                            onItemSelected: onItemSelected
-                        )
-                    }
-                }
-
-                if showEntireCollection, !moreItemsToShow.isEmpty {
+        if !moreItemsToShow.isEmpty {
+            Group {
+                if showEntireCollection {
                     VStack(alignment: .leading) {
-                        let sections: [Section] = Array(moreItemsToShow.keys).sorted(by: { $0.rawValue < $1.rawValue })
+                        let sections = Array(moreItemsToShow.keys)
+                            .sorted { $0.rawValue < $1.rawValue }
+
                         ForEach(sections, id: \.self) { section in
                             VStack(alignment: .leading) {
-                                if let movies: [MovieDetails] = moreItemsToShow[section] {
-                                    Text(section.title)
-                                        .font(.subheadline)
-                                        .foregroundColor(.secondary)
-                                        .padding(.top)
+                                if let items = moreItemsToShow[section] {
+                                    HStack(alignment: .firstTextBaseline) {
+                                        Image(systemName: section.icon)
+                                        Text(section.title.uppercased())
+                                    }
+                                    .font(.subheadline)
+                                    .padding(.top)
 
-                                    ForEach(movies, id: \.self) { movie in
-                                        MoviePreviewView(
-                                            details: movie,
-                                            style: .poster,
-                                            onItemSelected: onItemSelected
-                                        )
+                                    Divider()
+
+                                    ForEach(items, id: \.self) { item in
+                                        switch item {
+                                        case .movie(let item, _):
+                                            MoviePreviewView(
+                                                details: item.details,
+                                                style: .poster,
+                                                onItemSelected: onItemSelected
+                                            )
+                                        }
                                     }
                                 }
                             }
                             .id(section)
                         }
                     }
-                }
-
-                if !showEntireCollection, !moreItemsToShow.isEmpty {
+                } else {
                     VStack(alignment: .leading) {
                         Divider()
 
-                        Text("More movies in this collection")
+                        HStack(alignment: .firstTextBaseline) {
+                            Image(systemName: "plus.square.on.square")
 
-                        Button { showEntireCollection = true } label: {
-                            Text("Show all")
-                            Image(systemName: "chevron.down")
+                            VStack(alignment: .leading) {
+                                if let title = group.title {
+                                    Text("More in **\(title)**")
+                                } else {
+                                    Text("There's more")
+                                }
+
+                                Button { showEntireCollection = true } label: {
+                                    Text("Show all")
+                                    Image(systemName: "chevron.down")
+                                }
+                            }
                         }
                     }
                 }
             }
             .padding(.horizontal)
+            .padding(.bottom)
         }
-        .padding(.vertical)
     }
 
-    private var moreItemsToShow: [Section: [MovieDetails]] {
-        var result = [Section: [MovieDetails]]()
-        let itemsIdsInItem = Set(item.items.map(\.id))
+    private var moreItemsToShow: [Section: [WatchlistViewItem]] {
+        var result = [Section: [WatchlistViewItem]]()
 
-        for item in item.collection.list {
-            if !itemsIdsInItem.contains(item.id) {
-                switch watchlist.itemState(id: .movie(id: item.id)) {
-                case .toWatch:
-                    let section = Section.toWatch
-                    if result[section] == nil {
-                        result[section] = []
-                    }
-                    result[section]?.append(item)
-                case .watched:
-                    let section = Section.watched
-                    if result[section] == nil {
-                        result[section] = []
-                    }
-                    result[section]?.append(item)
-                case .none:
-                    let section = Section.notInWatchlist
-                    if result[section] == nil {
-                        result[section] = []
-                    }
-                    result[section]?.append(item)
+        for item in group.expandableItems {
+            switch watchlist.itemState(id: item.watchlistIdentifier) {
+            case .toWatch where section != .toWatch:
+                let section = Section.toWatch
+                if result[section] == nil {
+                    result[section] = []
                 }
+                result[section]?.append(item)
+            case .watched where section != .watched:
+                let section = Section.watched
+                if result[section] == nil {
+                    result[section] = []
+                }
+                result[section]?.append(item)
+            case .none:
+                let section = Section.notInWatchlist
+                if result[section] == nil {
+                    result[section] = []
+                }
+                result[section]?.append(item)
+            default:
+                continue
             }
         }
 
@@ -411,14 +442,14 @@ private struct WatchlistMovieCollectionItemView: View {
     }
 }
 
-private struct WatchlistMovieItemView: View {
+private struct WatchlistItemView: View {
 
-    let item: WatchlistViewMovieItem
+    let item: WatchlistViewItem
     let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         VStack(spacing: 0) {
-            RemoteImage(url: item.backdropUrl, content: { image in
+            RemoteImage(url: item.imageUrl, content: { image in
                 image.resizable().aspectRatio(contentMode: .fit)
             }, placeholder: {
                 Rectangle().fill(.clear)
@@ -427,8 +458,8 @@ private struct WatchlistMovieItemView: View {
 
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading) {
-                    Text(item.title)
-                        .font(.headline)
+                    Text(item.name)
+                        .font(.title3)
                         .lineLimit(3)
 
                     if item.releaseDate > .now {
@@ -450,24 +481,29 @@ private struct WatchlistMovieItemView: View {
                 Spacer()
 
                 IconWatchlistButton(
-                    watchlistItemIdentifier: item.watchlistReference,
+                    watchlistItemIdentifier: item.watchlistIdentifier,
                     watchlistItemReleaseDate: item.releaseDate,
                     onItemSelected: onItemSelected
                 )
             }
             .padding(.horizontal)
-            .padding(.top, 12)
+            .padding(.top, 16)
             .padding(.bottom, 24)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .onTapGesture {
-            onItemSelected(.movieWithIdentifier(item.id))
+            switch item {
+            case .movie(let movieItem, _):
+                onItemSelected(.movieWithIdentifier(movieItem.details.id))
+            }
         }
+        .id(item.watchlistIdentifier)
     }
 }
 
 private struct StatsView: View {
 
+    let section: WatchlistViewSection
     let items: [WatchlistViewItem]
     let onItemSelected: (NavigationItem) -> Void
 
@@ -477,13 +513,13 @@ private struct StatsView: View {
                 HStack(alignment: .firstTextBaseline) {
                     Image(systemName: "chart.bar.xaxis")
                         .font(.largeTitle)
-                    Text("Stats")
+                    Text("\(section.name) stats")
                         .font(.title2)
                 }
 
                 if totalNumberOfWatchedHours > 0 {
                     VStack(spacing: 4) {
-                        Text("Total time watched")
+                        Text("Total time")
                             .font(.caption)
                             .foregroundColor(.secondary)
 
@@ -518,10 +554,8 @@ private struct StatsView: View {
     private var totalNumberOfWatchedHours: TimeInterval {
         return items.reduce(0, { total, item in
             switch item {
-            case .movie(let item):
-                return total + (item.runtime ?? 0)
-            case .movieCollection(let item):
-                return total + item.items.reduce(0, { $0 + ($1.runtime ?? 0) })
+            case .movie(let item, _):
+                return total + (item.details.runtime ?? 0)
             }
         })
     }
@@ -530,10 +564,8 @@ private struct StatsView: View {
         return items
             .reduce([MovieGenre]()) { list, item in
                 switch item {
-                case .movie(let item):
+                case .movie(let item, _):
                     return list + item.genres
-                case .movieCollection(let item):
-                    return list + item.items.reduce([MovieGenre](), { $0 + $1.genres })
                 }
             }
             .getMostPopular(topCap: 3)

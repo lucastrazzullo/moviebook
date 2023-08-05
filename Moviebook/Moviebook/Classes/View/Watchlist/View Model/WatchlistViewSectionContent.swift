@@ -23,7 +23,7 @@ import MoviebookCommon
 
     init(section: WatchlistViewSection) {
         self.section = section
-        self.sorting = Self.persistedSorting(section: section) ?? .lastAdded
+        self.sorting = Self.persistedSorting(section: section) ?? .collection
     }
 
     // MARK: Internal methods
@@ -43,28 +43,26 @@ import MoviebookCommon
 
     func removeItem(_ identifier: WatchlistItemIdentifier) {
         for groupIndex in 0..<groups.count {
-            for itemIndex in 0..<groups[groupIndex].items.count {
-                switch groups[groupIndex].items[itemIndex] {
-                case .movie(let item):
-                    if item.watchlistReference == identifier {
-                        groups[groupIndex].items.remove(at: itemIndex)
-                        return
-                    }
-                case .movieCollection(let item) where item.items.count == 1:
-                    if item.items[0].watchlistReference == identifier {
-                        groups[groupIndex].items.remove(at: itemIndex)
-                        return
-                    }
-                case .movieCollection(var item):
-                    if let collectionItemIndex = item.items.firstIndex(where: { $0.watchlistReference == identifier }) {
-                        item.items.remove(at: collectionItemIndex)
+            let group = groups.remove(at: groupIndex)
 
-                        groups[groupIndex].items.remove(at: itemIndex)
-                        groups[groupIndex].items.insert(.movieCollection(item), at: itemIndex)
-                        return
-                    }
-                }
-            }
+            var items = group.items
+            items.removeAll(where: { item in
+                return item.watchlistIdentifier == identifier
+            })
+
+            var expandableItems = group.expandableItems
+            expandableItems.removeAll(where: { item in
+                return item.watchlistIdentifier == identifier
+            })
+
+            let newGroup = WatchlistViewItemGroup(
+                title: group.title,
+                icon: group.icon,
+                items: items,
+                expandableItems: expandableItems
+            )
+
+            groups.insert(newGroup, at: groupIndex)
         }
     }
 
@@ -93,46 +91,17 @@ import MoviebookCommon
         case .movie(let id):
             let webService = WebService.movieWebService(requestLoader: requestLoader)
             let movie = try await webService.fetchMovie(with: id)
-            let movieItem = WatchlistViewMovieItem(movie: movie, watchlistItem: item)
-
-            if let collection = movie.collection,
-               let collectionItem = WatchlistViewMovieCollectionItem(collection: collection, items: [movieItem]) {
-                return WatchlistViewItem.movieCollection(collectionItem)
-            } else {
-                return WatchlistViewItem.movie(movieItem)
-            }
+            let movieItem = WatchlistViewMovieItem(movie: movie)
+            return WatchlistViewItem.movie(movieItem, watchlistItem: item)
         }
     }
 
     // MARK: Private methods - Grouping
 
     private func group(items: [WatchlistViewItem], sorting: WatchlistViewSorting) async -> [WatchlistViewItemGroup] {
-        var collectionItems: [MovieCollection: [WatchlistViewMovieItem]] = [:]
-        for item in items {
-            if case .movieCollection(let collectionItem) = item {
-                if collectionItems[collectionItem.collection] == nil {
-                    collectionItems[collectionItem.collection] = collectionItem.items
-                } else {
-                    collectionItems[collectionItem.collection]?.append(contentsOf: collectionItem.items)
-                }
-            }
-        }
-
-        var items: [WatchlistViewItem] = items.filter { item in
-            if case .movieCollection = item {
-                return false
-            } else {
-                return true
-            }
-        }
-
-        for movieCollection in collectionItems.keys {
-            if let movieCollectionItems = collectionItems[movieCollection]?.sorted(by: { $0.releaseDate < $1.releaseDate }), let collectionItem = WatchlistViewMovieCollectionItem(collection: movieCollection, items: movieCollectionItems) {
-                items.append(.movieCollection(collectionItem))
-            }
-        }
-
         switch sorting {
+        case .collection:
+            return await makeCollectionSections(items: items)
         case .lastAdded:
             return await makeLastAddedSections(items: items)
         case .rating:
@@ -144,6 +113,57 @@ import MoviebookCommon
         }
     }
 
+    private func makeCollectionSections(items: [WatchlistViewItem]) async -> [WatchlistViewItemGroup] {
+        var moviesCollection: [MovieCollection: [WatchlistViewItem]] = [:]
+        var nonCollectionItems: [WatchlistViewItem] = []
+        for item in items {
+            switch item {
+            case .movie(let watchlistViewMovieItem, _):
+                if let collection = watchlistViewMovieItem.collection, !collection.list.isEmpty {
+                    if moviesCollection[collection] == nil {
+                        moviesCollection[collection] = [item]
+                    } else {
+                        moviesCollection[collection]?.append(item)
+                    }
+                } else {
+                    nonCollectionItems.append(item)
+                }
+            }
+        }
+
+        var groups: [WatchlistViewItemGroup] = []
+        for movieCollection in moviesCollection.keys.sorted(by: { $0.name < $1.name }) {
+            guard let items = moviesCollection[movieCollection] else {
+                continue
+            }
+
+            let expandableItems = movieCollection.list.map { movieDetails in
+                return WatchlistViewItem.movie(WatchlistViewMovieItem(details: movieDetails), watchlistItem: nil)
+            }
+
+            let group = WatchlistViewItemGroup(
+                title: movieCollection.name,
+                imageUrl: movieCollection.list.first?.media.backdropPreviewUrl,
+                items: items.sorted { $0.releaseDate < $1.releaseDate },
+                expandableItems: expandableItems.sorted { $0.releaseDate < $1.releaseDate }
+            )
+
+            groups.append(group)
+        }
+
+        if !nonCollectionItems.isEmpty {
+            let group = WatchlistViewItemGroup(
+                title: nil,
+                icon: nil,
+                items: nonCollectionItems
+            )
+
+            groups.append(group)
+        }
+
+        return groups
+    }
+
     private func makeLastAddedSections(items: [WatchlistViewItem]) async -> [WatchlistViewItemGroup] {
         var lastWeekItems: [WatchlistViewItem] = []
         var lastMonthItems: [WatchlistViewItem] = []
@@ -151,11 +171,11 @@ import MoviebookCommon
         var allOtherItems: [WatchlistViewItem] = []
 
         for item in items {
-            if Calendar.current.isDate(item.addedDate, equalTo: .now, toGranularity: .weekOfMonth) {
+            if let addedDate = item.addedDate, Calendar.current.isDate(addedDate, equalTo: .now, toGranularity: .weekOfMonth) {
                 lastWeekItems.append(item)
-            } else if Calendar.current.isDate(item.addedDate, equalTo: .now, toGranularity: .month) {
+            } else if let addedDate = item.addedDate, Calendar.current.isDate(addedDate, equalTo: .now, toGranularity: .month) {
                 lastMonthItems.append(item)
-            } else if Calendar.current.isDate(item.addedDate, equalTo: .now, toGranularity: .year) {
+            } else if let addedDate = item.addedDate, Calendar.current.isDate(addedDate, equalTo: .now, toGranularity: .year) {
                 lastYearItems.append(item)
             } else {
                 allOtherItems.append(item)
