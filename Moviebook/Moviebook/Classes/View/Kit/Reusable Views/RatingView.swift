@@ -13,9 +13,22 @@ struct RatingView: View {
     let rating: Rating
 
     var body: some View {
+        ZStack {
+            stars(filled: false)
+            stars(filled: true)
+                .mask(
+                    GeometryReader { geometry in
+                        Rectangle()
+                            .frame(width: geometry.size.width * CGFloat(rating.percentage))
+                    }
+                )
+        }
+    }
+
+    @ViewBuilder private func stars(filled: Bool) -> some View {
         HStack(spacing: 2) {
             ForEach(1...5, id: \.self) { index in
-                Image(systemName: index <= Int(rating.percentage*5) ? "star.fill" : "star")
+                Image(systemName: filled ? "star.fill" : "star")
                     .foregroundColor(.accentColor)
                     .font(.caption2)
             }
@@ -25,6 +38,17 @@ struct RatingView: View {
 
 struct RatingView_Previews: PreviewProvider {
     static var previews: some View {
-        RatingView(rating: .init(value: 4, quota: 5))
+        VStack {
+            RatingView(rating: .init(value: 0, quota: 5))
+            RatingView(rating: .init(value: 0.5, quota: 5))
+            RatingView(rating: .init(value: 1, quota: 5))
+            RatingView(rating: .init(value: 1.5, quota: 5))
+            RatingView(rating: .init(value: 2, quota: 5))
+            RatingView(rating: .init(value: 2.5, quota: 5))
+            RatingView(rating: .init(value: 3, quota: 5))
+            RatingView(rating: .init(value: 3.5, quota: 5))
+            RatingView(rating: .init(value: 4, quota: 5))
+            RatingView(rating: .init(value: 5, quota: 5))
+        }
     }
 }
