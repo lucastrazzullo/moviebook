@@ -28,7 +28,7 @@ import MoviebookCommon
             .map(WatchlistViewSectionContent.init(section:))
     }
 
-    // MARK: Internal methods
+    // MARK: Start
 
     func start(watchlist: Watchlist, requestLoader: RequestLoader) async {
         do {
@@ -49,9 +49,29 @@ import MoviebookCommon
         }
     }
 
+    // MARK: Content
+
     func items(in section: WatchlistViewSection) -> [WatchlistViewItemGroup] {
         return content(for: section)?.groups ?? []
     }
+
+    private func content(for section: WatchlistViewSection) -> WatchlistViewSectionContent? {
+        return content.first(where: { $0.section == section })
+    }
+
+    private func updateItems(_ items: [WatchlistItem], requestLoader: RequestLoader) async throws {
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            content.forEach { content in
+                group.addTask {
+                    try await content.updateItems(items, requestLoader: requestLoader)
+                }
+            }
+
+            for try await _ in group {}
+        }
+    }
+
+    // MARK: Sorting
 
     func sorting(in section: WatchlistViewSection) -> WatchlistViewSorting {
         return content(for: section)?.sorting ?? .lastAdded
@@ -64,11 +84,7 @@ import MoviebookCommon
         }
     }
 
-    // MARK: Private methods
-
-    private func content(for section: WatchlistViewSection) -> WatchlistViewSectionContent? {
-        return content.first(where: { $0.section == section })
-    }
+    // MARK: Bindings
 
     private func setupBindings(watchlist: Watchlist, requestLoader: RequestLoader) {
         watchlist.itemWasRemoved
@@ -88,17 +104,5 @@ import MoviebookCommon
                 }
             }
             .store(in: &subscriptions)
-    }
-
-    private func updateItems(_ items: [WatchlistItem], requestLoader: RequestLoader) async throws {
-        try await withThrowingTaskGroup(of: Void.self) { group in
-            content.forEach { content in
-                group.addTask {
-                    try await content.updateItems(items, requestLoader: requestLoader)
-                }
-            }
-
-            for try await _ in group {}
-        }
     }
 }

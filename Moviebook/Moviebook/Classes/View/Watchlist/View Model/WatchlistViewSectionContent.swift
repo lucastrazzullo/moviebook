@@ -185,16 +185,32 @@ import MoviebookCommon
         var sections: [WatchlistViewItemGroup] = []
 
         if !lastWeekItems.isEmpty {
-            sections.append(WatchlistViewItemGroup(title: "Added last week", icon: "calendar.badge.plus", items: lastWeekItems))
+            sections.append(WatchlistViewItemGroup(
+                title: "Added this week",
+                icon: "calendar.badge.plus",
+                items: lastWeekItems)
+            )
         }
         if !lastMonthItems.isEmpty {
-            sections.append(WatchlistViewItemGroup(title: "Added last month", icon: "calendar.badge.plus", items: lastMonthItems))
+            sections.append(WatchlistViewItemGroup(
+                title: "Added this month",
+                icon: "calendar.badge.plus",
+                items: lastMonthItems)
+            )
         }
         if !lastYearItems.isEmpty {
-            sections.append(WatchlistViewItemGroup(title: "Added last year", icon: "calendar.badge.plus", items: lastYearItems))
+            sections.append(WatchlistViewItemGroup(
+                title: "Added this year",
+                icon: "calendar.badge.plus",
+                items: lastYearItems)
+            )
         }
         if !allOtherItems.isEmpty {
-            sections.append(WatchlistViewItemGroup(title: "Added earlier", icon: "calendar.badge.plus", items: allOtherItems))
+            sections.append(WatchlistViewItemGroup(
+                title: "Added earlier",
+                icon: "calendar.badge.plus",
+                items: allOtherItems)
+            )
         }
 
         return sections
@@ -221,16 +237,32 @@ import MoviebookCommon
         var sections: [WatchlistViewItemGroup] = []
 
         if !highRatingItems.isEmpty {
-            sections.append(WatchlistViewItemGroup(title: "Highly rated", icon: "star.square.on.square.fill", items: highRatingItems))
+            sections.append(WatchlistViewItemGroup(
+                title: "Highly rated",
+                icon: "star.square.on.square.fill",
+                items: highRatingItems)
+            )
         }
         if !averageRatingItems.isEmpty {
-            sections.append(WatchlistViewItemGroup(title: "Average", icon: "star.leadinghalf.filled", items: averageRatingItems))
+            sections.append(WatchlistViewItemGroup(
+                title: "Average",
+                icon: "star.leadinghalf.filled",
+                items: averageRatingItems)
+            )
         }
         if !lowRatingItems.isEmpty {
-            sections.append(WatchlistViewItemGroup(title: "Low rated", icon: "star.slash.fill", items: lowRatingItems))
+            sections.append(WatchlistViewItemGroup(
+                title: "Low rated",
+                icon: "star.slash.fill",
+                items: lowRatingItems)
+            )
         }
         if !unratedItems.isEmpty {
-            sections.append(WatchlistViewItemGroup(title: "Not rated", icon: "pencil.tip.crop.circle.badge.plus", items: unratedItems))
+            sections.append(WatchlistViewItemGroup(
+                title: "Not rated",
+                icon: "pencil.tip.crop.circle.badge.plus",
+                items: unratedItems)
+            )
         }
 
         return sections
@@ -239,7 +271,11 @@ import MoviebookCommon
     private func makeNameSections(items: [WatchlistViewItem]) async -> [WatchlistViewItemGroup] {
         let sortedItems = items.sorted(by: { $0.name < $1.name })
         return [
-            WatchlistViewItemGroup(title: "Alphabetical order", icon: "a.square.fill", items: sortedItems)
+            WatchlistViewItemGroup(
+                title: "Alphabetical order",
+                icon: "a.square.fill",
+                items: sortedItems
+            )
         ]
     }
 
@@ -259,7 +295,11 @@ import MoviebookCommon
         }
 
         return yearsMapping.keys.sorted(by: >).map { year in
-            WatchlistViewItemGroup(title: "Released in \(year)", icon: "calendar", items: yearsMapping[year]!)
+            WatchlistViewItemGroup(
+                title: "Released in \(year)",
+                icon: "calendar",
+                items: yearsMapping[year]!
+            )
         }
     }
 
