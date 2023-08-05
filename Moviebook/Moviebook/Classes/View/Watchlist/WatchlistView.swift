@@ -332,11 +332,16 @@ private struct WatchlistGroupFooter: View {
                         VStack(alignment: .leading) {
                             Divider()
 
-                            Text("More movies in this collection")
+                            HStack(alignment: .firstTextBaseline) {
+                                Image(systemName: "plus.square.on.square")
 
-                            Button { showEntireCollection = true } label: {
-                                Text("Show all")
-                                Image(systemName: "chevron.down")
+                                VStack(alignment: .leading) {
+                                    Text("More movies in **\(group.title)**")
+                                    Button { showEntireCollection = true } label: {
+                                        Text("Show all")
+                                        Image(systemName: "chevron.down")
+                                    }
+                                }
                             }
                         }
                     }
