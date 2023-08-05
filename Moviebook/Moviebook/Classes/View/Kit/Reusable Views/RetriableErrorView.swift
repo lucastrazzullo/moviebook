@@ -29,6 +29,8 @@ struct RetriableErrorView: View {
         .padding(.vertical, 40)
         .background(.thinMaterial)
         .cornerRadius(12)
+        .frame(maxHeight: .infinity)
+        .padding()
     }
 }
 

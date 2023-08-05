@@ -47,12 +47,12 @@ final class NotificationsTests: XCTestCase {
         // Setup
 
         let notReleasedMovies: [Movie] = [
-            makeMovie(id: 0, releaseDate: .now.addingTimeInterval(1000000)),
-            makeMovie(id: 1, releaseDate: .now.addingTimeInterval(2000000))
+            makeMovie(id: 0, releaseDate: .now.addingTimeInterval(10000000)),
+            makeMovie(id: 1, releaseDate: .now.addingTimeInterval(20000000))
         ]
         let releasedMovies: [Movie] = [
-            makeMovie(id: 2, releaseDate: .now.addingTimeInterval(-1000000)),
-            makeMovie(id: 3, releaseDate: .now.addingTimeInterval(-2000000))
+            makeMovie(id: 2, releaseDate: .now.addingTimeInterval(-10000000)),
+            makeMovie(id: 3, releaseDate: .now.addingTimeInterval(-20000000))
         ]
 
         let movies = notReleasedMovies + releasedMovies
@@ -79,12 +79,12 @@ final class NotificationsTests: XCTestCase {
         // Setup
 
         let notReleasedMoviesToWatch: [Movie] = [
-            makeMovie(id: 0, releaseDate: .now.addingTimeInterval(1000000)),
-            makeMovie(id: 1, releaseDate: .now.addingTimeInterval(2000000))
+            makeMovie(id: 0, releaseDate: .now.addingTimeInterval(10000000)),
+            makeMovie(id: 1, releaseDate: .now.addingTimeInterval(20000000))
         ]
         let notReleasedMoviesWatched: [Movie] = [
-            makeMovie(id: 2, releaseDate: .now.addingTimeInterval(1000000)),
-            makeMovie(id: 3, releaseDate: .now.addingTimeInterval(2000000))
+            makeMovie(id: 2, releaseDate: .now.addingTimeInterval(10000000)),
+            makeMovie(id: 3, releaseDate: .now.addingTimeInterval(20000000))
         ]
 
         let movies = notReleasedMoviesToWatch + notReleasedMoviesWatched
@@ -111,7 +111,7 @@ final class NotificationsTests: XCTestCase {
 
         // Setup
 
-        var movie = makeMovie(id: 0, releaseDate: .now.addingTimeInterval(100000))
+        var movie = makeMovie(id: 0, releaseDate: .now.addingTimeInterval(1000000))
         try addStubs(movies: [movie])
 
         var items = makeToWatchWatchlistItems(movieIdentifiers: [movie.id])
@@ -129,7 +129,7 @@ final class NotificationsTests: XCTestCase {
 
         // Update setup
 
-        movie = makeMovie(id: 0, releaseDate: .now.addingTimeInterval(200000))
+        movie = makeMovie(id: 0, releaseDate: .now.addingTimeInterval(2000000))
         try addStubs(movies: [movie])
 
         items = makeToWatchWatchlistItems(movieIdentifiers: [movie.id])
@@ -161,8 +161,8 @@ final class NotificationsTests: XCTestCase {
 
         await notifications.schedule(for: watchlist, requestLoader: requestLoader)
 
-        let movie1 = makeMovie(id: 0, releaseDate: .now.addingTimeInterval(100000))
-        let movie2 = makeMovie(id: 1, releaseDate: .now.addingTimeInterval(100000))
+        let movie1 = makeMovie(id: 0, releaseDate: .now.addingTimeInterval(1000000))
+        let movie2 = makeMovie(id: 1, releaseDate: .now.addingTimeInterval(1000000))
         let movies = [movie1, movie2]
         try addStubs(movies: movies)
 
@@ -187,8 +187,8 @@ final class NotificationsTests: XCTestCase {
         let expectation = expectation(description: "watchlist update")
         expectation.expectedFulfillmentCount = 1
 
-        let movie1 = makeMovie(id: 0, releaseDate: .now.addingTimeInterval(100000))
-        let movie2 = makeMovie(id: 1, releaseDate: .now.addingTimeInterval(100000))
+        let movie1 = makeMovie(id: 0, releaseDate: .now.addingTimeInterval(1000000))
+        let movie2 = makeMovie(id: 1, releaseDate: .now.addingTimeInterval(1000000))
         let movies = [movie1, movie2]
         try addStubs(movies: movies)
 

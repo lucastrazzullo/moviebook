@@ -17,7 +17,7 @@ struct WatchlistView: View {
     @StateObject private var contentViewModel: WatchlistViewModel = WatchlistViewModel()
     @StateObject private var undoViewModel: WatchlistUndoViewModel = WatchlistUndoViewModel()
 
-    @State private var section: WatchlistViewSection = .toWatch
+    @State private var currentSection: WatchlistViewSection = .toWatch
     @State private var shouldShowTopBar: Bool = false
     @State private var shouldShowBottomBar: Bool = false
 
@@ -29,7 +29,7 @@ struct WatchlistView: View {
                 viewModel: contentViewModel,
                 shouldShowTopBar: $shouldShowTopBar,
                 shouldShowBottomBar: $shouldShowBottomBar,
-                section: section,
+                currentSection: currentSection,
                 onItemSelected: { item in
                     presentedItem = item
                 }
@@ -39,8 +39,8 @@ struct WatchlistView: View {
             TopbarView(
                 undoViewModel: undoViewModel,
                 sorting: Binding(
-                    get: { contentViewModel.sorting(in: section) },
-                    set: { contentViewModel.update(sorting: $0, in: section) }
+                    get: { contentViewModel.sorting(in: currentSection) },
+                    set: { contentViewModel.update(sorting: $0, in: currentSection) }
                 )
             )
             .padding(.horizontal)
@@ -50,7 +50,7 @@ struct WatchlistView: View {
         }
         .safeAreaInset(edge: .bottom) {
             ToolbarView(
-                currentSection: $section,
+                currentSection: $currentSection,
                 onItemSelected: { item in
                     presentedItem = item
                 }
@@ -62,8 +62,8 @@ struct WatchlistView: View {
         .task {
             await contentViewModel.start(watchlist: watchlist, requestLoader: requestLoader)
         }
-        .animation(.default, value: contentViewModel.items(in: section))
-        .animation(.default, value: contentViewModel.sorting(in: section))
+        .animation(.default, value: contentViewModel.items(in: currentSection))
+        .animation(.default, value: contentViewModel.sorting(in: currentSection))
     }
 }
 
@@ -137,57 +137,82 @@ private struct ToolbarView: View {
 
 private struct ContentView: View {
 
-    @State private var scrollContent: [WatchlistViewSection: ObservableScrollContent] = [:]
+    @ObservedObject var viewModel: WatchlistViewModel
 
-    @Environment(\.requestLoader) var requestLoader
-    @EnvironmentObject var watchlist: Watchlist
+    @Binding var shouldShowTopBar: Bool
+    @Binding var shouldShowBottomBar: Bool
+
+    let currentSection: WatchlistViewSection
+    let onItemSelected: (NavigationItem) -> Void
+
+    var body: some View {
+        Group {
+            if viewModel.isLoading {
+                LoaderView()
+            } else if let error = viewModel.error {
+                RetriableErrorView(error: error)
+            } else {
+                SectionsView(
+                    viewModel: viewModel,
+                    shouldShowTopBar: $shouldShowTopBar,
+                    shouldShowBottomBar: $shouldShowBottomBar,
+                    currentSection: currentSection,
+                    onItemSelected: onItemSelected
+                )
+            }
+        }
+    }
+}
+
+private struct SectionsView: View {
+
+    @State private var scrollContent: [WatchlistViewSection: ObservableScrollContent] = [:]
 
     @ObservedObject var viewModel: WatchlistViewModel
 
     @Binding var shouldShowTopBar: Bool
     @Binding var shouldShowBottomBar: Bool
 
-    let section: WatchlistViewSection
+    let currentSection: WatchlistViewSection
     let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
-        Group {
-            if viewModel.isLoading, viewModel.items(in: section).isEmpty {
-                LoaderView()
-            } else if let error = viewModel.error {
-                RetriableErrorView(error: error)
-                    .frame(maxHeight: .infinity)
-                    .padding()
-            } else {
-                GeometryReader { geometry in
+        GeometryReader { geometry in
+            ZStack {
+                ForEach(WatchlistViewSection.allCases, id: \.self) { section in
+                    let groups = viewModel.items(in: section)
+
                     SectionListView(
+                        viewModel: viewModel,
                         scrollContent: Binding(
                             get: { scrollContent[section] ?? .zero },
                             set: { scrollContent in self.scrollContent[section] = scrollContent }
                         ),
-                        section: section,
-                        groups: viewModel.items(in: section),
+                        section: currentSection,
+                        groups: groups,
                         onItemSelected: onItemSelected
                     )
-                    .onChange(of: scrollContent) { info in
-                        updateShouldShowBars(geometry: geometry)
-                    }
-                    .onChange(of: geometry.safeAreaInsets) { _ in
-                        updateShouldShowBars(geometry: geometry)
-                    }
-                    .onChange(of: section) { _ in
-                        updateShouldShowBars(geometry: geometry)
-                    }
+                    .id(section.id)
+                    .opacity(currentSection == section ? 1 : 0)
                 }
+            }
+            .onChange(of: scrollContent) { info in
+                updateShouldShowBars(geometry: geometry, currentSection: currentSection)
+            }
+            .onChange(of: geometry.safeAreaInsets) { _ in
+                updateShouldShowBars(geometry: geometry, currentSection: currentSection)
+            }
+            .onChange(of: currentSection) { currentSection in
+                updateShouldShowBars(geometry: geometry, currentSection: currentSection)
             }
         }
     }
 
-    private func updateShouldShowBars(geometry: GeometryProxy) {
-        if viewModel.items(in: section).isEmpty {
+    private func updateShouldShowBars(geometry: GeometryProxy, currentSection: WatchlistViewSection) {
+        if viewModel.items(in: currentSection).isEmpty {
             shouldShowTopBar = true
             shouldShowBottomBar = true
-        } else if let scrollContent = scrollContent[section] {
+        } else if let scrollContent = scrollContent[currentSection] {
             shouldShowTopBar = scrollContent.offset > 0 + 10
             shouldShowBottomBar = -(scrollContent.offset - scrollContent.height) > geometry.size.height + 20
         }
@@ -196,6 +221,8 @@ private struct ContentView: View {
 
 private struct SectionListView: View {
 
+    @ObservedObject var viewModel: WatchlistViewModel
+
     @Binding var scrollContent: ObservableScrollContent
 
     let section: WatchlistViewSection
@@ -203,23 +230,15 @@ private struct SectionListView: View {
     let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
-        ZStack {
-            ForEach(WatchlistViewSection.allCases) { section in
-                Group {
-                    if groups.isEmpty {
-                        EmptyWatchlistView(section: section)
-                    } else {
-                        ObservableScrollView(scrollContent: $scrollContent, showsIndicators: false) { _ in
-                            ListView(
-                                section: section,
-                                groups: groups,
-                                onItemSelected: onItemSelected
-                            )
-                        }
-                    }
-                }
-                .id(section.id)
-                .opacity(self.section == section ? 1 : 0)
+        if groups.isEmpty {
+            EmptyWatchlistView(section: section)
+        } else {
+            ObservableScrollView(scrollContent: $scrollContent, showsIndicators: false) { _ in
+                ListView(
+                    section: section,
+                    groups: groups,
+                    onItemSelected: onItemSelected
+                )
             }
         }
     }
@@ -256,6 +275,7 @@ private struct ListView: View {
                 }
                 .padding(.horizontal, 4)
                 .background((index % 2) != 0 ? WatchlistGroupBackground(group: group) : nil)
+                .padding(.bottom)
             }
         }
         .padding(.horizontal, 4)
@@ -349,12 +369,12 @@ private struct WatchlistGroupFooter: View {
 
     var body: some View {
         if !moreItemsToShow.isEmpty {
+            let sections = Array(moreItemsToShow.keys)
+                .sorted { $0.rawValue < $1.rawValue }
+
             Group {
                 if showEntireCollection {
                     VStack(alignment: .leading) {
-                        let sections = Array(moreItemsToShow.keys)
-                            .sorted { $0.rawValue < $1.rawValue }
-
                         ForEach(sections, id: \.self) { section in
                             VStack(alignment: .leading) {
                                 if let items = moreItemsToShow[section] {
@@ -386,21 +406,29 @@ private struct WatchlistGroupFooter: View {
                     VStack(alignment: .leading) {
                         Divider()
 
-                        HStack(alignment: .firstTextBaseline) {
-                            Image(systemName: "plus.square.on.square")
-
-                            VStack(alignment: .leading) {
+                        VStack(alignment: .leading) {
+                            Group {
                                 if let title = group.title {
                                     Text("More in **\(title)**")
                                 } else {
                                     Text("There's more")
                                 }
+                            }
+                            .foregroundColor(.secondary)
 
-                                Button { showEntireCollection = true } label: {
-                                    Text("Show all")
-                                    Image(systemName: "chevron.down")
+                            ForEach(sections, id: \.self) { section in
+                                if let items = moreItemsToShow[section] {
+                                    Text("**^[\(items.count) item](inflect: true)** \(section.title.lowercased())")
                                 }
                             }
+
+                            Button { showEntireCollection = true } label: {
+                                HStack(alignment: .firstTextBaseline) {
+                                    Text("Show all")
+                                    Image(systemName: "plus.square.on.square")
+                                }
+                            }
+                            .buttonStyle(OvalButtonStyle(.normal))
                         }
                     }
                 }
@@ -455,6 +483,7 @@ private struct WatchlistItemView: View {
                 Rectangle().fill(.clear)
             })
             .cornerRadius(6)
+            .onTapGesture(perform: handleTap)
 
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading) {
@@ -477,6 +506,7 @@ private struct WatchlistItemView: View {
                     RatingView(rating: item.rating)
                         .padding(.top, 4)
                 }
+                .onTapGesture(perform: handleTap)
 
                 Spacer()
 
@@ -491,13 +521,14 @@ private struct WatchlistItemView: View {
             .padding(.bottom, 24)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .onTapGesture {
-            switch item {
-            case .movie(let movieItem, _):
-                onItemSelected(.movieWithIdentifier(movieItem.details.id))
-            }
-        }
         .id(item.watchlistIdentifier)
+    }
+
+    private func handleTap() {
+        switch item {
+        case .movie(let movieItem, _):
+            onItemSelected(.movieWithIdentifier(movieItem.details.id))
+        }
     }
 }
 
