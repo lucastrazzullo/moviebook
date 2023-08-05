@@ -256,6 +256,7 @@ private struct ListView: View {
                 }
                 .padding(.horizontal, 4)
                 .background((index % 2) != 0 ? WatchlistGroupBackground(group: group) : nil)
+                .padding(.bottom)
             }
         }
         .padding(.horizontal, 4)
@@ -349,12 +350,12 @@ private struct WatchlistGroupFooter: View {
 
     var body: some View {
         if !moreItemsToShow.isEmpty {
+            let sections = Array(moreItemsToShow.keys)
+                .sorted { $0.rawValue < $1.rawValue }
+
             Group {
                 if showEntireCollection {
                     VStack(alignment: .leading) {
-                        let sections = Array(moreItemsToShow.keys)
-                            .sorted { $0.rawValue < $1.rawValue }
-
                         ForEach(sections, id: \.self) { section in
                             VStack(alignment: .leading) {
                                 if let items = moreItemsToShow[section] {
@@ -386,21 +387,29 @@ private struct WatchlistGroupFooter: View {
                     VStack(alignment: .leading) {
                         Divider()
 
-                        HStack(alignment: .firstTextBaseline) {
-                            Image(systemName: "plus.square.on.square")
-
-                            VStack(alignment: .leading) {
+                        VStack(alignment: .leading) {
+                            Group {
                                 if let title = group.title {
                                     Text("More in **\(title)**")
                                 } else {
                                     Text("There's more")
                                 }
+                            }
+                            .foregroundColor(.secondary)
 
-                                Button { showEntireCollection = true } label: {
-                                    Text("Show all")
-                                    Image(systemName: "chevron.down")
+                            ForEach(sections, id: \.self) { section in
+                                if let items = moreItemsToShow[section] {
+                                    Text("**^[\(items.count) item](inflect: true)** \(section.title.lowercased())")
                                 }
                             }
+
+                            Button { showEntireCollection = true } label: {
+                                HStack(alignment: .firstTextBaseline) {
+                                    Text("Show all")
+                                    Image(systemName: "plus.square.on.square")
+                                }
+                            }
+                            .buttonStyle(OvalButtonStyle(.normal))
                         }
                     }
                 }
