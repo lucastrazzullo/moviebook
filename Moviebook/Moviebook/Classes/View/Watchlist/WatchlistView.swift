@@ -455,6 +455,7 @@ private struct WatchlistItemView: View {
                 Rectangle().fill(.clear)
             })
             .cornerRadius(6)
+            .onTapGesture(perform: handleTap)
 
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading) {
@@ -477,6 +478,7 @@ private struct WatchlistItemView: View {
                     RatingView(rating: item.rating)
                         .padding(.top, 4)
                 }
+                .onTapGesture(perform: handleTap)
 
                 Spacer()
 
@@ -491,13 +493,14 @@ private struct WatchlistItemView: View {
             .padding(.bottom, 24)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .onTapGesture {
-            switch item {
-            case .movie(let movieItem, _):
-                onItemSelected(.movieWithIdentifier(movieItem.details.id))
-            }
-        }
         .id(item.watchlistIdentifier)
+    }
+
+    private func handleTap() {
+        switch item {
+        case .movie(let movieItem, _):
+            onItemSelected(.movieWithIdentifier(movieItem.details.id))
+        }
     }
 }
 
