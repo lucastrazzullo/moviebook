@@ -519,7 +519,7 @@ private struct StatsView: View {
 
                 if totalNumberOfWatchedHours > 0 {
                     VStack(spacing: 4) {
-                        Text("Total time watched")
+                        Text("Total time")
                             .font(.caption)
                             .foregroundColor(.secondary)
 
