@@ -143,7 +143,7 @@ import MoviebookCommon
 
             let group = WatchlistViewItemGroup(
                 title: movieCollection.name,
-                icon: "square.stack",
+                imageUrl: movieCollection.list.first?.media.backdropPreviewUrl,
                 items: items.sorted { $0.releaseDate < $1.releaseDate },
                 expandableItems: expandableItems.sorted { $0.releaseDate < $1.releaseDate }
             )

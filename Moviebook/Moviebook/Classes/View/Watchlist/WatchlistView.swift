@@ -242,19 +242,53 @@ private struct ListView: View {
                 )
             }
 
-            ForEach(groups, id: \.self) { group in
-                Section(header: WatchlistGroupHeader(group: group),
-                        footer: WatchlistGroupFooter(group: group, section: section, onItemSelected: onItemSelected)) {
+            ForEach(Array(zip(groups.indices, groups)), id: \.0) { index, group in
+                VStack {
+                    WatchlistGroupHeader(group: group)
                     ForEach(group.items, id: \.self) { item in
                         WatchlistItemView(
                             item: item,
                             onItemSelected: onItemSelected
                         )
                     }
+                    WatchlistGroupFooter(
+                        group: group,
+                        section: section,
+                        onItemSelected: onItemSelected
+                    )
                 }
+                .padding(.horizontal, 4)
+                .background((index % 2) != 0 ? WatchlistGroupBackground(group: group) : nil)
             }
         }
         .padding(.horizontal, 4)
+    }
+}
+
+private struct WatchlistGroupBackground: View {
+
+    let group: WatchlistViewItemGroup
+
+    var body: some View {
+        GeometryReader { geometry in
+            if let backgroungImage = group.imageUrl {
+                RemoteImage(
+                    url: backgroungImage,
+                    content: { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: geometry.size.width, height: geometry.size.height, alignment: .bottom)
+                    },
+                    placeholder: { Color.clear }
+                )
+                .overlay(Rectangle()
+                    .fill(.background.opacity(0.65))
+                    .background(.thinMaterial)
+                )
+                .cornerRadius(8)
+            }
+        }
     }
 }
 
@@ -263,21 +297,17 @@ private struct WatchlistGroupHeader: View {
     let group: WatchlistViewItemGroup
 
     var body: some View {
-        VStack {
-            Divider()
-
-            HStack(alignment: .firstTextBaseline) {
-                if let icon = group.icon {
-                    Image(systemName: icon)
-                }
-
-                if let title = group.title {
-                    Text(title)
-                }
+        HStack(alignment: .firstTextBaseline) {
+            if let icon = group.icon {
+                Image(systemName: icon)
             }
-            .font(.title3.bold())
-            .frame(maxWidth: .infinity, alignment: .leading)
+
+            if let title = group.title {
+                Text(title)
+            }
         }
+        .font(.title3.bold())
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
     }
 }
@@ -335,8 +365,7 @@ private struct WatchlistGroupFooter: View {
                                         Image(systemName: section.icon)
                                         Text(section.title.uppercased())
                                     }
-                                    .font(.callout)
-                                    .foregroundColor(.secondary)
+                                    .font(.subheadline)
                                     .padding(.top)
 
                                     Divider()
@@ -433,7 +462,7 @@ private struct WatchlistItemView: View {
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading) {
                     Text(item.name)
-                        .font(.headline)
+                        .font(.title3)
                         .lineLimit(3)
 
                     if item.releaseDate > .now {
@@ -461,7 +490,7 @@ private struct WatchlistItemView: View {
                 )
             }
             .padding(.horizontal)
-            .padding(.top, 12)
+            .padding(.top, 16)
             .padding(.bottom, 24)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
