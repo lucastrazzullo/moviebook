@@ -263,11 +263,20 @@ private struct WatchlistGroupHeader: View {
     let group: WatchlistViewItemGroup
 
     var body: some View {
-        HStack {
-            Image(systemName: group.icon)
-            Text(group.title)
-                .font(.headline)
-                .frame(maxWidth: .infinity, alignment: .leading)
+        VStack {
+            Divider()
+
+            HStack(alignment: .firstTextBaseline) {
+                if let icon = group.icon {
+                    Image(systemName: icon)
+                }
+
+                if let title = group.title {
+                    Text(title)
+                }
+            }
+            .font(.title3.bold())
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding()
     }
@@ -283,11 +292,22 @@ private struct WatchlistGroupFooter: View {
         var title: String {
             switch self {
             case .toWatch:
-                return "Movies to watch"
+                return "To watch"
             case .watched:
-                return "Watched movies"
+                return "Watched"
             case .notInWatchlist:
                 return "Not in your watchlist"
+            }
+        }
+
+        var icon: String {
+            switch self {
+            case .toWatch:
+                return WatchlistViewState.toWatch.icon
+            case .watched:
+                return WatchlistViewState.watched.icon
+            case .notInWatchlist:
+                return WatchlistViewState.none.icon
             }
         }
     }
@@ -301,62 +321,74 @@ private struct WatchlistGroupFooter: View {
     let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
-        if case .movieCollection(let collection) = group.id {
-            let moreItemsToShow = moreItemsToShow(collection: collection)
-            if !moreItemsToShow.isEmpty {
-                Group {
-                    if showEntireCollection {
-                        VStack(alignment: .leading) {
-                            let sections: [Section] = Array(moreItemsToShow.keys).sorted(by: { $0.rawValue < $1.rawValue })
-                            ForEach(sections, id: \.self) { section in
-                                VStack(alignment: .leading) {
-                                    if let movies: [MovieDetails] = moreItemsToShow[section] {
-                                        Text(section.title)
-                                            .font(.subheadline)
-                                            .foregroundColor(.secondary)
-                                            .padding(.top)
+        if !moreItemsToShow.isEmpty {
+            Group {
+                if showEntireCollection {
+                    VStack(alignment: .leading) {
+                        let sections = Array(moreItemsToShow.keys)
+                            .sorted { $0.rawValue < $1.rawValue }
 
-                                        ForEach(movies, id: \.self) { movie in
+                        ForEach(sections, id: \.self) { section in
+                            VStack(alignment: .leading) {
+                                if let items = moreItemsToShow[section] {
+                                    HStack(alignment: .firstTextBaseline) {
+                                        Image(systemName: section.icon)
+                                        Text(section.title.uppercased())
+                                    }
+                                    .font(.callout)
+                                    .foregroundColor(.secondary)
+                                    .padding(.top)
+
+                                    Divider()
+
+                                    ForEach(items, id: \.self) { item in
+                                        switch item {
+                                        case .movie(let item, _):
                                             MoviePreviewView(
-                                                details: movie,
+                                                details: item.details,
                                                 style: .poster,
                                                 onItemSelected: onItemSelected
                                             )
                                         }
                                     }
                                 }
-                                .id(section)
                             }
+                            .id(section)
                         }
-                    } else {
-                        VStack(alignment: .leading) {
-                            Divider()
+                    }
+                } else {
+                    VStack(alignment: .leading) {
+                        Divider()
 
-                            HStack(alignment: .firstTextBaseline) {
-                                Image(systemName: "plus.square.on.square")
+                        HStack(alignment: .firstTextBaseline) {
+                            Image(systemName: "plus.square.on.square")
 
-                                VStack(alignment: .leading) {
-                                    Text("More movies in **\(group.title)**")
-                                    Button { showEntireCollection = true } label: {
-                                        Text("Show all")
-                                        Image(systemName: "chevron.down")
-                                    }
+                            VStack(alignment: .leading) {
+                                if let title = group.title {
+                                    Text("More in **\(title)**")
+                                } else {
+                                    Text("There's more")
+                                }
+
+                                Button { showEntireCollection = true } label: {
+                                    Text("Show all")
+                                    Image(systemName: "chevron.down")
                                 }
                             }
                         }
                     }
                 }
-                .padding(.horizontal)
-                .padding(.bottom)
             }
+            .padding(.horizontal)
+            .padding(.bottom)
         }
     }
 
-    private func moreItemsToShow(collection: MovieCollection) -> [Section: [MovieDetails]] {
-        var result = [Section: [MovieDetails]]()
+    private var moreItemsToShow: [Section: [WatchlistViewItem]] {
+        var result = [Section: [WatchlistViewItem]]()
 
-        for item in collection.list {
-            switch watchlist.itemState(id: .movie(id: item.id)) {
+        for item in group.expandableItems {
+            switch watchlist.itemState(id: item.watchlistIdentifier) {
             case .toWatch where section != .toWatch:
                 let section = Section.toWatch
                 if result[section] == nil {
@@ -423,7 +455,7 @@ private struct WatchlistItemView: View {
                 Spacer()
 
                 IconWatchlistButton(
-                    watchlistItemIdentifier: item.id,
+                    watchlistItemIdentifier: item.watchlistIdentifier,
                     watchlistItemReleaseDate: item.releaseDate,
                     onItemSelected: onItemSelected
                 )
@@ -435,11 +467,11 @@ private struct WatchlistItemView: View {
         }
         .onTapGesture {
             switch item {
-            case .movie(let movieItem):
+            case .movie(let movieItem, _):
                 onItemSelected(.movieWithIdentifier(movieItem.details.id))
             }
         }
-        .id(item.id)
+        .id(item.watchlistIdentifier)
     }
 }
 
@@ -495,7 +527,7 @@ private struct StatsView: View {
     private var totalNumberOfWatchedHours: TimeInterval {
         return items.reduce(0, { total, item in
             switch item {
-            case .movie(let item):
+            case .movie(let item, _):
                 return total + (item.details.runtime ?? 0)
             }
         })
@@ -505,7 +537,7 @@ private struct StatsView: View {
         return items
             .reduce([MovieGenre]()) { list, item in
                 switch item {
-                case .movie(let item):
+                case .movie(let item, _):
                     return list + item.genres
                 }
             }

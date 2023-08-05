@@ -9,80 +9,80 @@ import Foundation
 import MoviebookCommon
 
 enum WatchlistViewItem: Hashable {
-    case movie(WatchlistViewMovieItem)
+    case movie(WatchlistViewMovieItem, watchlistItem: WatchlistItem?)
 
     // MARK: View properties
 
-    var id: WatchlistItemIdentifier {
+    var watchlistIdentifier: WatchlistItemIdentifier {
         switch self {
-        case .movie(let watchlistViewMovieItem):
-            return watchlistViewMovieItem.id
+        case .movie(let watchlistViewMovieItem, let watchlistItem):
+            return watchlistItem?.id ?? .movie(id: watchlistViewMovieItem.details.id)
         }
     }
 
     var name: String {
         switch self {
-        case .movie(let watchlistViewMovieItem):
+        case .movie(let watchlistViewMovieItem, _):
             return watchlistViewMovieItem.details.title
         }
     }
 
     var imageUrl: URL {
         switch self {
-        case .movie(let watchlistViewMovieItem):
+        case .movie(let watchlistViewMovieItem, _):
             return watchlistViewMovieItem.details.media.backdropPreviewUrl
         }
     }
 
     var releaseDate: Date {
         switch self {
-        case .movie(let watchlistViewMovieItem):
+        case .movie(let watchlistViewMovieItem, _):
             return watchlistViewMovieItem.details.localisedReleaseDate()
-        }
-    }
-
-    var addedDate: Date {
-        switch self {
-        case .movie(let watchlistViewMovieItem):
-            return watchlistViewMovieItem.addedDate
         }
     }
 
     var rating: Rating {
         switch self {
-        case .movie(let watchlistViewMovieItem):
-            return watchlistViewMovieItem.rating
+        case .movie(let watchlistViewMovieItem, let watchlistItem):
+            switch watchlistItem?.state {
+            case .toWatch, .none:
+                return watchlistViewMovieItem.details.rating
+            case .watched(let info):
+                return Rating(value: Float(info.rating ?? 0), quota: watchlistViewMovieItem.details.rating.quota)
+            }
+        }
+    }
+
+    var addedDate: Date? {
+        switch self {
+        case .movie(_, let watchlistItem):
+            switch watchlistItem?.state {
+            case .toWatch(let info):
+                return info.date
+            case .watched(let info):
+                return info.date
+            case .none:
+                return nil
+            }
         }
     }
 }
 
 struct WatchlistViewMovieItem: Hashable {
 
-    let id: WatchlistItemIdentifier
     let details: MovieDetails
-    let addedDate: Date
-    let rating: Rating
     let genres: [MovieGenre]
     let collection: MovieCollection?
 
-    init(movie: Movie, watchlistItem: WatchlistItem) {
-        self.id = watchlistItem.id
+    init(movie: Movie) {
         self.details = movie.details
         self.genres = movie.genres
         self.collection = movie.collection
+    }
 
-        switch watchlistItem.state {
-        case .toWatch(let info):
-            addedDate = info.date
-        case .watched(let info):
-            addedDate = info.date
-        }
-
-        switch watchlistItem.state {
-        case .toWatch:
-            rating = movie.details.rating
-        case .watched(let info):
-            rating = Rating(value: Float(info.rating ?? 0), quota: movie.details.rating.quota)
-        }
+    init(details: MovieDetails) {
+        self.details = details
+        self.genres = []
+        self.collection = nil
     }
 }
