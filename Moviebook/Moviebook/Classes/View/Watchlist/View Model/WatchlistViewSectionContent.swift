@@ -183,33 +183,40 @@ import MoviebookCommon
         }
 
         var sections: [WatchlistViewItemGroup] = []
+        let sortByAddedDate: (WatchlistViewItem, WatchlistViewItem) -> Bool = { lhs, rhs in
+            if let lhsDate = lhs.addedDate, let rhsDate = rhs.addedDate {
+                return lhsDate > rhsDate
+            } else {
+                return false
+            }
+        }
 
         if !lastWeekItems.isEmpty {
             sections.append(WatchlistViewItemGroup(
                 title: "Added this week",
                 icon: "calendar.badge.plus",
-                items: lastWeekItems)
+                items: lastWeekItems.sorted(by: sortByAddedDate))
             )
         }
         if !lastMonthItems.isEmpty {
             sections.append(WatchlistViewItemGroup(
                 title: "Added this month",
                 icon: "calendar.badge.plus",
-                items: lastMonthItems)
+                items: lastMonthItems.sorted(by: sortByAddedDate))
             )
         }
         if !lastYearItems.isEmpty {
             sections.append(WatchlistViewItemGroup(
                 title: "Added this year",
                 icon: "calendar.badge.plus",
-                items: lastYearItems)
+                items: lastYearItems.sorted(by: sortByAddedDate))
             )
         }
         if !allOtherItems.isEmpty {
             sections.append(WatchlistViewItemGroup(
                 title: "Added earlier",
                 icon: "calendar.badge.plus",
-                items: allOtherItems)
+                items: allOtherItems.sorted(by: sortByAddedDate))
             )
         }
 
@@ -235,33 +242,36 @@ import MoviebookCommon
         }
 
         var sections: [WatchlistViewItemGroup] = []
+        let sortByRating: (WatchlistViewItem, WatchlistViewItem) -> Bool = { lhs, rhs in
+            return lhs.rating.percentage > rhs.rating.percentage
+        }
 
         if !highRatingItems.isEmpty {
             sections.append(WatchlistViewItemGroup(
                 title: "Highly rated",
                 icon: "star.square.on.square.fill",
-                items: highRatingItems)
+                items: highRatingItems.sorted(by: sortByRating))
             )
         }
         if !averageRatingItems.isEmpty {
             sections.append(WatchlistViewItemGroup(
                 title: "Average",
                 icon: "star.leadinghalf.filled",
-                items: averageRatingItems)
+                items: averageRatingItems.sorted(by: sortByRating))
             )
         }
         if !lowRatingItems.isEmpty {
             sections.append(WatchlistViewItemGroup(
                 title: "Low rated",
                 icon: "star.slash.fill",
-                items: lowRatingItems)
+                items: lowRatingItems.sorted(by: sortByRating))
             )
         }
         if !unratedItems.isEmpty {
             sections.append(WatchlistViewItemGroup(
                 title: "Not rated",
                 icon: "pencil.tip.crop.circle.badge.plus",
-                items: unratedItems)
+                items: unratedItems.sorted(by: sortByRating))
             )
         }
 
@@ -269,12 +279,11 @@ import MoviebookCommon
     }
 
     private func makeNameSections(items: [WatchlistViewItem]) async -> [WatchlistViewItemGroup] {
-        let sortedItems = items.sorted(by: { $0.name < $1.name })
         return [
             WatchlistViewItemGroup(
                 title: "Alphabetical order",
                 icon: "a.square.fill",
-                items: sortedItems
+                items: items.sorted(by: { $0.name < $1.name })
             )
         ]
     }
@@ -298,7 +307,7 @@ import MoviebookCommon
             WatchlistViewItemGroup(
                 title: "Released in \(year)",
                 icon: "calendar",
-                items: yearsMapping[year]!
+                items: yearsMapping[year]!.sorted(by: { $0.releaseDate > $1.releaseDate })
             )
         }
     }
