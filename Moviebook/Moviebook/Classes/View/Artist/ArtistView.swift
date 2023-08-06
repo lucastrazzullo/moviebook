@@ -15,7 +15,7 @@ struct ArtistView: View {
     @StateObject private var viewModel: ArtistViewModel
 
     @Binding private var navigationPath: NavigationPath
-    @State private var presentedItem: NavigationItem?
+    @Binding private var presentedItem: NavigationItem?
 
     @State private var isErrorPresented: Bool = false
 
@@ -46,9 +46,6 @@ struct ArtistView: View {
                 viewModel.error?.retry()
             }
         }
-        .sheet(item: $presentedItem) { item in
-            Navigation(rootItem: item)
-        }
         .onChange(of: viewModel.error) { error in
             isErrorPresented = error != nil
         }
@@ -59,9 +56,10 @@ struct ArtistView: View {
 
     // MARK: Obejct life cycle
 
-    init(artistId: Artist.ID, navigationPath: Binding<NavigationPath>) {
+    init(artistId: Artist.ID, navigationPath: Binding<NavigationPath>, presentedItem: Binding<NavigationItem?>) {
         self._viewModel = StateObject(wrappedValue: ArtistViewModel(artistId: artistId))
         self._navigationPath = navigationPath
+        self._presentedItem = presentedItem
     }
 
     // MARK: Private methods
@@ -94,9 +92,13 @@ import MoviebookTestSupport
 struct ArtistView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            ArtistView(artistId: 287, navigationPath: .constant(NavigationPath()))
-                .environmentObject(MockWatchlistProvider.shared.watchlist())
-                .environment(\.requestLoader, MockRequestLoader.shared)
+            ArtistView(
+                artistId: 287,
+                navigationPath: .constant(NavigationPath()),
+                presentedItem: .constant(nil)
+            )
+            .environmentObject(MockWatchlistProvider.shared.watchlist())
+            .environment(\.requestLoader, MockRequestLoader.shared)
         }
     }
 }
