@@ -406,7 +406,7 @@ private struct WatchlistGroupFooter: View {
                     VStack(alignment: .leading) {
                         Divider()
 
-                        VStack(alignment: .leading) {
+                        VStack(alignment: .leading, spacing: 6) {
                             Group {
                                 if let title = group.title {
                                     Text("More in **\(title)**")
@@ -429,6 +429,7 @@ private struct WatchlistGroupFooter: View {
                                 }
                             }
                             .buttonStyle(OvalButtonStyle(.normal))
+                            .padding(.top, 8)
                         }
                     }
                 }
