@@ -22,7 +22,7 @@ struct UnratedWatchlistItems: View {
         NavigationStack(path: $navigationPath) {
             ScrollView(showsIndicators: false) {
                 VStack {
-                    ForEach(items, id: \.self) { item in
+                    ForEach(filteredItems, id: \.self) { item in
                         HStack {
                             RemoteImage(url: item.posterUrl, content: { image in
                                 image.resizable().aspectRatio(contentMode: .fit)
@@ -68,8 +68,24 @@ struct UnratedWatchlistItems: View {
                 }
             }
         }
+        .onChange(of: filteredItems) { items in
+            if items.isEmpty {
+                dismiss()
+            }
+        }
         .sheet(item: $presentedItem) { item in
             Navigation(rootItem: item)
+        }
+    }
+
+    private var filteredItems: [WatchlistViewItem] {
+        items.filter { item in
+            if let state = watchlist.itemState(id: item.watchlistIdentifier),
+                case .watched(let info) = state {
+                return info.rating == nil
+            } else {
+                return false
+            }
         }
     }
 
