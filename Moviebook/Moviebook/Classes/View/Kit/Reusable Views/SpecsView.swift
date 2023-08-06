@@ -27,7 +27,7 @@ struct SpecsView: View {
     private let items: [DisplayedItem]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .firstTextBaseline) {
                 if let icon {
                     Image(systemName: icon)
@@ -81,7 +81,10 @@ struct SpecsView: View {
                             }
                         case .button(let action, let buttonLabel, let label):
                             SpecsRow(label: label) {
-                                Button(action: action, label: { Text(buttonLabel) })
+                                Button(action: action, label: {
+                                    Text(buttonLabel)
+                                        .multilineTextAlignment(.trailing)
+                                })
                             }
                         }
                     }

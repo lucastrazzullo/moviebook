@@ -309,6 +309,7 @@ private struct WatchlistListHeaderView: View {
         specs.append(totalNumberOfItems)
         specs.append(totalNumberOfWatchedHours)
         specs.append(popularGenres)
+        specs.append(unratedItems)
 
         return specs.compactMap({$0})
     }
@@ -365,6 +366,38 @@ private struct WatchlistListHeaderView: View {
                 buttonLabel: genres.map(\.name).joined(separator: ", "),
                 label: "Popular genres"
             )
+        } else {
+            return nil
+        }
+    }
+
+    private var unratedItems: SpecsView.Item? {
+        let unratedItems = items
+            .filter { item in
+                switch item {
+                case .movie(_, let watchlistItem):
+                    switch watchlistItem?.state {
+                    case .watched(let info) where info.rating == nil:
+                        return true
+                    default:
+                        return false
+                    }
+                }
+            }
+            .reduce([String: Int]()) { mapping, item in
+                switch item {
+                case .movie:
+                    var mapping = mapping
+                    mapping["movies"] = (mapping["movies"] ?? 0) + 1
+                    return mapping
+                }
+            }
+            .map { key, value in
+                return "\(value) \(key)"
+            }
+
+        if !unratedItems.isEmpty {
+            return .list(unratedItems, label: "Unrated items")
         } else {
             return nil
         }
