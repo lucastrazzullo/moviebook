@@ -293,7 +293,6 @@ private struct WatchlistListHeaderView: View {
             VStack {
                 SpecsView(
                     title: section.name,
-                    icon: section.icon,
                     items: specs,
                     showDividers: false
                 )

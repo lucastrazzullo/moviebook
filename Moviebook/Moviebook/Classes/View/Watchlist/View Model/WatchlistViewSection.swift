@@ -25,15 +25,6 @@ enum WatchlistViewSection: String, Identifiable, Hashable, Equatable, CaseIterab
         }
     }
 
-    var icon: String {
-        switch self {
-        case .toWatch:
-            return WatchlistViewState.toWatch.icon
-        case .watched:
-            return WatchlistViewState.watched.icon
-        }
-    }
-
     func belongsToSection(_ item: WatchlistItem) -> Bool {
         switch (self, item.state) {
         case (.toWatch, .toWatch):
