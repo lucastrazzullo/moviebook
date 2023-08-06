@@ -27,10 +27,17 @@ enum WatchlistViewItem: Hashable {
         }
     }
 
-    var imageUrl: URL {
+    var backdropUrl: URL {
         switch self {
         case .movie(let watchlistViewMovieItem, _):
             return watchlistViewMovieItem.details.media.backdropPreviewUrl
+        }
+    }
+
+    var posterUrl: URL {
+        switch self {
+        case .movie(let watchlistViewMovieItem, _):
+            return watchlistViewMovieItem.details.media.posterPreviewUrl
         }
     }
 

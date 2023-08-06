@@ -383,20 +383,13 @@ private struct WatchlistListHeaderView: View {
                     }
                 }
             }
-            .reduce([String: Int]()) { mapping, item in
-                switch item {
-                case .movie:
-                    var mapping = mapping
-                    mapping["movies"] = (mapping["movies"] ?? 0) + 1
-                    return mapping
-                }
-            }
-            .map { key, value in
-                return "\(value) \(key)"
-            }
 
         if !unratedItems.isEmpty {
-            return .list(unratedItems, label: "Unrated items")
+            return .button(
+                { onItemSelected(.unratedItems(unratedItems)) },
+                buttonLabel: "\(unratedItems.count) to rate",
+                label: "Unrated items"
+            )
         } else {
             return nil
         }
@@ -600,7 +593,7 @@ private struct WatchlistItemView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            RemoteImage(url: item.imageUrl, content: { image in
+            RemoteImage(url: item.backdropUrl, content: { image in
                 image.resizable().aspectRatio(contentMode: .fit)
             }, placeholder: {
                 Rectangle().fill(.clear)
