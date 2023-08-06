@@ -9,26 +9,34 @@ import SwiftUI
 
 struct SpecsView: View {
 
-    enum Item: Hashable {
+    enum Item {
         case date(_ date: Date, label: String)
         case currency(_ value: Int, code: String, label: String)
         case duration(_ duration: TimeInterval, label: String)
         case list(_ elements: [String], label: String)
+        case button(_ buttonAction: () -> Void, buttonLabel: String, label: String)
     }
 
-    private enum DisplayedItem: Hashable {
+    private enum DisplayedItem {
         case divider
         case item(Item)
     }
 
     private let title: String
+    private let icon: String?
     private let items: [DisplayedItem]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(title)
-                .font(.title2)
-                .padding(.leading)
+            HStack {
+                if let icon {
+                    Image(systemName: icon)
+                }
+
+                Text(title)
+            }
+            .font(.title2)
+            .padding(.leading)
 
             VStack(alignment: .leading, spacing: 12) {
                 ForEach(Array(zip(items.indices, items)), id: \.0) { index, item in
@@ -57,7 +65,11 @@ struct SpecsView: View {
                             }
                         case .duration(let duration, let label):
                             SpecsRow(label: label) {
-                                Text(Duration.seconds(duration).formatted(.time(pattern: .hourMinute)))
+                                Text(Duration.seconds(duration)
+                                    .formatted(.units(
+                                        allowed: [.weeks, .days, .hours, .minutes, .seconds, .milliseconds],
+                                        width: .wide
+                                    )))
                             }
                         case .list(let elements, let label):
                             SpecsRow(label: label) {
@@ -66,6 +78,10 @@ struct SpecsView: View {
                                         Text(element)
                                     }
                                 }
+                            }
+                        case .button(let action, let buttonLabel, let label):
+                            SpecsRow(label: label) {
+                                Button(action: action, label: { Text(buttonLabel) })
                             }
                         }
                     }
@@ -76,12 +92,13 @@ struct SpecsView: View {
         }
     }
 
-    init(title: String, items: [Item]) {
+    init(title: String, icon: String? = nil, items: [Item], showDividers: Bool = true) {
         self.title = title
+        self.icon = icon
         self.items = items.enumerated()
             .reduce([DisplayedItem]()) { list, item in
                 var list = list
-                if item.offset > 0 {
+                if showDividers, item.offset > 0 {
                     list.append(.divider)
                 }
                 list.append(.item(item.element))
@@ -93,13 +110,19 @@ struct SpecsView: View {
 private struct SpecsRow<ContentType: View>: View {
 
     let label: String
-    let content: () -> ContentType
+    @ViewBuilder let content: () -> ContentType
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 12) {
-            Text(label).bold()
+            Text(label)
+                .font(.callout)
+                .foregroundColor(.secondary)
+
             Spacer()
+
             content()
+                .font(.callout)
+                .bold()
         }
     }
 }
@@ -107,17 +130,12 @@ private struct SpecsRow<ContentType: View>: View {
 struct SpecsView_Previews: PreviewProvider {
     static var previews: some View {
         SpecsView(title: "Info", items: [
+            .date(Date().addingTimeInterval(10000), label: "Tomorrow"),
             .date(Date(), label: "Today"),
             .currency(100, code: "EUR", label: "Currency"),
             .duration(600, label: "Duration"),
-            .list(["Element 1", "Element 2"], label: "List")
-        ])
-
-        SpecsView(title: "Info", items: [
-            .date(Date().addingTimeInterval(10000), label: "Today"),
-            .currency(100, code: "EUR", label: "Currency"),
-            .duration(600, label: "Duration"),
-            .list(["Element 1", "Element 2"], label: "List")
+            .list(["Element 1", "Element 2"], label: "List"),
+            .button({}, buttonLabel: "Action", label: "Button")
         ])
     }
 }

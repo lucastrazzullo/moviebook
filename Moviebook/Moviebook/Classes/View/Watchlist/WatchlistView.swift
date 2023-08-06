@@ -252,7 +252,7 @@ private struct ListView: View {
 
     var body: some View {
         VStack {
-            StatsView(
+            WatchlistListHeaderView(
                 section: section,
                 items: groups.flatMap(\.items),
                 onItemSelected: onItemSelected
@@ -279,6 +279,95 @@ private struct ListView: View {
             }
         }
         .padding(.horizontal, 4)
+    }
+}
+
+private struct WatchlistListHeaderView: View {
+
+    let section: WatchlistViewSection
+    let items: [WatchlistViewItem]
+    let onItemSelected: (NavigationItem) -> Void
+
+    var body: some View {
+        if !specs.isEmpty {
+            VStack {
+                SpecsView(
+                    title: section.name,
+                    icon: section.icon,
+                    items: specs,
+                    showDividers: false
+                )
+
+                Divider()
+            }
+            .padding(.bottom)
+        }
+    }
+
+    private var specs: [SpecsView.Item] {
+        var specs = [SpecsView.Item?]()
+        specs.append(totalNumberOfItems)
+        specs.append(totalNumberOfWatchedHours)
+        specs.append(popularGenres)
+
+        return specs.compactMap({$0})
+    }
+
+    private var totalNumberOfItems: SpecsView.Item? {
+        let list = items
+            .reduce([String: Int]()) { mapping, item in
+                switch item {
+                case .movie:
+                    var mapping = mapping
+                    mapping["movies"] = (mapping["movies"] ?? 0) + 1
+                    return mapping
+                }
+            }
+            .map { key, value in
+                return "\(value) \(key)"
+            }
+
+        if !list.isEmpty {
+            return .list(list, label: "Number of items")
+        } else {
+            return nil
+        }
+    }
+
+    private var totalNumberOfWatchedHours: SpecsView.Item? {
+        let duration = items.reduce(0, { total, item in
+            switch item {
+            case .movie(let item, _):
+                return total + (item.details.runtime ?? 0)
+            }
+        })
+
+        if duration > 0 {
+            return .duration(duration, label: "Total time")
+        } else {
+            return nil
+        }
+    }
+
+    private var popularGenres: SpecsView.Item? {
+        let genres = items
+            .reduce([MovieGenre]()) { list, item in
+                switch item {
+                case .movie(let item, _):
+                    return list + item.genres
+                }
+            }
+            .getMostPopular(topCap: 3)
+
+        if !genres.isEmpty {
+            return .button(
+                { onItemSelected(.explore(selectedGenres: Set(genres))) },
+                buttonLabel: genres.map(\.name).joined(separator: ", "),
+                label: "Popular genres"
+            )
+        } else {
+            return nil
+        }
     }
 }
 
@@ -320,10 +409,10 @@ private struct WatchlistGroupHeader: View {
             }
 
             if let title = group.title {
-                Text(title)
+                Text(title.uppercased())
             }
         }
-        .font(.title3.bold())
+        .font(.subheadline.bold())
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
     }
@@ -530,77 +619,6 @@ private struct WatchlistItemView: View {
         case .movie(let movieItem, _):
             onItemSelected(.movieWithIdentifier(movieItem.details.id))
         }
-    }
-}
-
-private struct StatsView: View {
-
-    let section: WatchlistViewSection
-    let items: [WatchlistViewItem]
-    let onItemSelected: (NavigationItem) -> Void
-
-    var body: some View {
-        if totalNumberOfWatchedHours > 0 || popularGenres.count > 0 {
-            VStack(spacing: 16) {
-                HStack(alignment: .firstTextBaseline) {
-                    Image(systemName: "chart.bar.xaxis")
-                        .font(.largeTitle)
-                    Text("\(section.name) stats")
-                        .font(.title2)
-                }
-
-                if totalNumberOfWatchedHours > 0 {
-                    VStack(spacing: 4) {
-                        Text("Total time")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-
-                        Text(Duration.seconds(totalNumberOfWatchedHours).formatted(.units(allowed: [.weeks, .days, .hours, .minutes, .seconds, .milliseconds], width: .wide)))
-                            .font(.subheadline.bold())
-                    }
-                }
-
-                if popularGenres.count > 0 {
-                    VStack(spacing: 4) {
-                        Text("Popular genres")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-
-                        Button { onItemSelected(.explore(selectedGenres: Set(popularGenres))) } label: {
-                            HStack {
-                                Text(popularGenres.map(\.name).joined(separator: ", "))
-                                    .font(.caption)
-                                Image(systemName: "magnifyingglass")
-                            }
-                        }
-                        .buttonStyle(OvalButtonStyle(.prominentTiny))
-                    }
-                }
-
-                Divider()
-            }
-            .padding(.bottom)
-        }
-    }
-
-    private var totalNumberOfWatchedHours: TimeInterval {
-        return items.reduce(0, { total, item in
-            switch item {
-            case .movie(let item, _):
-                return total + (item.details.runtime ?? 0)
-            }
-        })
-    }
-
-    private var popularGenres: [MovieGenre] {
-        return items
-            .reduce([MovieGenre]()) { list, item in
-                switch item {
-                case .movie(let item, _):
-                    return list + item.genres
-                }
-            }
-            .getMostPopular(topCap: 3)
     }
 }
 
