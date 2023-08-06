@@ -35,6 +35,26 @@ extension Array {
 
         return result
     }
+
+    public func cap(bottom: Int? = nil, top: Int? = nil) -> [Element] {
+        guard !self.isEmpty else {
+            return self
+        }
+
+        if let bottom, let top {
+            let bottom = Swift.min(self.count, Swift.max(0, bottom))
+            let top = Swift.max(1, Swift.min(self.count, bottom+top))
+            return Array(self[bottom..<top])
+        } else if let bottom {
+            let bottom = Swift.min(self.count, Swift.max(0, bottom))
+            return Array(self[bottom..<self.count])
+        } else if let top {
+            let top = Swift.max(0, Swift.min(self.count, top))
+            return Array(self[0..<top])
+        } else {
+            return self
+        }
+    }
 }
 
 extension Array where Element: Equatable {
@@ -46,7 +66,7 @@ extension Array where Element: Equatable {
 
 extension Array where Element: Hashable {
 
-    public func getMostPopular(bottomCap: Int? = nil, topCap: Int? = nil) -> [Element] {
+    public func getMostPopular() -> [Element] {
         guard !self.isEmpty else {
             return self
         }
@@ -60,18 +80,6 @@ extension Array where Element: Hashable {
             return itemsOccurrences[lhs] ?? 0 > itemsOccurrences[rhs] ?? 0
         })
 
-        if let bottomCap, let topCap {
-            let bottomCap = Swift.min(sortedItems.count, Swift.max(0, bottomCap))
-            let topCap = Swift.max(1, Swift.min(sortedItems.count, bottomCap+topCap))
-            return Array(sortedItems[bottomCap..<topCap])
-        } else if let bottomCap {
-            let bottomCap = Swift.min(sortedItems.count, Swift.max(0, bottomCap))
-            return Array(sortedItems[bottomCap..<sortedItems.count])
-        } else if let topCap {
-            let topCap = Swift.max(0, Swift.min(sortedItems.count, topCap))
-            return Array(sortedItems[0..<topCap])
-        } else {
-            return sortedItems
-        }
+        return sortedItems
     }
 }

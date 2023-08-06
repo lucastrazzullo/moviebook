@@ -357,12 +357,14 @@ private struct WatchlistListHeaderView: View {
                     return list + item.genres
                 }
             }
-            .getMostPopular(topCap: 3)
+            .getMostPopular()
+            .sorted(by: { $0.name < $1.name })
+            .cap(top: 3)
 
         if !genres.isEmpty {
             return .button(
                 { onItemSelected(.explore(selectedGenres: Set(genres))) },
-                buttonLabel: genres.map(\.name).joined(separator: ", "),
+                buttonLabel: genres.map(\.name).joined(separator: " "),
                 label: "Popular genres"
             )
         } else {

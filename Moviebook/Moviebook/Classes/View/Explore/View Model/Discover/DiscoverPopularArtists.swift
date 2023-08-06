@@ -47,7 +47,7 @@ extension DiscoverPopularArtists: ExploreContentDataProvider {
 
         let bottomCap = currentPage * numberOfItemsPerPage
         let topCap = bottomCap + numberOfItemsPerPage
-        let artists = allArtists.getMostPopular(bottomCap: bottomCap, topCap: topCap)
+        let artists = allArtists.getMostPopular().cap(bottom: bottomCap, top: topCap)
         let nextPage = allArtists.count > topCap ? currentPage + 1 : nil
 
         return (results: .artists(artists), nextPage: nextPage)

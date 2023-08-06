@@ -86,8 +86,8 @@ extension DiscoverRelated: ExploreContentDataProvider {
             }
 
             return (
-                keywords: keywords.getMostPopular(topCap: 3),
-                genres: genres.getMostPopular(topCap: 3)
+                keywords: keywords.getMostPopular().cap(top: 3),
+                genres: genres.getMostPopular().cap(top: 3)
             )
         }
 

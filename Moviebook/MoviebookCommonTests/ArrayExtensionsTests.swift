@@ -90,73 +90,73 @@ final class ArrayExtensionsTests: XCTestCase {
 
     func testGetMostPopular_withTopCap() {
         let array = [0, 1, 1, 1, 2, 2, 1, 2, 0, 3]
-        let mostPopular = array.getMostPopular(topCap: 2)
+        let mostPopular = array.getMostPopular().cap(top: 2)
         XCTAssertEqual(mostPopular, [1, 2])
     }
 
     func testGetMostPopular_withTopCap_asZero() {
         let array = [0, 1, 1, 1, 2, 2, 1, 2, 0, 3]
-        let mostPopular = array.getMostPopular(topCap: 0)
+        let mostPopular = array.getMostPopular().cap(top: 0)
         XCTAssertEqual(mostPopular, [])
     }
 
     func testGetMostPopular_withTopCap_higherThanCount() {
         let array = [0, 1, 1, 1, 2, 2, 1, 2, 0, 3]
-        let mostPopular = array.getMostPopular(topCap: 12)
+        let mostPopular = array.getMostPopular().cap(top: 12)
         XCTAssertEqual(mostPopular, [1, 2, 0, 3])
     }
 
     func testGetMostPopular_withTopCap_lowerThanZero() {
         let array = [0, 1, 1, 1, 2, 2, 1, 2, 0, 3]
-        let mostPopular = array.getMostPopular(topCap: -1)
+        let mostPopular = array.getMostPopular().cap(top: -1)
         XCTAssertEqual(mostPopular, [])
     }
 
     func testGetMostPopular_withBottomCap_asZero() {
         let array = [0, 1, 1, 1, 2, 2, 1, 2, 0, 3]
-        let mostPopular = array.getMostPopular(bottomCap: 0)
+        let mostPopular = array.getMostPopular().cap(bottom: 0)
         XCTAssertEqual(mostPopular, [1, 2, 0, 3])
     }
 
     func testGetMostPopular_withBottomCap_higherThanCount() {
         let array = [0, 1, 1, 1, 2, 2, 1, 2, 0, 3]
-        let mostPopular = array.getMostPopular(bottomCap: 12)
+        let mostPopular = array.getMostPopular().cap(bottom: 12)
         XCTAssertEqual(mostPopular, [])
     }
 
     func testGetMostPopular_withBottomCap_lowerThanZero() {
         let array = [0, 1, 1, 1, 2, 2, 1, 2, 0, 3]
-        let mostPopular = array.getMostPopular(bottomCap: -1)
+        let mostPopular = array.getMostPopular().cap(bottom: -1)
         XCTAssertEqual(mostPopular, [1, 2, 0, 3])
     }
 
     func testGetMostPopular_withTopAndBottomCap() {
         let array = [0, 1, 1, 1, 2, 2, 1, 2, 0, 3]
-        let mostPopular = array.getMostPopular(bottomCap: 1, topCap: 3)
+        let mostPopular = array.getMostPopular().cap(bottom: 1, top: 3)
         XCTAssertEqual(mostPopular, [2, 0, 3])
     }
 
     func testGetMostPopular_withTopCapLowerThanBottomCap() {
         let array = [0, 1, 1, 1, 2, 2, 1, 2, 0, 3]
-        let mostPopular = array.getMostPopular(bottomCap: 3, topCap: 1)
+        let mostPopular = array.getMostPopular().cap(bottom: 3, top: 1)
         XCTAssertEqual(mostPopular, [3])
     }
 
     func testGetMostPopular_withTopCapHigherThanCount() {
         let array = [0, 1, 1, 1, 2, 2, 1, 2, 0, 3]
-        let mostPopular = array.getMostPopular(bottomCap: 1, topCap: 5)
+        let mostPopular = array.getMostPopular().cap(bottom: 1, top: 5)
         XCTAssertEqual(mostPopular, [2, 0, 3])
     }
 
     func testGetMostPopular_withBottomCapHigherThanCount() {
         let array = [0, 1, 1, 1, 2, 2, 1, 2, 0, 3]
-        let mostPopular = array.getMostPopular(bottomCap: 5, topCap: 3)
+        let mostPopular = array.getMostPopular().cap(bottom: 5, top: 3)
         XCTAssertEqual(mostPopular, [])
     }
 
     func testGetMostPopular_withEmptyArray() {
         let array = [Int]()
-        let mostPopular = array.getMostPopular(bottomCap: 1, topCap: 3)
+        let mostPopular = array.getMostPopular().cap(bottom: 1, top: 3)
         XCTAssertEqual(mostPopular, [])
     }
 }
