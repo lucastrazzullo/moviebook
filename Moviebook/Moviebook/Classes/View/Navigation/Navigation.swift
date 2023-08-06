@@ -42,6 +42,8 @@ private struct NavigationDestination: View {
             NewToWatchSuggestionView(itemIdentifier: itemIdentifier).id(itemIdentifier.id)
         case .watchlistAddRating(let itemIdentifier):
             NewWatchedRatingView(itemIdentifier: itemIdentifier).id(itemIdentifier.id)
+        case .unratedItems(let items):
+            UnratedWatchlistItems(items: items, navigationPath: $navigationPath)
         }
     }
 }

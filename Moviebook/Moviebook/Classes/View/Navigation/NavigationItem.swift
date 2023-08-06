@@ -14,6 +14,7 @@ enum NavigationItem: Identifiable, Hashable {
     case artistWithIdentifier(_ id: Artist.ID)
     case watchlistAddToWatchReason(itemIdentifier: WatchlistItemIdentifier)
     case watchlistAddRating(itemIdentifier: WatchlistItemIdentifier)
+    case unratedItems(_ items: [WatchlistViewItem])
 
     var id: AnyHashable {
         switch self {
@@ -27,6 +28,8 @@ enum NavigationItem: Identifiable, Hashable {
             return item.id
         case .watchlistAddRating(let item):
             return item.id
+        case .unratedItems:
+            return "Unrated items"
         }
     }
 }

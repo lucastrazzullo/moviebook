@@ -70,7 +70,7 @@ struct ArtistView: View {
         switch item {
         case .explore, .movieWithIdentifier, .artistWithIdentifier:
             navigationPath.append(item)
-        case .watchlistAddToWatchReason, .watchlistAddRating:
+        case .watchlistAddToWatchReason, .watchlistAddRating, .unratedItems:
             presentedItem = item
         }
     }

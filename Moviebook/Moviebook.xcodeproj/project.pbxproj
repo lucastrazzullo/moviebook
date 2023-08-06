@@ -156,6 +156,7 @@
 		81D60DFF2A33567A0045AA0B /* Moviebook.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 8169FB2728C204450054BCE6 /* Moviebook.xcdatamodeld */; };
 		81D60E072A3484E60045AA0B /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 81D60E062A3484E60045AA0B /* Preview Assets.xcassets */; };
 		81E0CB322A4EEFF000312C28 /* NavigationItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81E0CB312A4EEFF000312C28 /* NavigationItem.swift */; };
+		81EED7512A7FD3510006BA71 /* UnratedWatchlistItems.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81EED7502A7FD3510006BA71 /* UnratedWatchlistItems.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -414,6 +415,7 @@
 		81E0CB312A4EEFF000312C28 /* NavigationItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NavigationItem.swift; sourceTree = "<group>"; };
 		81EEB7922A35A762008D031A /* SearchWebService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchWebService.swift; sourceTree = "<group>"; };
 		81EEB7942A35A7B4008D031A /* ArtistWebService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtistWebService.swift; sourceTree = "<group>"; };
+		81EED7502A7FD3510006BA71 /* UnratedWatchlistItems.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnratedWatchlistItems.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -842,6 +844,7 @@
 				81A889B42A5BDFF500E4F69A /* WatchlistUndoView.swift */,
 				812E83C1294CC0F900D40E21 /* NewToWatchSuggestionView.swift */,
 				812E83C3294DCEC600D40E21 /* NewWatchedRatingView.swift */,
+				81EED7502A7FD3510006BA71 /* UnratedWatchlistItems.swift */,
 			);
 			path = Watchlist;
 			sourceTree = "<group>";
@@ -1414,6 +1417,7 @@
 				814BC2E12A5E816600F60606 /* DiscoverRelated.swift in Sources */,
 				8128AB1C28F00CB6002FD343 /* RatingView.swift in Sources */,
 				81A889B12A5ADDE500E4F69A /* MovieGenresPicker.swift in Sources */,
+				81EED7512A7FD3510006BA71 /* UnratedWatchlistItems.swift in Sources */,
 				81CB75132A755E6F0011EB78 /* WatchlistViewItemGroup.swift in Sources */,
 				817C42A729FC190C00FB3FD6 /* WatchlistViewModel.swift in Sources */,
 				81828ACA28DDB736006D696C /* MovieView.swift in Sources */,
