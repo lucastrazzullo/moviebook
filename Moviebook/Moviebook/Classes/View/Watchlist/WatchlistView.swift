@@ -415,6 +415,7 @@ private struct WatchlistGroupHeader: View {
         .font(.subheadline.bold())
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
+        .padding(.top, 4)
     }
 }
 

@@ -28,7 +28,7 @@ struct SpecsView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack {
+            HStack(alignment: .firstTextBaseline) {
                 if let icon {
                     Image(systemName: icon)
                 }
