@@ -18,8 +18,8 @@ struct ExploreView: View {
     @StateObject private var discoverViewModel: DiscoverViewModel
     @StateObject private var genresViewModel: MovieGenresViewModel
 
+    @Binding private var presentedItem: NavigationItem?
     @State private var started: Bool = false
-    @State private var presentedItem: NavigationItem?
 
     private let stickyScrollingSpace: String = "stickyScrollingSpace"
 
@@ -88,9 +88,6 @@ struct ExploreView: View {
                         Text(scope.rawValue.capitalized)
                     }
                 }
-                .sheet(item: $presentedItem) { presentedItem in
-                    Navigation(rootItem: presentedItem)
-                }
                 .onAppear {
                     if !started {
                         started = true
@@ -103,10 +100,11 @@ struct ExploreView: View {
         }
     }
 
-    init(selectedGenres: Set<MovieGenre>) {
+    init(selectedGenres: Set<MovieGenre>, presentedItem: Binding<NavigationItem?>) {
         self._searchViewModel = StateObject(wrappedValue: SearchViewModel(scope: .movie, query: ""))
         self._discoverViewModel = StateObject(wrappedValue: DiscoverViewModel())
         self._genresViewModel = StateObject(wrappedValue: MovieGenresViewModel(selectedGenres: selectedGenres))
+        self._presentedItem = presentedItem
     }
 }
 
@@ -115,9 +113,12 @@ import MoviebookTestSupport
 
 struct ExploreView_Previews: PreviewProvider {
     static var previews: some View {
-        ExploreView(selectedGenres: [])
-            .environment(\.requestLoader, MockRequestLoader.shared)
-            .environmentObject(MockWatchlistProvider.shared.watchlist())
+        ExploreView(
+            selectedGenres: [],
+            presentedItem: .constant(nil)
+        )
+        .environment(\.requestLoader, MockRequestLoader.shared)
+        .environmentObject(MockWatchlistProvider.shared.watchlist())
     }
 }
 #endif

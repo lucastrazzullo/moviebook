@@ -15,7 +15,7 @@ struct MovieView: View {
     @StateObject private var viewModel: MovieViewModel
 
     @Binding private var navigationPath: NavigationPath
-    @State private var presentedItem: NavigationItem?
+    @Binding private var presentedItem: NavigationItem?
 
     @State private var isVideoPresented: MovieVideo? = nil
     @State private var isErrorPresented: Bool = false
@@ -61,9 +61,6 @@ struct MovieView: View {
                 .padding()
             }
         }
-        .sheet(item: $presentedItem) { item in
-            Navigation(rootItem: item)
-        }
         .alert("Error", isPresented: $isErrorPresented) {
             Button("Retry", role: .cancel) {
                 viewModel.error?.retry()
@@ -79,9 +76,10 @@ struct MovieView: View {
 
     // MARK: Obejct life cycle
 
-    init(movieId: Movie.ID, navigationPath: Binding<NavigationPath>) {
+    init(movieId: Movie.ID, navigationPath: Binding<NavigationPath>, presentedItem: Binding<NavigationItem?>) {
         self._viewModel = StateObject(wrappedValue: MovieViewModel(movieId: movieId))
         self._navigationPath = navigationPath
+        self._presentedItem = presentedItem
     }
 
     // MARK: Private methods
@@ -154,9 +152,13 @@ import MoviebookTestSupport
 struct MovieView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            MovieView(movieId: 353081, navigationPath: .constant(NavigationPath()))
-                .environmentObject(MockWatchlistProvider.shared.watchlist())
-                .environment(\.requestLoader, MockRequestLoader.shared)
+            MovieView(
+                movieId: 353081,
+                navigationPath: .constant(NavigationPath()),
+                presentedItem: .constant(nil)
+            )
+            .environmentObject(MockWatchlistProvider.shared.watchlist())
+            .environment(\.requestLoader, MockRequestLoader.shared)
         }
     }
 }
