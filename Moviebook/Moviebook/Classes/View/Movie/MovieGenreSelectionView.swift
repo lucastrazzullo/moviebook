@@ -17,7 +17,7 @@ struct MovieGenreSelectionView: View {
     var body: some View {
         VStack {
             Text("Genres")
-                .font(.title3)
+                .font(.heroHeadline)
                 .bold()
                 .foregroundColor(.primary)
                 .frame(maxWidth: .infinity, alignment: .leading)

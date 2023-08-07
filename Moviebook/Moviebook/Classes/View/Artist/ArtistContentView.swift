@@ -57,7 +57,7 @@ private struct HeaderView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(details.name).font(.title)
+            Text(details.name).font(.hero)
 
             HStack {
                 if let birthday = details.birthday {
@@ -82,7 +82,8 @@ private struct FilmographyView: View {
 
     var body: some View {
         VStack(alignment: .leading) {
-            Text("Filmography").font(.title2)
+            Text("Filmography")
+                .font(.heroHeadline)
                 .padding(.horizontal)
 
             LazyVStack {

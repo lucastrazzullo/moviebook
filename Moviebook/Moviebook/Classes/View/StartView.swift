@@ -22,7 +22,7 @@ struct StartView: View {
                 .frame(width: 100)
 
             Text("Moviebook".uppercased())
-                .font(.custom("DINEngschriftStd", size: 32))
+                .font(.hero)
                 .foregroundColor(textColor)
         }
         .opacity(opacity)

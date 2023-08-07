@@ -106,7 +106,7 @@ private struct HeaderView: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(details.title).font(.title)
+                Text(details.title).font(.hero)
                 Spacer()
                 RatingView(rating: details.rating)
                 Text(details.localisedReleaseDate(), format: .dateTime.year()).font(.caption)
@@ -142,6 +142,7 @@ private struct WatchProvidersView: View {
         VStack(alignment: .leading, spacing: 24) {
             HStack {
                 Text("Watch providers")
+                    .font(.heroHeadline)
                 Spacer()
                 Picker("Region", selection: $currentRegion) {
                     ForEach(watch.regions, id: \.self) { region in
@@ -152,8 +153,8 @@ private struct WatchProvidersView: View {
                 }
             }
             .tint(.primary)
-            .font(.title2)
-            .padding()
+            .padding(.vertical)
+            .padding(.leading)
 
             Group {
                 if let collection = watch.collection(for: currentRegion) {
@@ -230,7 +231,7 @@ private struct MovieCollectionView: View {
     var body: some View {
         VStack(alignment: .leading) {
             Text(title)
-                .font(.title2)
+                .font(.heroHeadline)
                 .padding(.horizontal)
 
             ScrollView(.horizontal, showsIndicators: false) {
@@ -338,7 +339,7 @@ private struct CastView: View {
     var body: some View {
         VStack(alignment: .leading) {
             Text("Cast")
-                .font(.title2)
+                .font(.heroHeadline)
                 .padding(.horizontal)
 
             LazyVGrid(columns: [GridItem(), GridItem(), GridItem()]) {

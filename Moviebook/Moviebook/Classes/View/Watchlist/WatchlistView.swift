@@ -74,8 +74,9 @@ private struct TopbarView: View {
 
     var body: some View {
         ZStack {
-            Text("Moviebook")
-                .font(.title3.bold())
+            Text("Moviebook".uppercased())
+                .font(.hero)
+                .padding(.top, 6)
 
             Menu {
                 Picker("Sorting", selection: $sorting) {
@@ -433,13 +434,14 @@ private struct WatchlistGroupHeader: View {
         HStack(alignment: .firstTextBaseline) {
             if let icon = group.icon {
                 Image(systemName: icon)
+                    .font(.subheadline.bold())
             }
 
             if let title = group.title {
                 Text(title.uppercased())
+                    .font(.heroSubheadline)
             }
         }
-        .font(.subheadline.bold())
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
         .padding(.top, 4)
@@ -606,7 +608,7 @@ private struct WatchlistItemView: View {
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading) {
                     Text(item.name)
-                        .font(.title3)
+                        .font(.heroHeadline)
                         .lineLimit(3)
 
                     if item.releaseDate > .now {

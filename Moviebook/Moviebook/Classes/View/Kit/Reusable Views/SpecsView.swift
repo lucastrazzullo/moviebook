@@ -31,11 +31,12 @@ struct SpecsView: View {
             HStack(alignment: .firstTextBaseline) {
                 if let icon {
                     Image(systemName: icon)
+                        .font(.title2)
                 }
 
                 Text(title)
+                    .font(.heroHeadline)
             }
-            .font(.title2)
             .padding(.leading)
 
             VStack(alignment: .leading, spacing: 12) {

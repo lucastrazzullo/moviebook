@@ -171,7 +171,7 @@ private struct HeaderView<Destination: View>: View {
             VStack(alignment: .leading) {
                 HStack(spacing: 8) {
                     Text(title)
-                        .font(.title3)
+                        .font(.heroHeadline)
                         .bold()
                         .foregroundColor(.primary)
 
