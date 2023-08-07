@@ -18,13 +18,15 @@ import MoviebookCommon
 
     private let storage: Storage = Storage()
 
-    func start(requestLoader: RequestLoader) async {
-        do {
-            let watchlist = try await storage.loadWatchlist(requestLoader: requestLoader)
-            self.watchlist = watchlist
-            await self.notifications.schedule(for: watchlist, requestLoader: requestLoader)
-        } catch {
-            self.error = error
+    func start(requestLoader: RequestLoader) {
+        Task {
+            do {
+                let watchlist = try await storage.loadWatchlist(requestLoader: requestLoader)
+                self.watchlist = watchlist
+                await self.notifications.schedule(for: watchlist, requestLoader: requestLoader)
+            } catch {
+                self.error = error
+            }
         }
     }
 }
@@ -51,7 +53,6 @@ struct MoviebookApp: App {
             .onReceiveNotification(from: application.notifications, perform: openDeeplink(with:))
             .onOpenURL(perform: openDeeplink(with:))
             .onContinueUserActivity(CSSearchableItemActionType, perform: openDeeplink(with:))
-            .task { await application.start(requestLoader: requestLoader) }
         }
     }
 
@@ -102,12 +103,14 @@ struct MoviebookApp: App {
 
     @ViewBuilder private func makeErrorView(error: Error) -> some View {
         RetriableErrorView(error: .failedToLoad(error: error) {
-            Task { await application.start(requestLoader: requestLoader) }
+            application.start(requestLoader: requestLoader)
         })
     }
 
     @ViewBuilder private func makeLoaderView() -> some View {
-        LoaderView()
+        StartView {
+            application.start(requestLoader: requestLoader)
+        }
     }
 }
 

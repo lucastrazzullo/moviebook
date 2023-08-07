@@ -71,6 +71,9 @@
 		814D46D928C22772000D7ABD /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 814D46DB28C22772000D7ABD /* Localizable.strings */; };
 		8152570629F6A03E00B05522 /* Navigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8152570529F6A03E00B05522 /* Navigation.swift */; };
 		81661D692A7151A80011E675 /* PersistentCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81661D682A7151A80011E675 /* PersistentCache.swift */; };
+		8166CFEA2A817BE80048ACC0 /* StartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8166CFE92A817BE80048ACC0 /* StartView.swift */; };
+		8166CFED2A817DA10048ACC0 /* DINEngschriftStd.otf in Resources */ = {isa = PBXBuildFile; fileRef = 8166CFEC2A817DA10048ACC0 /* DINEngschriftStd.otf */; };
+		8166CFEF2A817EF10048ACC0 /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8166CFEE2A817EF10048ACC0 /* Color.swift */; };
 		8169FB1D28C204450054BCE6 /* MoviebookApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8169FB1C28C204450054BCE6 /* MoviebookApp.swift */; };
 		8169FB1F28C204450054BCE6 /* WatchlistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8169FB1E28C204450054BCE6 /* WatchlistView.swift */; };
 		8169FB3328C204450054BCE6 /* NotificationsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8169FB3228C204450054BCE6 /* NotificationsTests.swift */; };
@@ -316,6 +319,9 @@
 		814D46EA28C26E6B000D7ABD /* TheMovieDbMovieWebService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TheMovieDbMovieWebService.swift; sourceTree = "<group>"; };
 		8152570529F6A03E00B05522 /* Navigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Navigation.swift; sourceTree = "<group>"; };
 		81661D682A7151A80011E675 /* PersistentCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistentCache.swift; sourceTree = "<group>"; };
+		8166CFE92A817BE80048ACC0 /* StartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartView.swift; sourceTree = "<group>"; };
+		8166CFEC2A817DA10048ACC0 /* DINEngschriftStd.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = DINEngschriftStd.otf; sourceTree = "<group>"; };
+		8166CFEE2A817EF10048ACC0 /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
 		8169FB1928C204450054BCE6 /* Moviebook.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Moviebook.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8169FB1C28C204450054BCE6 /* MoviebookApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviebookApp.swift; sourceTree = "<group>"; };
 		8169FB1E28C204450054BCE6 /* WatchlistView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistView.swift; sourceTree = "<group>"; };
@@ -547,6 +553,7 @@
 		81167A5A2A3F021500B83369 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				8166CFEE2A817EF10048ACC0 /* Color.swift */,
 				81828ACB28DDC7A4006D696C /* ObservableScrollView.swift */,
 				81A889B22A5AEF1B00E4F69A /* PagedHorizontalGridView.swift */,
 				81D60DA62A312D060045AA0B /* RemoteImage.swift */,
@@ -633,6 +640,14 @@
 			path = Kit;
 			sourceTree = "<group>";
 		};
+		8166CFEB2A817D530048ACC0 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				8166CFEC2A817DA10048ACC0 /* DINEngschriftStd.otf */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
 		8169FB1028C204450054BCE6 = {
 			isa = PBXGroup;
 			children = (
@@ -716,6 +731,7 @@
 			children = (
 				8169FB2728C204450054BCE6 /* Moviebook.xcdatamodeld */,
 				8169FB2028C204450054BCE6 /* Assets.xcassets */,
+				8166CFEB2A817D530048ACC0 /* Fonts */,
 				814D46DB28C22772000D7ABD /* Localizable.strings */,
 			);
 			path = Resources;
@@ -724,6 +740,7 @@
 		8169FB5528C207680054BCE6 /* View */ = {
 			isa = PBXGroup;
 			children = (
+				8166CFE92A817BE80048ACC0 /* StartView.swift */,
 				814D46EC28C27EB3000D7ABD /* Kit */,
 				81E0CB302A4EEFDF00312C28 /* Navigation */,
 				81E0CB352A4EF38500312C28 /* Notification */,
@@ -1296,6 +1313,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8166CFED2A817DA10048ACC0 /* DINEngschriftStd.otf in Resources */,
 				814D46D928C22772000D7ABD /* Localizable.strings in Resources */,
 				81B29B002A3C6BD10095F76B /* Assets.xcassets in Resources */,
 			);
@@ -1386,6 +1404,7 @@
 			files = (
 				8128AB1628E0BECF002FD343 /* MovieContentView.swift in Sources */,
 				814C9FE02A60984B0096BEBC /* SearchDataProvider.swift in Sources */,
+				8166CFEF2A817EF10048ACC0 /* Color.swift in Sources */,
 				81B7DBF72A1400C500AF9118 /* ExploreVerticalSectionView.swift in Sources */,
 				812E83C4294DCEC600D40E21 /* NewWatchedRatingView.swift in Sources */,
 				816E653E2A45B05B007AEED1 /* RequestManager+Mock.swift in Sources */,
@@ -1435,6 +1454,7 @@
 				813C09A72A5816B90044E16E /* WatchlistUndoViewModel.swift in Sources */,
 				8130277C2A6EAD5B00E4BCB9 /* WatchlistViewSectionContent.swift in Sources */,
 				81A889AF2A5AA57A00E4F69A /* StickyHeader.swift in Sources */,
+				8166CFEA2A817BE80048ACC0 /* StartView.swift in Sources */,
 				8112AF0B2916DF5D0041475D /* MovieWatchlistStateView.swift in Sources */,
 				81D60DF42A3350B40045AA0B /* LegacyWatchlistStorage.swift in Sources */,
 				81D60DFF2A33567A0045AA0B /* Moviebook.xcdatamodeld in Sources */,

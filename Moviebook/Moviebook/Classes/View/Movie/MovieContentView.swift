@@ -124,7 +124,7 @@ private struct HeaderView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
                 .tint(.black)
-                .background(.yellow, in: RoundedRectangle(cornerRadius: 24))
+                .background(Color.secondaryAccentColor, in: RoundedRectangle(cornerRadius: 24))
             }
         }
         .padding(.horizontal)

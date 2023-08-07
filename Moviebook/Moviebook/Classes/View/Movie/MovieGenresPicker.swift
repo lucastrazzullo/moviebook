@@ -49,7 +49,7 @@ struct MovieGenresPicker: View {
             .padding(4)
             .background(.thinMaterial.opacity(selectedGenre == nil ? 1 : 0), in: RoundedRectangle(cornerRadius: 8))
             .padding(2)
-            .background(.yellow, in: RoundedRectangle(cornerRadius: 10))
+            .background(Color.secondaryAccentColor, in: RoundedRectangle(cornerRadius: 10))
             .animation(nil, value: selectedGenre)
         }
     }

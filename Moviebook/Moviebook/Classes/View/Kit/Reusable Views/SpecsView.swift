@@ -52,7 +52,7 @@ struct SpecsView: View {
                                         Text("Coming on \(date.formatted(.dateTime.day().month().year()))")
                                             .bold()
                                             .padding(4)
-                                            .background(.yellow, in: RoundedRectangle(cornerRadius: 6))
+                                            .background(Color.secondaryAccentColor, in: RoundedRectangle(cornerRadius: 6))
                                             .foregroundColor(.black)
                                     } else {
                                         Text(date, style: .date)

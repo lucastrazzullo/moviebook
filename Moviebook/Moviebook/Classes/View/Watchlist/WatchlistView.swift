@@ -613,7 +613,7 @@ private struct WatchlistItemView: View {
                         Text("Coming on \(item.releaseDate.formatted(.dateTime.year()))")
                             .bold()
                             .padding(4)
-                            .background(.yellow, in: RoundedRectangle(cornerRadius: 6))
+                            .background(Color.secondaryAccentColor, in: RoundedRectangle(cornerRadius: 6))
                             .foregroundColor(.black)
                             .font(.caption)
                     } else {

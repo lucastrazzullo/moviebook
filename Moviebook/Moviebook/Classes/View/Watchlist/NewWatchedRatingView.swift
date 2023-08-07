@@ -115,7 +115,7 @@ struct NewWatchedRatingView: View {
                                 .overlay(
                                     ZStack(alignment: .leading) {
                                         Rectangle()
-                                            .foregroundColor(.yellow)
+                                            .foregroundColor(.secondaryAccentColor)
                                             .frame(width: geometry.size.width * (rating / quota))
 
                                         HStack(spacing: geometry.size.width / quota) {

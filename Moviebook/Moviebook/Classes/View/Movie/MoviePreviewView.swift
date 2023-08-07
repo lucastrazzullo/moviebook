@@ -53,7 +53,7 @@ struct MoviePreviewView: View {
                                 Text("Coming on \(details.localisedReleaseDate().formatted(.dateTime.year()))")
                                     .bold()
                                     .padding(4)
-                                    .background(.yellow, in: RoundedRectangle(cornerRadius: 6))
+                                    .background(Color.secondaryAccentColor, in: RoundedRectangle(cornerRadius: 6))
                                     .foregroundColor(.black)
                             } else {
                                 Text(details.localisedReleaseDate(), format: .dateTime.year())
