@@ -18,7 +18,7 @@ struct SpecsView: View {
     }
 
     private enum DisplayedItem {
-        case divider
+        case divider(visible: Bool)
         case item(Item)
     }
 
@@ -39,11 +39,14 @@ struct SpecsView: View {
             }
             .padding(.leading)
 
-            VStack(alignment: .leading, spacing: 12) {
+            Grid(horizontalSpacing: 24, verticalSpacing: 12) {
                 ForEach(Array(zip(items.indices, items)), id: \.0) { index, item in
                     switch item {
-                    case .divider:
-                        Divider().id("divider\(index)")
+                    case .divider(let visible):
+                        Divider()
+                            .id("divider\(index)")
+                            .opacity(visible ? 1 : 0)
+
                     case .item(let item):
                         switch item {
                         case .date(let date, let label):
@@ -86,6 +89,7 @@ struct SpecsView: View {
                                     Text(buttonLabel)
                                         .multilineTextAlignment(.trailing)
                                 })
+                                .contentShape(Rectangle())
                             }
                         }
                     }
@@ -102,8 +106,8 @@ struct SpecsView: View {
         self.items = items.enumerated()
             .reduce([DisplayedItem]()) { list, item in
                 var list = list
-                if showDividers, item.offset > 0 {
-                    list.append(.divider)
+                if item.offset > 0 {
+                    list.append(.divider(visible: showDividers))
                 }
                 list.append(.item(item.element))
                 return list
@@ -117,16 +121,16 @@ private struct SpecsRow<ContentType: View>: View {
     @ViewBuilder let content: () -> ContentType
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 12) {
-            Text(label)
-                .font(.callout)
-                .foregroundColor(.secondary)
+        GridRow(alignment: .firstTextBaseline) {
+                Text(label)
+                    .font(.callout)
+                    .foregroundColor(.secondary)
+                    .gridColumnAlignment(.leading)
 
-            Spacer()
-
-            content()
-                .font(.callout)
-                .bold()
+                content()
+                    .font(.callout)
+                    .bold()
+                    .gridColumnAlignment(.trailing)
         }
     }
 }

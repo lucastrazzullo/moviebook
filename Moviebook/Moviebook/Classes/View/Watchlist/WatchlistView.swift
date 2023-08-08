@@ -293,7 +293,7 @@ private struct WatchlistListHeaderView: View {
                 SpecsView(
                     title: section.name,
                     items: specs,
-                    showDividers: false
+                    showDividers: true
                 )
 
                 Divider()
