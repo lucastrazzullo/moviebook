@@ -173,9 +173,9 @@ private struct NotificationPromptView: View {
             VStack(spacing: 8) {
                 HStack {
                     Image(systemName: "calendar")
-                    Text("Get notified")
+                    Text("Get notified").padding(.top, 8)
                 }
-                .font(.title.bold())
+                .font(.hero)
 
                 Text("Do you want to be notified when **\(promptDetails.movieTitle)** is released?")
                     .multilineTextAlignment(.center)
@@ -220,9 +220,9 @@ private struct EnableNotificationInSettingsView: View {
             VStack(spacing: 8) {
                 HStack {
                     Image(systemName: "calendar")
-                    Text("Get notified")
+                    Text("Get notified").padding(.top, 8)
                 }
-                .font(.title.bold())
+                .font(.hero)
 
                 Text("Go to Settings > Moviebook > Notifications and enable notifications if you want to be notified when **\(promptDetails.movieTitle)** is released.")
                     .multilineTextAlignment(.center)
