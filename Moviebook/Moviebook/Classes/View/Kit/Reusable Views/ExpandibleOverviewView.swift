@@ -16,7 +16,7 @@ struct ExpandibleOverviewView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Overview")
-                .font(.title2)
+                .font(.heroHeadline)
 
             Text(overview)
                 .font(.body)

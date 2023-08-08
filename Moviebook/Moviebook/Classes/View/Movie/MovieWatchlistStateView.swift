@@ -141,9 +141,9 @@ private struct InWatchlistView: View {
             VStack(spacing: 12) {
                 HStack(alignment: .firstTextBaseline) {
                     Image(systemName: WatchlistViewState.toWatch.icon)
-                    Text("In watchlist")
+                    Text("In watchlist".uppercased())
                 }
-                .font(.title)
+                .font(.heroHeadline)
 
                 Text("This movie is in your watchlist")
             }
@@ -192,8 +192,9 @@ private struct AddToWatchlistView: View {
 
     var body: some View {
         VStack(alignment: .center, spacing: 24) {
-            Text("Add to your watchlist")
-                .font(.title3.bold())
+            Text("Add to your watchlist".uppercased())
+                .font(.heroHeadline)
+                .padding(.top, 8)
 
             VStack(spacing: 16) {
                 Button(action: { watchlist.update(state: .toWatch(info: .init(date: .now, suggestion: nil)), forItemWith: .movie(id: movieId)) }) {

@@ -104,12 +104,19 @@ private struct HeaderView: View {
     let onPlayTrailer: (MovieVideo) -> Void
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline) {
+        HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(details.title).font(.title)
+                Text(details.title)
+                    .font(.hero)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 4)
+
                 Spacer()
+
                 RatingView(rating: details.rating)
-                Text(details.localisedReleaseDate(), format: .dateTime.year()).font(.caption)
+
+                Text(details.localisedReleaseDate(), format: .dateTime.year())
+                    .font(.caption)
             }
 
             Spacer()
@@ -124,7 +131,7 @@ private struct HeaderView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
                 .tint(.black)
-                .background(.yellow, in: RoundedRectangle(cornerRadius: 24))
+                .background(Color.secondaryAccentColor, in: RoundedRectangle(cornerRadius: 24))
             }
         }
         .padding(.horizontal)
@@ -142,6 +149,7 @@ private struct WatchProvidersView: View {
         VStack(alignment: .leading, spacing: 24) {
             HStack {
                 Text("Watch providers")
+                    .font(.heroHeadline)
                 Spacer()
                 Picker("Region", selection: $currentRegion) {
                     ForEach(watch.regions, id: \.self) { region in
@@ -152,8 +160,8 @@ private struct WatchProvidersView: View {
                 }
             }
             .tint(.primary)
-            .font(.title2)
-            .padding()
+            .padding(.vertical)
+            .padding(.leading)
 
             Group {
                 if let collection = watch.collection(for: currentRegion) {
@@ -230,7 +238,7 @@ private struct MovieCollectionView: View {
     var body: some View {
         VStack(alignment: .leading) {
             Text(title)
-                .font(.title2)
+                .font(.heroHeadline)
                 .padding(.horizontal)
 
             ScrollView(.horizontal, showsIndicators: false) {
@@ -262,7 +270,25 @@ private struct MovieCollectionView: View {
         .foregroundColor(.white)
         .padding(4)
         .padding(.vertical)
-        .background(.black, in: RoundedRectangle(cornerRadius: 8))
+        .background(
+            GeometryReader { geometry in
+                RemoteImage(
+                    url: movies.randomElement()?.media.backdropPreviewUrl,
+                    content: { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: geometry.size.width, height: geometry.size.height, alignment: .bottom)
+                    },
+                    placeholder: { Color.black }
+                )
+                .overlay(Rectangle()
+                    .fill(.black.opacity(0.55))
+                    .background(.thinMaterial)
+                )
+                .cornerRadius(8)
+            }
+        )
         .padding(.horizontal, 4)
     }
 }
@@ -338,7 +364,7 @@ private struct CastView: View {
     var body: some View {
         VStack(alignment: .leading) {
             Text("Cast")
-                .font(.title2)
+                .font(.heroHeadline)
                 .padding(.horizontal)
 
             LazyVGrid(columns: [GridItem(), GridItem(), GridItem()]) {

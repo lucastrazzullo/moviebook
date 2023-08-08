@@ -32,7 +32,7 @@ struct CircularRatingView: View {
 
             VStack {
                 HStack(alignment: .firstTextBaseline, spacing: 2) {
-                    Text(rating, format: .number).font(ratingFont)
+                    Text(rating, format: .number.precision(.fractionLength(1))).font(ratingFont)
                     Text("/").font(ratingBaseFont)
                     Text("10").font(ratingBaseFont)
                 }

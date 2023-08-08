@@ -35,7 +35,7 @@ struct MovieShelfPreviewView: View {
                         .bold()
                         .font(.caption2)
                         .padding(6)
-                        .background(.yellow, in: RoundedRectangle(cornerRadius: 6))
+                        .background(Color.secondaryAccentColor, in: RoundedRectangle(cornerRadius: 6))
                         .foregroundColor(.black)
                 }
 

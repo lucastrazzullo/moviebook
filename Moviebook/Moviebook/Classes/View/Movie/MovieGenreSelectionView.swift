@@ -17,7 +17,7 @@ struct MovieGenreSelectionView: View {
     var body: some View {
         VStack {
             Text("Genres")
-                .font(.title3)
+                .font(.heroHeadline)
                 .bold()
                 .foregroundColor(.primary)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -34,7 +34,7 @@ struct MovieGenreSelectionView: View {
                                 in: RoundedRectangle(cornerRadius: 14)
                             )
                             .padding(2)
-                            .background(.yellow, in: RoundedRectangle(cornerRadius: 16))
+                            .background(Color.secondaryAccentColor, in: RoundedRectangle(cornerRadius: 16))
                             .id(genre.id)
                             .onTapGesture {
                                 if selectedGenres.contains(genre) {

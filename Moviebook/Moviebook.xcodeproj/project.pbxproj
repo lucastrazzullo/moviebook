@@ -58,6 +58,7 @@
 		813027782A6EACFF00E4BCB9 /* WatchlistViewSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 813027772A6EACFF00E4BCB9 /* WatchlistViewSection.swift */; };
 		8130277C2A6EAD5B00E4BCB9 /* WatchlistViewSectionContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8130277B2A6EAD5B00E4BCB9 /* WatchlistViewSectionContent.swift */; };
 		8130277E2A6EAD8400E4BCB9 /* WatchlistViewItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8130277D2A6EAD8400E4BCB9 /* WatchlistViewItem.swift */; };
+		8135B4E52A826B3E00B1911F /* RandomAccentColorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8135B4E42A826B3E00B1911F /* RandomAccentColorProvider.swift */; };
 		813C09A72A5816B90044E16E /* WatchlistUndoViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 813C09A62A5816B90044E16E /* WatchlistUndoViewModel.swift */; };
 		814A13E728F0488100477126 /* WatchlistButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 814A13E628F0488100477126 /* WatchlistButton.swift */; };
 		814BC2D62A5DEC6300F60606 /* MovieKeyword.swift in Sources */ = {isa = PBXBuildFile; fileRef = 814BC2D52A5DEC6300F60606 /* MovieKeyword.swift */; };
@@ -71,6 +72,10 @@
 		814D46D928C22772000D7ABD /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 814D46DB28C22772000D7ABD /* Localizable.strings */; };
 		8152570629F6A03E00B05522 /* Navigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8152570529F6A03E00B05522 /* Navigation.swift */; };
 		81661D692A7151A80011E675 /* PersistentCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81661D682A7151A80011E675 /* PersistentCache.swift */; };
+		8166CFEA2A817BE80048ACC0 /* StartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8166CFE92A817BE80048ACC0 /* StartView.swift */; };
+		8166CFED2A817DA10048ACC0 /* DINEngschriftStd.otf in Resources */ = {isa = PBXBuildFile; fileRef = 8166CFEC2A817DA10048ACC0 /* DINEngschriftStd.otf */; };
+		8166CFEF2A817EF10048ACC0 /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8166CFEE2A817EF10048ACC0 /* Color.swift */; };
+		8166CFF12A8191890048ACC0 /* Font.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8166CFF02A8191890048ACC0 /* Font.swift */; };
 		8169FB1D28C204450054BCE6 /* MoviebookApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8169FB1C28C204450054BCE6 /* MoviebookApp.swift */; };
 		8169FB1F28C204450054BCE6 /* WatchlistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8169FB1E28C204450054BCE6 /* WatchlistView.swift */; };
 		8169FB3328C204450054BCE6 /* NotificationsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8169FB3228C204450054BCE6 /* NotificationsTests.swift */; };
@@ -295,6 +300,7 @@
 		813027772A6EACFF00E4BCB9 /* WatchlistViewSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistViewSection.swift; sourceTree = "<group>"; };
 		8130277B2A6EAD5B00E4BCB9 /* WatchlistViewSectionContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistViewSectionContent.swift; sourceTree = "<group>"; };
 		8130277D2A6EAD8400E4BCB9 /* WatchlistViewItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistViewItem.swift; sourceTree = "<group>"; };
+		8135B4E42A826B3E00B1911F /* RandomAccentColorProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RandomAccentColorProvider.swift; sourceTree = "<group>"; };
 		813C09A62A5816B90044E16E /* WatchlistUndoViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistUndoViewModel.swift; sourceTree = "<group>"; };
 		814A13E628F0488100477126 /* WatchlistButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistButton.swift; sourceTree = "<group>"; };
 		814BC2D52A5DEC6300F60606 /* MovieKeyword.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieKeyword.swift; sourceTree = "<group>"; };
@@ -316,6 +322,10 @@
 		814D46EA28C26E6B000D7ABD /* TheMovieDbMovieWebService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TheMovieDbMovieWebService.swift; sourceTree = "<group>"; };
 		8152570529F6A03E00B05522 /* Navigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Navigation.swift; sourceTree = "<group>"; };
 		81661D682A7151A80011E675 /* PersistentCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistentCache.swift; sourceTree = "<group>"; };
+		8166CFE92A817BE80048ACC0 /* StartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartView.swift; sourceTree = "<group>"; };
+		8166CFEC2A817DA10048ACC0 /* DINEngschriftStd.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = DINEngschriftStd.otf; sourceTree = "<group>"; };
+		8166CFEE2A817EF10048ACC0 /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
+		8166CFF02A8191890048ACC0 /* Font.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Font.swift; sourceTree = "<group>"; };
 		8169FB1928C204450054BCE6 /* Moviebook.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Moviebook.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8169FB1C28C204450054BCE6 /* MoviebookApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoviebookApp.swift; sourceTree = "<group>"; };
 		8169FB1E28C204450054BCE6 /* WatchlistView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistView.swift; sourceTree = "<group>"; };
@@ -547,6 +557,8 @@
 		81167A5A2A3F021500B83369 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				8166CFEE2A817EF10048ACC0 /* Color.swift */,
+				8166CFF02A8191890048ACC0 /* Font.swift */,
 				81828ACB28DDC7A4006D696C /* ObservableScrollView.swift */,
 				81A889B22A5AEF1B00E4F69A /* PagedHorizontalGridView.swift */,
 				81D60DA62A312D060045AA0B /* RemoteImage.swift */,
@@ -626,11 +638,20 @@
 		814D46EC28C27EB3000D7ABD /* Kit */ = {
 			isa = PBXGroup;
 			children = (
+				8135B4E42A826B3E00B1911F /* RandomAccentColorProvider.swift */,
 				81167A5A2A3F021500B83369 /* Extensions */,
 				81167A572A3F01B300B83369 /* Styles */,
 				81167A5B2A3F022600B83369 /* Reusable Views */,
 			);
 			path = Kit;
+			sourceTree = "<group>";
+		};
+		8166CFEB2A817D530048ACC0 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				8166CFEC2A817DA10048ACC0 /* DINEngschriftStd.otf */,
+			);
+			path = Fonts;
 			sourceTree = "<group>";
 		};
 		8169FB1028C204450054BCE6 = {
@@ -716,6 +737,7 @@
 			children = (
 				8169FB2728C204450054BCE6 /* Moviebook.xcdatamodeld */,
 				8169FB2028C204450054BCE6 /* Assets.xcassets */,
+				8166CFEB2A817D530048ACC0 /* Fonts */,
 				814D46DB28C22772000D7ABD /* Localizable.strings */,
 			);
 			path = Resources;
@@ -731,6 +753,7 @@
 				812489BE29F149DD004A6BE6 /* Explore */,
 				8112AF082916DF010041475D /* Movie */,
 				812489C929F15EAE004A6BE6 /* Artist */,
+				8166CFE92A817BE80048ACC0 /* StartView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
@@ -1296,6 +1319,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8166CFED2A817DA10048ACC0 /* DINEngschriftStd.otf in Resources */,
 				814D46D928C22772000D7ABD /* Localizable.strings in Resources */,
 				81B29B002A3C6BD10095F76B /* Assets.xcassets in Resources */,
 			);
@@ -1386,10 +1410,13 @@
 			files = (
 				8128AB1628E0BECF002FD343 /* MovieContentView.swift in Sources */,
 				814C9FE02A60984B0096BEBC /* SearchDataProvider.swift in Sources */,
+				8166CFF12A8191890048ACC0 /* Font.swift in Sources */,
+				8166CFEF2A817EF10048ACC0 /* Color.swift in Sources */,
 				81B7DBF72A1400C500AF9118 /* ExploreVerticalSectionView.swift in Sources */,
 				812E83C4294DCEC600D40E21 /* NewWatchedRatingView.swift in Sources */,
 				816E653E2A45B05B007AEED1 /* RequestManager+Mock.swift in Sources */,
 				816E65212A45A64A007AEED1 /* WebService.swift in Sources */,
+				8135B4E52A826B3E00B1911F /* RandomAccentColorProvider.swift in Sources */,
 				81A395DB29F4191A00800F7E /* ArtistContentView.swift in Sources */,
 				81D285DB2A59F852003EF7E7 /* MovieGenresViewModel.swift in Sources */,
 				81D5122A2A516F1C009F80E7 /* OvalView.swift in Sources */,
@@ -1435,6 +1462,7 @@
 				813C09A72A5816B90044E16E /* WatchlistUndoViewModel.swift in Sources */,
 				8130277C2A6EAD5B00E4BCB9 /* WatchlistViewSectionContent.swift in Sources */,
 				81A889AF2A5AA57A00E4F69A /* StickyHeader.swift in Sources */,
+				8166CFEA2A817BE80048ACC0 /* StartView.swift in Sources */,
 				8112AF0B2916DF5D0041475D /* MovieWatchlistStateView.swift in Sources */,
 				81D60DF42A3350B40045AA0B /* LegacyWatchlistStorage.swift in Sources */,
 				81D60DFF2A33567A0045AA0B /* Moviebook.xcdatamodeld in Sources */,
@@ -1859,7 +1887,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.2.2;
+				MARKETING_VERSION = 3.2.3;
 				PRODUCT_BUNDLE_IDENTIFIER = it.lucastrazzullo.ios.moviebook;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1899,7 +1927,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 3.2.2;
+				MARKETING_VERSION = 3.2.3;
 				PRODUCT_BUNDLE_IDENTIFIER = it.lucastrazzullo.ios.moviebook;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2097,7 +2125,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 3.2.2;
+				MARKETING_VERSION = 3.2.3;
 				PRODUCT_BUNDLE_IDENTIFIER = "it.lucastrazzullo.ios.moviebook.Moviebook-WatchNext-Widget";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2132,7 +2160,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 3.2.2;
+				MARKETING_VERSION = 3.2.3;
 				PRODUCT_BUNDLE_IDENTIFIER = "it.lucastrazzullo.ios.moviebook.Moviebook-WatchNext-Widget";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

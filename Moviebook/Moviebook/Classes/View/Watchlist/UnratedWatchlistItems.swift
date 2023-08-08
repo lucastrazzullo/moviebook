@@ -14,7 +14,7 @@ struct UnratedWatchlistItems: View {
     @EnvironmentObject var watchlist: Watchlist
 
     @Binding private var navigationPath: NavigationPath
-    @State private var presentedItem: NavigationItem?
+    @Binding private var presentedItem: NavigationItem?
 
     let items: [WatchlistViewItem]
 
@@ -73,9 +73,6 @@ struct UnratedWatchlistItems: View {
                 dismiss()
             }
         }
-        .sheet(item: $presentedItem) { item in
-            Navigation(rootItem: item)
-        }
     }
 
     private var filteredItems: [WatchlistViewItem] {
@@ -91,9 +88,10 @@ struct UnratedWatchlistItems: View {
 
     // MARK: Obejct life cycle
 
-    init(items: [WatchlistViewItem], navigationPath: Binding<NavigationPath>) {
+    init(items: [WatchlistViewItem], navigationPath: Binding<NavigationPath>, presentedItem: Binding<NavigationItem?>) {
         self.items = items
         self._navigationPath = navigationPath
+        self._presentedItem = presentedItem
     }
 
     // MARK: Private methods
@@ -134,31 +132,35 @@ private struct UnratedWatchlistItemsPreview: View {
     @State var items: [WatchlistViewItem] = []
 
     var body: some View {
-        UnratedWatchlistItems(items: items, navigationPath: .constant(NavigationPath()))
-            .task {
-                do {
-                    items = try await withThrowingTaskGroup(of: WatchlistViewItem.self) { group in
-                        var result = [WatchlistViewItem]()
+        UnratedWatchlistItems(
+            items: items,
+            navigationPath: .constant(NavigationPath()),
+            presentedItem: .constant(nil)
+        )
+        .task {
+            do {
+                items = try await withThrowingTaskGroup(of: WatchlistViewItem.self) { group in
+                    var result = [WatchlistViewItem]()
 
-                        for item in watchlist.items {
-                            group.addTask {
-                                switch item.id {
-                                case .movie(let id):
-                                    let movie = try await WebService.movieWebService(requestLoader: requestLoader).fetchMovie(with: id)
-                                    let movieItem = WatchlistViewMovieItem(movie: movie)
-                                    return WatchlistViewItem.movie(movieItem, watchlistItem: item)
-                                }
+                    for item in watchlist.items {
+                        group.addTask {
+                            switch item.id {
+                            case .movie(let id):
+                                let movie = try await WebService.movieWebService(requestLoader: requestLoader).fetchMovie(with: id)
+                                let movieItem = WatchlistViewMovieItem(movie: movie)
+                                return WatchlistViewItem.movie(movieItem, watchlistItem: item)
                             }
                         }
-
-                        for try await item in group {
-                            result.append(item)
-                        }
-
-                        return result
                     }
-                } catch {}
-            }
+
+                    for try await item in group {
+                        result.append(item)
+                    }
+
+                    return result
+                }
+            } catch {}
+        }
     }
 }
 #endif
