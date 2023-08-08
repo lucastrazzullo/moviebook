@@ -45,13 +45,19 @@ struct StartView: View {
                     .opacity(logo3Opacity)
                     .scaleEffect(x: logo3Opacity, y: logo3Opacity)
             }
-            .frame(width: 100)
+            .frame(width: 80)
 
             TimelineView(.periodic(from: .now, by: colorsDuration)) { context in
-                Text("Moviebook".uppercased())
-                    .font(.hero)
-                    .foregroundColor(colors[Int(context.date.timeIntervalSince1970) % colors.count])
-                    .animation(.easeInOut(duration: colorsDuration))
+                VStack {
+                    Text("Moviebook".uppercased())
+                        .font(.hero)
+
+
+                    Text("loading")
+                        .font(.subheadline)
+                        .foregroundColor(colors[Int(context.date.timeIntervalSince1970) % colors.count])
+                        .animation(.easeInOut(duration: colorsDuration))
+                }
             }
         }
         .opacity(logo3Opacity)
@@ -61,9 +67,9 @@ struct StartView: View {
         .onAppear {
             withAnimation(.easeInOut(duration: 0.4)) { logo1Opacity = 1 }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                withAnimation(.easeInOut(duration: 0.5)) { logo2Opacity = 1 }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                    withAnimation(.easeInOut(duration: 0.6)) { logo3Opacity = 1 }
+                withAnimation(.easeInOut(duration: 0.6)) { logo2Opacity = 1 }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                    withAnimation(.easeInOut(duration: 0.8)) { logo3Opacity = 1 }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
                         onPresented()
                     }
