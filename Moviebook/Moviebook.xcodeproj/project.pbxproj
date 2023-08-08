@@ -58,6 +58,7 @@
 		813027782A6EACFF00E4BCB9 /* WatchlistViewSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 813027772A6EACFF00E4BCB9 /* WatchlistViewSection.swift */; };
 		8130277C2A6EAD5B00E4BCB9 /* WatchlistViewSectionContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8130277B2A6EAD5B00E4BCB9 /* WatchlistViewSectionContent.swift */; };
 		8130277E2A6EAD8400E4BCB9 /* WatchlistViewItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8130277D2A6EAD8400E4BCB9 /* WatchlistViewItem.swift */; };
+		8135B4E52A826B3E00B1911F /* RandomAccentColorProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8135B4E42A826B3E00B1911F /* RandomAccentColorProvider.swift */; };
 		813C09A72A5816B90044E16E /* WatchlistUndoViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 813C09A62A5816B90044E16E /* WatchlistUndoViewModel.swift */; };
 		814A13E728F0488100477126 /* WatchlistButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 814A13E628F0488100477126 /* WatchlistButton.swift */; };
 		814BC2D62A5DEC6300F60606 /* MovieKeyword.swift in Sources */ = {isa = PBXBuildFile; fileRef = 814BC2D52A5DEC6300F60606 /* MovieKeyword.swift */; };
@@ -299,6 +300,7 @@
 		813027772A6EACFF00E4BCB9 /* WatchlistViewSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistViewSection.swift; sourceTree = "<group>"; };
 		8130277B2A6EAD5B00E4BCB9 /* WatchlistViewSectionContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistViewSectionContent.swift; sourceTree = "<group>"; };
 		8130277D2A6EAD8400E4BCB9 /* WatchlistViewItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistViewItem.swift; sourceTree = "<group>"; };
+		8135B4E42A826B3E00B1911F /* RandomAccentColorProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RandomAccentColorProvider.swift; sourceTree = "<group>"; };
 		813C09A62A5816B90044E16E /* WatchlistUndoViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistUndoViewModel.swift; sourceTree = "<group>"; };
 		814A13E628F0488100477126 /* WatchlistButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistButton.swift; sourceTree = "<group>"; };
 		814BC2D52A5DEC6300F60606 /* MovieKeyword.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieKeyword.swift; sourceTree = "<group>"; };
@@ -636,6 +638,7 @@
 		814D46EC28C27EB3000D7ABD /* Kit */ = {
 			isa = PBXGroup;
 			children = (
+				8135B4E42A826B3E00B1911F /* RandomAccentColorProvider.swift */,
 				81167A5A2A3F021500B83369 /* Extensions */,
 				81167A572A3F01B300B83369 /* Styles */,
 				81167A5B2A3F022600B83369 /* Reusable Views */,
@@ -1413,6 +1416,7 @@
 				812E83C4294DCEC600D40E21 /* NewWatchedRatingView.swift in Sources */,
 				816E653E2A45B05B007AEED1 /* RequestManager+Mock.swift in Sources */,
 				816E65212A45A64A007AEED1 /* WebService.swift in Sources */,
+				8135B4E52A826B3E00B1911F /* RandomAccentColorProvider.swift in Sources */,
 				81A395DB29F4191A00800F7E /* ArtistContentView.swift in Sources */,
 				81D285DB2A59F852003EF7E7 /* MovieGenresViewModel.swift in Sources */,
 				81D5122A2A516F1C009F80E7 /* OvalView.swift in Sources */,

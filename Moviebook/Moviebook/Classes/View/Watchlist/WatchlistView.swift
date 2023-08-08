@@ -247,6 +247,8 @@ private struct SectionListView: View {
 
 private struct ListView: View {
 
+    @StateObject private var colorProvider: RandomAccentColorProvider = RandomAccentColorProvider()
+
     let section: WatchlistViewSection
     let groups: [WatchlistViewItemGroup]
     let onItemSelected: (NavigationItem) -> Void
@@ -260,20 +262,12 @@ private struct ListView: View {
             )
 
             ForEach(Array(zip(groups.indices, groups)), id: \.0) { index, group in
-                VStack {
-                    WatchlistGroupHeader(group: group)
-                    ForEach(group.items, id: \.self) { item in
-                        WatchlistItemView(
-                            item: item,
-                            onItemSelected: onItemSelected
-                        )
-                    }
-                    WatchlistGroupFooter(
-                        group: group,
-                        section: section,
-                        onItemSelected: onItemSelected
-                    )
-                }
+                WatchlistGroupView(
+                    colorProvider: colorProvider,
+                    section: section,
+                    group: group,
+                    onItemSelected: onItemSelected
+                )
                 .padding(.horizontal, 4)
                 .background((index % 2) != 0 ? WatchlistGroupBackground(group: group) : nil)
                 .padding(.bottom)
@@ -399,6 +393,36 @@ private struct WatchlistListHeaderView: View {
     }
 }
 
+private struct WatchlistGroupView: View {
+
+    @ObservedObject var colorProvider: RandomAccentColorProvider
+
+    let section: WatchlistViewSection
+    let group: WatchlistViewItemGroup
+    let onItemSelected: (NavigationItem) -> Void
+
+    var body: some View {
+        VStack {
+            WatchlistGroupHeader(
+                colorProvider: colorProvider,
+                group: group
+            )
+
+            ForEach(group.items, id: \.self) { item in
+                WatchlistItemView(
+                    item: item,
+                    onItemSelected: onItemSelected
+                )
+            }
+            WatchlistGroupFooter(
+                group: group,
+                section: section,
+                onItemSelected: onItemSelected
+            )
+        }
+    }
+}
+
 private struct WatchlistGroupBackground: View {
 
     let group: WatchlistViewItemGroup
@@ -428,6 +452,8 @@ private struct WatchlistGroupBackground: View {
 
 private struct WatchlistGroupHeader: View {
 
+    @ObservedObject var colorProvider: RandomAccentColorProvider
+
     let group: WatchlistViewItemGroup
 
     var body: some View {
@@ -438,8 +464,14 @@ private struct WatchlistGroupHeader: View {
             }
 
             if let title = group.title {
-                Text(title.uppercased())
-                    .font(.heroSubheadline)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title.uppercased())
+                        .font(.heroSubheadline)
+
+                    Capsule(style: .continuous)
+                        .fill(colorProvider.nextColor())
+                        .frame(width: 28, height: 4)
+                }
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)

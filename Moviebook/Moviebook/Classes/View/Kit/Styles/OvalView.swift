@@ -80,7 +80,7 @@ struct OvalViewModifier: ViewModifier {
             .font(style.font.bold())
             .foregroundColor(.white)
             .padding(style.padding)
-            .background(style.background, in: RoundedRectangle(cornerRadius: style.cornerRadius))
+            .background(style.background, in: RoundedRectangle(cornerRadius: style.cornerRadius, style: .continuous))
     }
 }
 
