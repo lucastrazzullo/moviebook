@@ -249,6 +249,7 @@ private struct MovieCollectionView: View {
                                 .font(.heroHeadline)
                                 .padding(8)
                                 .padding(.leading, 8)
+                                .foregroundColor(highlightedMovieId == movieDetails.id ? .secondaryAccentColor : .white)
 
                             MovieShelfPreviewView(
                                 movieDetails: movieDetails,
