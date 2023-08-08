@@ -17,32 +17,57 @@ struct StartView: View {
 
     let colorsDuration: TimeInterval = 1
 
-    @State private var opacity: CGFloat = 0
+    @State private var logo1Opacity: CGFloat = 0
+    @State private var logo2Opacity: CGFloat = 0
+    @State private var logo3Opacity: CGFloat = 0
     @State private var textColorIndex = 0
 
     let onPresented: () -> Void
 
     var body: some View {
         VStack(spacing: 24) {
-            Image("Icon")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 100)
+            ZStack {
+                Image("Logo-1")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .opacity(logo1Opacity)
+                    .scaleEffect(x: logo1Opacity, y: logo1Opacity)
+
+                Image("Logo-2")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .opacity(logo2Opacity)
+                    .scaleEffect(x: logo2Opacity, y: logo2Opacity)
+
+                Image("Logo-3")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .opacity(logo3Opacity)
+                    .scaleEffect(x: logo3Opacity, y: logo3Opacity)
+            }
+            .frame(width: 100)
 
             TimelineView(.periodic(from: .now, by: colorsDuration)) { context in
                 Text("Moviebook".uppercased())
                     .font(.hero)
                     .foregroundColor(colors[Int(context.date.timeIntervalSince1970) % colors.count])
-                    .animation(.linear(duration: colorsDuration))
+                    .animation(.easeInOut(duration: colorsDuration))
             }
         }
-        .opacity(opacity)
+        .opacity(logo3Opacity)
+        .scaleEffect(x: logo3Opacity, y: logo3Opacity)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(.thinMaterial)
         .onAppear {
-            withAnimation(.linear(duration: 0.4)) { opacity = 1 }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                onPresented()
+            withAnimation(.easeInOut(duration: 0.4)) { logo1Opacity = 1 }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                withAnimation(.easeInOut(duration: 0.5)) { logo2Opacity = 1 }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    withAnimation(.easeInOut(duration: 0.6)) { logo3Opacity = 1 }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                        onPresented()
+                    }
+                }
             }
         }
     }
