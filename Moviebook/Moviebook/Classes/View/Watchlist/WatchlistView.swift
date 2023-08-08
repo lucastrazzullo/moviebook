@@ -538,7 +538,7 @@ private struct WatchlistGroupFooter: View {
                                         Image(systemName: section.icon)
                                         Text(section.title.uppercased())
                                     }
-                                    .font(.subheadline)
+                                    .font(.heroSubheadline)
                                     .padding(.top)
 
                                     Divider()
