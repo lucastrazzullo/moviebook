@@ -76,7 +76,7 @@ private struct TopbarView: View {
         ZStack {
             Text("Moviebook".uppercased())
                 .font(.hero)
-                .padding(.top, 6)
+                .padding(.top, 8)
 
             Menu {
                 Picker("Sorting", selection: $sorting) {
@@ -605,11 +605,13 @@ private struct WatchlistItemView: View {
             .cornerRadius(6)
             .onTapGesture(perform: handleTap)
 
-            HStack(alignment: .firstTextBaseline) {
+            HStack(alignment: .top) {
                 VStack(alignment: .leading) {
                     Text(item.name)
                         .font(.heroHeadline)
+                        .fixedSize(horizontal: false, vertical: true)
                         .lineLimit(3)
+                        .padding(.top, 8)
 
                     if item.releaseDate > .now {
                         Text("Coming on \(item.releaseDate.formatted(.dateTime.year()))")

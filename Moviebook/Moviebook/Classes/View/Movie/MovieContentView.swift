@@ -104,12 +104,19 @@ private struct HeaderView: View {
     let onPlayTrailer: (MovieVideo) -> Void
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline) {
+        HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(details.title).font(.hero)
+                Text(details.title)
+                    .font(.hero)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, 4)
+
                 Spacer()
+
                 RatingView(rating: details.rating)
-                Text(details.localisedReleaseDate(), format: .dateTime.year()).font(.caption)
+
+                Text(details.localisedReleaseDate(), format: .dateTime.year())
+                    .font(.caption)
             }
 
             Spacer()
