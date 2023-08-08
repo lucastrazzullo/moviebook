@@ -130,6 +130,7 @@ private struct SpecsRow<ContentType: View>: View {
                 content()
                     .font(.callout)
                     .bold()
+                    .multilineTextAlignment(.trailing)
                     .gridColumnAlignment(.trailing)
         }
     }
