@@ -138,7 +138,7 @@ import MoviebookCommon
             }
 
             let expandableItems = movieCollection.list.map { movieDetails in
-                return WatchlistViewItem.movie(WatchlistViewMovieItem(details: movieDetails), watchlistItem: nil)
+                return WatchlistViewItem.movie(WatchlistViewMovieItem(details: movieDetails, collection: movieCollection), watchlistItem: nil)
             }
 
             let group = WatchlistViewItemGroup(

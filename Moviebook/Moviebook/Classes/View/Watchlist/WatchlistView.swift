@@ -247,7 +247,11 @@ private struct SectionListView: View {
 
 private struct ListView: View {
 
-    @StateObject private var colorProvider: RandomAccentColorProvider = RandomAccentColorProvider()
+    private let colors: [Color] = [
+        .accentColor,
+        .secondaryAccentColor,
+        .tertiaryAccentColor
+    ]
 
     let section: WatchlistViewSection
     let groups: [WatchlistViewItemGroup]
@@ -263,7 +267,7 @@ private struct ListView: View {
 
             ForEach(Array(zip(groups.indices, groups)), id: \.0) { index, group in
                 WatchlistGroupView(
-                    colorProvider: colorProvider,
+                    color: colors.rotateLeft(distance: index).first ?? .accentColor,
                     section: section,
                     group: group,
                     onItemSelected: onItemSelected
@@ -395,8 +399,7 @@ private struct WatchlistListHeaderView: View {
 
 private struct WatchlistGroupView: View {
 
-    @ObservedObject var colorProvider: RandomAccentColorProvider
-
+    let color: Color
     let section: WatchlistViewSection
     let group: WatchlistViewItemGroup
     let onItemSelected: (NavigationItem) -> Void
@@ -404,17 +407,19 @@ private struct WatchlistGroupView: View {
     var body: some View {
         VStack {
             WatchlistGroupHeader(
-                colorProvider: colorProvider,
-                group: group
+                group: group,
+                color: color
             )
 
             ForEach(group.items, id: \.self) { item in
                 WatchlistItemView(
+                    color: color,
                     item: item,
                     onItemSelected: onItemSelected
                 )
             }
             WatchlistGroupFooter(
+                color: color,
                 group: group,
                 section: section,
                 onItemSelected: onItemSelected
@@ -452,9 +457,8 @@ private struct WatchlistGroupBackground: View {
 
 private struct WatchlistGroupHeader: View {
 
-    @ObservedObject var colorProvider: RandomAccentColorProvider
-
     let group: WatchlistViewItemGroup
+    let color: Color
 
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
@@ -469,7 +473,7 @@ private struct WatchlistGroupHeader: View {
                         .font(.heroSubheadline)
 
                     Capsule(style: .continuous)
-                        .fill(colorProvider.nextColor())
+                        .fill(color)
                         .frame(width: 28, height: 4)
                 }
             }
@@ -514,6 +518,7 @@ private struct WatchlistGroupFooter: View {
 
     @State private var showEntireCollection: Bool = false
 
+    let color: Color
     let group: WatchlistViewItemGroup
     let section: WatchlistViewSection
     let onItemSelected: (NavigationItem) -> Void
@@ -540,12 +545,20 @@ private struct WatchlistGroupFooter: View {
 
                                     ForEach(items, id: \.self) { item in
                                         switch item {
-                                        case .movie(let item, _):
-                                            MoviePreviewView(
-                                                details: item.details,
-                                                style: .poster,
-                                                onItemSelected: onItemSelected
-                                            )
+                                        case .movie(let movieItem, _):
+                                            HStack {
+                                                if let position = item.position {
+                                                    Text(position, format: .number)
+                                                        .font(.heroHeadline)
+                                                        .foregroundColor(color)
+                                                }
+
+                                                MoviePreviewView(
+                                                    details: movieItem.details,
+                                                    style: .poster,
+                                                    onItemSelected: onItemSelected
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -624,6 +637,7 @@ private struct WatchlistGroupFooter: View {
 
 private struct WatchlistItemView: View {
 
+    let color: Color
     let item: WatchlistViewItem
     let onItemSelected: (NavigationItem) -> Void
 
@@ -638,6 +652,13 @@ private struct WatchlistItemView: View {
             .onTapGesture(perform: handleTap)
 
             HStack(alignment: .top) {
+                if let position = item.position {
+                    Text(position, format: .number)
+                        .foregroundColor(color)
+                        .font(.heroHeadline)
+                        .padding(.top, 8)
+                }
+
                 VStack(alignment: .leading) {
                     Text(item.name)
                         .font(.heroHeadline)
