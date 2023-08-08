@@ -246,14 +246,9 @@ private struct MovieCollectionView: View {
                     ForEach(movies) { movieDetails in
                         HStack(spacing: 0) {
                             Text("\((movies.firstIndex(of: movieDetails) ?? 0) + 1)")
-                                .font(.title3.bold())
+                                .font(.heroHeadline)
                                 .padding(8)
                                 .padding(.leading, 8)
-                                .background {
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .foregroundColor(highlightedMovieId == movieDetails.id ? .green : .gray)
-                                        .offset(x: 8)
-                                }
 
                             MovieShelfPreviewView(
                                 movieDetails: movieDetails,

@@ -63,8 +63,10 @@ struct OvalViewModifier: ViewModifier {
 
         var background: Color {
             switch self {
-            case .prominent, .prominentSmall, .prominentTiny:
+            case .prominent, .prominentSmall:
                 return Color.accentColor
+            case .prominentTiny:
+                return Color.tertiaryAccentColor
             case .normal:
                 return Color.black.opacity(0.8)
             case .small:
@@ -100,6 +102,9 @@ struct OvalViewStyle_Previews: PreviewProvider {
 
             Image(systemName: "arrow.up.and.down.text.horizontal")
                 .ovalStyle(.prominentSmall)
+
+            Image(systemName: "arrow.up.and.down.text.horizontal")
+                .ovalStyle(.prominentTiny)
 
             Image(systemName: "arrow.up.and.down.text.horizontal")
                 .ovalStyle(.normal)

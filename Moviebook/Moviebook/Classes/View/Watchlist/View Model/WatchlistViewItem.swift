@@ -55,7 +55,19 @@ enum WatchlistViewItem: Hashable {
             case .toWatch, .none:
                 return watchlistViewMovieItem.details.rating
             case .watched(let info):
-                return Rating(value: Float(info.rating ?? 0), quota: watchlistViewMovieItem.details.rating.quota)
+                return Rating(value: Float(info.rating ?? Double(watchlistViewMovieItem.details.rating.value)), quota: watchlistViewMovieItem.details.rating.quota)
+            }
+        }
+    }
+
+    var position: Int? {
+        switch self {
+        case .movie(let watchlistViewMovieItem, _):
+            if let collection = watchlistViewMovieItem.collection,
+               let index = collection.list.firstIndex(where: { $0.id == watchlistViewMovieItem.details.id }) {
+                return index + 1
+            } else {
+                return nil
             }
         }
     }
@@ -87,9 +99,9 @@ struct WatchlistViewMovieItem: Hashable {
         self.collection = movie.collection
     }
 
-    init(details: MovieDetails) {
+    init(details: MovieDetails, collection: MovieCollection?) {
         self.details = details
         self.genres = []
-        self.collection = nil
+        self.collection = collection
     }
 }
