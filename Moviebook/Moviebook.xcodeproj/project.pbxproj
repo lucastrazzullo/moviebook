@@ -746,7 +746,6 @@
 		8169FB5528C207680054BCE6 /* View */ = {
 			isa = PBXGroup;
 			children = (
-				8166CFE92A817BE80048ACC0 /* StartView.swift */,
 				814D46EC28C27EB3000D7ABD /* Kit */,
 				81E0CB302A4EEFDF00312C28 /* Navigation */,
 				81E0CB352A4EF38500312C28 /* Notification */,
@@ -754,6 +753,7 @@
 				812489BE29F149DD004A6BE6 /* Explore */,
 				8112AF082916DF010041475D /* Movie */,
 				812489C929F15EAE004A6BE6 /* Artist */,
+				8166CFE92A817BE80048ACC0 /* StartView.swift */,
 			);
 			path = View;
 			sourceTree = "<group>";
