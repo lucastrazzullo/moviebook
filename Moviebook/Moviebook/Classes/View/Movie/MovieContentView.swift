@@ -270,7 +270,25 @@ private struct MovieCollectionView: View {
         .foregroundColor(.white)
         .padding(4)
         .padding(.vertical)
-        .background(.black, in: RoundedRectangle(cornerRadius: 8))
+        .background(
+            GeometryReader { geometry in
+                RemoteImage(
+                    url: movies.randomElement()?.media.backdropPreviewUrl,
+                    content: { image in
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: geometry.size.width, height: geometry.size.height, alignment: .bottom)
+                    },
+                    placeholder: { Color.black }
+                )
+                .overlay(Rectangle()
+                    .fill(.black.opacity(0.55))
+                    .background(.thinMaterial)
+                )
+                .cornerRadius(8)
+            }
+        )
         .padding(.horizontal, 4)
     }
 }
