@@ -15,40 +15,31 @@ struct MovieGenreSelectionView: View {
     let genres: [MovieGenre]
 
     var body: some View {
-        VStack {
-            Text("Genres")
-                .font(.heroHeadline)
-                .bold()
-                .foregroundColor(.primary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal)
-
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack {
-                    ForEach(genres) { genre in
-                        Text(genre.name)
-                            .font(.caption.bold())
-                            .padding(8)
-                            .background(
-                                selectedGenres.contains(genre) ? .ultraThinMaterial : .ultraThickMaterial,
-                                in: RoundedRectangle(cornerRadius: 14)
-                            )
-                            .padding(2)
-                            .background(Color.secondaryAccentColor, in: RoundedRectangle(cornerRadius: 16))
-                            .id(genre.id)
-                            .onTapGesture {
-                                if selectedGenres.contains(genre) {
-                                    selectedGenres.remove(genre)
-                                } else {
-                                    selectedGenres.insert(genre)
-                                }
+        ScrollView(.horizontal, showsIndicators: false) {
+            LazyHStack {
+                ForEach(genres) { genre in
+                    Text(genre.name)
+                        .font(.caption.bold())
+                        .padding(8)
+                        .background(
+                            selectedGenres.contains(genre) ? .ultraThinMaterial : .ultraThickMaterial,
+                            in: RoundedRectangle(cornerRadius: 14)
+                        )
+                        .padding(2)
+                        .background(Color.secondaryAccentColor, in: RoundedRectangle(cornerRadius: 16))
+                        .id(genre.id)
+                        .onTapGesture {
+                            if selectedGenres.contains(genre) {
+                                selectedGenres.remove(genre)
+                            } else {
+                                selectedGenres.insert(genre)
                             }
-                    }
+                        }
                 }
-                .padding(.horizontal, 8)
             }
-            .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, 8)
         }
+        .fixedSize(horizontal: false, vertical: true)
     }
 }
 

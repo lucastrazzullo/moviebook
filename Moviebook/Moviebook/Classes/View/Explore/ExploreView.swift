@@ -10,6 +10,8 @@ import MoviebookCommon
 
 struct ExploreView: View {
 
+    private let stickyScrollingSpace: String = "stickyScrollingSpace"
+
     @Environment(\.dismiss) private var dismiss
     @Environment(\.requestLoader) var requestLoader
     @EnvironmentObject var watchlist: Watchlist
@@ -18,10 +20,9 @@ struct ExploreView: View {
     @StateObject private var discoverViewModel: DiscoverViewModel
     @StateObject private var genresViewModel: MovieGenresViewModel
 
-    @Binding private var presentedItem: NavigationItem?
     @State private var started: Bool = false
 
-    private let stickyScrollingSpace: String = "stickyScrollingSpace"
+    let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         NavigationView {
@@ -31,40 +32,20 @@ struct ExploreView: View {
                         if !searchViewModel.searchKeyword.isEmpty {
                             ExploreVerticalSectionView(
                                 viewModel: searchViewModel.content,
-                                onItemSelected: { item in
-                                    presentedItem = item
-                                }
+                                onItemSelected: onItemSelected
                             )
                         } else {
-                            MovieGenreSelectionView(
-                                selectedGenres: $genresViewModel.selectedGenres,
-                                genres: genresViewModel.genres
+                            ExploreFilters(
+                                genresViewModel: genresViewModel,
+                                discoverViewModel: discoverViewModel
                             )
                             .stickingToTop(coordinateSpaceName: stickyScrollingSpace)
 
-                            VStack(spacing: 12) {
-                                ForEach(discoverViewModel.sectionsContent) { content in
-                                    ExploreHorizontalSectionView(
-                                        viewModel: content,
-                                        layout: content.dataProvider is DiscoverRelated ? .shelf : .multirows,
-                                        containerWidth: geometry.size.width,
-                                        onItemSelected: { item in
-                                            presentedItem = item
-                                        },
-                                        viewAllDestination: {
-                                            ScrollView(showsIndicators: false) {
-                                                ExploreVerticalSectionView(
-                                                    viewModel: content,
-                                                    onItemSelected: { item in
-                                                        presentedItem = item
-                                                    }
-                                                )
-                                            }
-                                            .navigationTitle(content.title)
-                                        }
-                                    )
-                                }
-                            }
+                            ExploreSections(
+                                discoverViewModel: discoverViewModel,
+                                containerWidth:  geometry.size.width,
+                                onItemSelected: onItemSelected
+                            )
                         }
                     }
                 }
@@ -100,11 +81,63 @@ struct ExploreView: View {
         }
     }
 
-    init(selectedGenres: Set<MovieGenre>, presentedItem: Binding<NavigationItem?>) {
+    init(selectedGenres: Set<MovieGenre>, onItemSelected: @escaping (NavigationItem) -> Void) {
         self._searchViewModel = StateObject(wrappedValue: SearchViewModel(scope: .movie, query: ""))
         self._discoverViewModel = StateObject(wrappedValue: DiscoverViewModel())
         self._genresViewModel = StateObject(wrappedValue: MovieGenresViewModel(selectedGenres: selectedGenres))
-        self._presentedItem = presentedItem
+        self.onItemSelected = onItemSelected
+    }
+}
+
+private struct ExploreFilters: View {
+
+    @ObservedObject var genresViewModel: MovieGenresViewModel
+    @ObservedObject var discoverViewModel: DiscoverViewModel
+
+    var body: some View {
+        VStack {
+            Text("Filters")
+                .font(.heroHeadline)
+                .bold()
+                .foregroundColor(.primary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal)
+
+            MovieGenreSelectionView(
+                selectedGenres: $genresViewModel.selectedGenres,
+                genres: genresViewModel.genres
+            )
+        }
+    }
+}
+
+private struct ExploreSections: View {
+
+    @ObservedObject var discoverViewModel: DiscoverViewModel
+
+    let containerWidth: CGFloat
+    let onItemSelected: (NavigationItem) -> Void
+
+    var body: some View {
+        VStack(spacing: 12) {
+            ForEach(discoverViewModel.sectionsContent) { content in
+                ExploreHorizontalSectionView(
+                    viewModel: content,
+                    layout: content.dataProvider is DiscoverRelated ? .shelf : .multirows,
+                    containerWidth: containerWidth,
+                    onItemSelected: onItemSelected,
+                    viewAllDestination: {
+                        ScrollView(showsIndicators: false) {
+                            ExploreVerticalSectionView(
+                                viewModel: content,
+                                onItemSelected: onItemSelected
+                            )
+                        }
+                        .navigationTitle(content.title)
+                    }
+                )
+            }
+        }
     }
 }
 
@@ -115,7 +148,7 @@ struct ExploreView_Previews: PreviewProvider {
     static var previews: some View {
         ExploreView(
             selectedGenres: [],
-            presentedItem: .constant(nil)
+            onItemSelected: { _ in }
         )
         .environment(\.requestLoader, MockRequestLoader.shared)
         .environmentObject(MockWatchlistProvider.shared.watchlist())
