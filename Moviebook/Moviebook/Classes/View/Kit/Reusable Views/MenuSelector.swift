@@ -18,11 +18,15 @@ private extension HorizontalAlignment {
     static let selectedItem = HorizontalAlignment(SelectorAlignment.self)
 }
 
-struct MenuSelector: View {
+protocol MenuSelectorItem: Hashable, Equatable {
+    var label: String { get }
+}
 
-    @Binding var selection: String
+struct MenuSelector<Item: MenuSelectorItem>: View {
 
-    let items: [String]
+    @Binding var selection: Item
+
+    let items: [Item]
 
     var body: some View {
         VStack(alignment: .selectedItem, spacing: 4) {
@@ -48,8 +52,8 @@ struct MenuSelector: View {
         .animation(.easeInOut, value: selection)
     }
 
-    @ViewBuilder private func itemView(item: String) -> some View {
-        Text(item.uppercased())
+    @ViewBuilder private func itemView(item: Item) -> some View {
+        Text(item.label.uppercased())
             .font(.heroCallout)
             .foregroundColor(selection == item ? .primary : .secondary)
     }
@@ -64,11 +68,17 @@ struct MenuSelector_Previews: PreviewProvider {
 
 struct MenuSelectorPreview: View {
 
-    @State var selection: String = "Item 1"
+    enum Item: String, CaseIterable, MenuSelectorItem {
+        case item1, item2, item3
 
-    let items: [String] = ["Item 1", "Item 2", "Item 3"]
+        var label: String {
+            return self.rawValue
+        }
+    }
+
+    @State var selection: Item = .item1
 
     var body: some View {
-        MenuSelector(selection: $selection, items: items)
+        MenuSelector(selection: $selection, items: Item.allCases)
     }
 }

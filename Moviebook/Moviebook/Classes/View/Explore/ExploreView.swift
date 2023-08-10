@@ -92,11 +92,15 @@ struct ExploreView: View {
 
 private struct ExploreFilters: View {
 
-    enum Filter: String, CaseIterable {
+    enum Filter: String, CaseIterable, MenuSelectorItem {
         case genres, year
+
+        var label: String {
+            return self.rawValue
+        }
     }
 
-    @State private var filterSelection: String = Filter.allCases[0].rawValue
+    @State private var filterSelection: Filter = .genres
 
     @ObservedObject var genresViewModel: MovieGenresViewModel
     @ObservedObject var discoverViewModel: DiscoverViewModel
@@ -112,20 +116,18 @@ private struct ExploreFilters: View {
 
             MenuSelector(
                 selection: $filterSelection,
-                items: Filter.allCases.map(\.rawValue)
+                items: Filter.allCases
             )
             .padding(.horizontal)
             .padding(.vertical, 8)
 
             switch filterSelection {
-            case Filter.genres.rawValue:
+            case .genres:
                 MovieGenreSelectionView(
                     selectedGenres: $genresViewModel.selectedGenres,
                     genres: genresViewModel.genres
                 )
-            case Filter.year.rawValue:
-                EmptyView()
-            default:
+            case .year:
                 EmptyView()
             }
         }
