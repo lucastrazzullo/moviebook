@@ -20,13 +20,14 @@ struct MovieGenreSelectionView: View {
                 ForEach(genres) { genre in
                     Text(genre.name)
                         .font(.caption.bold())
-                        .padding(8)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 10)
+                        .foregroundColor(selectedGenres.contains(genre) ? .black : .primary)
                         .background(
-                            selectedGenres.contains(genre) ? .ultraThinMaterial : .ultraThickMaterial,
-                            in: RoundedRectangle(cornerRadius: 14)
+                            Color.secondaryAccentColor.opacity(selectedGenres.contains(genre) ? 1 : 0)
                         )
-                        .padding(2)
-                        .background(Color.secondaryAccentColor, in: RoundedRectangle(cornerRadius: 16))
+                        .background(.thinMaterial)
+                        .cornerRadius(12)
                         .id(genre.id)
                         .onTapGesture {
                             if selectedGenres.contains(genre) {
@@ -40,6 +41,7 @@ struct MovieGenreSelectionView: View {
             .padding(.horizontal, 8)
         }
         .fixedSize(horizontal: false, vertical: true)
+        .animation(.default, value: selectedGenres)
     }
 }
 
@@ -49,18 +51,17 @@ import MoviebookTestSupport
 struct ExploreHorizontalGenreSection_Previews: PreviewProvider {
 
     static var previews: some View {
-        ScrollView {
-            MovieGenreSelectionView(
-                selectedGenres: .constant([]),
-                genres: [
-                    MovieGenre(id: 0, name: "Action"),
-                    MovieGenre(id: 1, name: "Adventure"),
-                    MovieGenre(id: 2, name: "Anime"),
-                    MovieGenre(id: 3, name: "Horror"),
-                    MovieGenre(id: 4, name: "Thriller")
-                ]
-            )
-        }
+        MovieGenreSelectionView(
+            selectedGenres: .constant([MovieGenre(id: 0, name: "Action")]),
+            genres: [
+                MovieGenre(id: 0, name: "Action"),
+                MovieGenre(id: 1, name: "Adventure"),
+                MovieGenre(id: 2, name: "Anime"),
+                MovieGenre(id: 3, name: "Horror"),
+                MovieGenre(id: 4, name: "Thriller")
+            ]
+        )
+        .preferredColorScheme(.light)
     }
 }
 #endif

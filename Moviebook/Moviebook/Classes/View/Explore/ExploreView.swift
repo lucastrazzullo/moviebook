@@ -52,6 +52,7 @@ struct ExploreView: View {
                 .coordinateSpace(name: stickyScrollingSpace)
                 .scrollIndicators(.hidden)
                 .scrollDismissesKeyboard(.immediately)
+                .navigationBarTitleDisplayMode(.inline)
                 .navigationTitle(NSLocalizedString("EXPLORE.TITLE", comment: ""))
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
@@ -91,11 +92,17 @@ struct ExploreView: View {
 
 private struct ExploreFilters: View {
 
+    enum Filter: String, CaseIterable {
+        case genres, year
+    }
+
+    @State private var filterSelection: String = Filter.allCases[0].rawValue
+
     @ObservedObject var genresViewModel: MovieGenresViewModel
     @ObservedObject var discoverViewModel: DiscoverViewModel
 
     var body: some View {
-        VStack {
+        VStack(alignment: .leading, spacing: 12) {
             Text("Filters")
                 .font(.heroHeadline)
                 .bold()
@@ -103,10 +110,24 @@ private struct ExploreFilters: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal)
 
-            MovieGenreSelectionView(
-                selectedGenres: $genresViewModel.selectedGenres,
-                genres: genresViewModel.genres
+            MenuSelector(
+                selection: $filterSelection,
+                items: Filter.allCases.map(\.rawValue)
             )
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+
+            switch filterSelection {
+            case Filter.genres.rawValue:
+                MovieGenreSelectionView(
+                    selectedGenres: $genresViewModel.selectedGenres,
+                    genres: genresViewModel.genres
+                )
+            case Filter.year.rawValue:
+                EmptyView()
+            default:
+                EmptyView()
+            }
         }
     }
 }

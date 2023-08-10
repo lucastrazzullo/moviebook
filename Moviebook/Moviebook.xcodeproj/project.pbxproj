@@ -71,6 +71,7 @@
 		814D46D928C22772000D7ABD /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 814D46DB28C22772000D7ABD /* Localizable.strings */; };
 		8152570629F6A03E00B05522 /* Navigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8152570529F6A03E00B05522 /* Navigation.swift */; };
 		81661D692A7151A80011E675 /* PersistentCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81661D682A7151A80011E675 /* PersistentCache.swift */; };
+		81666E792A856AE400381BB8 /* MenuSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81666E782A856AE400381BB8 /* MenuSelector.swift */; };
 		8166CFEA2A817BE80048ACC0 /* StartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8166CFE92A817BE80048ACC0 /* StartView.swift */; };
 		8166CFED2A817DA10048ACC0 /* DINEngschriftStd.otf in Resources */ = {isa = PBXBuildFile; fileRef = 8166CFEC2A817DA10048ACC0 /* DINEngschriftStd.otf */; };
 		8166CFEF2A817EF10048ACC0 /* Color.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8166CFEE2A817EF10048ACC0 /* Color.swift */; };
@@ -320,6 +321,7 @@
 		814D46EA28C26E6B000D7ABD /* TheMovieDbMovieWebService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TheMovieDbMovieWebService.swift; sourceTree = "<group>"; };
 		8152570529F6A03E00B05522 /* Navigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Navigation.swift; sourceTree = "<group>"; };
 		81661D682A7151A80011E675 /* PersistentCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistentCache.swift; sourceTree = "<group>"; };
+		81666E782A856AE400381BB8 /* MenuSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuSelector.swift; sourceTree = "<group>"; };
 		8166CFE92A817BE80048ACC0 /* StartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartView.swift; sourceTree = "<group>"; };
 		8166CFEC2A817DA10048ACC0 /* DINEngschriftStd.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = DINEngschriftStd.otf; sourceTree = "<group>"; };
 		8166CFEE2A817EF10048ACC0 /* Color.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Color.swift; sourceTree = "<group>"; };
@@ -576,6 +578,7 @@
 				81A395DE29F528FA00800F7E /* SpecsView.swift */,
 				81A395E229F5994900800F7E /* ExpandibleOverviewView.swift */,
 				81D254732A066836006EBC1F /* RetriableErrorView.swift */,
+				81666E782A856AE400381BB8 /* MenuSelector.swift */,
 			);
 			path = "Reusable Views";
 			sourceTree = "<group>";
@@ -1473,6 +1476,7 @@
 				81828ACC28DDC7A4006D696C /* ObservableScrollView.swift in Sources */,
 				81D60DA72A312D060045AA0B /* RemoteImage.swift in Sources */,
 				81A69CC3290BCC3400724FB9 /* CircularRatingView.swift in Sources */,
+				81666E792A856AE400381BB8 /* MenuSelector.swift in Sources */,
 				81E0CB322A4EEFF000312C28 /* NavigationItem.swift in Sources */,
 				8128AB1828E0C1D9002FD343 /* MoviePreviewView.swift in Sources */,
 			);
