@@ -330,7 +330,8 @@ private struct MovieRelatedView: View {
                 if let related = dataProvider as? DiscoverRelated {
                     await related.update(
                         referenceMovies: [.init(id: movieId, weight: .neutral)],
-                        overrideGenres: [],
+                        genresFilter: [],
+                        yearFilter: nil,
                         requestLoader: requestLoader
                     )
                 }

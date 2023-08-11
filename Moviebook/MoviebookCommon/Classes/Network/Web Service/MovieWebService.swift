@@ -23,6 +23,6 @@ public protocol MovieWebService {
     func fetchMovieCast(with movieIdentifier: Movie.ID) async throws -> [ArtistDetails]
 
     func fetchMovieGenres() async throws -> [MovieGenre]
-    func fetchMovies(keywords: [MovieKeyword.ID], genres: [MovieGenre.ID], page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?)
-    func fetchMovies(discoverSection: DiscoverMovieSection, genres: [MovieGenre.ID], page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?)
+    func fetchMovies(keywords: [MovieKeyword.ID], genres: [MovieGenre.ID], year: Int?, page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?)
+    func fetchMovies(discoverSection: DiscoverMovieSection, genres: [MovieGenre.ID], year: Int?, page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?)
 }

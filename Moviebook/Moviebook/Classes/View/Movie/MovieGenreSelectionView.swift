@@ -18,24 +18,20 @@ struct MovieGenreSelectionView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack {
                 ForEach(genres) { genre in
-                    Text(genre.name)
-                        .font(.caption.bold())
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 10)
-                        .foregroundColor(selectedGenres.contains(genre) ? .black : .primary)
-                        .background(
-                            Color.secondaryAccentColor.opacity(selectedGenres.contains(genre) ? 1 : 0)
-                        )
-                        .background(.thinMaterial)
-                        .cornerRadius(12)
-                        .id(genre.id)
-                        .onTapGesture {
-                            if selectedGenres.contains(genre) {
-                                selectedGenres.remove(genre)
-                            } else {
-                                selectedGenres.insert(genre)
+                    SwitchButton(
+                        isSelected: Binding(
+                            get: { selectedGenres.contains(genre) },
+                            set: { isSelected in
+                                if isSelected {
+                                    selectedGenres.insert(genre)
+                                } else {
+                                    selectedGenres.remove(genre)
+                                }
                             }
-                        }
+                        ),
+                        label: genre.name
+                    )
+                    .id(genre.id)
                 }
             }
             .padding(.horizontal, 8)

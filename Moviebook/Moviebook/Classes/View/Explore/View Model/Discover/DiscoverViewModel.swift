@@ -33,18 +33,34 @@ import MoviebookCommon
 
     // MARK: Instance methods
 
-    func start(selectedGenres: Published<Set<MovieGenre>>.Publisher, watchlist: Watchlist, requestLoader: RequestLoader) {
-        Publishers.CombineLatest(selectedGenres, Publishers.Merge(Just(watchlist.items), watchlist.itemsDidChange))
-            .sink { [weak self, weak requestLoader] genres, watchlistItems in
-                guard let self, let requestLoader else { return }
-                Task {
-                    await self.update(selectedGenres: genres.map(\.id), watchlistItems: watchlistItems, requestLoader: requestLoader)
-                }
+    func start(selectedGenres: Published<Set<MovieGenre>>.Publisher,
+               selectedYear: Published<Int?>.Publisher,
+               watchlist: Watchlist,
+               requestLoader: RequestLoader) {
+
+        Publishers.CombineLatest3(
+            selectedGenres,
+            selectedYear,
+            Publishers.Merge(Just(watchlist.items), watchlist.itemsDidChange)
+        )
+        .sink { [weak self, weak requestLoader] genres, year, watchlistItems in
+            guard let self, let requestLoader else { return }
+            Task {
+                await self.update(
+                    selectedGenres: genres.map(\.id),
+                    selectedYear: year,
+                    watchlistItems: watchlistItems,
+                    requestLoader: requestLoader
+                )
             }
-            .store(in: &subscriptions)
+        }
+        .store(in: &subscriptions)
     }
 
-    private func update(selectedGenres: [MovieGenre.ID], watchlistItems: [WatchlistItem], requestLoader: RequestLoader) async {
+    private func update(selectedGenres: [MovieGenre.ID],
+                        selectedYear: Int?,
+                        watchlistItems: [WatchlistItem],
+                        requestLoader: RequestLoader) async {
         await withTaskGroup(of: Void.self) { group in
             for content in sectionsContent {
                 group.addTask {
@@ -52,13 +68,15 @@ import MoviebookCommon
                         if let forYou = dataProvider as? DiscoverRelated {
                             await forYou.update(
                                 referenceMovies: watchlistItems.compactMap(DiscoverRelated.ReferenceMovie.init(watchlistItem:)),
-                                overrideGenres: selectedGenres,
+                                genresFilter: selectedGenres,
+                                yearFilter: selectedYear,
                                 requestLoader: requestLoader
                             )
                         }
                         if let discover = dataProvider as? DiscoverSection {
                             await discover.update(
                                 genresFilter: selectedGenres,
+                                yearFilter: selectedYear,
                                 watchlistItems: watchlistItems
                             )
                         }

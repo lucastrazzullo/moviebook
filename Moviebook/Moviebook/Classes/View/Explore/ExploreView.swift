@@ -16,9 +16,9 @@ struct ExploreView: View {
     @Environment(\.requestLoader) var requestLoader
     @EnvironmentObject var watchlist: Watchlist
 
+    @StateObject private var filtersViewModel: ExploreFiltersViewModel
     @StateObject private var searchViewModel: SearchViewModel
     @StateObject private var discoverViewModel: DiscoverViewModel
-    @StateObject private var genresViewModel: MovieGenresViewModel
 
     @State private var started: Bool = false
 
@@ -35,9 +35,8 @@ struct ExploreView: View {
                                 onItemSelected: onItemSelected
                             )
                         } else {
-                            ExploreFilters(
-                                genresViewModel: genresViewModel,
-                                discoverViewModel: discoverViewModel
+                            ExploreFiltersView(
+                                viewModel: filtersViewModel
                             )
                             .stickingToTop(coordinateSpaceName: stickyScrollingSpace)
 
@@ -73,9 +72,14 @@ struct ExploreView: View {
                 .onAppear {
                     if !started {
                         started = true
-                        genresViewModel.start(requestLoader: requestLoader)
+                        filtersViewModel.start(requestLoader: requestLoader)
                         searchViewModel.start(requestLoader: requestLoader)
-                        discoverViewModel.start(selectedGenres: genresViewModel.$selectedGenres, watchlist: watchlist, requestLoader: requestLoader)
+                        discoverViewModel.start(
+                            selectedGenres: filtersViewModel.$selectedGenres,
+                            selectedYear: filtersViewModel.$selectedYear,
+                            watchlist: watchlist,
+                            requestLoader: requestLoader
+                        )
                     }
                 }
             }
@@ -83,54 +87,10 @@ struct ExploreView: View {
     }
 
     init(selectedGenres: Set<MovieGenre>, onItemSelected: @escaping (NavigationItem) -> Void) {
+        self._filtersViewModel = StateObject(wrappedValue: ExploreFiltersViewModel(selectedGenres: selectedGenres))
         self._searchViewModel = StateObject(wrappedValue: SearchViewModel(scope: .movie, query: ""))
         self._discoverViewModel = StateObject(wrappedValue: DiscoverViewModel())
-        self._genresViewModel = StateObject(wrappedValue: MovieGenresViewModel(selectedGenres: selectedGenres))
         self.onItemSelected = onItemSelected
-    }
-}
-
-private struct ExploreFilters: View {
-
-    enum Filter: String, CaseIterable, MenuSelectorItem {
-        case genres, year
-
-        var label: String {
-            return self.rawValue
-        }
-    }
-
-    @State private var filterSelection: Filter = .genres
-
-    @ObservedObject var genresViewModel: MovieGenresViewModel
-    @ObservedObject var discoverViewModel: DiscoverViewModel
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Filters")
-                .font(.heroHeadline)
-                .bold()
-                .foregroundColor(.primary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal)
-
-            MenuSelector(
-                selection: $filterSelection,
-                items: Filter.allCases
-            )
-            .padding(.horizontal)
-            .padding(.vertical, 8)
-
-            switch filterSelection {
-            case .genres:
-                MovieGenreSelectionView(
-                    selectedGenres: $genresViewModel.selectedGenres,
-                    genres: genresViewModel.genres
-                )
-            case .year:
-                EmptyView()
-            }
-        }
     }
 }
 

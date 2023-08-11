@@ -65,16 +65,16 @@ public struct TheMovieDbMovieWebService: MovieWebService {
         return try JSONDecoder().decode(TMDBMovieGenresResponse.self, from: data).genres.map(\.genre)
     }
 
-    public func fetchMovies(keywords: [MovieKeyword.ID], genres: [MovieGenre.ID], page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?) {
-        let url = try TheMovieDbUrlFactory.movies(keywords: keywords, genres: genres, page: page).makeUrl()
+    public func fetchMovies(keywords: [MovieKeyword.ID], genres: [MovieGenre.ID], year: Int?, page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?) {
+        let url = try TheMovieDbUrlFactory.movies(keywords: keywords, genres: genres, year: year, page: page).makeUrl()
         let data = try await requestLoader.request(from: url)
         let response = try JSONDecoder().decode(TMDBResponseWithListResults<TMDBMovieDetailsResponse>.self, from: data)
 
         return (results: response.results.map(\.movieDetails), nextPage: response.nextPage)
     }
 
-    public func fetchMovies(discoverSection: DiscoverMovieSection, genres: [MovieGenre.ID], page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?) {
-        let url = try TheMovieDbUrlFactory.discover(section: discoverSection, genres: genres, page: page).makeUrl()
+    public func fetchMovies(discoverSection: DiscoverMovieSection, genres: [MovieGenre.ID], year: Int?, page: Int?) async throws -> (results: [MovieDetails], nextPage: Int?) {
+        let url = try TheMovieDbUrlFactory.discover(section: discoverSection, genres: genres, year: year, page: page).makeUrl()
         let data = try await requestLoader.request(from: url)
         let response = try JSONDecoder().decode(TMDBResponseWithListResults<TMDBMovieDetailsResponse>.self, from: data)
 

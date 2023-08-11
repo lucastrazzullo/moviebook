@@ -21,8 +21,8 @@ public enum TheMovieDbUrlFactory {
 
     // MARK: Discover
 
-    case movies(keywords: [MovieKeyword.ID], genres: [MovieGenre.ID], page: Int?)
-    case discover(section: DiscoverMovieSection, genres: [MovieGenre.ID], page: Int?)
+    case movies(keywords: [MovieKeyword.ID], genres: [MovieGenre.ID], year: Int?, page: Int?)
+    case discover(section: DiscoverMovieSection, genres: [MovieGenre.ID], year: Int?, page: Int?)
 
     // MARK: Artist
 
@@ -52,7 +52,7 @@ public enum TheMovieDbUrlFactory {
             return try TheMovieDbDataRequestFactory.makeURL(path: "movie/\(movieIdentifier)/credits")
         case .movieGenres:
             return try TheMovieDbDataRequestFactory.makeURL(path: "genre/movie/list")
-        case .movies(let keywords, let genres, let page):
+        case .movies(let keywords, let genres, let year, let page):
             var queryItems = [URLQueryItem]()
             if let page {
                 queryItems.append(URLQueryItem(name: "page", value: String(page)))
@@ -69,8 +69,26 @@ public enum TheMovieDbUrlFactory {
                     .joined(separator: "|")
                 queryItems.append(URLQueryItem(name: "with_genres", value: genresString))
             }
+            if let year {
+                var components = DateComponents()
+                components.year = year
+
+                components.month = 0
+                components.day = 1
+                let dateFrom = Calendar.current.date(from: components)
+
+                components.month = 11
+                components.day = 31
+                let dateTo = Calendar.current.date(from: components)
+
+                let parsedDateFrom = TheMovieDbFactory.dateFormatter.string(for: dateFrom)
+                let parsedDateTo = TheMovieDbFactory.dateFormatter.string(for: dateTo)
+
+                queryItems.append(URLQueryItem(name: "primary_release_date.gte", value: parsedDateFrom))
+                queryItems.append(URLQueryItem(name: "primary_release_date.lte", value: parsedDateTo))
+            }
             return try TheMovieDbDataRequestFactory.makeURL(path: "discover/movie", queryItems: queryItems)
-        case .discover(let section, let genres, let page):
+        case .discover(let section, let genres, let year, let page):
             var queryItems = [URLQueryItem]()
             if let page {
                 queryItems.append(URLQueryItem(name: "page", value: String(page)))
@@ -81,6 +99,25 @@ public enum TheMovieDbUrlFactory {
                     .joined(separator: ",")
                 queryItems.append(URLQueryItem(name: "with_genres", value: genresString))
             }
+            if let year {
+                var components = DateComponents()
+                components.year = year
+
+                components.month = 0
+                components.day = 1
+                let dateFrom = Calendar.current.date(from: components)
+
+                components.month = 11
+                components.day = 31
+                let dateTo = Calendar.current.date(from: components)
+
+                let parsedDateFrom = TheMovieDbFactory.dateFormatter.string(for: dateFrom)
+                let parsedDateTo = TheMovieDbFactory.dateFormatter.string(for: dateTo)
+
+                queryItems.append(URLQueryItem(name: "primary_release_date.gte", value: parsedDateFrom))
+                queryItems.append(URLQueryItem(name: "primary_release_date.lte", value: parsedDateTo))
+            }
+
             switch section {
             case .popular:
                 queryItems.append(URLQueryItem(name: "sort_by", value: "popularity.desc"))
@@ -89,37 +126,42 @@ public enum TheMovieDbUrlFactory {
                 queryItems.append(URLQueryItem(name: "without_genres", value: "99,10755"))
                 queryItems.append(URLQueryItem(name: "vote_count.gte", value: "200"))
             case .upcoming:
-                var laterDateComponent = DateComponents()
-                laterDateComponent.month = 5
-
-                let currentDate = Date.now
-                let laterDate = Calendar.current.date(byAdding: laterDateComponent, to: currentDate)
-
-                let releaseDateGte = TheMovieDbFactory.dateFormatter.string(for: currentDate)
-                let releaseDateLte = TheMovieDbFactory.dateFormatter.string(for: laterDate)
-
                 queryItems.append(URLQueryItem(name: "sort_by", value: "popularity.desc"))
                 queryItems.append(URLQueryItem(name: "with_release_type", value: "2|3"))
-                queryItems.append(URLQueryItem(name: "primary_release_date.gte", value: releaseDateGte))
-                queryItems.append(URLQueryItem(name: "primary_release_date.lte", value: releaseDateLte))
+
+                if year == nil {
+                    var dateToComponent = DateComponents()
+                    dateToComponent.month = 5
+
+                    let dateFrom = Date.now
+                    let dateTo = Calendar.current.date(byAdding: dateToComponent, to: dateFrom)
+
+                    let releaseDateGte = TheMovieDbFactory.dateFormatter.string(for: dateFrom)
+                    let releaseDateLte = TheMovieDbFactory.dateFormatter.string(for: dateTo)
+
+                    queryItems.append(URLQueryItem(name: "primary_release_date.gte", value: releaseDateGte))
+                    queryItems.append(URLQueryItem(name: "primary_release_date.lte", value: releaseDateLte))
+                }
             case .nowPlaying:
-                var earlierDateComponent = DateComponents()
-                earlierDateComponent.month = -2
-
-                var laterDateComponent = DateComponents()
-                laterDateComponent.month = 1
-
-                let currentDate = Date.now
-                let earlierDate = Calendar.current.date(byAdding: earlierDateComponent, to: currentDate)
-                let laterDate = Calendar.current.date(byAdding: laterDateComponent, to: currentDate)
-
-                let releaseDateGte = TheMovieDbFactory.dateFormatter.string(for: earlierDate)
-                let releaseDateLte = TheMovieDbFactory.dateFormatter.string(for: laterDate)
-
                 queryItems.append(URLQueryItem(name: "sort_by", value: "popularity.desc"))
                 queryItems.append(URLQueryItem(name: "with_release_type", value: "2|3"))
-                queryItems.append(URLQueryItem(name: "primary_release_date.gte", value: releaseDateGte))
-                queryItems.append(URLQueryItem(name: "primary_release_date.lte", value: releaseDateLte))
+
+                if year == nil {
+                    var component = DateComponents()
+                    let currentDate = Date.now
+
+                    component.month = -2
+                    let dateFrom = Calendar.current.date(byAdding: component, to: currentDate)
+
+                    component.month = 1
+                    let dateTo = Calendar.current.date(byAdding: component, to: currentDate)
+
+                    let releaseDateGte = TheMovieDbFactory.dateFormatter.string(for: dateFrom)
+                    let releaseDateLte = TheMovieDbFactory.dateFormatter.string(for: dateTo)
+
+                    queryItems.append(URLQueryItem(name: "primary_release_date.gte", value: releaseDateGte))
+                    queryItems.append(URLQueryItem(name: "primary_release_date.lte", value: releaseDateLte))
+                }
             }
             return try TheMovieDbDataRequestFactory.makeURL(path: "discover/movie", queryItems: queryItems)
         case .artist(let identifier):
