@@ -73,11 +73,11 @@ public enum TheMovieDbUrlFactory {
                 var components = DateComponents()
                 components.year = year
 
-                components.month = 0
+                components.month = 1
                 components.day = 1
                 let dateFrom = Calendar.current.date(from: components)
 
-                components.month = 11
+                components.month = 12
                 components.day = 31
                 let dateTo = Calendar.current.date(from: components)
 
@@ -103,11 +103,11 @@ public enum TheMovieDbUrlFactory {
                 var components = DateComponents()
                 components.year = year
 
-                components.month = 0
+                components.month = 1
                 components.day = 1
                 let dateFrom = Calendar.current.date(from: components)
 
-                components.month = 11
+                components.month = 12
                 components.day = 31
                 let dateTo = Calendar.current.date(from: components)
 
