@@ -10,16 +10,34 @@ import MoviebookCommon
 
 struct ExploreFiltersView: View {
 
-    enum Filter: String, CaseIterable, MenuSelectorItem {
-        case genres
-        case release
+    enum Filter: MenuSelectorItem {
+        case genres(count: Int)
+        case release(isSelected: Bool)
+
+        var id: String {
+            return label
+        }
+
+        var badge: Int {
+            switch self {
+            case .genres(let count):
+                return count
+            case .release(let isSelected):
+                return isSelected ? 1 : 0
+            }
+        }
 
         var label: String {
-            return self.rawValue
+            switch self {
+            case .genres:
+                return "Genres"
+            case .release:
+                return "Release year"
+            }
         }
     }
 
-    @State private var filterSelection: Filter = .genres
+    @State private var filterSelection: Filter = .genres(count: 0)
 
     @ObservedObject var viewModel: ExploreFiltersViewModel
 
@@ -34,7 +52,7 @@ struct ExploreFiltersView: View {
 
             MenuSelector(
                 selection: $filterSelection,
-                items: Filter.allCases
+                items: filterItems
             )
             .padding(.horizontal)
             .padding(.vertical, 8)
@@ -52,6 +70,13 @@ struct ExploreFiltersView: View {
                 )
             }
         }
+    }
+
+    private var filterItems: [Filter] {
+        return [
+            .genres(count: viewModel.selectedGenres.count),
+            .release(isSelected: viewModel.selectedYear != nil)
+        ]
     }
 }
 

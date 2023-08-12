@@ -18,8 +18,9 @@ private extension HorizontalAlignment {
     static let selectedItem = HorizontalAlignment(SelectorAlignment.self)
 }
 
-protocol MenuSelectorItem: Hashable, Equatable {
+protocol MenuSelectorItem: Identifiable {
     var label: String { get }
+    var badge: Int { get }
 }
 
 struct MenuSelector<Item: MenuSelectorItem>: View {
@@ -31,9 +32,9 @@ struct MenuSelector<Item: MenuSelectorItem>: View {
     var body: some View {
         VStack(alignment: .selectedItem, spacing: 4) {
             HStack(spacing: 12) {
-                ForEach(items, id: \.self) { item in
+                ForEach(items, id: \.id) { item in
                     Button { selection = item } label: {
-                        if item == selection {
+                        if item.id == selection.id {
                             itemView(item: item)
                                 .alignmentGuide(.selectedItem) { d in d[HorizontalAlignment.leading] }
                         } else {
@@ -49,13 +50,22 @@ struct MenuSelector<Item: MenuSelectorItem>: View {
                 .frame(width: 28, height: 4)
                 .alignmentGuide(.selectedItem) { d in d[HorizontalAlignment.leading] }
         }
-        .animation(.easeInOut, value: selection)
+        .animation(.easeInOut, value: selection.id)
     }
 
     @ViewBuilder private func itemView(item: Item) -> some View {
-        Text(item.label.uppercased())
-            .font(.heroCallout)
-            .foregroundColor(selection == item ? .primary : .secondary)
+        ZStack(alignment: .topLeading) {
+            Text(item.label.uppercased())
+                .font(.heroCallout)
+                .foregroundColor(selection.id == item.id ? .primary : .secondary)
+
+            if item.badge > 0 {
+                Circle()
+                    .fill(Color.accentColor)
+                    .frame(width: 6, height: 6)
+                    .offset(x: 0, y: -10)
+            }
+        }
     }
 }
 
@@ -71,8 +81,16 @@ struct MenuSelectorPreview: View {
     enum Item: String, CaseIterable, MenuSelectorItem {
         case item1, item2, item3
 
+        var id: String {
+            return self.rawValue
+        }
+
         var label: String {
             return self.rawValue
+        }
+
+        var badge: Int {
+            return 1
         }
     }
 
