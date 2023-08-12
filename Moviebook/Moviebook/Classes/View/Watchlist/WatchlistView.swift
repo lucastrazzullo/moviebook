@@ -18,8 +18,8 @@ struct WatchlistView: View {
     @StateObject private var undoViewModel: WatchlistUndoViewModel = WatchlistUndoViewModel()
 
     @State private var currentSection: WatchlistViewSection = .toWatch
-    @State private var shouldShowTopBar: Bool = false
-    @State private var shouldShowBottomBar: Bool = false
+    @State private var shouldShowTopBackground: Bool = false
+    @State private var shouldShowBottomBackground: Bool = false
 
     @Binding var presentedItem: NavigationItem?
 
@@ -27,8 +27,8 @@ struct WatchlistView: View {
         ZStack {
             ContentView(
                 viewModel: contentViewModel,
-                shouldShowTopBar: $shouldShowTopBar,
-                shouldShowBottomBar: $shouldShowBottomBar,
+                shouldShowTopBackground: $shouldShowTopBackground,
+                shouldShowBottomBackground: $shouldShowBottomBackground,
                 currentSection: currentSection,
                 onItemSelected: { item in
                     presentedItem = item
@@ -44,20 +44,22 @@ struct WatchlistView: View {
                 )
             )
             .padding(.horizontal)
-            .background(.thickMaterial.opacity(shouldShowTopBar ? 1 : 0))
-            .animation(.easeOut(duration: 0.12), value: shouldShowTopBar)
+            .background(.background.opacity(shouldShowTopBackground ? 1 : 0))
+            .overlay(Rectangle().fill(.thinMaterial).frame(height: 1).opacity(shouldShowTopBackground ? 1 : 0), alignment: .bottom)
+            .animation(.easeOut(duration: 0.12), value: shouldShowTopBackground)
             .animation(.default, value: undoViewModel.removedItem)
         }
         .safeAreaInset(edge: .bottom) {
-            ToolbarView(
+            BottomView(
                 currentSection: $currentSection,
                 onItemSelected: { item in
                     presentedItem = item
                 }
             )
             .padding()
-            .background(.thickMaterial.opacity(shouldShowBottomBar ? 1 : 0))
-            .animation(.easeOut(duration: 0.12), value: shouldShowBottomBar)
+            .background(.background.opacity(shouldShowBottomBackground ? 1 : 0))
+            .overlay(Rectangle().fill(.thinMaterial).frame(height: 1).opacity(shouldShowBottomBackground ? 1 : 0), alignment: .top)
+            .animation(.easeOut(duration: 0.12), value: shouldShowBottomBackground)
         }
         .task {
             await contentViewModel.start(watchlist: watchlist, requestLoader: requestLoader)
@@ -106,32 +108,44 @@ private struct TopbarView: View {
     }
 }
 
-private struct ToolbarView: View {
+extension WatchlistViewSection: MenuSelectorItem {
+
+    var label: String {
+        return self.name
+    }
+
+    var badge: Int {
+        return 0
+    }
+}
+
+private struct BottomView: View {
 
     @Binding var currentSection: WatchlistViewSection
 
     let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
-        HStack {
-            Picker("Section", selection: $currentSection) {
-                ForEach(WatchlistViewSection.allCases, id: \.self) { section in
-                    Text(section.name)
-                }
-            }
-            .segmentedStyled()
-            .fixedSize()
+        HStack(alignment: .firstTextBaseline) {
+            MenuSelector(
+                selection: $currentSection,
+                items: WatchlistViewSection.allCases
+            )
+            .tint(.accentColor)
 
             Spacer()
 
             Button(action: { onItemSelected(.explore(selectedGenres: [])) }) {
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                    Text("Browse")
+                HStack(spacing: 4) {
+                    Text("Discover".uppercased())
+                        .foregroundColor(.primary)
+                        .font(.heroHeadline)
+
+                    Image(systemName: "text.magnifyingglass")
+                        .font(.heroHeadline)
+                        .padding(.bottom, 6)
                 }
             }
-            .buttonStyle(OvalButtonStyle(.prominentSmall))
-            .fixedSize()
         }
     }
 }
@@ -140,8 +154,8 @@ private struct ContentView: View {
 
     @ObservedObject var viewModel: WatchlistViewModel
 
-    @Binding var shouldShowTopBar: Bool
-    @Binding var shouldShowBottomBar: Bool
+    @Binding var shouldShowTopBackground: Bool
+    @Binding var shouldShowBottomBackground: Bool
 
     let currentSection: WatchlistViewSection
     let onItemSelected: (NavigationItem) -> Void
@@ -155,8 +169,8 @@ private struct ContentView: View {
             } else {
                 SectionsView(
                     viewModel: viewModel,
-                    shouldShowTopBar: $shouldShowTopBar,
-                    shouldShowBottomBar: $shouldShowBottomBar,
+                    shouldShowTopBackground: $shouldShowTopBackground,
+                    shouldShowBottomBackground: $shouldShowBottomBackground,
                     currentSection: currentSection,
                     onItemSelected: onItemSelected
                 )
@@ -171,8 +185,8 @@ private struct SectionsView: View {
 
     @ObservedObject var viewModel: WatchlistViewModel
 
-    @Binding var shouldShowTopBar: Bool
-    @Binding var shouldShowBottomBar: Bool
+    @Binding var shouldShowTopBackground: Bool
+    @Binding var shouldShowBottomBackground: Bool
 
     let currentSection: WatchlistViewSection
     let onItemSelected: (NavigationItem) -> Void
@@ -211,11 +225,11 @@ private struct SectionsView: View {
 
     private func updateShouldShowBars(geometry: GeometryProxy, currentSection: WatchlistViewSection) {
         if viewModel.items(in: currentSection).isEmpty {
-            shouldShowTopBar = true
-            shouldShowBottomBar = true
+            shouldShowTopBackground = false
+            shouldShowBottomBackground = false
         } else if let scrollContent = scrollContent[currentSection] {
-            shouldShowTopBar = scrollContent.offset > 0 + 10
-            shouldShowBottomBar = -(scrollContent.offset - scrollContent.height) > geometry.size.height + 20
+            shouldShowTopBackground = scrollContent.offset > 0 + 10
+            shouldShowBottomBackground = -(scrollContent.offset - scrollContent.height) > geometry.size.height + 20
         }
     }
 }
@@ -248,9 +262,9 @@ private struct SectionListView: View {
 private struct ListView: View {
 
     private let colors: [Color] = [
-        .accentColor,
+        .tertiaryAccentColor,
         .secondaryAccentColor,
-        .tertiaryAccentColor
+        .accentColor
     ]
 
     let section: WatchlistViewSection

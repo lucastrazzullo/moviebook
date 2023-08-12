@@ -40,7 +40,7 @@ private struct NavigationDestination: View {
         case .explore(let selectedGenres):
             ExploreView(
                 selectedGenres: selectedGenres,
-                presentedItem: $presentedItem
+                onItemSelected: { presentedItem = $0 }
             )
         case .movieWithIdentifier(let id):
             MovieView(

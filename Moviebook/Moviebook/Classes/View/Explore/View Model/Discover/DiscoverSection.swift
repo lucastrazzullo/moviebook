@@ -12,14 +12,19 @@ final class DiscoverSection {
 
     private let discoverSection: DiscoverMovieSection
     private var genresFilter: [MovieGenre.ID] = []
+    private var yearFilter: Int?
     private var watchedMoviesFilter: [Movie.ID] = []
 
     init(discoverSection: DiscoverMovieSection) {
         self.discoverSection = discoverSection
     }
 
-    func update(genresFilter: [MovieGenre.ID], watchlistItems: [WatchlistItem]) async {
+    func update(genresFilter: [MovieGenre.ID],
+                yearFilter: Int?,
+                watchlistItems: [WatchlistItem]) async {
+
         self.genresFilter = genresFilter
+        self.yearFilter = yearFilter
         self.watchedMoviesFilter = watchlistItems
             .compactMap { item in
                 if case .watched = item.state, case .movie(let id) = item.id {
@@ -38,7 +43,12 @@ extension DiscoverSection: ExploreContentDataProvider {
         repeat {
             let response = try await WebService
                 .movieWebService(requestLoader: requestLoader)
-                .fetchMovies(discoverSection: discoverSection, genres: genresFilter, page: results.nextPage)
+                .fetchMovies(
+                    discoverSection: discoverSection,
+                    genres: genresFilter,
+                    year: yearFilter,
+                    page: results.nextPage
+                )
 
             let movieIdsSet = Set(watchedMoviesFilter)
             let filteredItems = response.results.filter { !movieIdsSet.contains($0.id) }

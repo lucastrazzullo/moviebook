@@ -49,13 +49,18 @@ final class DiscoverRelated {
     }
 
     private var referenceMovies: [ReferenceMovie] = []
-    private var overriddenGenres: [MovieGenre.ID] = []
+    private var genresFilter: [MovieGenre.ID] = []
+    private var yearFilter: Int?
 
     // MARK: Private methods
 
-    func update(referenceMovies: [ReferenceMovie], overrideGenres: [MovieGenre.ID], requestLoader: RequestLoader) async {
+    func update(referenceMovies: [ReferenceMovie],
+                genresFilter: [MovieGenre.ID],
+                yearFilter: Int?,
+                requestLoader: RequestLoader) async {
         self.referenceMovies = referenceMovies
-        self.overriddenGenres = overrideGenres
+        self.genresFilter = genresFilter
+        self.yearFilter = yearFilter
     }
 }
 
@@ -96,7 +101,7 @@ extension DiscoverRelated: ExploreContentDataProvider {
         }
 
         let keywordsFilter = filters.keywords
-        let genresFilter = overriddenGenres.isEmpty ? filters.genres : overriddenGenres
+        let genresFilter = genresFilter.isEmpty ? filters.genres : genresFilter
 
         let moviesAlreadyInReference = Set(referenceMovies.map(\.id))
         var results: ExploreContentDataProvider.Response = (results: .movies([]), nextPage: page)
@@ -105,6 +110,7 @@ extension DiscoverRelated: ExploreContentDataProvider {
                 .movieWebService(requestLoader: requestLoader)
                 .fetchMovies(keywords: keywordsFilter,
                              genres: genresFilter,
+                             year: yearFilter,
                              page: results.nextPage)
 
             let filteredItems = response.results.filter { !moviesAlreadyInReference.contains($0.id) }
