@@ -224,7 +224,7 @@ private struct AddToWatchlistView: View {
 private struct SuggestionView: View {
 
     let movieId: Movie.ID
-    let from: String
+    let from: String?
     let comment: String?
     let onItemSelected: (NavigationItem) -> Void
 
@@ -235,11 +235,13 @@ private struct SuggestionView: View {
                 .foregroundColor(.accentColor)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("Suggested by \(from)")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                if let from, !from.isEmpty {
+                    Text("Suggested by \(from)")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
 
-                if let comment {
+                if let comment, !comment.isEmpty {
                     Text(comment).font(.body)
                 }
             }

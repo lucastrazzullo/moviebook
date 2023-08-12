@@ -65,12 +65,11 @@ struct NewWatchedRatingView: View {
 
                 if let toWatchSuggestion = toWatchInfo?.suggestion {
                     VStack(alignment: .leading, spacing: 8) {
-                        HStack(spacing: 4) {
-                            Text("Suggested by")
-                            Text(toWatchSuggestion.owner).bold()
+                        if let owner = toWatchSuggestion.owner {
+                            Text("Suggested by **\(owner)**")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
                         }
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
 
                         if let comment = toWatchSuggestion.comment {
                             Text(comment)

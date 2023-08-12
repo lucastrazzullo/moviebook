@@ -90,7 +90,7 @@ struct NewToWatchSuggestionView: View {
 
                 VStack(spacing: 24) {
                     VStack(alignment: .leading) {
-                        TextField("Suggested by (required)", text: $suggestedByText)
+                        TextField("Suggested by", text: $suggestedByText)
                             .textFieldStyle(OvalTextFieldStyle())
                             .focused($focusedField, equals: .author)
                             .textContentType(.givenName)
@@ -145,7 +145,7 @@ struct NewToWatchSuggestionView: View {
         }
         .onAppear {
             if let toWatchSuggestion = toWatchInfo?.suggestion {
-                suggestedByText = toWatchSuggestion.owner
+                suggestedByText = toWatchSuggestion.owner ?? ""
                 commentText = toWatchSuggestion.comment ?? ""
             }
         }
@@ -160,8 +160,14 @@ struct NewToWatchSuggestionView: View {
     }
 
     private func save() {
-        suggestedByError = FieldError(text: suggestedByText, checking: [.empty, .characterLimit(limit: 20)])
-        commentError = FieldError(text: commentText, checking: [.characterLimit(limit: 300)])
+        suggestedByError = FieldError(
+            text: suggestedByText,
+            checking: [.characterLimit(limit: 20)]
+        )
+        commentError = FieldError(
+            text: commentText,
+            checking: [.characterLimit(limit: 300)]
+        )
 
         guard suggestedByError == nil, commentError == nil else {
             return
@@ -171,8 +177,14 @@ struct NewToWatchSuggestionView: View {
             return
         }
 
-        toWatchInfo.suggestion = WatchlistItemToWatchInfo.Suggestion(owner: suggestedByText, comment: commentText)
+        if !suggestedByText.isEmpty || !commentText.isEmpty {
+            toWatchInfo.suggestion = WatchlistItemToWatchInfo.Suggestion(owner: suggestedByText, comment: commentText)
+        } else {
+            toWatchInfo.suggestion = nil
+        }
+
         watchlist.update(state: .toWatch(info: toWatchInfo), forItemWith: itemIdentifier)
+
         dismiss()
     }
 

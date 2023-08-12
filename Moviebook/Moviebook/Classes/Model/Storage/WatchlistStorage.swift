@@ -191,8 +191,8 @@ extension ManagedItemToWatch: ManagedWatchlistItem {
         guard let date = date else { return nil }
 
         var toWatchSuggestion: WatchlistItemToWatchInfo.Suggestion? = nil
-        if let owner = suggestionOwner {
-            toWatchSuggestion = WatchlistItemToWatchInfo.Suggestion(owner: owner, comment: suggestionComment)
+        if suggestionOwner != nil || suggestionComment != nil {
+            toWatchSuggestion = WatchlistItemToWatchInfo.Suggestion(owner: suggestionOwner, comment: suggestionComment)
         }
 
         return .toWatch(info: WatchlistItemToWatchInfo(date: date, suggestion: toWatchSuggestion))
