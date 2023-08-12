@@ -54,6 +54,7 @@ struct ExploreFiltersView: View {
                 selection: $filterSelection,
                 items: filterItems
             )
+            .tint(.secondaryAccentColor)
             .padding(.horizontal)
             .padding(.vertical, 8)
 

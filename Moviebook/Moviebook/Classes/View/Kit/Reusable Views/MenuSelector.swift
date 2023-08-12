@@ -46,7 +46,7 @@ struct MenuSelector<Item: MenuSelectorItem>: View {
             .font(.heroCallout)
 
             Capsule(style: .continuous)
-                .fill(Color.secondaryAccentColor)
+                .fill(.tint)
                 .frame(width: 28, height: 4)
                 .alignmentGuide(.selectedItem) { d in d[HorizontalAlignment.leading] }
         }
