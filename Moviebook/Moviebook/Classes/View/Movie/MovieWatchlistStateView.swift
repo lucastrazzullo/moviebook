@@ -242,7 +242,9 @@ private struct SuggestionView: View {
                 }
 
                 if let comment, !comment.isEmpty {
-                    Text(comment).font(.body)
+                    Text(comment)
+                        .font(.body)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
