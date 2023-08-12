@@ -19,7 +19,7 @@ import MoviebookCommon
     let years: [Int]
 
     init(selectedGenres: Set<MovieGenre>) {
-        self.years = Array(1888...Calendar.current.component(.year, from: .now))
+        self.years = Array(1930...Calendar.current.component(.year, from: .now))
         self.selectedGenres = selectedGenres
     }
 

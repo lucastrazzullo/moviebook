@@ -32,7 +32,7 @@ struct ExploreFiltersView: View {
             case .genres:
                 return "Genres"
             case .release:
-                return "Release year"
+                return "Release"
             }
         }
     }

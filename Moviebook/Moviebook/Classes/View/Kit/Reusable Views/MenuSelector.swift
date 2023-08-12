@@ -64,7 +64,7 @@ struct MenuSelector<Item: MenuSelectorItem>: View {
                     .fill(Color.accentColor)
                     .frame(width: 6, height: 6)
                     .padding(2)
-                    .background(.white, in: Circle())
+                    .background(.background, in: Circle())
                     .offset(x: -6, y: -6)
             }
         }
