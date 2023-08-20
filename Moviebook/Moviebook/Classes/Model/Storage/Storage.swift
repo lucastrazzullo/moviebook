@@ -19,15 +19,6 @@ actor Storage {
         let watchlistStorage = try await WatchlistStorage()
         let watchNextStorage = WatchNextStorage(webService: WebService.movieWebService(requestLoader: requestLoader))
 
-        // Migrate from legacy storage
-        let legacyWatchlistStorage = LegacyWatchlistStorage()
-        let legacyItems = try? await legacyWatchlistStorage.fetchWatchlistItems()
-
-        if let legacyItems, !legacyItems.isEmpty {
-            try await watchlistStorage.store(items: legacyItems)
-            try await legacyWatchlistStorage.deleteAllMovies()
-        }
-
         // Load items and watchlist
         let watchlistItems = try await watchlistStorage.fetchWatchlistItems()
 
