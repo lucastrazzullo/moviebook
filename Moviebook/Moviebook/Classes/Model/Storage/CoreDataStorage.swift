@@ -10,7 +10,7 @@ import CoreData
 
 protocol CoreDataStoreableItem {
     var identifier: Data? { get }
-    func store(in managedWatchlistItem: NSManagedObject, with identifier: Data)
+    func store(in managedObject: NSManagedObject, with identifier: Data)
 }
 
 protocol CoreDataStoredItem: NSManagedObject {

@@ -39,20 +39,8 @@ actor FavouritesStorage {
     }
 
     func store(items: [FavouriteItem]) async throws {
-        try await storage.store(items: items, storedType: ManagedWatchedItem.self)
+        try await storage.store(items: items, storedType: ManagedFavouriteItem.self)
         await storage.save()
-    }
-
-    // MARK: Private helper methods
-
-    private func map(storedItem: ManagedWatchlistItem) -> WatchlistItem? {
-        guard let identifier = storedItem.identifier,
-              let watchlistIdentifier = try? JSONDecoder().decode(WatchlistItemIdentifier.self, from: identifier),
-              let state = storedItem.watchlistState else {
-            return nil
-        }
-
-        return WatchlistItem(id: watchlistIdentifier, state: state)
     }
 }
 
@@ -64,9 +52,10 @@ extension FavouriteItem: CoreDataStoreableItem {
         return try? JSONEncoder().encode(id)
     }
 
-    func store(in managedWatchlistItem: NSManagedObject, with identifier: Data) {
-        if let itemToWatch = managedWatchlistItem as? ManagedFavouriteItem {
-            itemToWatch.identifier = identifier
+    func store(in managedObject: NSManagedObject, with identifier: Data) {
+        if let object = managedObject as? ManagedFavouriteItem {
+            object.identifier = identifier
+            object.state = state.rawValue
         }
     }
 }

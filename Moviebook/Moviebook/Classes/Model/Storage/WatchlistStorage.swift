@@ -66,17 +66,17 @@ extension WatchlistItem: CoreDataStoreableItem {
         return try? JSONEncoder().encode(id)
     }
 
-    func store(in managedWatchlistItem: NSManagedObject, with identifier: Data) {
+    func store(in managedObject: NSManagedObject, with identifier: Data) {
         switch state {
         case .toWatch(let info):
-            if let itemToWatch = managedWatchlistItem as? ManagedItemToWatch {
+            if let itemToWatch = managedObject as? ManagedItemToWatch {
                 itemToWatch.identifier = identifier
                 itemToWatch.date = info.date
                 itemToWatch.suggestionOwner = info.suggestion?.owner
                 itemToWatch.suggestionComment = info.suggestion?.comment
             }
         case .watched(let info):
-            if let watchedItem = managedWatchlistItem as? ManagedWatchedItem {
+            if let watchedItem = managedObject as? ManagedWatchedItem {
                 watchedItem.identifier = identifier
                 watchedItem.date = info.date
                 watchedItem.rating = info.rating ?? -1
