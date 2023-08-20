@@ -7,7 +7,6 @@
 
 import Foundation
 import CoreData
-import Combine
 import MoviebookCommon
 
 actor WatchlistStorage {
@@ -59,7 +58,7 @@ actor WatchlistStorage {
     }
 }
 
-// MARK: - CoreData Storeable Watchlist Item
+// MARK: - CoreData Storeable Item
 
 extension WatchlistItem: CoreDataStoreableItem {
 
@@ -88,7 +87,7 @@ extension WatchlistItem: CoreDataStoreableItem {
     }
 }
 
-// MARK: - Managed Watchlist Item
+// MARK: - CoreData Managed Items
 
 protocol ManagedWatchlistItem {
     var identifier: Data? { get }
