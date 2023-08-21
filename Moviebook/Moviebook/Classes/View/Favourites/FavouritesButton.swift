@@ -41,7 +41,7 @@ struct FavouritesOptions: View {
             }
         case .none:
             Button { favourites.update(state: .pinned, forItemWith: favouriteItemIdentifier) } label: {
-                Label("Add to favourites", systemImage: "star.circle")
+                Label("Add to favourites", systemImage: "star.fill")
             }
         }
     }
@@ -66,7 +66,7 @@ enum FavouritesViewState {
     var icon: String {
         switch self {
         case .pinned:
-            return "star.circle"
+            return "star.fill"
         case .none:
             return "plus"
         }
