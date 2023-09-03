@@ -13,11 +13,13 @@ struct WatchlistView: View {
 
     @Environment(\.requestLoader) var requestLoader
     @EnvironmentObject var watchlist: Watchlist
+    @EnvironmentObject var favourites: Favourites
 
     @StateObject private var contentViewModel: WatchlistViewModel = WatchlistViewModel()
     @StateObject private var undoViewModel: WatchlistUndoViewModel = WatchlistUndoViewModel()
 
     @State private var currentSection: WatchlistViewSection = .toWatch
+    @State private var scrollContent: [WatchlistViewSection: ObservableScrollContent] = [:]
     @State private var shouldShowTopBackground: Bool = false
     @State private var shouldShowBottomBackground: Bool = false
 
@@ -27,6 +29,7 @@ struct WatchlistView: View {
         ZStack {
             ContentView(
                 viewModel: contentViewModel,
+                scrollContent: $scrollContent,
                 shouldShowTopBackground: $shouldShowTopBackground,
                 shouldShowBottomBackground: $shouldShowBottomBackground,
                 currentSection: currentSection,
@@ -34,6 +37,17 @@ struct WatchlistView: View {
                     presentedItem = item
                 }
             )
+        }
+        .safeAreaInset(edge: .top) {
+            PinnedArtistsView(
+                viewModel: contentViewModel,
+                onItemSelected: { item in
+                    presentedItem = item
+                }
+            )
+            .background(.background.opacity(shouldShowTopBackground ? 1 : 0))
+            .overlay(Rectangle().fill(.thinMaterial).frame(height: 1).opacity(shouldShowTopBackground ? 1 : 0), alignment: .bottom)
+            .animation(.easeOut(duration: 0.12), value: shouldShowTopBackground)
         }
         .safeAreaInset(edge: .top) {
             TopbarView(
@@ -45,7 +59,6 @@ struct WatchlistView: View {
             )
             .padding(.horizontal)
             .background(.background.opacity(shouldShowTopBackground ? 1 : 0))
-            .overlay(Rectangle().fill(.thinMaterial).frame(height: 1).opacity(shouldShowTopBackground ? 1 : 0), alignment: .bottom)
             .animation(.easeOut(duration: 0.12), value: shouldShowTopBackground)
             .animation(.default, value: undoViewModel.removedItem)
         }
@@ -62,7 +75,7 @@ struct WatchlistView: View {
             .animation(.easeOut(duration: 0.12), value: shouldShowBottomBackground)
         }
         .task {
-            await contentViewModel.start(watchlist: watchlist, requestLoader: requestLoader)
+            await contentViewModel.start(watchlist: watchlist, favourites: favourites, requestLoader: requestLoader)
         }
         .animation(.default, value: contentViewModel.items(in: currentSection))
         .animation(.default, value: contentViewModel.sorting(in: currentSection))
@@ -72,6 +85,7 @@ struct WatchlistView: View {
 private struct TopbarView: View {
 
     @ObservedObject var undoViewModel: WatchlistUndoViewModel
+
     @Binding var sorting: WatchlistViewSorting
 
     var body: some View {
@@ -107,6 +121,8 @@ private struct TopbarView: View {
         }
     }
 }
+
+// MARK: - Bottom View
 
 extension WatchlistViewSection: MenuSelectorItem {
 
@@ -150,10 +166,13 @@ private struct BottomView: View {
     }
 }
 
+// MARK: - Content
+
 private struct ContentView: View {
 
     @ObservedObject var viewModel: WatchlistViewModel
 
+    @Binding var scrollContent: [WatchlistViewSection: ObservableScrollContent]
     @Binding var shouldShowTopBackground: Bool
     @Binding var shouldShowBottomBackground: Bool
 
@@ -169,6 +188,7 @@ private struct ContentView: View {
             } else {
                 SectionsView(
                     viewModel: viewModel,
+                    scrollContent: $scrollContent,
                     shouldShowTopBackground: $shouldShowTopBackground,
                     shouldShowBottomBackground: $shouldShowBottomBackground,
                     currentSection: currentSection,
@@ -179,12 +199,79 @@ private struct ContentView: View {
     }
 }
 
-private struct SectionsView: View {
+// MARK: - Pinned Artists
 
-    @State private var scrollContent: [WatchlistViewSection: ObservableScrollContent] = [:]
+private struct PinnedArtistsView: View {
 
     @ObservedObject var viewModel: WatchlistViewModel
 
+    @State var screenWidth: CGFloat?
+    @State var contentWidth: CGFloat?
+
+    let onItemSelected: (NavigationItem) -> Void
+
+    var body: some View {
+        if !viewModel.pinnedArtists().isEmpty {
+            VStack(alignment: .center, spacing: 8) {
+                Text("Favourite artists".uppercased())
+                    .font(.heroSubheadline)
+
+                Capsule()
+                    .foregroundColor(.secondaryAccentColor)
+                    .frame(width: 28, height: 4)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack {
+                        ForEach(viewModel.pinnedArtists()) { details in
+                            RemoteImage(url: details.imagePreviewUrl, content: { image in
+                                image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                            }, placeholder: {
+                                Color
+                                    .gray
+                                    .opacity(0.2)
+                            })
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .fixedSize(horizontal: true, vertical: false)
+                            .onTapGesture {
+                                onItemSelected(.artistWithIdentifier(details.id))
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 4)
+                    .background(GeometryReader { geometry in
+                        Color.clear.onChange(of: geometry.size.width) { width in
+                            contentWidth = width
+                        }
+                    })
+                    .frame(width: artistsListWidth)
+                }
+            }
+            .padding(.bottom)
+            .frame(height: 140)
+            .background(GeometryReader { geometry in Color.clear.onAppear {
+                screenWidth = geometry.size.width
+            }})
+        }
+    }
+
+    private var artistsListWidth: CGFloat? {
+        guard let screenWidth, let contentWidth else {
+            return nil
+        }
+
+        return screenWidth > contentWidth ? screenWidth : nil
+    }
+}
+
+// MARK: - Sections
+
+private struct SectionsView: View {
+
+    @ObservedObject var viewModel: WatchlistViewModel
+
+    @Binding var scrollContent: [WatchlistViewSection: ObservableScrollContent]
     @Binding var shouldShowTopBackground: Bool
     @Binding var shouldShowBottomBackground: Bool
 
@@ -305,7 +392,6 @@ private struct WatchlistListHeaderView: View {
         if !specs.isEmpty {
             VStack {
                 SpecsView(
-                    title: section.name,
                     items: specs,
                     showDividers: true
                 )
@@ -341,7 +427,7 @@ private struct WatchlistListHeaderView: View {
             }
 
         if !list.isEmpty {
-            return .list(list, label: "Number of items")
+            return .list(list, label: section.name)
         } else {
             return nil
         }
@@ -730,18 +816,21 @@ struct WatchlistView_Previews: PreviewProvider {
             WatchlistView(presentedItem: .constant(nil))
                 .environment(\.requestLoader, MockRequestLoader.shared)
                 .environmentObject(MockWatchlistProvider.shared.watchlist())
+                .environmentObject(Favourites(items: [.init(id: .artist(id: 287), state: .pinned)]))
         }
 
         NavigationView {
             WatchlistView(presentedItem: .constant(nil))
                 .environment(\.requestLoader, MockRequestLoader.shared)
                 .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .toWatchItems(withSuggestion: true)))
+                .environmentObject(Favourites(items: []))
         }
 
         NavigationView {
             WatchlistView(presentedItem: .constant(nil))
                 .environment(\.requestLoader, MockRequestLoader.shared)
                 .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .empty))
+                .environmentObject(Favourites(items: []))
         }
     }
 }

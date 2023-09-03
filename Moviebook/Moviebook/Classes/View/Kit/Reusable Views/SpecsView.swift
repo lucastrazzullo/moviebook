@@ -22,22 +22,16 @@ struct SpecsView: View {
         case item(Item)
     }
 
-    private let title: String
-    private let icon: String?
+    private let title: String?
     private let items: [DisplayedItem]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack(alignment: .firstTextBaseline) {
-                if let icon {
-                    Image(systemName: icon)
-                        .font(.title2)
-                }
-
+            if let title {
                 Text(title)
                     .font(.heroHeadline)
+                    .padding(.leading)
             }
-            .padding(.leading)
 
             Grid(horizontalSpacing: 24, verticalSpacing: 12) {
                 ForEach(Array(zip(items.indices, items)), id: \.0) { index, item in
@@ -100,9 +94,8 @@ struct SpecsView: View {
         }
     }
 
-    init(title: String, icon: String? = nil, items: [Item], showDividers: Bool = true) {
+    init(title: String? = nil, items: [Item], showDividers: Bool = true) {
         self.title = title
-        self.icon = icon
         self.items = items.enumerated()
             .reduce([DisplayedItem]()) { list, item in
                 var list = list
