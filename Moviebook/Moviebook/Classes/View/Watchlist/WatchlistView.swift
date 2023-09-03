@@ -39,7 +39,7 @@ struct WatchlistView: View {
             )
         }
         .safeAreaInset(edge: .top) {
-            PinnedArtistsView(
+            WatchlistPinnedArtistsView(
                 viewModel: contentViewModel,
                 onItemSelected: { item in
                     presentedItem = item
@@ -201,17 +201,16 @@ private struct ContentView: View {
 
 // MARK: - Pinned Artists
 
-private struct PinnedArtistsView: View {
+private struct WatchlistPinnedArtistsView: View {
+
+    @EnvironmentObject var watchlist: Watchlist
 
     @ObservedObject var viewModel: WatchlistViewModel
-
-    @State var screenWidth: CGFloat?
-    @State var contentWidth: CGFloat?
 
     let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
-        if !viewModel.pinnedArtists().isEmpty {
+        if !viewModel.pinnedArtists().isEmpty || !watchlist.items.isEmpty {
             VStack(alignment: .center, spacing: 8) {
                 Text("Favourite artists".uppercased())
                     .font(.heroSubheadline)
@@ -220,48 +219,36 @@ private struct PinnedArtistsView: View {
                     .foregroundColor(.secondaryAccentColor)
                     .frame(width: 28, height: 4)
 
-                ScrollView(.horizontal, showsIndicators: false) {
+                if !viewModel.pinnedArtists().isEmpty {
+                    PinnedArtistsView(
+                        list: viewModel.pinnedArtists(),
+                        onItemSelected: onItemSelected
+                    )
+                } else {
+                    Text("Here you can pin your favourite artists")
+                        .font(.caption)
+
                     HStack {
-                        ForEach(viewModel.pinnedArtists()) { details in
-                            RemoteImage(url: details.imagePreviewUrl, content: { image in
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                            }, placeholder: {
-                                Color
-                                    .gray
-                                    .opacity(0.2)
-                            })
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                            .fixedSize(horizontal: true, vertical: false)
+                        ForEach(0...4, id: \.self) { index in
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 8)
+                                    .foregroundStyle(.thinMaterial)
+
+                                if index == 0 {
+                                    Image(systemName: "plus")
+                                }
+                            }
                             .onTapGesture {
-                                onItemSelected(.artistWithIdentifier(details.id))
+                                onItemSelected(.popularArtists)
                             }
                         }
                     }
                     .padding(.horizontal, 4)
-                    .background(GeometryReader { geometry in
-                        Color.clear.onChange(of: geometry.size.width) { width in
-                            contentWidth = width
-                        }
-                    })
-                    .frame(width: artistsListWidth)
                 }
             }
+            .frame(height: 160)
             .padding(.bottom)
-            .frame(height: 140)
-            .background(GeometryReader { geometry in Color.clear.onAppear {
-                screenWidth = geometry.size.width
-            }})
         }
-    }
-
-    private var artistsListWidth: CGFloat? {
-        guard let screenWidth, let contentWidth else {
-            return nil
-        }
-
-        return screenWidth > contentWidth ? screenWidth : nil
     }
 }
 
@@ -824,6 +811,13 @@ struct WatchlistView_Previews: PreviewProvider {
                 .environment(\.requestLoader, MockRequestLoader.shared)
                 .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .toWatchItems(withSuggestion: true)))
                 .environmentObject(Favourites(items: []))
+        }
+
+        NavigationView {
+            WatchlistView(presentedItem: .constant(nil))
+                .environment(\.requestLoader, MockRequestLoader.shared)
+                .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .empty))
+                .environmentObject(Favourites(items: [.init(id: .artist(id: 287), state: .pinned)]))
         }
 
         NavigationView {

@@ -11,6 +11,7 @@ import MoviebookCommon
 enum NavigationItem: Identifiable, Hashable {
     case explore(selectedGenres: Set<MovieGenre>)
     case movieWithIdentifier(_ id: Movie.ID)
+    case popularArtists
     case artistWithIdentifier(_ id: Artist.ID)
     case watchlistAddToWatchReason(itemIdentifier: WatchlistItemIdentifier)
     case watchlistAddRating(itemIdentifier: WatchlistItemIdentifier)
@@ -22,6 +23,8 @@ enum NavigationItem: Identifiable, Hashable {
             return "Explore"
         case .movieWithIdentifier(let id):
             return id
+        case .popularArtists:
+            return "Popular artists"
         case .artistWithIdentifier(let id):
             return id
         case .watchlistAddToWatchReason(let item):
