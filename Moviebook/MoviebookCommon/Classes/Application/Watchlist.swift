@@ -101,7 +101,7 @@ public struct WatchlistItemWatchedInfo: Hashable, Equatable {
         self.itemsDidChange = PassthroughSubject<[WatchlistItem], Never>()
     }
 
-    // MARK: Internal methods
+    // MARK: Public methods
 
     public func itemState(id: WatchlistItemIdentifier) -> WatchlistItemState? {
         return items.first(where: { $0.id == id })?.state

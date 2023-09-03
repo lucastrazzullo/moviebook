@@ -88,7 +88,7 @@ struct MovieView: View {
         switch item {
         case .explore, .movieWithIdentifier, .artistWithIdentifier:
             navigationPath.append(item)
-        case .watchlistAddToWatchReason, .watchlistAddRating, .unratedItems:
+        case .watchlistAddToWatchReason, .watchlistAddRating, .unratedItems, .popularArtists:
             presentedItem = item
         }
     }

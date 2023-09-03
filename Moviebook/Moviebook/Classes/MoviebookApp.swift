@@ -12,6 +12,7 @@ import MoviebookCommon
 @MainActor private final class Moviebook: ObservableObject {
 
     @Published var watchlist: Watchlist?
+    @Published var favourites: Favourites?
     @Published var error: Error?
 
     let notifications: Notifications = Notifications()
@@ -22,7 +23,11 @@ import MoviebookCommon
         Task {
             do {
                 let watchlist = try await storage.loadWatchlist(requestLoader: requestLoader)
+                let favourites = try await storage.loadFavourites()
+
                 self.watchlist = watchlist
+                self.favourites = favourites
+
                 await self.notifications.schedule(for: watchlist, requestLoader: requestLoader)
             } catch {
                 self.error = error
@@ -42,8 +47,12 @@ struct MoviebookApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if let watchlist = application.watchlist {
-                    makeWatchlistView(watchlist: watchlist)
+                if let watchlist = application.watchlist,
+                   let favourites = application.favourites {
+                    makeWatchlistView(
+                        watchlist: watchlist,
+                        favourites: favourites
+                    )
                 } else if let error = application.error {
                     makeErrorView(error: error)
                 } else {
@@ -93,12 +102,13 @@ struct MoviebookApp: App {
 
     // MARK: View building
 
-    @ViewBuilder private func makeWatchlistView(watchlist: Watchlist) -> some View {
+    @ViewBuilder private func makeWatchlistView(watchlist: Watchlist, favourites: Favourites) -> some View {
         WatchlistView(presentedItem: $presentedItem)
             .sheet(item: $presentedItem) { item in
                 Navigation(rootItem: item)
             }
             .environmentObject(watchlist)
+            .environmentObject(favourites)
     }
 
     @ViewBuilder private func makeErrorView(error: Error) -> some View {
