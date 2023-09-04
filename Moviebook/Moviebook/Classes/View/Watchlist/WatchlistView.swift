@@ -20,6 +20,7 @@ struct WatchlistView: View {
 
     @State private var currentSection: WatchlistViewSection = .toWatch
     @State private var scrollContent: [WatchlistViewSection: ObservableScrollContent] = [:]
+    @State private var scrollInsets: CGFloat = 0
     @State private var shouldShowTopBackground: Bool = false
     @State private var shouldShowBottomBackground: Bool = false
 
@@ -30,6 +31,7 @@ struct WatchlistView: View {
             ContentView(
                 viewModel: contentViewModel,
                 scrollContent: $scrollContent,
+                scrollInsets: $scrollInsets,
                 shouldShowTopBackground: $shouldShowTopBackground,
                 shouldShowBottomBackground: $shouldShowBottomBackground,
                 currentSection: currentSection,
@@ -37,17 +39,6 @@ struct WatchlistView: View {
                     presentedItem = item
                 }
             )
-        }
-        .safeAreaInset(edge: .top) {
-            WatchlistPinnedArtistsView(
-                viewModel: contentViewModel,
-                onItemSelected: { item in
-                    presentedItem = item
-                }
-            )
-            .background(.background.opacity(shouldShowTopBackground ? 1 : 0))
-            .overlay(Rectangle().fill(.thinMaterial).frame(height: 1).opacity(shouldShowTopBackground ? 1 : 0), alignment: .bottom)
-            .animation(.easeOut(duration: 0.12), value: shouldShowTopBackground)
         }
         .safeAreaInset(edge: .top) {
             TopbarView(
@@ -59,6 +50,7 @@ struct WatchlistView: View {
             )
             .padding(.horizontal)
             .background(.background.opacity(shouldShowTopBackground ? 1 : 0))
+            .overlay(Rectangle().fill(.thinMaterial).frame(height: 1).opacity(shouldShowTopBackground ? 1 : 0), alignment: .bottom)
             .animation(.easeOut(duration: 0.12), value: shouldShowTopBackground)
             .animation(.default, value: undoViewModel.removedItem)
         }
@@ -173,6 +165,7 @@ private struct ContentView: View {
     @ObservedObject var viewModel: WatchlistViewModel
 
     @Binding var scrollContent: [WatchlistViewSection: ObservableScrollContent]
+    @Binding var scrollInsets: CGFloat
     @Binding var shouldShowTopBackground: Bool
     @Binding var shouldShowBottomBackground: Bool
 
@@ -180,7 +173,7 @@ private struct ContentView: View {
     let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
-        Group {
+        ZStack(alignment: .top) {
             if viewModel.isLoading {
                 LoaderView()
             } else if let error = viewModel.error {
@@ -189,12 +182,21 @@ private struct ContentView: View {
                 SectionsView(
                     viewModel: viewModel,
                     scrollContent: $scrollContent,
+                    scrollInsets: $scrollInsets,
                     shouldShowTopBackground: $shouldShowTopBackground,
                     shouldShowBottomBackground: $shouldShowBottomBackground,
                     currentSection: currentSection,
                     onItemSelected: onItemSelected
                 )
             }
+
+            WatchlistPinnedArtistsView(
+                viewModel: viewModel,
+                scrollContent: $scrollContent[currentSection],
+                scrollInsets: $scrollInsets,
+                shouldShowBackground: shouldShowTopBackground,
+                onItemSelected: onItemSelected
+            )
         }
     }
 }
@@ -207,10 +209,14 @@ private struct WatchlistPinnedArtistsView: View {
 
     @ObservedObject var viewModel: WatchlistViewModel
 
+    @Binding var scrollContent: ObservableScrollContent?
+    @Binding var scrollInsets: CGFloat
+
+    let shouldShowBackground: Bool
     let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
-        if !viewModel.pinnedArtists().isEmpty || !watchlist.items.isEmpty {
+        if !watchlist.items.isEmpty {
             VStack(alignment: .center, spacing: 8) {
                 Text("Favourite artists".uppercased())
                     .font(.heroSubheadline)
@@ -246,8 +252,14 @@ private struct WatchlistPinnedArtistsView: View {
                     .padding(.horizontal, 4)
                 }
             }
-            .frame(height: 160)
             .padding(.bottom)
+            .background(.background.opacity(shouldShowBackground ? 1 : 0))
+            .overlay(Rectangle().fill(.thinMaterial).frame(height: 1).opacity(shouldShowBackground ? 1 : 0), alignment: .bottom)
+            .frame(height: max(0, min(160, 160 - (scrollContent?.offset ?? 0))))
+            .clipped()
+            .onAppear {
+                scrollInsets = 160
+            }
         }
     }
 }
@@ -259,6 +271,8 @@ private struct SectionsView: View {
     @ObservedObject var viewModel: WatchlistViewModel
 
     @Binding var scrollContent: [WatchlistViewSection: ObservableScrollContent]
+    @Binding var scrollInsets: CGFloat
+
     @Binding var shouldShowTopBackground: Bool
     @Binding var shouldShowBottomBackground: Bool
 
@@ -277,6 +291,7 @@ private struct SectionsView: View {
                             get: { scrollContent[section] ?? .zero },
                             set: { scrollContent in self.scrollContent[section] = scrollContent }
                         ),
+                        scrollInsets: $scrollInsets,
                         section: currentSection,
                         groups: groups,
                         onItemSelected: onItemSelected
@@ -313,6 +328,7 @@ private struct SectionListView: View {
     @ObservedObject var viewModel: WatchlistViewModel
 
     @Binding var scrollContent: ObservableScrollContent
+    @Binding var scrollInsets: CGFloat
 
     let section: WatchlistViewSection
     let groups: [WatchlistViewItemGroup]
@@ -322,7 +338,7 @@ private struct SectionListView: View {
         if groups.isEmpty {
             EmptyWatchlistView(section: section)
         } else {
-            ObservableScrollView(scrollContent: $scrollContent, showsIndicators: false) { _ in
+            ObservableScrollView(scrollContent: $scrollContent, topInset: scrollInsets, showsIndicators: false) { _ in
                 ListView(
                     section: section,
                     groups: groups,

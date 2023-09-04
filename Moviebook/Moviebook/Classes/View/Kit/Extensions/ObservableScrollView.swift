@@ -34,24 +34,28 @@ struct ObservableScrollView<Content>: View where Content : View {
     @Binding var scrollContent: ObservableScrollContent
 
     let content: (ScrollViewProxy) -> Content
+    let topInset: CGFloat
     let showsIndicators: Bool
 
-    init(scrollContent: Binding<ObservableScrollContent>, showsIndicators: Bool = true, @ViewBuilder content: @escaping (ScrollViewProxy) -> Content) {
+    init(scrollContent: Binding<ObservableScrollContent>, topInset: CGFloat = 0, showsIndicators: Bool = true, @ViewBuilder content: @escaping (ScrollViewProxy) -> Content) {
         _scrollContent = scrollContent
         self.content = content
+        self.topInset = topInset
         self.showsIndicators = showsIndicators
     }
 
     var body: some View {
         ScrollView(showsIndicators: showsIndicators) {
             ScrollViewReader { proxy in
-                content(proxy).background(GeometryReader { geometry in
-                    let offset = -geometry.frame(in: .named(scrollSpace)).minY
-                    let height = geometry.size.height
-                    Color.clear
-                        .preference(key: ScrollViewOffsetPreferenceKey.self, value: offset)
-                        .preference(key: ScrollViewContentHeightPreferenceKey.self, value: height)
-                })
+                content(proxy)
+                    .padding(.top, topInset)
+                    .background(GeometryReader { geometry in
+                        let offset = -geometry.frame(in: .named(scrollSpace)).minY
+                        let height = geometry.size.height
+                        Color.clear
+                            .preference(key: ScrollViewOffsetPreferenceKey.self, value: offset)
+                            .preference(key: ScrollViewContentHeightPreferenceKey.self, value: height)
+                    })
             }
         }
         .coordinateSpace(name: scrollSpace)
