@@ -50,7 +50,6 @@ struct WatchlistView: View {
             )
             .padding(.horizontal)
             .background(.background.opacity(shouldShowTopBackground ? 1 : 0))
-            .overlay(Rectangle().fill(.thinMaterial).frame(height: 1).opacity(shouldShowTopBackground ? 1 : 0), alignment: .bottom)
             .animation(.easeOut(duration: 0.12), value: shouldShowTopBackground)
             .animation(.default, value: undoViewModel.removedItem)
         }
@@ -188,15 +187,15 @@ private struct ContentView: View {
                     currentSection: currentSection,
                     onItemSelected: onItemSelected
                 )
-            }
 
-            WatchlistPinnedArtistsView(
-                viewModel: viewModel,
-                scrollContent: $scrollContent[currentSection],
-                scrollInsets: $scrollInsets,
-                shouldShowBackground: shouldShowTopBackground,
-                onItemSelected: onItemSelected
-            )
+                WatchlistPinnedArtistsView(
+                    viewModel: viewModel,
+                    scrollContent: $scrollContent[currentSection],
+                    scrollInsets: $scrollInsets,
+                    shouldShowBackground: shouldShowTopBackground,
+                    onItemSelected: onItemSelected
+                )
+            }
         }
     }
 }
@@ -225,38 +224,41 @@ private struct WatchlistPinnedArtistsView: View {
                     .foregroundColor(.secondaryAccentColor)
                     .frame(width: 28, height: 4)
 
-                if !viewModel.pinnedArtists().isEmpty {
-                    PinnedArtistsView(
-                        list: viewModel.pinnedArtists(),
-                        onItemSelected: onItemSelected
-                    )
-                } else {
-                    Text("Here you can pin your favourite artists")
-                        .font(.caption)
+                Group {
+                    if !viewModel.pinnedArtists().isEmpty {
+                        PinnedArtistsView(
+                            list: viewModel.pinnedArtists(),
+                            onItemSelected: onItemSelected
+                        )
+                    } else {
+                        Text("Here you can pin your favourite artists")
+                            .font(.caption)
 
-                    HStack {
-                        ForEach(0...4, id: \.self) { index in
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 8)
-                                    .foregroundStyle(.thinMaterial)
+                        HStack {
+                            ForEach(0...4, id: \.self) { index in
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .foregroundStyle(.thinMaterial)
 
-                                if index == 0 {
-                                    Image(systemName: "plus")
+                                    if index == 0 {
+                                        Image(systemName: "plus")
+                                    }
+                                }
+                                .onTapGesture {
+                                    onItemSelected(.popularArtists)
                                 }
                             }
-                            .onTapGesture {
-                                onItemSelected(.popularArtists)
-                            }
                         }
+                        .padding(.horizontal, 4)
                     }
-                    .padding(.horizontal, 4)
                 }
+                .frame(minHeight: 24)
             }
             .padding(.bottom)
             .background(.background.opacity(shouldShowBackground ? 1 : 0))
             .overlay(Rectangle().fill(.thinMaterial).frame(height: 1).opacity(shouldShowBackground ? 1 : 0), alignment: .bottom)
             .frame(height: max(0, min(160, 160 - (scrollContent?.offset ?? 0))))
-            .clipped()
+            .animation(.easeOut(duration: 0.12), value: scrollContent?.offset)
             .onAppear {
                 scrollInsets = 160
             }
