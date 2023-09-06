@@ -86,8 +86,18 @@ private struct HighlightedMovieView: View {
     var body: some View {
         if let highlightedRelease = artist.highlightedRelease {
             MoviePreviewView(details: highlightedRelease, onItemSelected: onItemSelected)
-                .padding()
-                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 4))
+                .padding(.vertical)
+                .padding(.horizontal, 8)
+                .background(.thickMaterial)
+                .cornerRadius(8)
+                .overlay(alignment: .top) {
+                    Image(systemName: "calendar.badge.exclamationmark")
+                        .font(.title)
+                        .foregroundStyle(.black)
+                        .padding(12)
+                        .background(.thickMaterial, in: Circle())
+                        .offset(y: -30)
+                }
         }
     }
 }
