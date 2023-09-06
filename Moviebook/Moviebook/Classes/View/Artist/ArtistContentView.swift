@@ -24,7 +24,9 @@ struct ArtistContentView: View {
                 ExpandibleOverviewView(isExpanded: $isOverviewExpanded, overview: biography)
             }
 
-            SpecsView(title: "Info", items: specs)
+            if !specs.isEmpty {
+                SpecsView(title: "Info", items: specs)
+            }
 
             if !artist.filmography.isEmpty {
                 FilmographyView(
