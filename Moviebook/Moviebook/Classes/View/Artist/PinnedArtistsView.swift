@@ -34,7 +34,7 @@ struct PinnedArtistsView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 8))
                     .overlay(alignment: .bottom) {
                         if artist.highlightedRelease != nil {
-                            Text("Release")
+                            Text("New")
                                 .font(.caption2.bold())
                                 .padding(4)
                                 .background(Color.secondaryAccentColor, in: RoundedRectangle(cornerRadius: 4))
