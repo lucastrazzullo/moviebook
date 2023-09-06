@@ -39,7 +39,7 @@ struct PinnedArtistsView: View {
                                 .padding(4)
                                 .background(Color.secondaryAccentColor, in: RoundedRectangle(cornerRadius: 4))
                                 .foregroundColor(.black)
-                                .padding(.bottom, 2)
+                                .padding(.bottom, 4)
                                 .fixedSize(horizontal: true, vertical: false)
                                 .opacity(contentHeight ?? 0 > 90 ? 1 : 0)
                                 .animation(.easeOut(duration: 0.125), value: contentHeight)
