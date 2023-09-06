@@ -76,15 +76,15 @@ import MoviebookCommon
 
     // MARK: Pinned
 
-    func pinnedArtists() -> [ArtistDetails] {
+    func pinnedArtists() -> [Artist] {
         return pinned
             .compactMap { item in
                 switch item {
-                case .artist(let details, _):
-                    return details
+                case .artist(let artist, _):
+                    return artist
                 }
             }
-            .sorted(by: { $0.name < $1.name })
+            .sorted(by: { $0.details.name < $1.details.name })
     }
 
     private func updatePinned(items: [FavouriteItem], requestLoader: RequestLoader) async throws {
@@ -96,8 +96,8 @@ import MoviebookCommon
                     switch item.id {
                     case .artist(let id):
                         let webService = WebService.artistWebService(requestLoader: requestLoader)
-                        let artistDetails = try await webService.fetchArtist(with: id).details
-                        return WatchlistViewPinnedItem.artist(artistDetails, item.id)
+                        let artist = try await webService.fetchArtist(with: id)
+                        return WatchlistViewPinnedItem.artist(artist, item.id)
                     }
                 }
             }

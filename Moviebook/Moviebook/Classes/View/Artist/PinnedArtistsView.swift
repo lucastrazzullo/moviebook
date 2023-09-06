@@ -12,15 +12,16 @@ struct PinnedArtistsView: View {
 
     @State var screenWidth: CGFloat?
     @State var contentWidth: CGFloat?
+    @State var contentHeight: CGFloat?
 
-    let list: [ArtistDetails]
+    let list: [Artist]
     let onItemSelected: (NavigationItem) -> Void
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack {
-                ForEach(list) { details in
-                    RemoteImage(url: details.imagePreviewUrl, content: { image in
+                ForEach(list) { artist in
+                    RemoteImage(url: artist.details.imagePreviewUrl, content: { image in
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fit)
@@ -28,18 +29,33 @@ struct PinnedArtistsView: View {
                         Color
                             .gray
                             .opacity(0.2)
+                            .frame(width: 80)
                     })
                     .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .overlay(alignment: .bottom) {
+                        if artist.highlightedRelease != nil {
+                            Text("Release")
+                                .font(.caption2.bold())
+                                .padding(4)
+                                .background(Color.secondaryAccentColor, in: RoundedRectangle(cornerRadius: 4))
+                                .foregroundColor(.black)
+                                .padding(.bottom, 2)
+                                .fixedSize(horizontal: true, vertical: false)
+                                .opacity(contentHeight ?? 0 > 90 ? 1 : 0)
+                                .animation(.easeOut(duration: 0.125), value: contentHeight)
+                        }
+                    }
                     .fixedSize(horizontal: true, vertical: false)
                     .onTapGesture {
-                        onItemSelected(.artistWithIdentifier(details.id))
+                        onItemSelected(.artistWithIdentifier(artist.id))
                     }
                 }
             }
             .padding(.horizontal, 4)
             .background(GeometryReader { geometry in
-                Color.clear.onChange(of: geometry.size.width) { width in
-                    contentWidth = width
+                Color.clear.onChange(of: geometry.size) { size in
+                    contentWidth = size.width
+                    contentHeight = size.height
                 }
             })
             .frame(width: artistsListWidth)
@@ -74,17 +90,17 @@ struct PinnedArtistsViewPreview: View {
 
     @Environment(\.requestLoader) var requestLoader
 
-    @State var list: [ArtistDetails] = []
+    @State var list: [Artist] = []
 
     var body: some View {
         PinnedArtistsView(list: list, onItemSelected: { _ in })
             .task {
                 if let artist = try? await WebService.artistWebService(requestLoader: requestLoader).fetchArtist(with: 287) {
                     list = [
-                        artist.details,
-                        artist.details,
-                        artist.details,
-                        artist.details
+                        artist,
+                        artist,
+                        artist,
+                        artist
                     ]
                 }
             }

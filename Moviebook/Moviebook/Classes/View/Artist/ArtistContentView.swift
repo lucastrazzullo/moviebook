@@ -18,6 +18,7 @@ struct ArtistContentView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 30) {
             HeaderView(details: artist.details)
+            HighlightedMovieView(artist: artist, onItemSelected: onItemSelected)
             
             if let biography = artist.details.biography, !biography.isEmpty {
                 ExpandibleOverviewView(isExpanded: $isOverviewExpanded, overview: biography)
@@ -72,6 +73,20 @@ private struct HeaderView: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 4)
+    }
+}
+
+private struct HighlightedMovieView: View {
+
+    let artist: Artist
+    let onItemSelected: (NavigationItem) -> Void
+
+    var body: some View {
+        if let highlightedRelease = artist.highlightedRelease {
+            MoviePreviewView(details: highlightedRelease, onItemSelected: onItemSelected)
+                .padding()
+                .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 4))
+        }
     }
 }
 

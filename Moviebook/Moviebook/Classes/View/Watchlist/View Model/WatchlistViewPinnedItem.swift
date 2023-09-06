@@ -9,7 +9,7 @@ import Foundation
 import MoviebookCommon
 
 enum WatchlistViewPinnedItem: Hashable {
-    case artist(ArtistDetails, FavouriteItemIdentifier)
+    case artist(Artist, FavouriteItemIdentifier)
 
     // MARK: View properties
 
