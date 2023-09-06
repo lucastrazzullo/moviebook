@@ -18,12 +18,15 @@ struct ArtistContentView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 30) {
             HeaderView(details: artist.details)
+            HighlightedMovieView(artist: artist, onItemSelected: onItemSelected)
             
             if let biography = artist.details.biography, !biography.isEmpty {
                 ExpandibleOverviewView(isExpanded: $isOverviewExpanded, overview: biography)
             }
 
-            SpecsView(title: "Info", items: specs)
+            if !specs.isEmpty {
+                SpecsView(title: "Info", items: specs)
+            }
 
             if !artist.filmography.isEmpty {
                 FilmographyView(
@@ -72,6 +75,30 @@ private struct HeaderView: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 4)
+    }
+}
+
+private struct HighlightedMovieView: View {
+
+    let artist: Artist
+    let onItemSelected: (NavigationItem) -> Void
+
+    var body: some View {
+        if let highlightedRelease = artist.highlightedRelease {
+            MoviePreviewView(details: highlightedRelease, onItemSelected: onItemSelected)
+                .padding(.vertical)
+                .padding(.horizontal, 8)
+                .background(.thickMaterial)
+                .cornerRadius(8)
+                .overlay(alignment: .top) {
+                    Image(systemName: "calendar.badge.exclamationmark")
+                        .font(.title)
+                        .foregroundStyle(.black)
+                        .padding(12)
+                        .background(.thickMaterial, in: Circle())
+                        .offset(y: -30)
+                }
+        }
     }
 }
 

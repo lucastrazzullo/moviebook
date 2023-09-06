@@ -19,18 +19,8 @@ actor Storage {
         let watchlistStorage = try await WatchlistStorage()
         let watchNextStorage = WatchNextStorage(webService: WebService.movieWebService(requestLoader: requestLoader))
 
-        // Migrate from legacy storage
-        let legacyWatchlistStorage = LegacyWatchlistStorage()
-        let legacyItems = try? await legacyWatchlistStorage.fetchWatchlistItems()
-
-        if let legacyItems, !legacyItems.isEmpty {
-            try await watchlistStorage.store(items: legacyItems)
-            try await legacyWatchlistStorage.deleteAllMovies()
-        }
-
         // Load items and watchlist
         let watchlistItems = try await watchlistStorage.fetchWatchlistItems()
-
         let watchlist = await Watchlist(items: watchlistItems)
         try await watchNextStorage.set(items: watchlistItems)
 
@@ -44,5 +34,21 @@ actor Storage {
             .store(in: &subscriptions)
 
         return watchlist
+    }
+
+    func loadFavourites() async throws -> Favourites {
+        let favouritesStorage = try await FavouritesStorage()
+        let favouriteItems = try await favouritesStorage.fetchFavourites()
+        let favourites = await Favourites(items: favouriteItems)
+
+        await favourites.itemsDidChange
+            .removeDuplicates()
+            .debounce(for: .seconds(1), scheduler: DispatchQueue.main)
+            .sink { items in Task {
+                try await favouritesStorage.store(items: items)
+            }}
+            .store(in: &subscriptions)
+
+        return favourites
     }
 }

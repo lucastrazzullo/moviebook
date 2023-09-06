@@ -26,8 +26,11 @@ struct ArtistView: View {
                     navigationPath: $navigationPath,
                     title: artist.details.name,
                     posterUrl: artist.details.imageOriginalUrl,
-                    trailingHeaderView: { _ in
-                        ShareButton(artistDetails: artist.details)
+                    trailingHeaderView: { compact in
+                        ArtistTrailingHeaderView(
+                            artistDetails: artist.details,
+                            compact: compact
+                        )
                     }, content: {
                         ArtistContentView(
                             artist: artist,
@@ -68,8 +71,42 @@ struct ArtistView: View {
         switch item {
         case .explore, .movieWithIdentifier, .artistWithIdentifier:
             navigationPath.append(item)
-        case .watchlistAddToWatchReason, .watchlistAddRating, .unratedItems:
+        case .watchlistAddToWatchReason, .watchlistAddRating, .unratedItems, .popularArtists:
             presentedItem = item
+        }
+    }
+}
+
+private struct ArtistTrailingHeaderView: View {
+
+    let artistDetails: ArtistDetails
+    let compact: Bool
+
+    var body: some View {
+        if compact {
+            Menu {
+                FavouritesButton(favouriteItemIdentifier: .artist(id: artistDetails.id)) { state in
+                    FavouritesLabel(itemState: state)
+                    FavouritesIcon(itemState: state)
+                }
+
+                ShareButton(artistDetails: artistDetails)
+            } label: {
+                Image(systemName: "ellipsis")
+                    .frame(width: 18, height: 18, alignment: .center)
+            }
+        } else {
+            HStack(spacing: 18) {
+                FavouritesButton(favouriteItemIdentifier: .artist(id: artistDetails.id)) { state in
+                    FavouritesIcon(itemState: state)
+                        .frame(width: 16, height: 16, alignment: .center)
+                        .padding(4)
+                }
+
+                ShareButton(artistDetails: artistDetails)
+                    .frame(width: 16, height: 16, alignment: .center)
+                    .padding(4)
+            }
         }
     }
 }
@@ -80,8 +117,7 @@ private struct ShareButton: View {
 
     var body: some View {
         ShareLink(item: Deeplink.artist(identifier: artistDetails.id).rawValue) {
-            Image(systemName: "square.and.arrow.up")
-                .frame(width: 18, height: 18, alignment: .center)
+            Label("Share", systemImage: "square.and.arrow.up")
         }
     }
 }
@@ -98,6 +134,7 @@ struct ArtistView_Previews: PreviewProvider {
                 presentedItem: .constant(nil)
             )
             .environmentObject(MockWatchlistProvider.shared.watchlist())
+            .environmentObject(Favourites(items: []))
             .environment(\.requestLoader, MockRequestLoader.shared)
         }
     }

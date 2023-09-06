@@ -49,6 +49,10 @@ private struct NavigationDestination: View {
                 presentedItem: $presentedItem
             )
             .id(id)
+        case .popularArtists:
+            PopularArtistsView(
+                presentedItem: $presentedItem
+            )
         case .artistWithIdentifier(let id):
             ArtistView(
                 artistId: id,
