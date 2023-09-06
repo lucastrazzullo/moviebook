@@ -117,8 +117,7 @@ private struct ShareButton: View {
 
     var body: some View {
         ShareLink(item: Deeplink.artist(identifier: artistDetails.id).rawValue) {
-            Image(systemName: "square.and.arrow.up")
-                .frame(width: 18, height: 18, alignment: .center)
+            Label("Share", systemImage: "square.and.arrow.up")
         }
     }
 }

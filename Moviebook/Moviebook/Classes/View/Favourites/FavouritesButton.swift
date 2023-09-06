@@ -19,30 +19,15 @@ struct FavouritesButton<LabelType>: View where LabelType: View  {
     @ViewBuilder let label: LabelBuilder
 
     var body: some View {
-        Menu {
-            FavouritesOptions(favouriteItemIdentifier: favouriteItemIdentifier)
-        } label: {
+        Button(action: {
+            switch favourites.itemState(id: favouriteItemIdentifier) {
+            case .pinned:
+                favourites.remove(itemWith: favouriteItemIdentifier)
+            case .none:
+                favourites.update(state: .pinned, forItemWith: favouriteItemIdentifier)
+            }
+        }) {
             label(favourites.itemState(id: favouriteItemIdentifier))
-        }
-    }
-}
-
-struct FavouritesOptions: View {
-
-    @EnvironmentObject var favourites: Favourites
-
-    let favouriteItemIdentifier: FavouriteItemIdentifier
-
-    var body: some View {
-        switch favourites.itemState(id: favouriteItemIdentifier) {
-        case .pinned:
-            Button { favourites.remove(itemWith: favouriteItemIdentifier) } label: {
-                Label("Remove", systemImage: "minus")
-            }
-        case .none:
-            Button { favourites.update(state: .pinned, forItemWith: favouriteItemIdentifier) } label: {
-                Label("Add to favourites", systemImage: "star.fill")
-            }
         }
     }
 }
@@ -68,16 +53,16 @@ enum FavouritesViewState {
         case .pinned:
             return "star.fill"
         case .none:
-            return "plus"
+            return "star"
         }
     }
 
     var label: String {
         switch self {
         case .pinned:
-            return "Pinned"
+            return "Favourited"
         case .none:
-            return "Add"
+            return "Favourite"
         }
     }
 }
