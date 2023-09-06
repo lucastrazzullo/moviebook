@@ -11,9 +11,29 @@ import MoviebookCommon
 
 @MainActor private final class Moviebook: ObservableObject {
 
-    @Published var watchlist: Watchlist?
-    @Published var favourites: Favourites?
-    @Published var error: Error?
+    enum State: Equatable {
+
+        static func == (lhs: Moviebook.State, rhs: Moviebook.State) -> Bool {
+            lhs.id == rhs.id
+        }
+
+        case ready(watchlist: Watchlist, favourites: Favourites)
+        case error(error: Error)
+        case loading
+
+        var id: String {
+            switch self {
+            case .ready:
+                return "ready"
+            case .error:
+                return "error"
+            case .loading:
+                return "loading"
+            }
+        }
+    }
+
+    @Published private(set) var state: State = .loading
 
     let notifications: Notifications = Notifications()
 
@@ -25,12 +45,10 @@ import MoviebookCommon
                 let watchlist = try await storage.loadWatchlist(requestLoader: requestLoader)
                 let favourites = try await storage.loadFavourites()
 
-                self.watchlist = watchlist
-                self.favourites = favourites
-
+                self.state = .ready(watchlist: watchlist, favourites: favourites)
                 await self.notifications.schedule(for: watchlist, requestLoader: requestLoader)
             } catch {
-                self.error = error
+                self.state = .error(error: error)
             }
         }
     }
@@ -47,18 +65,25 @@ struct MoviebookApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if let watchlist = application.watchlist,
-                   let favourites = application.favourites {
-                    makeWatchlistView(
-                        watchlist: watchlist,
-                        favourites: favourites
-                    )
-                } else if let error = application.error {
-                    makeErrorView(error: error)
-                } else {
-                    makeLoaderView()
+                switch application.state {
+                case .ready(let watchlist, let favourites):
+                    WatchlistView(presentedItem: $presentedItem)
+                        .sheet(item: $presentedItem) { item in
+                            Navigation(rootItem: item)
+                        }
+                        .environmentObject(watchlist)
+                        .environmentObject(favourites)
+                case .error(let error):
+                    RetriableErrorView(error: .failedToLoad(error: error) {
+                        application.start(requestLoader: requestLoader)
+                    })
+                case .loading:
+                    StartView {
+                        application.start(requestLoader: requestLoader)
+                    }
                 }
             }
+            .animation(.default, value: application.state)
             .onReceiveNotification(from: application.notifications, perform: openDeeplink(with:))
             .onOpenURL(perform: openDeeplink(with:))
             .onContinueUserActivity(CSSearchableItemActionType, perform: openDeeplink(with:))
@@ -97,29 +122,6 @@ struct MoviebookApp: App {
             presentedItem = .movieWithIdentifier(identifier)
         case .artist(let identifier):
             presentedItem = .artistWithIdentifier(identifier)
-        }
-    }
-
-    // MARK: View building
-
-    @ViewBuilder private func makeWatchlistView(watchlist: Watchlist, favourites: Favourites) -> some View {
-        WatchlistView(presentedItem: $presentedItem)
-            .sheet(item: $presentedItem) { item in
-                Navigation(rootItem: item)
-            }
-            .environmentObject(watchlist)
-            .environmentObject(favourites)
-    }
-
-    @ViewBuilder private func makeErrorView(error: Error) -> some View {
-        RetriableErrorView(error: .failedToLoad(error: error) {
-            application.start(requestLoader: requestLoader)
-        })
-    }
-
-    @ViewBuilder private func makeLoaderView() -> some View {
-        StartView {
-            application.start(requestLoader: requestLoader)
         }
     }
 }
