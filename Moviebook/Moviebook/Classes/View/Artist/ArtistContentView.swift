@@ -93,7 +93,7 @@ private struct HighlightedMovieView: View {
                 .overlay(alignment: .top) {
                     Image(systemName: "calendar.badge.exclamationmark")
                         .font(.title)
-                        .foregroundStyle(.black)
+                        .foregroundStyle(.tertiary)
                         .padding(12)
                         .background(.thickMaterial, in: Circle())
                         .offset(y: -30)
