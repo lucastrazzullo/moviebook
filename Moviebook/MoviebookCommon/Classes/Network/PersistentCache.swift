@@ -24,7 +24,15 @@ final class CacheEntry<Content: Codable>: Codable {
     }
 }
 
-struct PersistentCache {
+actor PersistentCache {
+
+    init() {
+        Task {
+            await cleanLegacyCache()
+        }
+    }
+
+    // MARK: Internal methods
 
     func cache<Content: Codable>(_ entry: CacheEntry<Content>, for urlRequest: URLRequest) throws {
         guard let fileName = fileName(for: urlRequest) else { return }
@@ -48,6 +56,17 @@ struct PersistentCache {
         return entry
     }
 
+    // MARK: Private methods
+
+    private func fileName(for urlRequest: URLRequest) -> URL? {
+        guard let fileName = urlRequest.url?.absoluteString.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
+              let applicationSupport = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first else {
+                  return nil
+              }
+
+        return applicationSupport.appendingPathComponent(fileName.replacingOccurrences(of: "/", with: "-"))
+    }
+
     private func cleanCache(for urlRequest: URLRequest) throws {
         guard let url = fileName(for: urlRequest) else {
             assertionFailure("Unable to generate a local path for \(urlRequest)")
@@ -57,12 +76,19 @@ struct PersistentCache {
         try FileManager.default.removeItem(at: url)
     }
 
-    private func fileName(for urlRequest: URLRequest) -> URL? {
-        guard let fileName = urlRequest.url?.absoluteString.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed),
-              let applicationSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
-                  return nil
-              }
+    private func cleanLegacyCache() async {
+        guard let documentsUrl = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
+            return
+        }
 
-        return applicationSupport.appendingPathComponent(fileName.replacingOccurrences(of: "/", with: "-"))
+        do {
+            let fileURLs = try FileManager.default.contentsOfDirectory(at: documentsUrl,
+                                                                       includingPropertiesForKeys: nil,
+                                                                       options: .skipsHiddenFiles)
+
+            for fileURL in fileURLs where fileURL.absoluteString.contains("tmdb.org") || fileURL.absoluteString.contains("themoviedb") {
+                try FileManager.default.removeItem(at: fileURL)
+            }
+        } catch  { print(error) }
     }
 }

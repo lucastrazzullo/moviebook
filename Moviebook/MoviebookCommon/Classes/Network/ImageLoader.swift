@@ -47,7 +47,7 @@ public actor ImageLoader {
                 }
             }
 
-            if let cachedEntry: CacheEntry<UIImageContainer> = try? persistentCache.getCached(for: urlRequest) {
+            if let cachedEntry: CacheEntry<UIImageContainer> = try? await persistentCache.getCached(for: urlRequest) {
                 images[urlRequest] = .fetched(cachedEntry)
                 return cachedEntry.content.image
             }
@@ -57,7 +57,7 @@ public actor ImageLoader {
                 let image = UIImage(data: imageData)!
                 let imageContainer = UIImageContainer(image: image)
                 let entry = CacheEntry(content: imageContainer, lifeTime: imageLifetime)
-                try? persistentCache.cache(entry, for: urlRequest)
+                try? await persistentCache.cache(entry, for: urlRequest)
                 images[urlRequest] = .fetched(entry)
                 return image
             }

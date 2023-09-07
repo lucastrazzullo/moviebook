@@ -49,7 +49,7 @@ public actor DefaultRequestLoader: RequestLoader {
                 }
             }
 
-            if let cachedEntry: CacheEntry<Data> = try? persistentCache.getCached(for: urlRequest) {
+            if let cachedEntry: CacheEntry<Data> = try? await persistentCache.getCached(for: urlRequest) {
                 requests[urlRequest] = .fetched(cachedEntry)
                 return cachedEntry.content
             }
@@ -62,7 +62,7 @@ public actor DefaultRequestLoader: RequestLoader {
             let task: Task<Data, Error> = Task {
                 let (data, _) = try await session.data(for: urlRequest)
                 let cacheEntry = CacheEntry(content: data, lifeTime: responseLifetime)
-                try? persistentCache.cache(cacheEntry, for: urlRequest)
+                try? await persistentCache.cache(cacheEntry, for: urlRequest)
                 requests[urlRequest] = .fetched(cacheEntry)
                 return data
             }
