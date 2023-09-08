@@ -134,7 +134,7 @@ struct ArtistView_Previews: PreviewProvider {
                 presentedItem: .constant(nil)
             )
             .environmentObject(MockWatchlistProvider.shared.watchlist())
-            .environmentObject(Favourites(items: []))
+            .environmentObject(MockFavouritesProvider.shared.favourites(empty: true))
             .environment(\.requestLoader, MockRequestLoader.shared)
         }
     }

@@ -76,6 +76,7 @@ struct PopularArtistsView_Previews: PreviewProvider {
     static var previews: some View {
         PopularArtistsView(presentedItem: .constant(nil))
             .environmentObject(MockWatchlistProvider.shared.watchlist())
+            .environmentObject(MockFavouritesProvider.shared.favourites())
             .environment(\.requestLoader, MockRequestLoader.shared)
     }
 }

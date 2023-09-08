@@ -124,10 +124,10 @@ struct FavouritesButton_Previews: PreviewProvider {
     static var previews: some View {
         VStack(spacing: 44) {
             IconFavouritesButton(favouriteItemIdentifier: .artist(id: 287))
-                .environmentObject(Favourites(items: []))
+                .environmentObject(MockFavouritesProvider.shared.favourites(empty: true))
 
             IconFavouritesButton(favouriteItemIdentifier: .artist(id: 287))
-                .environmentObject(Favourites(items: [.init(id: .artist(id: 287), state: .pinned)]))
+                .environmentObject(MockFavouritesProvider.shared.favourites())
         }
         .padding(44)
         .background(.thinMaterial)

@@ -152,6 +152,8 @@
 		81B7DBFB2A14BE1A00AF9118 /* ExploreContentViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B7DBFA2A14BE1A00AF9118 /* ExploreContentViewModel.swift */; };
 		81B7DBFF2A162F3500AF9118 /* EmptyWatchlistView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B7DBFE2A162F3500AF9118 /* EmptyWatchlistView.swift */; };
 		81BF6CF82A47435E00B58891 /* MoviebookCommon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 811124AF2A43511F009133C2 /* MoviebookCommon.framework */; };
+		81C3C1352AAB1B6B007E1825 /* MockFavouritesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81C3C1342AAB1B6B007E1825 /* MockFavouritesProvider.swift */; };
+		81C3C1372AAB1CFB007E1825 /* Favourites+Mock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81C3C1362AAB1CFB007E1825 /* Favourites+Mock.swift */; };
 		81CB75132A755E6F0011EB78 /* WatchlistViewItemGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81CB75122A755E6F0011EB78 /* WatchlistViewItemGroup.swift */; };
 		81D254742A066836006EBC1F /* RetriableErrorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81D254732A066836006EBC1F /* RetriableErrorView.swift */; };
 		81D4DBCF2A926F8F006F2C94 /* FavouritesButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81D4DBCE2A926F8F006F2C94 /* FavouritesButton.swift */; };
@@ -414,6 +416,8 @@
 		81B7DBF82A14050300AF9118 /* ExploreHorizontalSectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreHorizontalSectionView.swift; sourceTree = "<group>"; };
 		81B7DBFA2A14BE1A00AF9118 /* ExploreContentViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExploreContentViewModel.swift; sourceTree = "<group>"; };
 		81B7DBFE2A162F3500AF9118 /* EmptyWatchlistView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyWatchlistView.swift; sourceTree = "<group>"; };
+		81C3C1342AAB1B6B007E1825 /* MockFavouritesProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockFavouritesProvider.swift; sourceTree = "<group>"; };
+		81C3C1362AAB1CFB007E1825 /* Favourites+Mock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Favourites+Mock.swift"; sourceTree = "<group>"; };
 		81C7A5EC28D45B7F00AA24E3 /* MovieDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieDetails.swift; sourceTree = "<group>"; };
 		81C7A5EE28D45B8B00AA24E3 /* MovieCollection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovieCollection.swift; sourceTree = "<group>"; };
 		81CB75122A755E6F0011EB78 /* WatchlistViewItemGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistViewItemGroup.swift; sourceTree = "<group>"; };
@@ -540,6 +544,7 @@
 			children = (
 				814D46E428C23999000D7ABD /* MockRequestManager.swift */,
 				81A889B82A5BEE6600E4F69A /* MockWatchlistProvider.swift */,
+				81C3C1342AAB1B6B007E1825 /* MockFavouritesProvider.swift */,
 				816E64EA2A44B696007AEED1 /* Mock Server */,
 			);
 			path = Classes;
@@ -790,6 +795,7 @@
 				816E65202A45A64A007AEED1 /* WebService.swift */,
 				816E653D2A45B05B007AEED1 /* RequestManager+Mock.swift */,
 				81A889B62A5BEDEB00E4F69A /* Watchlist+Mock.swift */,
+				81C3C1362AAB1CFB007E1825 /* Favourites+Mock.swift */,
 				8194DF702A04FABB00A3FC2D /* Storage */,
 			);
 			path = Model;
@@ -1402,6 +1408,7 @@
 				811124A42A434F7B009133C2 /* MockServer.swift in Sources */,
 				811124A52A434F7B009133C2 /* MockRequestManager.swift in Sources */,
 				81A889B92A5BEE6600E4F69A /* MockWatchlistProvider.swift in Sources */,
+				81C3C1352AAB1B6B007E1825 /* MockFavouritesProvider.swift in Sources */,
 				816E64EC2A44B6A3007AEED1 /* StubMockServer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1489,6 +1496,7 @@
 				8169FB1F28C204450054BCE6 /* WatchlistView.swift in Sources */,
 				81989ED22A08F9CA00547584 /* Spotlight.swift in Sources */,
 				81666E7B2A86624A00381BB8 /* MovieYearSelectionView.swift in Sources */,
+				81C3C1372AAB1CFB007E1825 /* Favourites+Mock.swift in Sources */,
 				81A889B72A5BEDEB00E4F69A /* Watchlist+Mock.swift in Sources */,
 				8111247A2A40EA9B009133C2 /* Notifications.swift in Sources */,
 				81A889B52A5BDFF500E4F69A /* WatchlistUndoView.swift in Sources */,

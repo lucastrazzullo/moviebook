@@ -821,28 +821,28 @@ struct WatchlistView_Previews: PreviewProvider {
             WatchlistView(presentedItem: .constant(nil))
                 .environment(\.requestLoader, MockRequestLoader.shared)
                 .environmentObject(MockWatchlistProvider.shared.watchlist())
-                .environmentObject(Favourites(items: [.init(id: .artist(id: 287), state: .pinned)]))
+                .environmentObject(MockFavouritesProvider.shared.favourites())
         }
 
         NavigationView {
             WatchlistView(presentedItem: .constant(nil))
                 .environment(\.requestLoader, MockRequestLoader.shared)
                 .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .toWatchItems(withSuggestion: true)))
-                .environmentObject(Favourites(items: []))
+                .environmentObject(MockFavouritesProvider.shared.favourites(empty: true))
         }
 
         NavigationView {
             WatchlistView(presentedItem: .constant(nil))
                 .environment(\.requestLoader, MockRequestLoader.shared)
                 .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .empty))
-                .environmentObject(Favourites(items: [.init(id: .artist(id: 287), state: .pinned)]))
+                .environmentObject(MockFavouritesProvider.shared.favourites())
         }
 
         NavigationView {
             WatchlistView(presentedItem: .constant(nil))
                 .environment(\.requestLoader, MockRequestLoader.shared)
                 .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .empty))
-                .environmentObject(Favourites(items: []))
+                .environmentObject(MockFavouritesProvider.shared.favourites(empty: true))
         }
     }
 }
