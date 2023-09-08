@@ -13,58 +13,93 @@ struct PopularArtistsView: View {
     @Environment(\.requestLoader) var requestLoader
     @EnvironmentObject var watchlist: Watchlist
 
-    @StateObject var contentViewModel: ExploreContentViewModel
+    @StateObject private var popularArtistsViewModel: PopularArtistsViewModel
+    @StateObject private var searchVewModel: SearchViewModel
 
-    @Binding var presentedItem: NavigationItem?
+    @Binding private var presentedItem: NavigationItem?
+    @State private var isSearching: Bool = false
 
     var body: some View {
         ScrollView(showsIndicators: false) {
             ExploreVerticalSectionView(
-                viewModel: contentViewModel,
+                viewModel: isSearching
+                    ? searchVewModel.content
+                    : popularArtistsViewModel.content,
                 onItemSelected: { item in
                     presentedItem = item
                 }
             )
         }
+        .scrollDismissesKeyboard(.immediately)
         .safeAreaInset(edge: .top) {
-            VStack {
-                Text(contentViewModel.title)
-                    .font(.heroHeadline)
-                if let subtitle = contentViewModel.subtitle {
-                    Text(subtitle)
-                        .font(.caption)
-                }
-            }
-            .frame(maxWidth: .infinity)
+            HeaderView(
+                viewModel: isSearching
+                   ? searchVewModel.content
+                   : popularArtistsViewModel.content,
+                searchKeyword: $searchVewModel.searchKeyword,
+                isSearching: $isSearching
+            )
             .padding(.vertical)
             .background(.thinMaterial)
             .overlay(Rectangle().fill(.thinMaterial).frame(height: 1), alignment: .bottom)
         }
         .task {
-            await contentViewModel.fetch(
-                requestLoader: requestLoader,
-                updateDataProvider: { dataProvider in
-                    if let artists = dataProvider as? DiscoverPopularArtists {
-                        await artists.update(
-                            watchlistItems: watchlist.items,
-                            requestLoader: requestLoader
-                        )
-                    }
-                }
-            )
+            popularArtistsViewModel.start(watchlist: watchlist, requestLoader: requestLoader)
+            searchVewModel.start(requestLoader: requestLoader)
         }
     }
 
     init(presentedItem: Binding<NavigationItem?>) {
         _presentedItem = presentedItem
-        _contentViewModel = StateObject(
-            wrappedValue: ExploreContentViewModel(
-                dataProvider: DiscoverPopularArtists(),
-                title: "Popular artists",
-                subtitle: "based on your watchlist",
-                items: .artists([])
-            )
+        _popularArtistsViewModel = StateObject(
+            wrappedValue: PopularArtistsViewModel()
         )
+        _searchVewModel = StateObject(
+            wrappedValue: SearchViewModel(scope: .artist, query: "")
+        )
+    }
+}
+
+private struct HeaderView: View {
+
+    let viewModel: ExploreContentViewModel
+
+    @Binding var searchKeyword: String
+    @Binding var isSearching: Bool
+
+    @FocusState private var focusedField: Bool
+
+    var body: some View {
+        VStack {
+            ZStack {
+                VStack {
+                    Text(viewModel.title)
+                        .font(.heroHeadline)
+                    if let subtitle = viewModel.subtitle {
+                        Text(subtitle)
+                            .font(.caption)
+                    }
+                }
+
+                Button(action: { isSearching.toggle() }) {
+                    Image(systemName: isSearching ? "xmark" : "magnifyingglass")
+                }
+                .buttonStyle(OvalButtonStyle(.normal))
+                .padding(.trailing)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+
+            if isSearching {
+                TextField("Search an artist", text: $searchKeyword)
+                    .textFieldStyle(OvalTextFieldStyle())
+                    .textContentType(.givenName)
+                    .focused($focusedField)
+                    .submitLabel(.search)
+                    .padding(.horizontal)
+                    .onAppear { focusedField = true }
+            }
+        }
+        .animation(.default, value: isSearching)
     }
 }
 

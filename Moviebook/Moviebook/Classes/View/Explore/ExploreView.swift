@@ -135,6 +135,7 @@ struct ExploreView_Previews: PreviewProvider {
         )
         .environment(\.requestLoader, MockRequestLoader.shared)
         .environmentObject(MockWatchlistProvider.shared.watchlist())
+        .environmentObject(MockFavouritesProvider.shared.favourites())
     }
 }
 #endif
