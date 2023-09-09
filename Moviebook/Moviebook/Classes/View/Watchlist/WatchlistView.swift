@@ -216,44 +216,10 @@ private struct WatchlistPinnedArtistsView: View {
 
     var body: some View {
         if !watchlist.items.isEmpty {
-            VStack(alignment: .center, spacing: 8) {
-                Text("Favourite artists".uppercased())
-                    .font(.heroSubheadline)
-
-                Capsule()
-                    .foregroundColor(.secondaryAccentColor)
-                    .frame(width: 28, height: 4)
-
-                Group {
-                    if !viewModel.pinnedArtists().isEmpty {
-                        PinnedArtistsView(
-                            list: viewModel.pinnedArtists(),
-                            onItemSelected: onItemSelected
-                        )
-                    } else {
-                        Text("Here you can pin your favourite artists")
-                            .font(.caption)
-
-                        HStack {
-                            ForEach(0...4, id: \.self) { index in
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .foregroundStyle(.thinMaterial)
-
-                                    if index == 0 {
-                                        Image(systemName: "plus")
-                                    }
-                                }
-                                .onTapGesture {
-                                    onItemSelected(.popularArtists)
-                                }
-                            }
-                        }
-                        .padding(.horizontal, 4)
-                    }
-                }
-                .frame(minHeight: 24)
-            }
+            PinnedArtistsView(
+                list: viewModel.pinnedArtists(),
+                onItemSelected: onItemSelected
+            )
             .padding(.bottom)
             .background(.background.opacity(shouldShowBackground ? 1 : 0))
             .overlay(Rectangle().fill(.thinMaterial).frame(height: 1).opacity(shouldShowBackground ? 1 : 0), alignment: .bottom)
@@ -821,28 +787,28 @@ struct WatchlistView_Previews: PreviewProvider {
             WatchlistView(presentedItem: .constant(nil))
                 .environment(\.requestLoader, MockRequestLoader.shared)
                 .environmentObject(MockWatchlistProvider.shared.watchlist())
-                .environmentObject(Favourites(items: [.init(id: .artist(id: 287), state: .pinned)]))
+                .environmentObject(MockFavouritesProvider.shared.favourites())
         }
 
         NavigationView {
             WatchlistView(presentedItem: .constant(nil))
                 .environment(\.requestLoader, MockRequestLoader.shared)
                 .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .toWatchItems(withSuggestion: true)))
-                .environmentObject(Favourites(items: []))
+                .environmentObject(MockFavouritesProvider.shared.favourites(empty: true))
         }
 
         NavigationView {
             WatchlistView(presentedItem: .constant(nil))
                 .environment(\.requestLoader, MockRequestLoader.shared)
                 .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .empty))
-                .environmentObject(Favourites(items: [.init(id: .artist(id: 287), state: .pinned)]))
+                .environmentObject(MockFavouritesProvider.shared.favourites())
         }
 
         NavigationView {
             WatchlistView(presentedItem: .constant(nil))
                 .environment(\.requestLoader, MockRequestLoader.shared)
                 .environmentObject(MockWatchlistProvider.shared.watchlist(configuration: .empty))
-                .environmentObject(Favourites(items: []))
+                .environmentObject(MockFavouritesProvider.shared.favourites(empty: true))
         }
     }
 }

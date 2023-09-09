@@ -85,7 +85,7 @@ private struct ArtistPreviewViewPreview: View {
             let webService = WebService.artistWebService(requestLoader: requestLoader)
             artist = try! await webService.fetchArtist(with: 287)
         }
-        .environmentObject(Favourites(items: []))
+        .environmentObject(MockFavouritesProvider.shared.favourites(empty: true))
     }
 }
 #endif

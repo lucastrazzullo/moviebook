@@ -10,9 +10,79 @@ import MoviebookCommon
 
 struct PinnedArtistsView: View {
 
+    let list: [Artist]
+    let onItemSelected: (NavigationItem) -> Void
+
+    var body: some View {
+
+        VStack(alignment: .center, spacing: 8) {
+            Text("Favourite artists".uppercased())
+                .font(.heroSubheadline)
+
+            Capsule()
+                .foregroundColor(.secondaryAccentColor)
+                .frame(width: 28, height: 4)
+
+            Group {
+                if !list.isEmpty {
+                    FullListView(
+                        list: list,
+                        onItemSelected: onItemSelected
+                    )
+                } else {
+                    EmptyListView(
+                        onItemSelected: onItemSelected
+                    )
+                }
+            }
+            .frame(minHeight: 24)
+        }
+    }
+}
+
+private struct EmptyItem: View {
+
+    let showsPlusIcon: Bool
+    let onItemSelected: (NavigationItem) -> Void
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 8)
+                .foregroundStyle(.thinMaterial)
+
+            if showsPlusIcon {
+                Image(systemName: "plus")
+            }
+        }
+        .onTapGesture {
+            onItemSelected(.popularArtists)
+        }
+    }
+}
+
+private struct EmptyListView: View {
+
+    let onItemSelected: (NavigationItem) -> Void
+
+    var body: some View {
+        Text("Here you can pin your favourite artists")
+            .font(.caption)
+
+        HStack {
+            ForEach(0...4, id: \.self) { index in
+                EmptyItem(showsPlusIcon: index == 2, onItemSelected: onItemSelected)
+            }
+        }
+        .padding(.horizontal, 4)
+    }
+}
+
+private struct FullListView: View {
+
     @State var screenWidth: CGFloat?
     @State var contentWidth: CGFloat?
     @State var contentHeight: CGFloat?
+    @State var itemAspectRatio: CGFloat?
 
     let list: [Artist]
     let onItemSelected: (NavigationItem) -> Void
@@ -25,6 +95,11 @@ struct PinnedArtistsView: View {
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fit)
+                            .background(GeometryReader { geometry in
+                                Color.clear.onAppear {
+                                    itemAspectRatio = geometry.size.width / geometry.size.height
+                                }
+                            })
                     }, placeholder: {
                         Color
                             .gray
@@ -50,6 +125,9 @@ struct PinnedArtistsView: View {
                         onItemSelected(.artistWithIdentifier(artist.id))
                     }
                 }
+
+                EmptyItem(showsPlusIcon: true, onItemSelected: onItemSelected)
+                    .aspectRatio(itemAspectRatio ?? 0.5, contentMode: .fit)
             }
             .padding(.horizontal, 4)
             .background(GeometryReader { geometry in
@@ -58,14 +136,14 @@ struct PinnedArtistsView: View {
                     contentHeight = size.height
                 }
             })
-            .frame(width: artistsListWidth)
+            .frame(width: listWidth)
         }
         .background(GeometryReader { geometry in Color.clear.onAppear {
             screenWidth = geometry.size.width
         }})
     }
 
-    private var artistsListWidth: CGFloat? {
+    private var listWidth: CGFloat? {
         guard let screenWidth, let contentWidth else {
             return nil
         }
@@ -83,26 +161,47 @@ struct PinnedArtistsView_Previews: PreviewProvider {
         PinnedArtistsViewPreview()
             .frame(height: 180)
             .environment(\.requestLoader, MockRequestLoader.shared)
+            .environmentObject(MockFavouritesProvider.shared.favourites())
+
+        PinnedArtistsViewPreview()
+            .frame(height: 180)
+            .environment(\.requestLoader, MockRequestLoader.shared)
+            .environmentObject(MockFavouritesProvider.shared.favourites(empty: true))
     }
 }
 
 struct PinnedArtistsViewPreview: View {
 
     @Environment(\.requestLoader) var requestLoader
+    @EnvironmentObject var favourites: Favourites
 
     @State var list: [Artist] = []
 
     var body: some View {
         PinnedArtistsView(list: list, onItemSelected: { _ in })
             .task {
-                if let artist = try? await WebService.artistWebService(requestLoader: requestLoader).fetchArtist(with: 287) {
-                    list = [
-                        artist,
-                        artist,
-                        artist,
-                        artist
-                    ]
-                }
+                do {
+                    list = try await withThrowingTaskGroup(of: Artist.self) { group in
+                        var result = [Artist]()
+
+                        favourites.items.forEach { item in
+                            switch item.id {
+                            case .artist(let id):
+                                group.addTask {
+                                    return try await WebService
+                                        .artistWebService(requestLoader: requestLoader)
+                                        .fetchArtist(with: id)
+                                }
+                            }
+                        }
+
+                        for try await item in group {
+                            result.append(item)
+                        }
+
+                        return result
+                    }
+                } catch {}
             }
     }
 }
