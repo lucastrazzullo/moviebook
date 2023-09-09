@@ -329,9 +329,12 @@ private struct ListView: View {
     let groups: [WatchlistViewItemGroup]
     let onItemSelected: (NavigationItem) -> Void
 
+    @State private var isHeaderExpanded: Bool = false
+
     var body: some View {
         VStack {
             WatchlistListHeaderView(
+                isExpanded: $isHeaderExpanded,
                 section: section,
                 items: groups.flatMap(\.items),
                 onItemSelected: onItemSelected
@@ -350,10 +353,13 @@ private struct ListView: View {
             }
         }
         .padding(.horizontal, 4)
+        .animation(.default, value: isHeaderExpanded)
     }
 }
 
 private struct WatchlistListHeaderView: View {
+
+    @Binding var isExpanded: Bool
 
     let section: WatchlistViewSection
     let items: [WatchlistViewItem]
@@ -376,9 +382,19 @@ private struct WatchlistListHeaderView: View {
     private var specs: [SpecsView.Item] {
         var specs = [SpecsView.Item?]()
         specs.append(totalNumberOfItems)
-        specs.append(totalNumberOfWatchedHours)
-        specs.append(popularGenres)
-        specs.append(unratedItems)
+
+        if isExpanded {
+            specs.append(totalNumberOfWatchedHours)
+            specs.append(popularGenres)
+            specs.append(unratedItems)
+            specs.append(.button({ isExpanded = false },
+                                 buttonLabel: "hide",
+                                 label: "Stats"))
+        } else {
+            specs.append(.button({ isExpanded = true },
+                                 buttonLabel: "show",
+                                 label: "Stats"))
+        }
 
         return specs.compactMap({$0})
     }
