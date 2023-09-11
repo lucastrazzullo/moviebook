@@ -63,7 +63,7 @@ struct UnratedWatchlistItems: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: dismiss.callAsFunction) {
-                        Text(NSLocalizedString("NAVIGATION.ACTION.DONE", comment: ""))
+                        Text("Done")
                     }
                 }
             }

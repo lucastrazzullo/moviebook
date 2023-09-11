@@ -23,10 +23,11 @@ import MoviebookCommon
     init() {
         self.sectionsContent = [
             ExploreContentViewModel(dataProvider: DiscoverRelated(), title: "For you", subtitle: "Based on your watchlist", items: .movies([])),
-            ExploreContentViewModel(dataProvider: DiscoverSection(discoverSection: .popular), title: NSLocalizedString("MOVIE.POPULAR", comment: ""), subtitle: nil, items: .movies([])),
-            ExploreContentViewModel(dataProvider: DiscoverSection(discoverSection: .nowPlaying), title: NSLocalizedString("MOVIE.NOW_PLAYING", comment: ""), subtitle: nil, items: .movies([])),
-            ExploreContentViewModel(dataProvider: DiscoverSection(discoverSection: .upcoming), title: NSLocalizedString("MOVIE.UPCOMING", comment: ""), subtitle: nil, items: .movies([])),
-            ExploreContentViewModel(dataProvider: DiscoverSection(discoverSection: .topRated), title: NSLocalizedString("MOVIE.TOP_RATED", comment: ""), subtitle: nil, items: .movies([])),
+            ExploreContentViewModel(dataProvider: DiscoverCollections(), title: "Collections", subtitle: "Continue watching", items: .movies([])),
+            ExploreContentViewModel(dataProvider: DiscoverSection(discoverSection: .popular), title: "Popular", subtitle: nil, items: .movies([])),
+            ExploreContentViewModel(dataProvider: DiscoverSection(discoverSection: .nowPlaying), title: "Now playing", subtitle: nil, items: .movies([])),
+            ExploreContentViewModel(dataProvider: DiscoverSection(discoverSection: .upcoming), title: "Upcoming", subtitle: nil, items: .movies([])),
+            ExploreContentViewModel(dataProvider: DiscoverSection(discoverSection: .topRated), title: "Top rated", subtitle: nil, items: .movies([])),
             ExploreContentViewModel(dataProvider: DiscoverPopularArtists(), title: "Popular artists", subtitle: "Based on your watchlist", items: .artists([]))
         ]
     }
@@ -82,6 +83,12 @@ import MoviebookCommon
                         }
                         if let artists = dataProvider as? DiscoverPopularArtists {
                             await artists.update(
+                                watchlistItems: watchlistItems,
+                                requestLoader: requestLoader
+                            )
+                        }
+                        if let collections = dataProvider as? DiscoverCollections {
+                            await collections.update(
                                 watchlistItems: watchlistItems,
                                 requestLoader: requestLoader
                             )

@@ -52,17 +52,17 @@ struct ExploreView: View {
                 .scrollIndicators(.hidden)
                 .scrollDismissesKeyboard(.immediately)
                 .navigationBarTitleDisplayMode(.inline)
-                .navigationTitle(NSLocalizedString("EXPLORE.TITLE", comment: ""))
+                .navigationTitle("Browse")
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         Button(action: dismiss.callAsFunction) {
-                            Text(NSLocalizedString("NAVIGATION.ACTION.DONE", comment: ""))
+                            Text("Done")
                         }
                     }
                 }
                 .searchable(
                     text: $searchViewModel.searchKeyword,
-                    prompt: NSLocalizedString("EXPLORE.SEARCH.PROMPT", comment: "")
+                    prompt: "Search"
                 )
                 .searchScopes($searchViewModel.searchScope) {
                     ForEach(SearchDataProvider.Scope.allCases, id: \.self) { scope in

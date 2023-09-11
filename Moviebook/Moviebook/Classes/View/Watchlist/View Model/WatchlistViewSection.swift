@@ -19,9 +19,9 @@ enum WatchlistViewSection: String, Identifiable, Hashable, Equatable, CaseIterab
     var name: String {
         switch self {
         case .toWatch:
-            return NSLocalizedString("WATCHLIST.TO_WATCH.TITLE", comment: "")
+            return "Watchlist"
         case .watched:
-            return NSLocalizedString("WATCHLIST.WATCHED.TITLE", comment: "")
+            return "Watched"
         }
     }
 
